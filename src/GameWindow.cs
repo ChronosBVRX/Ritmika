@@ -80,12 +80,9 @@ namespace RitmikaLauncher
                 var env = await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null, null, options);
                 await webView.EnsureCoreWebView2Async(env);
                 
-                // Mostrar la página de carga local inmediatamente
-                string loadingHtmlPath = Path.Combine(Application.StartupPath, "public", "loading.html");
-                if (File.Exists(loadingHtmlPath)) {
-                    webView.Source = new Uri(loadingHtmlPath);
-                }
-
+                // Eliminar la carga de la página local (loading.html) para evitar doble pantalla
+                // Simplemente esperamos a que el servidor esté listo
+                
                 // Iniciar polling al servidor Node.js
                 var readyTimer = new Timer { Interval = 500 };
                 readyTimer.Tick += (s, e) =>
@@ -114,23 +111,14 @@ namespace RitmikaLauncher
             }
         }
 
-        async void LoadGame()
+        void LoadGame()
         {
             if (transitioning) return;
             transitioning = true;
 
             try
             {
-                // Esperamos 4 segundos para que la pantalla de carga (loading.html)
-                // alcance el 99% en su animación y el jugador pueda apreciarla.
-                await System.Threading.Tasks.Task.Delay(4000);
-
-                // Fade out sutil de la primera pantalla antes de cargar la segunda
-                await webView.ExecuteScriptAsync("document.body.style.transition='opacity 0.6s ease'; document.body.style.opacity='0';");
-                await System.Threading.Tasks.Task.Delay(600);
-
-                // Añadimos un parámetro dinámico para evitar que Chromium (WebView2) 
-                // almacene en caché el archivo tv.html entre ejecuciones.
+                // Cargar el juego inmediatamente sin esperas artificiales
                 webView.Source = new Uri("http://127.0.0.1:3000/?v=" + DateTime.Now.Ticks);
             }
             catch (Exception ex)

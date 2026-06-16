@@ -1266,6 +1266,12 @@
         <span class="boot-check-icon" id="boot-icon-4">⏳</span>
         <span class="boot-check-detail" id="boot-detail-4"></span>
       </div>
+      <div class="boot-check" id="boot-step-5">
+        <span class="boot-check-text">Optimizando motor de juego</span>
+        <div class="cyber-loader"></div>
+        <span class="boot-check-icon" id="boot-icon-5">⏳</span>
+        <span class="boot-check-detail" id="boot-detail-5" style="font-family: monospace; color: #00e5ff; font-size: 0.95rem; text-transform: none; margin-top: 10px; font-weight: 600; letter-spacing: 0px;"></span>
+      </div>
     </div>
     
     <div class="boot-done-banner" id="boot-done">¡TODO LISTO!</div>
@@ -1723,7 +1729,7 @@ window.catalogoKaraoke = [];
 //  BOOTLOADER STATE MACHINE
 // ════════════════════════════════════════════
 const boot = {
-  steps: { 1: false, 2: false, 3: false, 4: false },
+  steps: { 1: false, 2: false, 3: false, 4: false, 5: false },
   queue: [],
   processing: false,
   step(n, state, detail) {
@@ -1759,6 +1765,15 @@ const boot = {
     this.processing = false;
   },
   checkAll() {
+    if (this.steps[1] && this.steps[2] && this.steps[3] && this.steps[4] && !this.steps[5] && !this.simulating5) {
+      this.simulating5 = true;
+      this.step(5, 'active', 'Inicializando recursos premium...');
+      this.step(5, 'active', 'Cargando modelos acústicos...');
+      this.step(5, 'active', 'Afinando instrumentos del Tío Axolo...');
+      this.step(5, 'active', 'Renderizando texturas 4K...');
+      this.step(5, 'done', 'Motor gráfico y de audio listo');
+      return;
+    }
     const allDone = Object.values(this.steps).every(v => v);
     if (!allDone) return;
     const banner = document.getElementById('boot-done');
@@ -2354,6 +2369,16 @@ function animateLobbyWelcome() {
       RitmikaStyleFX.dropIn(el, { delay: i * 120 });
     });
   }, 600);
+
+  setTimeout(() => {
+    if (window.pendingLobbyAudio) {
+      axoloSay(window.pendingLobbyAudio.text, window.pendingLobbyAudio.file);
+      window.pendingLobbyAudio = null;
+    } else {
+      const wChoice = LOBBY_WELCOME_PHRASES[Math.floor(Math.random() * LOBBY_WELCOME_PHRASES.length)];
+      axoloSay(wChoice.text, wChoice.file);
+    }
+  }, 1200);
 }
 
 // ════════════════════════════════════════════
@@ -2458,6 +2483,9 @@ function showScreen(id, transitionType, onComplete) {
   if (!next || (current && current.id === id)) return;
 
   if (!current) {
+    next.style.display = '';
+    next.style.opacity = '';
+    next.style.transform = '';
     next.classList.add('active');
     if (onComplete) onComplete();
     return;
@@ -2629,8 +2657,7 @@ socket.on('tv:room_created', ({ roomCode, localIP, hotspotSSID, hotspotPassword 
   } else {
     document.getElementById('restore-banner').classList.add('hidden');
     const rrChoice = ROOM_READY_PHRASES[Math.floor(Math.random() * ROOM_READY_PHRASES.length)];
-    lobbySoundPlayed = true;
-    axoloSay(rrChoice.text, rrChoice.file);
+    window.pendingLobbyAudio = rrChoice;
   }
   updateTicker(`Sala ${roomCode} creada. ¡Comparte el código!`);
 
@@ -4566,13 +4593,7 @@ async function inicializarQRConexion() {
   }
 }
 
-let lobbySoundPlayed = false;
-setTimeout(() => {
-  if (lobbySoundPlayed) return;
-  lobbySoundPlayed = true;
-  const wChoice = LOBBY_WELCOME_PHRASES[Math.floor(Math.random() * LOBBY_WELCOME_PHRASES.length)];
-  axoloSay(wChoice.text, wChoice.file);
-}, 1200);
+
 
 // ════════════════════════════════════════════
 //  PARTICLES BACKGROUND

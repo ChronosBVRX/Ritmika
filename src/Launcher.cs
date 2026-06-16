@@ -27,9 +27,9 @@ namespace RitmikaLauncher
 
             StartServer();
 
-            string welcome = Path.Combine(Application.StartupPath, "public", "assets", "audio", "new_game.mp3");
-            if (File.Exists(welcome))
-                AudioPlayer.PlayOnce(welcome);
+            // string welcome = Path.Combine(Application.StartupPath, "public", "assets", "audio", "new_game.mp3");
+            // if (File.Exists(welcome))
+            //     AudioPlayer.PlayOnce(welcome);
 
             try
             {

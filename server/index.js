@@ -45,8 +45,16 @@ function checkFFmpeg() {
 }
 checkFFmpeg();
 
-function isNativeFormat(contentType) {
-  const ct = contentType.toLowerCase();
+function isNativeFormat(contentType, contentDisposition = '') {
+  const ct = (contentType || '').toLowerCase();
+  const cd = (contentDisposition || '').toLowerCase();
+
+  // Forzar transcodificación para formatos que sabemos que no son nativos,
+  // incluso si Google Drive los manda como application/octet-stream.
+  if (cd.includes('.avi') || cd.includes('.mkv') || cd.includes('.flv') || cd.includes('.wmv')) {
+    return false;
+  }
+
   return NATIVE_VIDEO_FORMATS.some(f => ct.includes(f)) || STREAMABLE_TYPES.some(t => ct.includes(t));
 }
 
@@ -270,7 +278,7 @@ app.get('/api/video-proxy', (req, res) => {
       }
 
       // ─── Decide: native stream or FFmpeg transcode ────
-      if (isNativeFormat(contentType)) {
+      if (isNativeFormat(contentType, respHeaders['content-disposition'])) {
         // Native browser format → stream directly
         console.log(`[Video Proxy] Nativo → streaming ${fileId} (${contentType})`);
         res.status(statusCode);
@@ -409,8 +417,11 @@ function canAct(socketId, cooldownMs = 1000) {
   return true;
 }
 
+const packageVersion = require('../package.json').version;
+
 io.on('connection', (socket) => {
   console.log(`[+] Conexión: ${socket.id}`);
+  socket.emit('server_version', packageVersion);
 
   // ──────────────────────────────────────────────────────────
   // TV: Crea una nueva sala
