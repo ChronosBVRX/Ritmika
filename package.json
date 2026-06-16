@@ -1,6 +1,6 @@
 {
   "name": "ritmika",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Rítmika – Karaoke Party Game al estilo Jackbox. Anfitrión: Tío Axolo.",
   "main": "server/index.js",
   "scripts": {
