@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <title>Rítmika 🎤 — Únete</title>
+  <meta name="description" content="Únete a la fiesta de karaoke Rítmika desde tu celular." />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Fredoka:wght@300;400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS (local) -->
+  <script src="/libs/tailwind.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'neon-pink':   '#ec4899',
+            'neon-cyan':   '#22d3ee',
+            'neon-purple': '#a855f7',
+            'neon-yellow': '#facc15',
+            'antro-bg':    '#0f172a',
+            'antro-card':  '#1e293b',
+            'jb-magenta':  '#f0047f',
+            'jb-cyan':     '#00e5ff',
+            'jb-yellow':   '#ffe600',
+            'jb-lime':     '#b8ff57',
+          },
+          fontFamily: {
+            outfit:  ['Outfit', 'sans-serif'],
+            fredoka: ['Fredoka', 'sans-serif'],
+            paytone: ['Paytone One', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Anime.js (local) -->
+  <script src="/libs/anime.min.js"></script>
+  <script src="/js/animations.js"></script>
+
+  <!-- Socket.io Client -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; min-height: 100dvh;
+      background: #0a0a14;
+      font-family: 'Fredoka', sans-serif;
+      color: #f1f5f9;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    /* ── Screen system ──────────────────────────────────────── */
+    .screen {
+      display: none;
+      min-height: 100dvh;
+      flex-direction: column;
+      padding: 1.25rem;
+      animation: fadeSlideIn 0.35s ease forwards;
+      position: absolute; inset: 0; z-index: 1;
+      background: #0a0a14;
+    }
+    .screen.active { display: flex; position: relative; z-index: 2; }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeSlideOut {
+      from { opacity: 1; transform: translateY(0); }
+      to   { opacity: 0; transform: translateY(-20px); }
+    }
+    @keyframes scaleOut {
+      from { opacity: 1; transform: scale(1); }
+      to   { opacity: 0; transform: scale(0.8); }
+    }
+
+    /* ── Neon utilities ─────────────────────────────────────── */
+    .glow-pink   { text-shadow: 0 0 15px #ec4899, 0 0 40px #ec489966; }
+    .glow-cyan   { text-shadow: 0 0 15px #22d3ee, 0 0 40px #22d3ee66; }
+    .glow-purple { text-shadow: 0 0 15px #a855f7; }
+
+    /* ── Input fields ───────────────────────────────────────── */
+    .neon-input {
+      width: 100%;
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 1rem;
+      padding: 1rem 1.25rem;
+      font-size: 1.1rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      color: #f1f5f9;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+    .neon-input:focus {
+      border-color: #ec4899;
+      box-shadow: 0 0 0 3px #ec489933, 0 0 20px #ec489922;
+    }
+    .neon-input::placeholder { color: #475569; font-weight: 400; }
+
+    /* ── Code input group ───────────────────────────────────── */
+    .code-inputs { display: flex; gap: 0.6rem; justify-content: center; }
+    .code-digit {
+      width: 3.5rem; height: 4.5rem;
+      background: #111827;
+      border: 3px solid #0a0a14;
+      border-radius: 0.875rem;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 900;
+      font-family: 'Paytone One', sans-serif;
+      color: #ffe600;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      caret-color: #ffe600;
+      -webkit-appearance: none;
+    }
+    .code-digit:focus {
+      border-color: #ffe600;
+      box-shadow: 0 0 0 3px rgba(255,230,0,0.3);
+    }
+
+    /* ── Buttons ────────────────────────────────────────────── */
+    .btn-primary {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 1rem;
+      border: 3px solid #111827;
+      font-family: 'Paytone One', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 900;
+      cursor: pointer;
+      background: #ffe600;
+      color: #111827;
+      box-shadow: 4px 4px 0px #111827;
+      transition: transform 0.1s, box-shadow 0.1s;
+      -webkit-appearance: none;
+      letter-spacing: 0.03em;
+    }
+    .btn-primary:active {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0px #111827;
+    }
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 0.875rem;
+      border-radius: 1rem;
+      border: 2px solid #334155;
+      background: #1e293b;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      -webkit-appearance: none;
+    }
+    .btn-secondary:active { border-color: #ec4899; color: #f9a8d4; }
+
+    /* ── Avatar grid ────────────────────────────────────────── */
+    .avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+    .avatar-btn {
+      aspect-ratio: 0.82;
+      border-radius: 1.25rem;
+      border: 2px solid #334155;
+      background: #1e293b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+      -webkit-appearance: none;
+    }
+    .avatar-btn .avatar-img-wrapper {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .avatar-btn .avatar-png-img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+      filter: drop-shadow(0px 3px 5px rgba(0, 0, 0, 0.35));
+    }
+    .avatar-btn .avatar-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 0.25rem;
+      transition: color 0.15s;
+    }
+    .avatar-btn.selected {
+      border-color: #111827 !important;
+      border-width: 3px;
+      box-shadow: 4px 4px 0px #111827;
+      transform: scale(1.05) rotate(-1deg);
+    }
+    .avatar-btn:active { transform: scale(0.94); }
+
+    /* ── Genre grid ─────────────────────────────────────────── */
+    .genre-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.65rem;
+    }
+    .genre-btn {
+      padding: 0.875rem 0.5rem;
+      border-radius: 1rem;
+      border: 2px solid #334155;
+      background: #1e293b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      cursor: pointer;
+      transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s, background 0.12s;
+      -webkit-appearance: none;
+    }
+    .genre-btn .genre-icon { font-size: 1.6rem; }
+    .genre-btn .genre-name { font-size: 0.8rem; font-weight: 700; color: #94a3b8; }
+    .genre-btn.selected {
+      transform: scale(1.04) rotate(0.8deg);
+      background: #ffe600;
+      border-color: #111827;
+      border-width: 3px;
+      box-shadow: 3px 3px 0px #111827;
+    }
+    .genre-btn:active { transform: scale(0.95); }
+
+    /* ── Artist chips ───────────────────────────────────────── */
+    .artist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+    .artist-chip {
+      padding: 0.75rem 0.75rem;
+      border-radius: 0.875rem;
+      border: 2px solid #334155;
+      background: #1e293b;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #94a3b8;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.12s;
+      -webkit-appearance: none;
+    }
+    .artist-chip.selected {
+      border-color: #22d3ee;
+      color: #22d3ee;
+      background: #22d3ee18;
+      box-shadow: 0 0 10px #22d3ee33;
+    }
+    .artist-chip:active { transform: scale(0.95); }
+
+    /* ── Waiting room ───────────────────────────────────────── */
+    .player-pip {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: #1e293b;
+      border-radius: 0.75rem;
+      border: 1px solid #334155;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* ── Action buttons (sabotages) ─────────────────────────── */
+    .action-btn {
+      border: none;
+      border-radius: 1rem;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      transition: transform 0.1s, box-shadow 0.1s;
+      -webkit-appearance: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .action-btn:active { transform: scale(0.92); }
+    .action-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.15);
+      opacity: 0;
+      border-radius: inherit;
+      transition: opacity 0.1s;
+    }
+    .action-btn:active::after { opacity: 1; }
+
+    /* ── Emoji buttons row ──────────────────────────────────── */
+    .emoji-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .emoji-btn {
+      width: 3.5rem; height: 3.5rem;
+      border-radius: 50%;
+      border: 2px solid #334155;
+      background: #1e293b;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
+      -webkit-appearance: none;
+    }
+    .emoji-btn:active {
+      transform: scale(0.88);
+      border-color: #ec4899;
+      box-shadow: 0 0 15px #ec489966;
+    }
+
+    /* ── Tomatazo button ────────────────────────────────────── */
+    #tomatazo-btn {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      box-shadow: 0 4px 20px #ef444444;
+      color: white;
+      padding: 1rem;
+      font-size: 1.1rem;
+    }
+    #tomatazo-btn:disabled { opacity: 0.35; }
+
+    /* ── Sabotage button ────────────────────────────────────── */
+    #sabotage-btn {
+      background: linear-gradient(135deg, #a855f7, #7c3aed);
+      box-shadow: 0 4px 20px #a855f744;
+      color: white;
+      padding: 1rem;
+      font-size: 1rem;
+    }
+
+    /* ── Vote buttons ───────────────────────────────────────── */
+    .vote-btn {
+      border: 2px solid;
+      border-radius: 1rem;
+      padding: 0.875rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      line-height: 1.3;
+      transition: all 0.15s;
+      background: #1e293b;
+      -webkit-appearance: none;
+    }
+    .vote-btn:active { transform: scale(0.94); }
+    .vote-btn.gold   { border-color: #facc15; color: #facc15; }
+    .vote-btn.gold:active   { background: #facc1518; box-shadow: 0 0 20px #facc1555; }
+    .vote-btn.silver { border-color: #94a3b8; color: #94a3b8; }
+    .vote-btn.silver:active { background: #94a3b818; }
+    .vote-btn.bronze { border-color: #f97316; color: #f97316; }
+    .vote-btn.bronze:active { background: #f9731618; }
+    .vote-btn.trash  { border-color: #6b7280; color: #6b7280; }
+    .vote-btn.trash:active  { background: #6b728018; }
+
+    /* ── Progress bar ───────────────────────────────────────── */
+    .progress-track {
+      height: 6px;
+      background: #1e293b;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ec4899, #a855f7);
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+
+    /* ── Toast notification ─────────────────────────────────── */
+    #toast {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: #1e293b;
+      border: 1px solid #ec489966;
+      border-radius: 0.875rem;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #f9a8d4;
+      white-space: nowrap;
+      z-index: 999;
+      box-shadow: 0 4px 20px #00000066;
+      transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Pulse animation for live dot ───────────────────────── */
+    @keyframes live-pulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+    }
+    .live-dot { animation: live-pulse 1.2s ease-in-out infinite; }
+
+    /* ── Scrollable regions ─────────────────────────────────── */
+    .scroll-area { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .scroll-area::-webkit-scrollbar { display: none; }
+
+    /* ── Divider ────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #334155, transparent);
+      margin: 0.25rem 0;
+    }
+
+    /* ── Selection counter badge ────────────────────────────── */
+    .selection-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 1.4rem; height: 1.4rem;
+      background: #ec4899;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      color: white;
+      padding: 0 0.25rem;
+    }
+
+    /* ── Shake animation for errors ─────────────────────────── */
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+    .shake { animation: shake 0.35s ease; }
+
+    /* ── Jackbox Neo-Brutalismo — Mobile ───────────────────────── */
+    .jackbox-panel {
+      border: 4px solid #111827;
+      box-shadow: 5px 5px 0px #111827;
+      border-radius: 16px;
+      transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+    }
+    .jackbox-panel:active {
+      transform: translate(3px, 3px);
+      box-shadow: 2px 2px 0px #111827;
+    }
+    .jb-card {
+      border: 3px solid #111827;
+      box-shadow: 3px 3px 0px #111827;
+      border-radius: 14px;
+    }
+    .font-paytone { font-family: 'Paytone One', sans-serif !important; }
+    .font-fredoka  { font-family: 'Fredoka', sans-serif !important; }
+
+    /* ── Cooldown overlay for action buttons ──────────────── */
+    .action-btn.cooldown { pointer-events: none; opacity: 0.5; }
+
+    /* ── Vote confirmation burst ──────────────────────────── */
+    .vote-burst {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 5rem; z-index: 998;
+      pointer-events: none;
+    }
+
+    /* ── Floating emoji animation ─────────────────────────── */
+    .emoji-float {
+      position: fixed; z-index: 998; pointer-events: none;
+      font-size: 2.5rem;
+      animation: emoji-fly 1s ease-out forwards;
+    }
+    @keyframes emoji-fly {
+      0%   { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-120px) scale(1.6); }
+    }
+
+    /* ── Song timer bar on mobile ─────────────────────────── */
+    #mobile-timer-bar {
+      height: 4px; background: #1e293b; border-radius: 2px; overflow: hidden;
+      margin: 0 0 0.5rem;
+    }
+    #mobile-timer-fill {
+      height: 100%; width: 0%; border-radius: 2px;
+      background: linear-gradient(90deg, #22d3ee, #ec4899);
+      transition: width 1s linear;
+    }
+
+    /* ── Vote count indicator ─────────────────────────────── */
+    #vote-count-indicator {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 999px; padding: 0.25rem 0.65rem;
+      font-size: 0.7rem; font-weight: 700; color: #94a3b8;
+    }
+
+    /* ── Confirm modal ────────────────────────────────────── */
+    .confirm-overlay {
+      position: fixed; inset: 0; z-index: 997;
+      background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+      animation: fadeSlideIn 0.2s ease;
+    }
+    .confirm-overlay.hidden { display: none; }
+    .confirm-box {
+      background: #1e293b; border: 4px solid #111827; box-shadow: 5px 5px 0px #111827;
+      border-radius: 1rem; padding: 1.5rem; width: 100%; max-width: 340px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOAST NOTIFICATION
+══════════════════════════════════════════════════════════ -->
+<div id="toast" role="alert" aria-live="assertive"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 1: JOIN — Código de sala
+══════════════════════════════════════════════════════════ -->
+<section id="screen-join" class="screen active" style="background:#0a0a1a; position:relative; overflow:hidden;">
+  
+  <!-- Premium Background -->
+  <div style="position:absolute;inset:0;background:url(/assets/lobby_bg_premium.png) center/cover no-repeat;opacity:0.3;z-index:0;"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(15,23,42,0.6) 0%, rgba(10,10,26,0.95) 100%);z-index:1;"></div>
+
+  <div style="position:relative; z-index:2; display:flex; flex-direction:column; height:100%; width:100%;">
+    <!-- Logo -->
+    <div class="flex flex-col items-center pt-8 pb-8 relative">
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px;background:#22d3ee;filter:blur(50px);opacity:0.2;border-radius:50%;"></div>
+      <img src="/assets/logo_ritmika.png" alt="Rítmika" style="width:200px; height:auto; filter:drop-shadow(0 0 20px rgba(0,229,255,0.8)); image-rendering:auto; position:relative; z-index:2;" />
+    </div>
+
+    <div class="flex flex-col gap-6 flex-1 px-2">
+      <!-- Room code entry -->
+      <div class="p-6" style="background:rgba(15,23,42,0.8); backdrop-filter:blur(10px); border-radius:24px; border:1px solid rgba(51,65,85,0.8); box-shadow:0 0 30px rgba(0,0,0,0.5);">
+        
+        <div style="display:inline-block; background:linear-gradient(135deg, #ec4899, #a855f7); padding:4px 16px; border-radius:8px; margin-bottom:16px; width:100%; text-align:center; box-shadow:0 0 15px rgba(236,72,153,0.3);">
+          <p class="font-paytone text-xs tracking-widest" style="color:white; letter-spacing:0.15em; margin:0; text-shadow:0 2px 4px rgba(0,0,0,0.3);">
+            &#128225; CÓDIGO DE SALA
+          </p>
+        </div>
+
+        <div class="code-inputs flex justify-center gap-3" id="code-inputs">
+          <input class="code-digit" id="d0" maxlength="1" inputmode="text" autocomplete="off" aria-label="Primer dígito del código" style="background:rgba(10,10,26,0.9); border:2px solid #334155; color:#22d3ee; box-shadow:inset 0 0 10px rgba(34,211,238,0.1); width:3rem; height:4rem; border-radius:12px; font-size:2rem; text-shadow:0 0 10px #22d3ee;" />
+          <input class="code-digit" id="d1" maxlength="1" inputmode="text" autocomplete="off" aria-label="Segundo dígito" style="background:rgba(10,10,26,0.9); border:2px solid #334155; color:#22d3ee; box-shadow:inset 0 0 10px rgba(34,211,238,0.1); width:3rem; height:4rem; border-radius:12px; font-size:2rem; text-shadow:0 0 10px #22d3ee;" />
+          <input class="code-digit" id="d2" maxlength="1" inputmode="text" autocomplete="off" aria-label="Tercer dígito" style="background:rgba(10,10,26,0.9); border:2px solid #334155; color:#22d3ee; box-shadow:inset 0 0 10px rgba(34,211,238,0.1); width:3rem; height:4rem; border-radius:12px; font-size:2rem; text-shadow:0 0 10px #22d3ee;" />
+          <input class="code-digit" id="d3" maxlength="1" inputmode="text" autocomplete="off" aria-label="Cuarto dígito" style="background:rgba(10,10,26,0.9); border:2px solid #334155; color:#22d3ee; box-shadow:inset 0 0 10px rgba(34,211,238,0.1); width:3rem; height:4rem; border-radius:12px; font-size:2rem; text-shadow:0 0 10px #22d3ee;" />
+        </div>
+      </div>
+
+      <!-- Name entry -->
+      <div class="px-2">
+        <label class="text-[10px] font-black block mb-2" style="color:#94a3b8; letter-spacing:0.15em;">
+          TU NOMBRE (COMO APARECERÁ EN LA TV)
+        </label>
+        <input
+          type="text"
+          id="player-name-input"
+          class="neon-input w-full"
+          placeholder="Ej: El Taquero"
+          maxlength="20"
+          autocomplete="off"
+          spellcheck="false"
+          style="background:rgba(15,23,42,0.6); border:2px solid rgba(51,65,85,0.8); color:white; padding:1rem; border-radius:16px; font-size:1.1rem; box-shadow:inset 0 2px 4px rgba(0,0,0,0.2); text-align:center; transition:all 0.3s ease;"
+          onfocus="this.style.borderColor='#a855f7'; this.style.boxShadow='0 0 15px rgba(168,85,247,0.3), inset 0 2px 4px rgba(0,0,0,0.2)';"
+          onblur="this.style.borderColor='rgba(51,65,85,0.8)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.2)';"
+        />
+      </div>
+
+      <!-- Error message -->
+      <p id="join-error" class="text-sm text-center font-bold hidden" style="color:#f87171; background:rgba(248,113,113,0.1); padding:8px; border-radius:8px; border:1px solid rgba(248,113,113,0.3);"></p>
+
+      <!-- CTA -->
+      <div class="mt-auto pb-4 pt-4">
+        <button id="btn-go-to-avatar" class="w-full py-4 rounded-2xl font-paytone text-lg" style="background:linear-gradient(135deg, #ffe600, #f59e0b); color:#111827; border:none; box-shadow:0 8px 25px rgba(245,158,11,0.4), 0 4px 0 #b45309; text-transform:uppercase; letter-spacing:1px; transition:transform 0.1s, box-shadow 0.1s;"
+          ontouchstart="this.style.transform='translateY(4px)'; this.style.boxShadow='0 2px 10px rgba(245,158,11,0.4), 0 0 0 #b45309';"
+          ontouchend="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(245,158,11,0.4), 0 4px 0 #b45309';">
+          Siguiente: Elige tu Avatar &#8594;
+        </button>
+        
+        <p class="text-center text-[10px] mt-6 font-bold uppercase tracking-widest" style="color:#475569;">
+          Rítmika v1.0 · Tío Axolo te espera &#129422;
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 2: AVATAR — El Bautizo
+══════════════════════════════════════════════════════════ -->
+<section id="screen-avatar" class="screen">
+  <!-- Header -->
+  <div class="flex items-center gap-3 mb-5">
+    <button id="back-to-join" class="text-2xl" aria-label="Regresar" style="color:#475569;">‹</button>
+    <div>
+      <h2 class="text-xl font-black" style="color:#f1f5f9;">El Bautizo</h2>
+      <p class="text-xs" style="color:#64748b;">Elige tu alter ego de la noche</p>
+    </div>
+  </div>
+
+  <!-- Player name preview -->
+  <div id="name-preview" class="text-center mb-4 py-2 px-4 rounded-xl" style="background:#1e293b33;">
+    <span class="text-sm font-semibold" style="color:#94a3b8;">Jugando como: </span>
+    <span id="name-preview-text" class="text-sm font-black" style="color:#ec4899;"></span>
+  </div>
+
+  <!-- Avatar grid -->
+  <div class="avatar-grid mb-5" id="avatar-grid" role="radiogroup" aria-label="Selecciona tu avatar">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- Selected preview -->
+  <div id="avatar-preview" class="flex items-center gap-4 p-4 rounded-2xl hidden mb-4"
+       style="background:#ec489911; border:2px solid #ec489944;">
+    <div class="avatar-preview-img-wrap w-16 h-16 rounded-xl flex items-center justify-center bg-slate-900 border border-slate-700 overflow-hidden">
+      <img id="avatar-preview-img" src="" class="w-14 h-14 object-contain" />
+    </div>
+    <div class="text-left flex-1">
+      <p class="text-[10px] uppercase tracking-wider font-bold text-slate-500">Alter Ego Seleccionado</p>
+      <p id="avatar-preview-name" class="text-lg font-black" style="color:#f9a8d4;"></p>
+    </div>
+  </div>
+
+  <button id="btn-go-to-genres" class="btn-primary" disabled>
+    Siguiente: Mis Venenos 🎵
+  </button>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 3: GÉNEROS — Los 3 Venenos
+══════════════════════════════════════════════════════════ -->
+<section id="screen-genres" class="screen">
+  <!-- Header -->
+  <div class="flex items-center gap-3 mb-2">
+    <button id="back-to-avatar" class="text-2xl" aria-label="Regresar" style="color:#475569;">‹</button>
+    <div class="flex-1">
+      <h2 class="text-xl font-black" style="color:#f1f5f9;">Mis 3 Venenos</h2>
+      <p class="text-xs" style="color:#64748b;">Géneros que dominas</p>
+    </div>
+    <span id="genres-count-badge" class="selection-badge">0/3</span>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-track mb-4">
+    <div class="progress-fill" id="genres-progress" style="width:0%"></div>
+  </div>
+
+  <!-- Genre grid -->
+  <div class="genre-grid mb-4 scroll-area flex-1" id="genre-grid" role="group" aria-label="Selecciona hasta 3 géneros">
+    <!-- Populated by JS -->
+  </div>
+
+  <button id="btn-go-to-artists" class="btn-primary" disabled>
+    Siguiente: Mis Gallos 🎸
+  </button>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 4: ARTISTAS — Los Gallos
+══════════════════════════════════════════════════════════ -->
+<section id="screen-artists" class="screen">
+  <!-- Header -->
+  <div class="flex items-center gap-3 mb-2">
+    <button id="back-to-genres" class="text-2xl" aria-label="Regresar" style="color:#475569;">‹</button>
+    <div class="flex-1">
+      <h2 class="text-xl font-black" style="color:#f1f5f9;">Mis Gallos</h2>
+      <p class="text-xs" style="color:#64748b;">Artistas que puedes cantar</p>
+    </div>
+    <span id="artists-count-badge" class="selection-badge">0</span>
+  </div>
+
+  <!-- Filter by selected genres -->
+  <div id="genre-filter-chips" class="flex gap-2 flex-wrap mb-3">
+    <!-- Populated by JS based on genre selection -->
+  </div>
+
+  <!-- Artist grid -->
+  <div class="artist-grid scroll-area flex-1 mb-4" id="artist-grid" role="group" aria-label="Selecciona tus artistas">
+    <!-- Populated by JS -->
+  </div>
+
+  <button id="btn-join-game" class="btn-primary" disabled>
+    🎤 ¡Entrar a la fiesta!
+  </button>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 5: WAITING ROOM — Sala de espera
+══════════════════════════════════════════════════════════ -->
+<section id="screen-waiting" class="screen">
+  <!-- Status header -->
+  <div class="text-center py-5">
+    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
+         style="background:#1e293b; border:1px solid #22d3ee33;">
+      <div class="w-2 h-2 rounded-full bg-neon-cyan live-dot"></div>
+      <span class="text-sm font-semibold" style="color:#22d3ee;">Conectado a la sala</span>
+    </div>
+
+    <!-- Player's own card -->
+    <div id="my-card" class="p-4 rounded-2xl mb-2 flex items-center gap-4 text-left"
+         style="background:#1e293b; border:2px solid #ec489966;">
+      <div class="w-16 h-16 rounded-xl flex items-center justify-center bg-slate-900 border border-slate-700 overflow-hidden" id="my-avatar-container">
+        <img id="my-avatar-img" src="" class="w-14 h-14 object-contain" />
+      </div>
+      <div>
+        <p id="my-name-display" class="text-xl font-black" style="color:#f1f5f9;"></p>
+        <p id="my-avatar-label" class="text-xs font-bold" style="color:#64748b;"></p>
+      </div>
+    </div>
+
+    <div class="inline-block px-3 py-1 rounded-full text-xs font-bold"
+         style="background:#22d3ee22; color:#22d3ee;">
+      Código: <span id="room-code-display-waiting" class="font-black"></span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Other players -->
+  <div class="py-3">
+    <p class="text-xs font-bold mb-2" style="color:#475569; letter-spacing:0.1em;">EN SALA</p>
+    <div id="waiting-players-list" class="flex flex-col gap-2">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- VIP Start game container -->
+  <div id="vip-start-container" class="hidden flex flex-col items-center justify-center text-center py-4">
+    <span class="text-4xl mb-3">👑</span>
+    <p class="text-lg font-bold mb-1 text-yellow-500">¡Eres el Host!</p>
+    <p class="text-xs text-slate-400 mb-4">Cuando estén todos listos, inicia la partida.</p>
+    <button id="btn-vip-start" class="btn-primary w-full" style="background: linear-gradient(135deg, #ffe600, #facc15); color: #111827; border: 4px solid #111827; box-shadow: 4px 4px 0px #111827;">
+      🚀 Iniciar Partida
+    </button>
+  </div>
+
+  <!-- Standard Waiting message -->
+  <div id="standard-waiting-msg" class="flex-1 flex flex-col items-center justify-center text-center py-4">
+    <span class="text-4xl mb-3">⏳</span>
+    <p class="text-lg font-bold" style="color:#94a3b8;">Esperando que el Host</p>
+    <p class="text-lg font-bold" style="color:#94a3b8;">inicie la partida...</p>
+    <p class="text-sm mt-2" style="color:#475569;">El Tío Axolo está preparando la ruleta 🎰</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 6: CONTROLS — Panel de juego activo
+══════════════════════════════════════════════════════════ -->
+<section id="screen-controls" class="screen">
+  <!-- Top: current singer info -->
+  <div id="singer-info" class="text-center py-3">
+    <p class="text-xs font-bold mb-1" style="color:#475569; letter-spacing:0.1em;">CANTANDO AHORA</p>
+    <p id="current-singer-name" class="text-2xl font-black" style="color:#ec4899;">···</p>
+    <p id="mobile-timer-text" class="text-sm font-bold mt-1 hidden" style="color:#22d3ee;">0:00</p>
+  </div>
+  <div id="mobile-timer-bar" class="hidden"><div id="mobile-timer-fill"></div></div>
+
+  <!-- DYNAMIC STATE CONTEXT CARD (HOST/SINGER CONTROLS) -->
+  <div id="game-state-context-card" class="jackbox-panel p-4 mb-4 hidden" style="background:#1e293b; border:2px solid #ec4899;">
+    <!-- Populated dynamically -->
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- EMOJI BAR -->
+  <div class="py-4">
+    <p class="text-xs font-bold text-center mb-3" style="color:#475569; letter-spacing:0.1em;">
+      REACCIONES
+    </p>
+    <div class="emoji-row">
+      <button class="emoji-btn" data-emoji="🔥" aria-label="Fuego" id="emoji-fire">🔥</button>
+      <button class="emoji-btn" data-emoji="💩" aria-label="Caca" id="emoji-poop">💩</button>
+      <button class="emoji-btn" data-emoji="⭐" aria-label="Estrella" id="emoji-star">⭐</button>
+      <button class="emoji-btn" data-emoji="😂" aria-label="Risa" id="emoji-laugh">😂</button>
+      <button class="emoji-btn" data-emoji="👏" aria-label="Aplausos" id="emoji-clap">👏</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SABOTAGE SECTION -->
+  <div class="py-4 flex flex-col gap-3">
+    <p class="text-xs font-bold text-center" style="color:#475569; letter-spacing:0.1em;">
+      SABOTAJES
+    </p>
+
+    <!-- Tomatazo -->
+    <button id="tomatazo-btn" class="action-btn btn-primary text-left flex items-center gap-3">
+      <span class="text-2xl">🍅</span>
+      <div>
+        <p class="font-black">¡Tomatazo!</p>
+        <p class="text-xs opacity-70" id="tomatazo-remaining">3 tomates restantes</p>
+      </div>
+      <div class="ml-auto flex gap-1" id="tomatazo-pips">
+        <span class="w-3 h-3 rounded-full bg-white opacity-80"></span>
+        <span class="w-3 h-3 rounded-full bg-white opacity-80"></span>
+        <span class="w-3 h-3 rounded-full bg-white opacity-80"></span>
+      </div>
+    </button>
+
+    <!-- Audio sabotage -->
+    <button id="sabotage-btn" class="action-btn flex items-center gap-3 text-left">
+      <span class="text-2xl">📢</span>
+      <div>
+        <p class="font-black text-sm">Sabotaje de Audio</p>
+        <p class="text-xs opacity-70">¡Que el Tío Axolo hable!</p>
+      </div>
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- VOTE SECTION -->
+  <div id="vote-section" class="py-4">
+    <p class="text-xs font-bold text-center mb-3" style="color:#475569; letter-spacing:0.1em;">
+      ¿CÓMO LO HIZO?
+    </p>
+    <div id="vote-count-indicator" class="mx-auto mb-3 hidden">0/0 votos</div>
+    <div class="grid grid-cols-2 gap-2">
+      <button class="vote-btn gold" data-score="100" id="vote-100" aria-label="100 puntos">
+        🏆 ¡La rompió!<br/>
+        <span class="text-xs opacity-70">Dale un Grammy · 100 pts</span>
+      </button>
+      <button class="vote-btn silver" data-score="60" id="vote-60" aria-label="60 puntos">
+        👍 Estuvo bien<br/>
+        <span class="text-xs opacity-70">Ni fu ni fa · 60 pts</span>
+      </button>
+      <button class="vote-btn bronze" data-score="30" id="vote-30" aria-label="30 puntos">
+        😬 Le luchó<br/>
+        <span class="text-xs opacity-70">Casi, casi · 30 pts</span>
+      </button>
+      <button class="vote-btn trash" data-score="10" id="vote-10" aria-label="10 puntos">
+        🐓 Puro gallo<br/>
+        <span class="text-xs opacity-70">Desafinado total · 10 pts</span>
+      </button>
+    </div>
+    <p id="vote-status" class="text-center text-xs mt-2 font-semibold hidden" style="color:#22d3ee;">
+      ✅ Voto enviado
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 7: ASSIGN SONG — Fuego Cruzado (Ronda 2)
+══════════════════════════════════════════════════════════ -->
+<section id="screen-assign" class="screen">
+  <div class="text-center py-4">
+    <span class="text-5xl">🎯</span>
+    <h2 class="text-2xl font-black mt-2" style="color:#facc15;">Fuego Cruzado</h2>
+    <p class="text-sm mt-1" style="color:#64748b;">Elige a quién atacar y con qué canción</p>
+  </div>
+
+  <!-- Target player -->
+  <div class="mb-4">
+    <p class="text-xs font-bold mb-2" style="color:#475569; letter-spacing:0.1em;">VÍCTIMA</p>
+    <div id="target-players-list" class="flex flex-col gap-2">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- Song to assign -->
+  <div class="mb-4">
+    <p class="text-xs font-bold mb-2" style="color:#475569; letter-spacing:0.1em;">CANCIÓN ASESINA</p>
+    <div id="assignable-songs-list" class="flex flex-col gap-2">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <button id="btn-send-assignment" class="btn-primary" disabled>
+    🎯 ¡Lanzar el ataque!
+  </button>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 8: PODIO — Resultado final
+══════════════════════════════════════════════════════════ -->
+<section id="screen-podium" class="screen">
+  <div class="flex flex-col items-center justify-center flex-1 text-center gap-4">
+    <span class="text-6xl">🏆</span>
+    <h2 class="text-3xl font-black" style="color:#facc15;">¡La fiesta terminó!</h2>
+    <div id="podium-my-result" class="p-4 rounded-2xl w-full"
+         style="background:#1e293b; border:2px solid #facc1566;">
+      <p class="text-sm font-bold" style="color:#64748b;">TU RESULTADO</p>
+      <p id="podium-my-award" class="text-2xl font-black mt-1" style="color:#facc15;"></p>
+      <p id="podium-my-score" class="text-4xl font-black" style="color:#f1f5f9;"></p>
+      <p class="text-xs" style="color:#64748b;">puntos finales</p>
+    </div>
+    <button id="btn-play-again" class="btn-primary">
+      🎮 Jugar otra vez
+    </button>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════════ -->
+<script>
+/* ═══════════════════════════════════════════════════════════
+   RÍTMIKA — MOBILE CONTROLLER
+   Este archivo es el control remoto. Solo envía eventos
+   al servidor y actualiza su UI local según respuestas.
+═══════════════════════════════════════════════════════════ */
+
+// ── DATA CATALOGS ─────────────────────────────────────────
+const AVATARS = [
+  { id: 0, emoji: '🌮', label: 'Taco Rockero',      color: '#f97316', border: '#ea580c', img: '/assets/avatars/avatar_0_taco_rockero.png' },
+  { id: 1, emoji: '🌶️', label: 'Chile Enmascarado', color: '#ef4444', border: '#dc2626', img: '/assets/avatars/avatar_1_chile_enmascarado.png' },
+  { id: 2, emoji: '🍹', label: 'Tequila Fiestero',  color: '#a855f7', border: '#9333ea', img: '/assets/avatars/avatar_2_tequila_fiestero.png' },
+  { id: 3, emoji: '⭐', label: 'Estrella de Rock',  color: '#facc15', border: '#eab308', img: '/assets/avatars/avatar_3_estrella_rock.png' },
+  { id: 4, emoji: '🦜', label: 'Loro Cumbiambero',  color: '#22c55e', border: '#16a34a', img: '/assets/avatars/avatar_4_loro_cumbiambero.png' },
+  { id: 5, emoji: '🎸', label: 'Guitarra Mágica',   color: '#3b82f6', border: '#2563eb', img: '/assets/avatars/avatar_5_guitarra_magica.png' },
+  { id: 6, emoji: '👑', label: 'Rey del Palenque',  color: '#ec4899', border: '#db2777', img: '/assets/avatars/avatar_6_rey_palenque.png' },
+  { id: 7, emoji: '🐙', label: 'Pulpo Salsero',     color: '#06b6d4', border: '#0891b2', img: '/assets/avatars/avatar_7_pulpo_salsero.png' },
+];
+
+const GENRES = [
+  { id: 'pop',      name: 'Pop',       icon: '🎤', color: '#ec4899' },
+  { id: 'rock',     name: 'Rock',      icon: '🎸', color: '#f97316' },
+  { id: 'reggaeton',name: 'Reggaeton', icon: '🔥', color: '#a855f7' },
+  { id: 'banda',    name: 'Banda',     icon: '🎺', color: '#facc15' },
+  { id: 'cumbia',   name: 'Cumbia',    icon: '💃', color: '#22d3ee' },
+  { id: 'ranchera', name: 'Ranchera',  icon: '🤠', color: '#f59e0b' },
+  { id: 'balada',   name: 'Balada',    icon: '💔', color: '#e879f9' },
+  { id: 'electronica', name: 'Electrónica', icon: '🎧', color: '#38bdf8' },
+];
+
+// Artist catalog filtered by genre
+const ARTISTS_BY_GENRE = {
+  pop:       ['Bad Bunny', 'Shakira', 'Maluma', 'J Balvin', 'Karol G', 'Rosalía', 'Mon Laferte', 'Ha-Ash'],
+  rock:      ['Maná', 'Café Tacvba', 'Caifanes', 'Molotov', 'Los Fabulosos Cadillacs', 'La Maldita Vecindad', 'Zoe', 'Porter'],
+  reggaeton: ['Daddy Yankee', 'Don Omar', 'Anuel AA', 'Ozuna', 'Rauw Alejandro', 'Jhay Cortez', 'Nicky Jam', 'Farruko'],
+  banda:     ['Banda MS', 'El Recodo', 'La Arrolladora', 'Banda Los Recoditos', 'Calibre 50', 'El Komander', 'Lupillo Rivera', 'Joan Sebastian'],
+  cumbia:    ['Los Ángeles Azules', 'Sonora Dinamita', 'Selena', 'La Sonora Santanera', 'Celso Piña', 'Agua Marina', 'Los Mirlos', 'Grupo 5'],
+  ranchera:  ['Vicente Fernández', 'Pedro Infante', 'Jorge Negrete', 'Lola Beltrán', 'Aída Cuevas', 'Marco Antonio Solís', 'Alejandro Fernández', 'Pepe Aguilar'],
+  balada:    ['Luis Miguel', 'Alejandro Sanz', 'Ricardo Arjona', 'Juanes', 'Reik', 'Jesse & Joy', 'Sin Bandera', 'Pimpinela'],
+  electronica: ['Daft Punk', 'Tiësto', 'Calvin Harris', 'Deadmau5', 'Avicii', 'Skrillex', 'David Guetta', 'Martin Garrix'],
+};
+
+// Fetch songs dynamically to override fallbacks with local database contents
+async function fetchAndBuildCatalog() {
+  try {
+    const res = await fetch('/api/songs');
+    if (!res.ok) throw new Error('API request failed');
+    const catalog = await res.json();
+    if (Array.isArray(catalog) && catalog.length > 0) {
+      // Clear all genre arrays first
+      for (const gid in ARTISTS_BY_GENRE) {
+        ARTISTS_BY_GENRE[gid] = [];
+      }
+      // Populate unique artists from real database
+      catalog.forEach(song => {
+        const genre = song.genre || 'pop';
+        if (!ARTISTS_BY_GENRE[genre]) {
+          ARTISTS_BY_GENRE[genre] = [];
+        }
+        if (song.artist && !ARTISTS_BY_GENRE[genre].includes(song.artist)) {
+          ARTISTS_BY_GENRE[genre].push(song.artist);
+        }
+      });
+      // Sort each list alphabetically
+      for (const gid in ARTISTS_BY_GENRE) {
+        ARTISTS_BY_GENRE[gid].sort((a, b) => a.localeCompare(b));
+      }
+      console.log('[Catalog] Loaded dynamic artists from local database successfully!');
+    }
+  } catch (err) {
+    console.warn('[Catalog] Using fallback static artists:', err);
+  }
+}
+fetchAndBuildCatalog();
+
+// ── STATE ─────────────────────────────────────────────────
+const me = {
+  name: '',
+  avatarId: null,
+  roomCode: '',
+  genres: [],
+  artists: [],
+  tomatazosLeft: 3,
+  hasVoted: false,
+  currentSingerSocketId: null,
+};
+
+let roomPlayers = [];
+
+function isVip() {
+  return roomPlayers.length > 0 && roomPlayers[0].socketId === socket.id;
+}
+
+// ── SOCKET.IO ─────────────────────────────────────────────
+const socket = io();
+
+socket.on('connect', () => {
+  console.log('[MOBILE] Conectado al servidor:', socket.id);
+});
+
+socket.on('connect_error', () => {
+  showToast('⚠️ No se puede conectar al servidor');
+});
+
+socket.on('player:join_ack', ({ success, error, roomCode, players }) => {
+  if (window.joinTimeout) { clearTimeout(window.joinTimeout); window.joinTimeout = null; }
+  const btn = document.getElementById('btn-join-game');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = '🎤 ¡Entrar a la fiesta!';
+  }
+
+  if (!success) {
+    showError('join-error', error || 'Error al unirse.');
+    shakeElement('code-inputs');
+    goToScreen('screen-join');
+    return;
+  }
+  // Successfully joined
+  me.roomCode = roomCode;
+  roomPlayers = players || [];
+  renderWaitingRoom(players);
+  goToScreen('screen-waiting');
+  showToast(`¡Bienvenido a la sala ${roomCode}! 🎉`);
+});
+
+socket.on('game:update', ({ event, data }) => {
+  handleGameEvent(event, data);
+});
+
+socket.on('game:private', ({ event, data }) => {
+  handlePrivateEvent(event, data);
+});
+
+socket.on('game:started', () => {
+  showToast('¡La fiesta comenzó! 🎤🔥');
+  goToScreen('screen-controls');
+});
+
+socket.on('game:tv_disconnected', () => {
+  showToast('⚠️ La TV se desconectó. Recarga cuando vuelva.');
+  goToScreen('screen-join');
+});
+
+socket.on('disconnect', () => {
+  showToast('⚠️ Conexión perdida. Reconectando...');
+});
+
+// ── GAME EVENTS FROM TV ───────────────────────────────────
+function handleGameEvent(event, data) {
+  switch (event) {
+    case 'NEW_SINGER':
+      me.currentSingerSocketId = data.socketId;
+      document.getElementById('current-singer-name').textContent = data.name;
+      me.hasVoted = false;
+      document.getElementById('vote-status').classList.add('hidden');
+      document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '1'; b.disabled = false; });
+      document.getElementById('vote-count-indicator')?.classList.add('hidden');
+      document.getElementById('mobile-timer-text')?.classList.add('hidden');
+      document.getElementById('mobile-timer-bar')?.classList.add('hidden');
+      document.getElementById('mobile-timer-fill').style.width = '0%';
+      goToScreen('screen-controls');
+      break;
+
+    case 'ROULETTE_START':
+      updateContextCard('ROULETTE_START', data);
+      goToScreen('screen-controls');
+      break;
+
+    case 'SINGER_SELECTED':
+      me.currentSingerSocketId = data.socketId;
+      me.hasVoted = false;
+      document.getElementById('vote-status').classList.add('hidden');
+      document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '1'; b.disabled = false; });
+      document.getElementById('vote-count-indicator')?.classList.add('hidden');
+      document.getElementById('mobile-timer-fill').style.width = '0%';
+      updateContextCard('SINGER_SELECTED', data);
+      goToScreen('screen-controls');
+      break;
+
+    case 'KARAOKE_START':
+      me.currentSingerSocketId = data.socketId;
+      me.hasVoted = false;
+      document.getElementById('vote-status').classList.add('hidden');
+      document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '1'; b.disabled = false; });
+      updateContextCard('KARAOKE_START', data);
+      goToScreen('screen-controls');
+      break;
+
+    case 'SHOW_SCOREBOARD':
+      updateContextCard('SHOW_SCOREBOARD', data);
+      goToScreen('screen-controls');
+      break;
+
+    case 'ROUND_2_ASSIGN':
+      renderAssignScreen(data.players, data.songs);
+      goToScreen('screen-assign');
+      break;
+
+    case 'GAME_OVER':
+      renderPodium(data);
+      goToScreen('screen-podium');
+      break;
+
+    case 'PLAYER_JOINED':
+      roomPlayers = data.players || [];
+      updateWaitingRoomPlayers(data.players);
+      break;
+    
+    case 'PLAYER_LEFT':
+      roomPlayers = data.players || [];
+      updateWaitingRoomPlayers(data.players);
+      break;
+
+    case 'VOTE_COUNT':
+      const vc = data.count ?? 0;
+      const vt = data.total ?? 0;
+      const vci = document.getElementById('vote-count-indicator');
+      if (vci) vci.textContent = `${vc}/${vt} votos`;
+      break;
+
+    case 'SONG_TIMER':
+      const timerText = document.getElementById('mobile-timer-text');
+      const timerBar = document.getElementById('mobile-timer-bar');
+      const timerFill = document.getElementById('mobile-timer-fill');
+      if (data.active) {
+        timerText.classList.remove('hidden');
+        timerBar.classList.remove('hidden');
+        const elapsed = data.elapsed || 0;
+        const duration = data.duration || 1;
+        const pct = Math.min(100, (elapsed / duration) * 100);
+        timerFill.style.width = pct + '%';
+        const remaining = Math.max(0, duration - elapsed);
+        const mins = Math.floor(remaining / 60);
+        const secs = Math.floor(remaining % 60);
+        timerText.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+      } else {
+        timerText.classList.add('hidden');
+        timerBar.classList.add('hidden');
+        timerFill.style.width = '0%';
+      }
+      break;
+  }
+}
+
+function updateContextCard(event, data) {
+  const card = document.getElementById('game-state-context-card');
+  if (!card) return;
+  
+  const emojiBar = document.querySelector('.emoji-row')?.closest('.py-4');
+  const sabotageSec = document.getElementById('tomatazo-btn')?.closest('.py-4');
+  const voteSec = document.getElementById('vote-section');
+
+  card.classList.remove('hidden');
+
+  const attachStartSongListener = () => {
+    const btn = document.getElementById('btn-action-start-song');
+    if (btn) {
+      btn.onclick = () => {
+        socket.emit('player:start_song', { roomCode: me.roomCode });
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+      };
+    }
+  };
+
+  switch (event) {
+    case 'ROULETTE_START':
+      document.getElementById('current-singer-name').textContent = 'Girando ruleta...';
+      if (emojiBar) emojiBar.classList.add('hidden');
+      if (sabotageSec) sabotageSec.classList.add('hidden');
+      if (voteSec) voteSec.classList.add('hidden');
+      
+      card.innerHTML = `
+        <div class="text-center py-2">
+          <span class="text-3xl inline-block animate-bounce mb-2">🎰</span>
+          <p class="font-bold text-slate-200">La ruleta está girando en la TV...</p>
+          <p class="text-xs text-slate-500 mt-1">¡Prepárate para la acción!</p>
+        </div>
+      `;
+      break;
+
+    case 'SINGER_SELECTED':
+      document.getElementById('current-singer-name').textContent = data.name;
+      if (emojiBar) emojiBar.classList.add('hidden');
+      if (sabotageSec) sabotageSec.classList.add('hidden');
+      if (voteSec) voteSec.classList.add('hidden');
+
+      const isMeSelected = (data.socketId === socket.id);
+      const host = isVip();
+
+      if (isMeSelected) {
+        card.innerHTML = `
+          <div class="text-center py-2">
+            <p class="text-xl font-black text-pink-500">🔥 ¡TE TOCA CANTAR! 🔥</p>
+            <p class="text-sm mt-1 text-slate-200 font-bold">Canción: <b>${data.song ? data.song.title : 'Elección Libre'}</b></p>
+            <button id="btn-action-start-song" class="btn-primary mt-3 w-full" style="background:linear-gradient(135deg,#ffe600,#facc15); color:#111827; border:3px solid #111827; box-shadow:3px 3px 0px #111827;">
+              🚀 ¡Estoy listo!
+            </button>
+          </div>
+        `;
+        attachStartSongListener();
+      } else if (host) {
+        card.innerHTML = `
+          <div class="text-center py-2">
+            <p class="text-lg font-black text-yellow-500">👑 Turno de: ${data.name}</p>
+            <p class="text-sm mt-1 text-slate-200">Canción: <b>${data.song ? data.song.title : 'Elección Libre'}</b></p>
+            <button id="btn-action-start-song" class="btn-primary mt-3 w-full" style="background:linear-gradient(135deg,#ffe600,#facc15); color:#111827; border:3px solid #111827; box-shadow:3px 3px 0px #111827;">
+              Iniciar Canción ➔
+            </button>
+          </div>
+        `;
+        attachStartSongListener();
+      } else {
+        card.innerHTML = `
+          <div class="text-center py-2">
+            <p class="text-lg font-black text-slate-200">Turno de: ${data.name}</p>
+            <p class="text-sm mt-1 text-slate-400">Canción: <b>${data.song ? data.song.title : 'Elección Libre'}</b></p>
+            <p class="text-xs mt-3 text-slate-500 italic">Esperando inicio de canción...</p>
+          </div>
+        `;
+      }
+      break;
+
+    case 'KARAOKE_START':
+      document.getElementById('current-singer-name').textContent = data.name;
+      const isMeSinger = (data.socketId === socket.id);
+
+      if (isMeSinger) {
+        if (emojiBar) emojiBar.classList.add('hidden');
+        if (sabotageSec) sabotageSec.classList.add('hidden');
+        if (voteSec) voteSec.classList.add('hidden');
+        document.getElementById('vote-count-indicator')?.classList.add('hidden');
+        document.getElementById('mobile-timer-text')?.classList.add('hidden');
+        document.getElementById('mobile-timer-bar')?.classList.add('hidden');
+        
+        card.innerHTML = `
+          <div class="text-center py-3">
+            <p class="text-xl font-black text-pink-500">🎤 ¡ESTÁS EN EL ESCENARIO! 🎤</p>
+            <p class="text-sm mt-2 text-slate-200">Canta: <b>${data.song ? data.song.title : 'Elección Libre'}</b></p>
+            <p class="text-xs mt-4 text-slate-400">¡Diviértete! Los demás están reaccionando a tu show.</p>
+          </div>
+        `;
+      } else {
+        if (emojiBar) emojiBar.classList.remove('hidden');
+        if (sabotageSec) sabotageSec.classList.remove('hidden');
+        if (voteSec) voteSec.classList.remove('hidden');
+        document.getElementById('vote-count-indicator')?.classList.remove('hidden');
+        document.getElementById('mobile-timer-text')?.classList.remove('hidden');
+        document.getElementById('mobile-timer-bar')?.classList.remove('hidden');
+        card.classList.add('hidden');
+      }
+      break;
+
+    case 'SHOW_SCOREBOARD':
+      document.getElementById('current-singer-name').textContent = data.performerName;
+      if (emojiBar) emojiBar.classList.add('hidden');
+      if (sabotageSec) sabotageSec.classList.add('hidden');
+      if (voteSec) voteSec.classList.add('hidden');
+      document.getElementById('vote-count-indicator')?.classList.add('hidden');
+      document.getElementById('mobile-timer-text')?.classList.add('hidden');
+      document.getElementById('mobile-timer-bar')?.classList.add('hidden');
+
+      const isHost = isVip();
+
+      if (isHost) {
+        card.innerHTML = `
+          <div class="text-center py-2">
+            <p class="text-lg font-black text-yellow-500">📊 Resultados en TV</p>
+            <p class="text-xs text-slate-400 mt-1">Viendo la tabla de puntuaciones...</p>
+            <button id="btn-action-next-turn" class="btn-primary mt-3 w-full" style="background:linear-gradient(135deg,#ec4899,#a855f7); color:white; border:3px solid #111827; box-shadow:3px 3px 0px #111827;">
+              Siguiente Turno ➔
+            </button>
+          </div>
+        `;
+        const btnNext = document.getElementById('btn-action-next-turn');
+        if (btnNext) {
+          btnNext.onclick = () => {
+            socket.emit('player:next_turn', { roomCode: me.roomCode });
+            btnNext.disabled = true;
+            btnNext.textContent = 'Enviando...';
+          };
+        }
+      } else {
+        card.innerHTML = `
+          <div class="text-center py-2">
+            <p class="text-lg font-black text-slate-200">📊 Fin de la canción</p>
+            <p class="text-xs text-slate-400 mt-1">Viendo la tabla de puntuaciones en la TV...</p>
+            <p class="text-xs mt-3 text-slate-500 italic">El presentador avanzará la ronda en breve.</p>
+          </div>
+        `;
+      }
+      break;
+
+    default:
+      card.classList.add('hidden');
+  }
+}
+
+function handlePrivateEvent(event, data) {
+  switch (event) {
+    case 'YOUR_TURN':
+      showToast('🎤 ¡Es tu turno! ¡A cantar!');
+      document.getElementById('current-singer-name').textContent = '¡TÚ! 🎤';
+      me.currentSingerSocketId = socket.id;
+      break;
+  }
+}
+
+// ── SCREEN NAVIGATION ─────────────────────────────────────
+function goToScreen(id) {
+  const current = document.querySelector('.screen.active');
+  const next = document.getElementById(id);
+  if (!next || (current && current.id === id)) return;
+
+  if (!current) {
+    next.classList.add('active');
+    return;
+  }
+
+  UISounds.whoosh();
+  // Exit animation on current
+  anime({
+    targets: current,
+    scale: [1, 0.85],
+    opacity: [1, 0],
+    translateY: [-10, -30],
+    duration: 200,
+    easing: 'easeInCubic',
+    complete: () => {
+      current.classList.remove('active');
+      current.style.transform = '';
+      current.style.opacity = '';
+
+      // Enter animation on next
+      next.classList.add('active');
+      next.style.transform = 'translateY(20px)';
+      next.style.opacity = '0';
+      anime({
+        targets: next,
+        translateY: ['20px', '0px'],
+        opacity: [0, 1],
+        duration: 350,
+        easing: 'easeOutCubic',
+        complete: () => {
+          next.style.transform = '';
+          next.style.opacity = '';
+        }
+      });
+    }
+  });
+
+  window.scrollTo(0, 0);
+}
+
+// ── SCREEN 1: JOIN ────────────────────────────────────────
+// Code digit auto-advance logic
+const digits = [
+  document.getElementById('d0'),
+  document.getElementById('d1'),
+  document.getElementById('d2'),
+  document.getElementById('d3'),
+];
+
+digits.forEach((input, i) => {
+  input.addEventListener('input', (e) => {
+    const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    e.target.value = val;
+    if (val && i < 3) digits[i + 1].focus();
+    validateJoinForm();
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !e.target.value && i > 0) {
+      digits[i - 1].focus();
+      digits[i - 1].value = '';
+    }
+  });
+  // Handle paste of full code
+  input.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData.getData('text') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    [...pasted].slice(0, 4).forEach((char, j) => {
+      if (digits[j]) digits[j].value = char;
+    });
+    digits[Math.min(pasted.length, 3)].focus();
+    validateJoinForm();
+  });
+});
+
+document.getElementById('player-name-input').addEventListener('input', validateJoinForm);
+
+function getCode() {
+  return digits.map(d => d.value).join('');
+}
+
+function validateJoinForm() {
+  const code = getCode();
+  const name = document.getElementById('player-name-input').value.trim();
+  const btn = document.getElementById('btn-go-to-avatar');
+  btn.disabled = !(code.length === 4 && name.length >= 1);
+  document.getElementById('join-error').classList.add('hidden');
+}
+
+document.getElementById('btn-go-to-avatar').addEventListener('click', () => {
+  UISounds.click();
+  const name = document.getElementById('player-name-input').value.trim();
+  me.name = name;
+  me.roomCode = getCode();
+  document.getElementById('name-preview-text').textContent = name;
+  buildAvatarGrid();
+  goToScreen('screen-avatar');
+});
+
+// ── SCREEN 2: AVATAR ──────────────────────────────────────
+function buildAvatarGrid() {
+  const grid = document.getElementById('avatar-grid');
+  grid.innerHTML = '';
+  AVATARS.forEach(av => {
+    const btn = document.createElement('button');
+    btn.className = 'avatar-btn';
+    btn.dataset.id = av.id;
+    btn.setAttribute('role', 'radio');
+    btn.setAttribute('aria-label', av.label);
+    btn.innerHTML = `
+      <div class="avatar-img-wrapper">
+        <img src="${av.img}" alt="${av.label}" class="avatar-png-img" />
+      </div>
+      <span class="avatar-label">${av.label}</span>
+    `;
+    btn.style.borderColor = av.border + '44';
+    btn.addEventListener('click', () => selectAvatar(av.id));
+    grid.appendChild(btn);
+  });
+}
+
+function selectAvatar(id) {
+  me.avatarId = id;
+  const av = AVATARS[id];
+
+  // Update visual selection
+  document.querySelectorAll('.avatar-btn').forEach(btn => {
+    const isSelected = parseInt(btn.dataset.id) === id;
+    btn.classList.toggle('selected', isSelected);
+    const label = btn.querySelector('.avatar-label');
+    if (isSelected) {
+      btn.style.borderColor = '#111827';
+      btn.style.background = av.color;
+      if (label) label.style.color = '#111827';
+    } else {
+      const currentAv = AVATARS[parseInt(btn.dataset.id)];
+      btn.style.borderColor = currentAv.border + '44';
+      btn.style.background = '';
+      if (label) label.style.color = '#94a3b8';
+    }
+  });
+
+  // Bounce animation
+  anime({
+    targets: `.avatar-btn[data-id="${id}"]`,
+    scale: [1, 1.12, 1],
+    duration: 300,
+    easing: 'easeOutBack',
+  });
+
+  // Show preview
+  const preview = document.getElementById('avatar-preview');
+  document.getElementById('avatar-preview-img').src = av.img;
+  document.getElementById('avatar-preview-name').textContent = av.label;
+  document.getElementById('avatar-preview-name').style.color = av.color;
+  preview.style.borderColor = av.border + '55';
+  preview.style.background = av.color + '15';
+  preview.classList.remove('hidden');
+
+  // Enable next
+  document.getElementById('btn-go-to-genres').disabled = false;
+}
+
+document.getElementById('back-to-join').addEventListener('click', () => goToScreen('screen-join'));
+
+document.getElementById('btn-go-to-genres').addEventListener('click', () => {
+  buildGenreGrid();
+  goToScreen('screen-genres');
+});
+
+// ── SCREEN 3: GÉNEROS ─────────────────────────────────────
+const MAX_GENRES = 3;
+
+function buildGenreGrid() {
+  const grid = document.getElementById('genre-grid');
+  grid.innerHTML = '';
+  GENRES.forEach(g => {
+    // Only show genres that have at least one artist in the loaded catalog
+    if (ARTISTS_BY_GENRE[g.id] && ARTISTS_BY_GENRE[g.id].length === 0) return;
+
+    const btn = document.createElement('button');
+    btn.className = 'genre-btn';
+    btn.dataset.id = g.id;
+    btn.innerHTML = `
+      <span class="genre-icon">${g.icon}</span>
+      <span class="genre-name">${g.name}</span>
+    `;
+    btn.addEventListener('click', () => toggleGenre(g.id, btn, g.color));
+    grid.appendChild(btn);
+  });
+  updateGenresUI();
+}
+
+function toggleGenre(id, btn, color) {
+  const idx = me.genres.indexOf(id);
+  if (idx >= 0) {
+    me.genres.splice(idx, 1);
+    btn.classList.remove('selected');
+    btn.style.borderColor = '';
+    btn.style.boxShadow = '';
+  } else {
+    if (me.genres.length >= MAX_GENRES) {
+      shakeElement('genres-count-badge');
+      showToast('Máximo 3 géneros 🎵');
+      return;
+    }
+    me.genres.push(id);
+    btn.classList.add('selected');
+    btn.style.borderColor = color;
+    btn.style.boxShadow = `0 0 15px ${color}55`;
+
+    anime({
+      targets: btn,
+      scale: [1, 1.08, 1],
+      duration: 250,
+      easing: 'easeOutBack',
+    });
+  }
+  updateGenresUI();
+}
+
+function updateGenresUI() {
+  const n = me.genres.length;
+  document.getElementById('genres-count-badge').textContent = `${n}/3`;
+  document.getElementById('genres-progress').style.width = `${(n / MAX_GENRES) * 100}%`;
+  document.getElementById('btn-go-to-artists').disabled = n === 0;
+}
+
+document.getElementById('back-to-avatar').addEventListener('click', () => goToScreen('screen-avatar'));
+
+document.getElementById('btn-go-to-artists').addEventListener('click', () => {
+  buildArtistGrid();
+  goToScreen('screen-artists');
+});
+
+// ── SCREEN 4: ARTISTAS ────────────────────────────────────
+function buildArtistGrid() {
+  const grid = document.getElementById('artist-grid');
+  const filterChips = document.getElementById('genre-filter-chips');
+  grid.innerHTML = '';
+  filterChips.innerHTML = '';
+
+  // Build filter chips
+  me.genres.forEach(gid => {
+    const g = GENRES.find(x => x.id === gid);
+    if (!g) return;
+    const chip = document.createElement('div');
+    chip.className = 'px-3 py-1 rounded-full text-xs font-bold';
+    chip.style.cssText = `background:${g.color}22; color:${g.color}; border:1px solid ${g.color}66;`;
+    chip.textContent = `${g.icon} ${g.name}`;
+    filterChips.appendChild(chip);
+  });
+
+  // Collect unique artists from selected genres
+  const uniqueArtists = [...new Set(me.genres.flatMap(gid => ARTISTS_BY_GENRE[gid] || []))];
+
+  uniqueArtists.forEach(name => {
+    const chip = document.createElement('button');
+    chip.className = 'artist-chip';
+    chip.dataset.name = name;
+    chip.textContent = name;
+    chip.addEventListener('click', () => toggleArtist(name, chip));
+    grid.appendChild(chip);
+  });
+
+  updateArtistsUI();
+}
+
+function toggleArtist(name, chip) {
+  const idx = me.artists.indexOf(name);
+  if (idx >= 0) {
+    me.artists.splice(idx, 1);
+    chip.classList.remove('selected');
+  } else {
+    me.artists.push(name);
+    chip.classList.add('selected');
+    anime({
+      targets: chip,
+      scale: [1, 1.06, 1],
+      duration: 200,
+      easing: 'easeOutBack',
+    });
+  }
+  updateArtistsUI();
+}
+
+function updateArtistsUI() {
+  const n = me.artists.length;
+  document.getElementById('artists-count-badge').textContent = n;
+  document.getElementById('btn-join-game').disabled = n === 0;
+}
+
+document.getElementById('back-to-genres').addEventListener('click', () => goToScreen('screen-genres'));
+
+document.getElementById('btn-join-game').addEventListener('click', joinGame);
+
+function joinGame() {
+  if (!me.name || me.avatarId === null || !me.roomCode) return;
+  UISounds.click();
+
+  const btn = document.getElementById('btn-join-game');
+  btn.disabled = true;
+  btn.textContent = 'Conectando... 🌐';
+
+  // Emit join
+  socket.emit('player:join', {
+    roomCode: me.roomCode,
+    name: me.name,
+    avatarId: me.avatarId,
+  });
+
+  // Send genre and artist selections after join (with slight delay)
+  setTimeout(() => {
+    socket.emit('player:select_genres', { roomCode: me.roomCode, genres: me.genres });
+    socket.emit('player:select_artists', { roomCode: me.roomCode, artists: me.artists });
+  }, 500);
+
+  // Timeout fallback (se limpia en join_ack si la conexión es exitosa)
+  window.joinTimeout = setTimeout(() => {
+    if (btn.disabled) {
+      btn.disabled = false;
+      btn.textContent = '🎤 ¡Entrar a la fiesta!';
+      showError('join-error', 'No se pudo conectar. ¿El código es correcto?');
+      goToScreen('screen-join');
+    }
+  }, 6000);
+}
+
+// ── SCREEN 5: WAITING ROOM ────────────────────────────────
+function renderWaitingRoom(players) {
+  const av = AVATARS[me.avatarId || 0];
+  document.getElementById('my-avatar-img').src = av.img;
+  document.getElementById('my-name-display').textContent = me.name;
+  document.getElementById('my-avatar-label').textContent = av.label;
+  document.getElementById('my-avatar-label').style.color = av.color;
+  document.getElementById('my-card').style.borderColor = av.border;
+  document.getElementById('room-code-display-waiting').textContent = me.roomCode;
+
+  updateWaitingRoomPlayers(players);
+}
+
+function updateWaitingRoomPlayers(players) {
+  const list = document.getElementById('waiting-players-list');
+  list.innerHTML = '';
+  players.forEach(p => {
+    if (p.socketId === socket.id) return; // Skip self
+    const av = AVATARS[p.avatarId || 0];
+    const pip = document.createElement('div');
+    pip.className = 'player-pip';
+    pip.innerHTML = `
+      <div class="w-8 h-8 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center border" style="border-color:${av.border};">
+        <img src="${av.img}" class="w-7 h-7 object-contain" />
+      </div>
+      <span class="text-sm font-semibold" style="color:#f1f5f9;">${escapeHtml(p.name)}</span>
+    `;
+    list.appendChild(pip);
+  });
+
+  // Toggle VIP / Standard controls
+  const host = isVip();
+  const vipContainer = document.getElementById('vip-start-container');
+  const waitingMsg = document.getElementById('standard-waiting-msg');
+  if (vipContainer && waitingMsg) {
+    if (host) {
+      vipContainer.classList.remove('hidden');
+      waitingMsg.classList.add('hidden');
+      // Attach VIP start listener
+      const startBtn = document.getElementById('btn-vip-start');
+      if (startBtn) {
+        startBtn.onclick = () => {
+          socket.emit('player:start_game', { roomCode: me.roomCode });
+          startBtn.disabled = true;
+          startBtn.textContent = 'Iniciando...';
+        };
+      }
+    } else {
+      vipContainer.classList.add('hidden');
+      waitingMsg.classList.remove('hidden');
+    }
+  }
+}
+
+// ── SCREEN 6: CONTROLS — Emoji, Tomatazos, Votos ─────────
+let lastEmojiTime = 0;
+const EMOJI_COOLDOWN_MS = 2000;
+
+function spawnFloatingEmoji(emoji, anchorEl) {
+  const el = document.createElement('div');
+  el.className = 'emoji-float';
+  el.textContent = emoji;
+  el.style.left = '50%';
+  el.style.top = '40%';
+  el.style.marginLeft = `${(Math.random() - 0.5) * 40}px`;
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+document.querySelectorAll('.emoji-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const now = Date.now();
+    if (now - lastEmojiTime < EMOJI_COOLDOWN_MS) {
+      showToast('Espera un momento ⏳');
+      shakeElement(btn.id);
+      return;
+    }
+    lastEmojiTime = now;
+    const emoji = btn.dataset.emoji;
+    UISounds.playTone(600 + Math.random() * 400, 0.08, 'sine', 0.06);
+    socket.emit('player:emoji', { roomCode: me.roomCode, emoji });
+    spawnFloatingEmoji(emoji, btn);
+    anime({
+      targets: btn,
+      scale: [1, 1.4, 0.9, 1],
+      duration: 350,
+      easing: 'easeOutBack',
+    });
+    btn.classList.add('cooldown');
+    setTimeout(() => btn.classList.remove('cooldown'), EMOJI_COOLDOWN_MS);
+  });
+});
+
+// Tomatazo button
+document.getElementById('tomatazo-btn').addEventListener('click', () => {
+  if (me.tomatazosLeft <= 0) return;
+  UISounds.click();
+
+  // Get current singer name
+  const singerName = document.getElementById('current-singer-name').textContent;
+  socket.emit('player:tomatazo', { roomCode: me.roomCode, targetName: singerName });
+
+  me.tomatazosLeft--;
+  updateTomatazoPips();
+
+  // Haptic feedback (where supported)
+  if (navigator.vibrate) navigator.vibrate([30, 20, 50]);
+
+  // Animate button
+  anime({
+    targets: '#tomatazo-btn',
+    scale: [1, 1.1, 0.95, 1],
+    rotate: [0, -5, 5, 0],
+    duration: 400,
+    easing: 'easeOutBack',
+  });
+
+  showToast('🍅 ¡Tomatazo lanzado!');
+});
+
+function updateTomatazoPips() {
+  const pips = document.querySelectorAll('#tomatazo-pips span');
+  const btn = document.getElementById('tomatazo-btn');
+  pips.forEach((pip, i) => {
+    pip.style.opacity = i < me.tomatazosLeft ? '0.9' : '0.1';
+  });
+  document.getElementById('tomatazo-remaining').textContent =
+    me.tomatazosLeft > 0 ? `${me.tomatazosLeft} tomate${me.tomatazosLeft !== 1 ? 's' : ''} restante${me.tomatazosLeft !== 1 ? 's' : ''}` : '¡Sin tomates!';
+  btn.disabled = me.tomatazosLeft === 0;
+}
+
+// Sabotage button
+document.getElementById('sabotage-btn').addEventListener('click', () => {
+  UISounds.playTone(220, 0.12, 'sawtooth', 0.1);
+  const overlay = document.getElementById('confirm-sabotage-overlay');
+  overlay.classList.remove('hidden');
+  anime({ targets: overlay, opacity: [0, 1], duration: 200 });
+});
+
+function confirmSabotage() {
+  document.getElementById('confirm-sabotage-overlay').classList.add('hidden');
+  socket.emit('player:sabotage_audio', { roomCode: me.roomCode });
+  const btn = document.getElementById('sabotage-btn');
+  btn.classList.add('cooldown');
+  anime({
+    targets: btn,
+    scale: [1, 1.08, 0.98, 1],
+    duration: 300,
+    easing: 'easeOutBack',
+  });
+  showToast('📢 ¡Sabotaje enviado!');
+  if (navigator.vibrate) navigator.vibrate([30, 20, 80]);
+}
+
+function cancelSabotage() {
+  document.getElementById('confirm-sabotage-overlay').classList.add('hidden');
+}
+
+// Vote buttons
+document.querySelectorAll('.vote-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (me.hasVoted) return;
+    const score = parseInt(btn.dataset.score);
+
+    socket.emit('player:vote', {
+      roomCode: me.roomCode,
+      score,
+      performerSocketId: me.currentSingerSocketId,
+    });
+
+    me.hasVoted = true;
+
+    UISounds.playTone(800, 0.05, 'sine', 0.08);
+    if (navigator.vibrate) navigator.vibrate(40);
+
+    document.querySelectorAll('.vote-btn').forEach(b => {
+      b.style.opacity = b === btn ? '1' : '0.3';
+      b.disabled = true;
+    });
+
+    btn.classList.add('vote-burst');
+    anime({
+      targets: btn,
+      scale: [1, 1.2, 1.05],
+      duration: 350,
+      easing: 'easeOutBack',
+      complete: () => btn.classList.remove('vote-burst'),
+    });
+
+    document.getElementById('vote-status').classList.remove('hidden');
+    showToast(`Voto: ${score} pts ✅`);
+  });
+});
+
+// ── SCREEN 7: ASSIGN SONG ────────────────────────────────
+function renderAssignScreen(players, songs) {
+  const targetList  = document.getElementById('target-players-list');
+  const songList    = document.getElementById('assignable-songs-list');
+  let selectedTarget = null;
+  let selectedSong   = null;
+
+  targetList.innerHTML = '';
+  players
+    .filter(p => p.socketId !== socket.id)
+    .forEach(p => {
+      const av = AVATARS[p.avatarId || 0];
+      const btn = document.createElement('button');
+      btn.className = 'player-pip cursor-pointer w-full text-left flex items-center gap-3 p-2';
+      btn.style.border = '2px solid #334155';
+      btn.style.borderRadius = '0.875rem';
+      btn.innerHTML = `
+        <div class="w-8 h-8 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center border" style="border-color:${av.border};">
+          <img src="${av.img}" class="w-7 h-7 object-contain" />
+        </div>
+        <span class="font-bold text-sm flex-1">${escapeHtml(p.name)}</span>
+      `;
+      btn.addEventListener('click', () => {
+        selectedTarget = p.socketId;
+        document.querySelectorAll('#target-players-list button').forEach(b => b.style.borderColor = '#334155');
+        btn.style.borderColor = '#ec4899';
+        checkAssignReady();
+      });
+      targetList.appendChild(btn);
+    });
+
+  songList.innerHTML = '';
+  (songs || []).forEach(song => {
+    const btn = document.createElement('button');
+    btn.className = 'artist-chip w-full text-left';
+    btn.textContent = `🎵 ${song.title} — ${song.artist}`;
+    btn.dataset.songId = song.id;
+    btn.addEventListener('click', () => {
+      selectedSong = song.id;
+      document.querySelectorAll('#assignable-songs-list button').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      checkAssignReady();
+    });
+    songList.appendChild(btn);
+  });
+
+  function checkAssignReady() {
+    document.getElementById('btn-send-assignment').disabled = !(selectedTarget && selectedSong);
+  }
+
+  document.getElementById('btn-send-assignment').onclick = () => {
+    socket.emit('player:assign_song', {
+      roomCode: me.roomCode,
+      targetSocketId: selectedTarget,
+      songId: selectedSong,
+    });
+    showToast('🎯 ¡Ataque lanzado!');
+    goToScreen('screen-controls');
+  };
+}
+
+// ── SCREEN 8: PODIO ───────────────────────────────────────
+function renderPodium(data) {
+  const myResult = data.results?.find(r => r.name === me.name);
+  if (myResult) {
+    document.getElementById('podium-my-award').textContent = myResult.award || '🎤 Participante';
+    document.getElementById('podium-my-score').textContent = myResult.score || 0;
+  }
+}
+
+document.getElementById('btn-play-again').addEventListener('click', () => {
+  // Reset local state
+  me.genres = [];
+  me.artists = [];
+  me.avatarId = null;
+  me.tomatazosLeft = 3;
+  me.hasVoted = false;
+  digits.forEach(d => d.value = '');
+  document.getElementById('player-name-input').value = '';
+  goToScreen('screen-join');
+});
+
+// ── TOAST SYSTEM ─────────────────────────────────────────
+let toastTimeout = null;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function shakeElement(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('shake');
+  void el.offsetWidth; // reflow
+  el.classList.add('shake');
+  setTimeout(() => el.classList.remove('shake'), 400);
+}
+
+function escapeHtml(str = '') {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ── PRE-FILL CODE FROM URL PARAM ─────────────────────────
+// e.g. /join?code=ABCD fills the digits automatically
+(function prefillFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const code = (params.get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (code.length === 4) {
+    [...code].forEach((char, i) => { if (digits[i]) digits[i].value = char; });
+    validateJoinForm();
+    document.getElementById('player-name-input').focus();
+  } else {
+    digits[0].focus();
+  }
+})();
+</script>
+
+<!-- SABOTAGE CONFIRMATION MODAL -->
+<div id="confirm-sabotage-overlay" class="confirm-overlay hidden">
+  <div class="confirm-box">
+    <span class="text-5xl block mb-3">📢</span>
+    <p class="text-xl font-black mb-2" style="color:#facc15;">¿Sabotear audio?</p>
+    <p class="text-sm mb-5" style="color:#94a3b8;">El Tío Axolo hablará durante la canción. ¿Estás seguro?</p>
+    <div class="flex gap-3">
+      <button onclick="cancelSabotage()" class="flex-1 py-3 rounded-xl font-bold text-sm"
+        style="background:#334155; color:#94a3b8; border:2px solid #475569;">
+        Cancelar
+      </button>
+      <button onclick="confirmSabotage()" class="flex-1 py-3 rounded-xl font-bold text-sm"
+        style="background:linear-gradient(135deg,#facc15,#f97316); color:#111827; border:3px solid #111827; box-shadow:3px 3px 0px #111827;">
+        ¡Sí, hable! 🎙️
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

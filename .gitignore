@@ -1,0 +1,15 @@
+node_modules/
+.env
+*.log
+Thumbs.db
+.DS_Store
+
+# Generated build artifacts
+ritmika.ico
+Ritmika.exe
+WebView2Loader.dll
+Microsoft.Web.WebView2.Core.dll
+Microsoft.Web.WebView2.WinForms.dll
+
+# WebView2 SDK DLLs (downloaded by build script)
+libs/webview2/

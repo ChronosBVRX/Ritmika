@@ -1,0 +1,30 @@
+{
+  "name": "ritmika",
+  "version": "1.0.0",
+  "description": "Rítmika – Karaoke Party Game al estilo Jackbox. Anfitrión: Tío Axolo.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js"
+  },
+  "keywords": [
+    "karaoke",
+    "party-game",
+    "jackbox",
+    "socket.io"
+  ],
+  "author": "Axel Rosete",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.17.0",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2",
+    "internal-ip": "^6.2.0",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "socket.io-client": "^4.8.3"
+  }
+}

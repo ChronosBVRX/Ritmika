@@ -1,0 +1,3087 @@
+
+
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'neon-pink':   '#ec4899', 'neon-cyan': '#22d3ee',
+            'neon-purple': '#a855f7', 'neon-yellow': '#facc15',
+            'antro-bg':    '#0f172a', 'antro-card': '#1e293b',
+            'jb-magenta':  '#f0047f', 'jb-cyan':    '#00e5ff',
+            'jb-yellow':   '#ffe600', 'jb-lime':    '#b8ff57',
+            'jb-orange':   '#ff6b00', 'jb-purple':  '#9b00ff',
+          },
+          fontFamily: {
+            outfit:  ['Outfit','sans-serif'],
+            fredoka: ['Fredoka','sans-serif'],
+            paytone: ['Paytone One','sans-serif'],
+          },
+          rotate: { '1.5': '1.5deg', '-1.5': '-1.5deg', '2.5': '2.5deg', '-2.5': '-2.5deg' },
+        },
+      },
+    };
+  
+
+
+
+
+
+
+/* ═══════════════════════════════════════════════════════════
+   RÍTMIKA TV BRAIN v2 — Fases A-F
+   Arquitectura: estado en memoria, servidor es pasarela.
+═══════════════════════════════════════════════════════════ */
+
+// ════════════════════════════════════════════
+//  CATALOGO & FALLBACK
+// ════════════════════════════════════════════
+const API_URL = '/api/songs';
+
+// Fallback catalog — used when API returns empty or fails
+const FALLBACK_CATALOG = [
+  { id:'f1', title:'La Incondicional',      artist:'Luis Miguel',          genre:'balada',   url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:210 },
+  { id:'f2', title:'Amor Eterno',           artist:'Rocío Durcal',         genre:'balada',   url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:195 },
+  { id:'f3', title:'La Chona',              artist:'Los Tucanes de Tijuana',genre:'banda',    url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:180 },
+  { id:'f4', title:'El Rey',                artist:'Vicente Fernández',     genre:'ranchera', url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:200 },
+  { id:'f5', title:'Gasolina',              artist:'Daddy Yankee',          genre:'reggaeton',url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:190 },
+  { id:'f6', title:'Oye Mi Amor',           artist:'Maná',                  genre:'rock',     url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:215 },
+  { id:'f7', title:'No Me Doy Por Vencido', artist:'Luis Fonsi',            genre:'pop',      url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:220 },
+  { id:'f8', title:'Quiero Más',            artist:'Shakira',               genre:'pop',      url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:185 },
+  { id:'f9', title:'Gimme! Gimme! Gimme!', artist:'ABBA',                  genre:'pop',      url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:240 },
+  { id:'f10',title:'La Bicicleta',          artist:'Carlos Vives',          genre:'cumbia',   url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:195 },
+];
+
+window.catalogoKaraoke = [];
+
+// ════════════════════════════════════════════
+//  BOOTLOADER STATE MACHINE
+// ════════════════════════════════════════════
+const boot = {
+  steps: { 1: false, 2: false, 3: false, 4: false },
+  queue: [],
+  processing: false,
+  step(n, state, detail) {
+    this.queue.push({n, state, detail});
+    this.processQueue();
+  },
+  async processQueue() {
+    if (this.processing) return;
+    this.processing = true;
+    while(this.queue.length > 0) {
+      const item = this.queue.shift();
+      const n = item.n;
+      const state = item.state;
+      const detail = item.detail;
+      
+      const el = document.getElementById('boot-step-' + n);
+      const icon = document.getElementById('boot-icon-' + n);
+      const det = document.getElementById('boot-detail-' + n);
+      if (!el) continue;
+
+      el.className = 'boot-check ' + state;
+      if (state === 'active') { icon.textContent = '🔄'; el.querySelector('.boot-check-text').style.color = '#facc15'; }
+      if (state === 'done') { icon.textContent = '✅'; this.steps[n] = true; el.querySelector('.boot-check-text').style.color = '#22c55e'; }
+      if (state === 'error') { icon.textContent = '❌'; el.querySelector('.boot-check-text').style.color = '#ef4444'; }
+      if (det && detail) det.textContent = detail;
+      
+      this.checkAll();
+      
+      // Delay visual para asegurar que las animaciones "premium" se aprecian
+      // 800ms por cambio de estado
+      await new Promise(r => setTimeout(r, 800));
+    }
+    this.processing = false;
+  },
+  checkAll() {
+    const allDone = Object.values(this.steps).every(v => v);
+    if (!allDone) return;
+    const banner = document.getElementById('boot-done');
+    const screen = document.getElementById('bootloader-screen');
+    const lobby = document.getElementById('lobby-screen');
+    if (banner) banner.classList.add('show');
+    
+    setTimeout(() => {
+      // ══════════════════════════════════════════════
+      // JACKBOX-STYLE WIPE TRANSITION
+      // ══════════════════════════════════════════════
+      const wipeContainer = document.createElement('div');
+      wipeContainer.style.cssText = 'position:fixed;inset:0;z-index:999999;pointer-events:none;overflow:hidden;display:flex;';
+      
+      const leftWipe = document.createElement('div');
+      leftWipe.style.cssText = 'position:absolute;top:0;left:-70%;width:70%;height:100%;background:#00e5ff;transform:skewX(12deg);border-right:15px solid #111827;box-shadow:20px 0 0 #111827;';
+      
+      const rightWipe = document.createElement('div');
+      rightWipe.style.cssText = 'position:absolute;top:0;right:-70%;width:70%;height:100%;background:#ec4899;transform:skewX(12deg);border-left:15px solid #111827;box-shadow:-20px 0 0 #111827;';
+      
+      const centerLogo = document.createElement('div');
+      centerLogo.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-family:"Paytone One",sans-serif;font-size:7rem;color:#ffe600;text-shadow:8px 8px 0 #111827, 0 0 40px rgba(0,0,0,0.8);z-index:10;white-space:nowrap;letter-spacing:4px;';
+      centerLogo.textContent = '¡A JUGAR!';
+
+      wipeContainer.appendChild(leftWipe);
+      wipeContainer.appendChild(rightWipe);
+      wipeContainer.appendChild(centerLogo);
+      document.body.appendChild(wipeContainer);
+
+      try { if(typeof UISounds !== 'undefined') UISounds.whoosh(); } catch(e){}
+
+      if (typeof anime !== 'undefined') {
+        anime({ targets: leftWipe, left: '-10%', duration: 450, easing: 'easeOutExpo' });
+        anime({ targets: rightWipe, right: '-10%', duration: 450, easing: 'easeOutExpo' });
+        
+        setTimeout(() => {
+          try { if(typeof UISounds !== 'undefined') UISounds.stinger(); } catch(e){}
+          anime({ targets: centerLogo, scale: [0, 1.2, 1], rotate: ['-5deg', '5deg', '0deg'], duration: 800, easing: 'easeOutElastic(1, .5)' });
+          
+          if (screen) { screen.style.display = 'none'; }
+          if (lobby) { lobby.classList.add('active'); }
+
+          setTimeout(() => {
+            try { if(typeof UISounds !== 'undefined') UISounds.whoosh(); } catch(e){}
+            anime({ targets: leftWipe, left: '-100%', duration: 600, easing: 'easeInExpo' });
+            anime({ targets: rightWipe, right: '-100%', duration: 600, easing: 'easeInExpo' });
+            anime({ targets: centerLogo, scale: 0, duration: 400, easing: 'easeInExpo' });
+            
+            if (typeof animateLobbyWelcome === 'function') animateLobbyWelcome();
+            
+            setTimeout(() => { wipeContainer.remove(); }, 700);
+          }, 1400);
+        }, 400);
+      } else {
+        if (screen) screen.style.display = 'none';
+        if (lobby) { lobby.classList.add('active'); }
+        if (typeof animateLobbyWelcome === 'function') animateLobbyWelcome();
+      }
+
+    }, 1200);
+  },
+  fail(n, msg) {
+    const el = document.getElementById('boot-step-' + n);
+    const icon = document.getElementById('boot-icon-' + n);
+    const det = document.getElementById('boot-detail-' + n);
+    if (!el) return;
+    el.className = 'boot-check error';
+    icon.textContent = '❌';
+    el.querySelector('.boot-check-text').style.color = '#ef4444';
+    if (det) det.textContent = msg;
+    document.getElementById('boot-retry').style.display = 'block';
+  }
+};
+boot.step(1, 'active');
+
+async function loadCatalog(retries = 3) {
+  console.log('[Bootloader] loadCatalog() called');
+  const catalogInfo = document.getElementById('catalog-info');
+  boot.step(3, 'active');
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
+      const res = await fetch(API_URL, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+      const data = await res.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        window.catalogoKaraoke = data;
+        const msg = '📀 ' + data.length + ' canciones cargadas';
+        if (catalogInfo) catalogInfo.textContent = msg;
+        try { updateTicker(msg); } catch (_) {}
+        console.log('[Catálogo] OK:', data.length, 'canciones');
+        boot.step(3, 'done', data.length + ' canciones');
+        return;
+      } else {
+        throw new Error('Catálogo vacío del servidor');
+      }
+    } catch (e) {
+      console.error('[Catálogo] Intento ' + attempt + '/' + retries + ' falló:', e.message);
+      if (attempt < retries) {
+        if (catalogInfo) catalogInfo.textContent = '⚠️ Reintento ' + attempt + '/' + retries + ': ' + e.message;
+        await new Promise(r => setTimeout(r, 3000));
+      } else {
+        window.catalogoKaraoke = FALLBACK_CATALOG;
+        const msg = '📀 ' + FALLBACK_CATALOG.length + ' canciones (demo) — Error: ' + e.message;
+        if (catalogInfo) catalogInfo.textContent = msg;
+        try { updateTicker(msg); } catch (_) {}
+        console.warn('[Catálogo] Usando fallback tras', retries, 'intentos:', e.message);
+        boot.step(3, 'done', FALLBACK_CATALOG.length + ' (demo)');
+      }
+    }
+  }
+}
+window.reloadCatalog = function() { loadCatalog(3); };
+
+// Pick best song for a player based on preferences
+function pickSongForPlayer(player) {
+  const catalog = window.catalogoKaraoke;
+  if (!catalog.length) return null;
+
+  // Ronda 2: usar canción asignada por otro jugador (Fuego Cruzado)
+  const assigned = state.assignedSongs[player.socketId];
+  if (assigned) {
+    const assignedSong = catalog.find(s => s.id === assigned.songId);
+    delete state.assignedSongs[player.socketId];
+    if (assignedSong) {
+      if (!state.songQueue.includes(assignedSong.id)) {
+        state.songQueue.push(assignedSong.id);
+        saveGameState();
+      }
+      return assignedSong;
+    }
+  }
+
+  // Filter out songs already in the songQueue
+  let available = catalog.filter(s => !state.songQueue.includes(s.id));
+  if (available.length === 0) {
+    // If all songs played, reset history for this game
+    state.songQueue = [];
+    available = catalog;
+  }
+
+  const playerGenres   = (player.genres || []).map(g => g.toLowerCase());
+  const playerArtists  = (player.artists || []).map(a => a.toLowerCase());
+
+  // Priority 1: artist match (find all matching unused songs)
+  let matches = available.filter(s => s.artist && playerArtists.some(a => s.artist.toLowerCase().includes(a)));
+
+  // Priority 2: genre match (find all matching unused songs)
+  if (matches.length === 0) {
+    matches = available.filter(s => s.genre && playerGenres.includes(s.genre.toLowerCase()));
+  }
+
+  // Pick a random song from matches, or fallback to any available unused song
+  let chosenSong;
+  if (matches.length > 0) {
+    chosenSong = matches[Math.floor(Math.random() * matches.length)];
+  } else {
+    chosenSong = available[Math.floor(Math.random() * available.length)];
+  }
+
+  if (chosenSong) {
+    state.songQueue.push(chosenSong.id);
+    saveGameState();
+  }
+  return chosenSong;
+}
+
+// ════════════════════════════════════════════
+//  GAME STATE
+// ════════════════════════════════════════════
+const AVATARS = [
+  { id:0, emoji:'🌮', label:'Taco Rockero',      color:'#f97316', border:'#ea580c', img:'/assets/avatars/avatar_0_taco_rockero.png' },
+  { id:1, emoji:'🌶️', label:'Chile Enmascarado', color:'#ef4444', border:'#dc2626', img:'/assets/avatars/avatar_1_chile_enmascarado.png' },
+  { id:2, emoji:'🍹', label:'Tequila Fiestero',  color:'#a855f7', border:'#9333ea', img:'/assets/avatars/avatar_2_tequila_fiestero.png' },
+  { id:3, emoji:'⭐', label:'Estrella de Rock',  color:'#facc15', border:'#eab308', img:'/assets/avatars/avatar_3_estrella_rock.png' },
+  { id:4, emoji:'🦜', label:'Loro Cumbiambero',  color:'#22c55e', border:'#16a34a', img:'/assets/avatars/avatar_4_loro_cumbiambero.png' },
+  { id:5, emoji:'🎸', label:'Guitarra Mágica',   color:'#3b82f6', border:'#2563eb', img:'/assets/avatars/avatar_5_guitarra_magica.png' },
+  { id:6, emoji:'👑', label:'Rey del Palenque',  color:'#ec4899', border:'#db2777', img:'/assets/avatars/avatar_6_rey_palenque.png' },
+  { id:7, emoji:'🐙', label:'Pulpo Salsero',     color:'#06b6d4', border:'#0891b2', img:'/assets/avatars/avatar_7_pulpo_salsero.png' },
+];
+const getAvatar = id => AVATARS[id] || AVATARS[0];
+
+const RETO_CHALLENGES = [
+  '¡Canta llorando a moco tendido! 😭',
+  '¡Canta como si fueras T-Rex con brazos cortos! 🦖',
+  '¡Canta solo con vocales, sin consonantes! 🗣️',
+  '¡Canta poniendo tu mejor voz de telenovela! 🎭',
+  '¡Canta susurrando como si hubiera un bebé dormido! 🤫',
+  '¡Canta haciendo sentadillas al mismo tiempo! 💪',
+  '¡Canta con acento de otro país! 🌍',
+  '¡Canta con la boca llena de aire de pez globo! 🐡',
+  '¡Canta con los ojos cerrados y sin moverte! 🧘',
+  '¡Canta solo la mitad de cada palabra! 🤐',
+];
+
+// ════════════════════════════════════════════
+//  FRASES POR GÉNERO — Personalidad del Tío Axolo
+// ════════════════════════════════════════════
+const GENRE_BARKS = {
+  reggaeton: [
+    { text: '¡Perreo intelectual, la neta! 🍑🔥', file: 'genre_reggaeton_0.mp3' },
+    { text: '¡El Benito estaría orgulloso... o llorando! 🎤', file: 'genre_reggaeton_1.mp3' },
+    { text: '¡Más sabor que un trompo al pastor! 🌮', file: 'genre_reggaeton_2.mp3' },
+    { text: '¡Eso no era nota, era accidente de tráfico musical! 🚗💥', file: 'genre_reggaeton_3.mp3' },
+    { text: '¡Tiembla Bellakath, que ya te salió competencia de la buena! 🐱', file: 'genre_reggaeton_4.mp3' },
+    { text: '¡Traes el flow pesado, pero el micrófono te quedó un poco ligero! 💸', file: 'genre_reggaeton_5.mp3' },
+    { text: '¡Eso sí es chacaleo del bueno, mi estimado ajolote! 🐊', file: 'genre_reggaeton_6.mp3' },
+    { text: '¡Flow de tianguis de domingo: barato pero con mucho estilo! 🛍️', file: 'genre_reggaeton_7.mp3' },
+    { text: '¡Eso fue puro dembow de la vieja escuela... o de la prepa! 🎒', file: 'genre_reggaeton_8.mp3' },
+    { text: '¡Nos pusiste a perrear hasta el subsuelo, carnal! 🕺', file: 'genre_reggaeton_9.mp3' },
+  ],
+  banda: [
+    { text: '¡El Recodo te manda sus condolencias! 🎺😂', file: 'genre_banda_0.mp3' },
+    { text: '¡Eso sonó más raro que tuba en discoteca! 🪗', file: 'genre_banda_1.mp3' },
+    { text: '¡El palenque está llorando... de risa! 🤠', file: 'genre_banda_2.mp3' },
+    { text: '¡Eso fue banda, pero más bien banda ancha de desafine! 📡', file: 'genre_banda_3.mp3' },
+    { text: '¡Siento que me caigo de la troca con semejantes notas! 🛻', file: 'genre_banda_4.mp3' },
+    { text: '¡Sírvanme otro mezcal para aguantar la segunda estrofa! 🥃', file: 'genre_banda_5.mp3' },
+    { text: '¡Ese grito dolió más que la cruda del lunes! 🥴', file: 'genre_banda_6.mp3' },
+    { text: '¡Hasta a Chuy Lizárraga se le salieron las lágrimas de oírte! 😢', file: 'genre_banda_7.mp3' },
+    { text: '¡Traes todo el sentimiento del rancho, lástima el afinador! 🌾', file: 'genre_banda_8.mp3' },
+    { text: '¡Eso sonó a banda sinaloense, pero después de un terremoto! 🌋', file: 'genre_banda_9.mp3' },
+  ],
+  ranchera: [
+    { text: '¡Don Vicente te escuchó y pidió otro tequila! 🥃', file: 'genre_ranchera_0.mp3' },
+    { text: '¡Eso estuvo tan emocionante que se me fue el hipo! 😭', file: 'genre_ranchera_1.mp3' },
+    { text: '¡El charro más valiente no aguantó esa nota! 🐎', file: 'genre_ranchera_2.mp3' },
+    { text: '¡Gritaste el gallo antes de que saliera el sol! 🐓', file: 'genre_ranchera_3.mp3' },
+    { text: '¡Se me hace que ese mariachi era de mentiras, carnal! 🎺', file: 'genre_ranchera_4.mp3' },
+    { text: '¡Cantas con el sentimiento de quien debe la tanda! 💸', file: 'genre_ranchera_5.mp3' },
+    { text: '¡Esa nota estuvo más desafinada que guitarra de Garibaldi! 🎸', file: 'genre_ranchera_6.mp3' },
+    { text: '¡Con ese grito espantaste a los caballos del patrón! 🐴', file: 'genre_ranchera_7.mp3' },
+    { text: '¡Le pusiste garra, pero nos quedamos sin gallinero de tanto gallo! 🐔', file: 'genre_ranchera_8.mp3' },
+    { text: '¡Para cantar así se necesita tequila, mezcal y mucha anestesia! 💉', file: 'genre_ranchera_9.mp3' },
+  ],
+  rock: [
+    { text: '¡Maná te hubiera dado el micrófono... para callarte! 🎸', file: 'genre_rock_0.mp3' },
+    { text: '¡Eso no fue rock, fue terremoto con guitarra! 🌋', file: 'genre_rock_1.mp3' },
+    { text: '¡Hasta las bocinas pidieron piedad! 🔊', file: 'genre_rock_2.mp3' },
+    { text: '¡Kurt Cobain se revolvió en su tumba, pero de alegría! 🤘', file: 'genre_rock_3.mp3' },
+    { text: '¡Mucho ruido y pocas nueces, como concierto de rock urbano! 🥁', file: 'genre_rock_4.mp3' },
+    { text: '¡Traes toda la actitud de rockstar, lástima por las cuerdas vocales! 🎤', file: 'genre_rock_5.mp3' },
+    { text: '¡Eso fue metal pesado, sobre todo por lo pesado de escuchar! ⛓️', file: 'genre_rock_6.mp3' },
+    { text: '¡Alex Lora te daría un abrazo por el puro valor! 🫂', file: 'genre_rock_7.mp3' },
+    { text: '¡Sonó como solo de guitarra eléctrica sin afinar desde el 85! 📅', file: 'genre_rock_8.mp3' },
+    { text: '¡Ese headbanging estuvo chido, el canto... dejémoslo en intento! 🫠', file: 'genre_rock_9.mp3' },
+  ],
+  pop: [
+    { text: '¡Taylor Swift acaba de bloquear tu número! 📵', file: 'genre_pop_0.mp3' },
+    { text: '¡Eso estuvo tan pop como refresco caliente! 🥤', file: 'genre_pop_1.mp3' },
+    { text: '¡Los BTS están viendo el partido de fut! ⚽', file: 'genre_pop_2.mp3' },
+    { text: '¡Spotify te quitó 3 reproducciones por eso! 📉', file: 'genre_pop_3.mp3' },
+    { text: '¡Sonó tan fresa que me empalagó el oído! 🍓', file: 'genre_pop_4.mp3' },
+    { text: '¡Luismi ya canceló su próximo concierto por tu culpa! 🎤', file: 'genre_pop_5.mp3' },
+    { text: '¡Pop de plástico, pero del que se recicla! ♻️', file: 'genre_pop_6.mp3' },
+    { text: '¡Ese falsete estuvo más falso que billete de 300 pesos! 💵', file: 'genre_pop_7.mp3' },
+    { text: '¡Parece que cantas pop en inglés pero con pronunciación de secundaria! 🏫', file: 'genre_pop_8.mp3' },
+    { text: '¡Un autotune no te caería nada mal para la próxima, de veras! 🎚️', file: 'genre_pop_9.mp3' },
+  ],
+  cumbia: [
+    { text: '¡Los Ángeles Azules te piden que guardes el micrófono! 💃', file: 'genre_cumbia_0.mp3' },
+    { text: '¡Más sabroso que elote con chile y limón! 🌽', file: 'genre_cumbia_1.mp3' },
+    { text: '¡Eso movió el esqueleto y también el estómago! 🦴', file: 'genre_cumbia_2.mp3' },
+    { text: '¡La Sonora Dinamita explotó de vergüenza ajena! 💣', file: 'genre_cumbia_3.mp3' },
+    { text: '¡Traes el ritmo en los pies, pero la afinación en otra galaxia! 🌌', file: 'genre_cumbia_4.mp3' },
+    { text: '¡Sabor a barrio, sabor a sonidero tapando la calle! 🎺', file: 'genre_cumbia_5.mp3' },
+    { text: '¡Eso fue cumbia lagunera, bien rasposa! 🐊', file: 'genre_cumbia_6.mp3' },
+    { text: '¡Hasta el microbús se detuvo a bailar con ese ritmo! 🚌', file: 'genre_cumbia_7.mp3' },
+    { text: '¡Cumbia de la buena, ideal para barrer el piso con el compadre! 🧹', file: 'genre_cumbia_8.mp3' },
+    { text: '¡Traes el güiro bien dominado, al menos eso se escuchó bien! 🥁', file: 'genre_cumbia_9.mp3' },
+  ],
+  balada: [
+    { text: '¡Luis Miguel lloró... pero no de emotion! 😢', file: 'genre_balada_0.mp3' },
+    { text: '¡Eso fue más dramático que telenovela de Televisa! 📺', file: 'genre_balada_1.mp3' },
+    { text: '¡El amor duele, pero esa nota duele más! 💔', file: 'genre_balada_2.mp3' },
+    { text: '¡Alejandro Sanz se fue de tour por no escuchar eso! 🌍', file: 'genre_balada_3.mp3' },
+    { text: '¡Perfecto para cortarse las venas con galletas de animalitos! 🍪', file: 'genre_balada_4.mp3' },
+    { text: '¡Ese drama no lo tiene ni la Rosa de Guadalupe! 🌹', file: 'genre_balada_5.mp3' },
+    { text: '¡Le pusiste sentimiento, pero te faltó tantita escala musical! 🎼', file: 'genre_balada_6.mp3' },
+    { text: '¡Esa nota alta fue un grito de auxilio, confiesa! 🚨', file: 'genre_balada_7.mp3' },
+    { text: '¡Sonó triste, sobre todo para los que tenemos oídos! 🦻', file: 'genre_balada_8.mp3' },
+    { text: '¡La dedicatoria estuvo chida, el canto amerita divorcio exprés! 💍', file: 'genre_balada_9.mp3' },
+  ],
+  electronica: [
+    { text: '¡Daft Punk se quitó el casco de vergüenza! 🤖', file: 'genre_electronica_0.mp3' },
+    { text: '¡Eso sonó como Windows 98 crasheando! 💻', file: 'genre_electronica_1.mp3' },
+    { text: '¡El drop estuvo más plano que mi cartera! 💸', file: 'genre_electronica_2.mp3' },
+    { text: '¡Avicii estaría orgulloso... o confundido! 🎧', file: 'genre_electronica_3.mp3' },
+    { text: '¡Sonó como licuadora con piedras en la cocina! 🌪️', file: 'genre_electronica_4.mp3' },
+    { text: '¡Traes el beat de guaracha, pero te faltó el ritmo! 🕺', file: 'genre_electronica_5.mp3' },
+    { text: '¡Eso no fue rave, fue cortocircuito en el transformador! ⚡', file: 'genre_electronica_6.mp3' },
+    { text: '¡Hasta el DJ se puso audífonos para taparse las orejas! 🎚️', file: 'genre_electronica_7.mp3' },
+    { text: '¡Mucha luces, mucho humo, pero poca melodía, mi buen! 🌫️', file: 'genre_electronica_8.mp3' },
+    { text: '¡El sintetizador intentó salvarte, pero ni él pudo tanto! 🎹', file: 'genre_electronica_9.mp3' },
+  ],
+  default: [
+    { text: '¡Eso fue... algo! ¡No sé si cantar o rezar! 🙏', file: 'genre_default_0.mp3' },
+    { text: '¡Los vecinos ya llamaron al 911! 🚨', file: 'genre_default_1.mp3' },
+    { text: '¡Hasta el perro de la cuadra aúlla diferente! 🐕', file: 'genre_default_2.mp3' },
+    { text: '¡Eso tuvo más quiebres que la economía nacional! 📊', file: 'genre_default_3.mp3' },
+    { text: '¡La afinación está en vacaciones! ✈️', file: 'genre_default_4.mp3' },
+    { text: '¡Corazón valiente, oídos sufridos! ❤️', file: 'genre_default_5.mp3' },
+    { text: '¡Eso estuvo más raro que tamal de pizza! 🍕', file: 'genre_default_6.mp3' },
+    { text: '¡Le faltó sal a ese taco de canción! 🧂', file: 'genre_default_7.mp3' },
+    { text: '¡Traes el espíritu afinado, el resto... va en camino! 🚶', file: 'genre_default_8.mp3' },
+    { text: '¡Eso fue cantar a capela... pero sin afinación alguna! 🔇', file: 'genre_default_9.mp3' },
+  ],
+};
+
+const LOBBY_WELCOME_PHRASES = [
+  { text: "¡Bienvenidos a Rítmika! Escaneen el código para empezar la fiesta 🪅", file: "lobby_welcome_0.mp3" },
+  { text: "¡Qué onda banda! Bienvenidos a Rítmika. Acerquen sus celulares y conéctense al party. 🎉", file: "lobby_welcome_1.mp3" },
+  { text: "¡Ya se la saben! Bienvenidos a Rítmika. Saquen los chescos y escaneen el código para jugar. 🥤", file: "lobby_welcome_2.mp3" },
+  { text: "¡Buenas, buenas! Tío Axolo les da la bienvenida a Rítmika. Conéctense que esto se va a descontrolar. 🥳", file: "lobby_welcome_3.mp3" },
+  { text: "¡Arrancamos Rítmika! Prepárense para cantar, reír y lanzar tomates. Escaneen el QR ya mismo. 🍅", file: "lobby_welcome_4.mp3" }
+];
+
+const ROOM_READY_PHRASES = [
+  { text: "¡La sala está lista! Escanéen el código y únanse al juego! 📱", file: "room_ready_0.mp3" },
+  { text: "¡Sala abierta y lista! Ya pueden unirse. ¿Quién se atreve a ser el primero? 🚀", file: "room_ready_1.mp3" },
+  { text: "¡Tenemos código y tenemos ganas! Únanse al lobby con el código en pantalla. 🎰", file: "room_ready_2.mp3" },
+  { text: "¡Lobby listo! Conecten sus controles móviles para iniciar la diversión. 📲", file: "room_ready_3.mp3" }
+];
+
+const ROULETTE_SPINS = [
+  { text: '¡El destino decide quién sufre primero! 🎡✨', file: 'roulette_spin_0.mp3' },
+  { text: '¡Girando la ruleta! A ver a quién le cae la voladora... 🎰', file: 'roulette_spin_1.mp3' },
+  { text: '¡Suerte para todos! La rueda está buscando su próxima víctima. 🎡✨', file: 'roulette_spin_2.mp3' }
+];
+
+const ROULETTE_WINS = [
+  { text: '¡Te toca cantar! ¡La suerte eligió! ¡Que el palenque decida tu destino! 🎤', file: 'roulette_win_0.mp3' },
+  { text: '¡El elegido del destino! Pasa al frente y que dios te acompañe. 🙏', file: 'roulette_win_1.mp3' },
+  { text: '¡El boleto ganador es tuyo! Conquista el escenario o muere en el intento. 🏆', file: 'roulette_win_2.mp3' }
+];
+
+const CHALLENGE_INTROS = [
+  { text: '¡Reto de actuación activado! ¡A cantar con estilo! 🎭', file: 'challenge_intro_0.mp3' },
+  { text: '¡Hora del reto! Cántenle con ganas y pónganle drama. 🎭', file: 'challenge_intro_1.mp3' },
+  { text: '¡Reto especial! Demuestren que además de afinación, traen actitud escénica. 🌟', file: 'challenge_intro_2.mp3' }
+];
+
+const BLACKOUT_INTROS = [
+  { text: '¡Apagón mental! ¡Se acabó la letra! ¡Canta de memoria o muere en el intento! 🧠', file: 'blackout_intro_0.mp3' },
+  { text: '¡Luces fuera! Apagón mental activado. ¿Te sabes la rola de memoria? 🧠⚡', file: 'blackout_intro_1.mp3' },
+  { text: '¡La pantalla se va a negro! Demuestra si eres un verdadero fan o pura pose. 🕶️', file: 'blackout_intro_2.mp3' }
+];
+
+const BLACKOUT_ENDS = [
+  { text: '¡De vuelta! ¿Sobreviviste? 🎤', file: 'blackout_end_0.mp3' },
+  { text: '¡Regresó la señal! ¿Te dio un ataque de pánico o todo chido? 😅', file: 'blackout_end_1.mp3' },
+  { text: '¡Fin del apagón! A ver si lograste salvar la rola. 📻', file: 'blackout_end_2.mp3' }
+];
+
+const FINAL_VICTORIES = [
+  { text: '¡Felicidades al ganador, te la rifaste de veras! 🏆', file: 'final_victory_0.mp3' },
+  { text: '¡Tenemos campeón absoluto! Eres el mero mero del palenque. 🥇', file: 'final_victory_1.mp3' },
+  { text: '¡Te coronaste! La banda te aclama y el Tío Axolo te aplaude. 👏🎉', file: 'final_victory_2.mp3' }
+];
+
+const PODIUM_CLIMAXES = [
+  { text: '¡Y así termina la noche más épica del año! ¡El Rey del Palenque ha sido coronado! ¡Gracias banda por esta noche de gloria, carrilla y algún que otro tomate! ¡Hasta la próxima fiesta! 🏆', file: 'podium_climax_0.mp3' },
+  { text: '¡Qué noche, señores! El palenque se cierra pero las risas se quedan. ¡Felicidades a los ganadores y gracias a todos por aguantar la carrilla! 🎉', file: 'podium_climax_1.mp3' },
+  { text: '¡La fiesta llegó a su fin! Coronamos al rey, abucheamos al gallo y nos divertimos como locos. ¡Nos vemos en la próxima ronda de Rítmika! ¡Adiós! 👋', file: 'podium_climax_2.mp3' }
+];
+
+const CATALOG_READIES = [
+  { text: '¡El catálogo de canciones está listo! 🎵', file: 'catalog_ready_0.mp3' },
+  { text: '¡Todas las rolas cargadas y listas para sonar! 🎶', file: 'catalog_ready_1.mp3' },
+  { text: '¡Ya pueden buscar sus temas preferidos! Catálogo listo. 📂', file: 'catalog_ready_2.mp3' }
+];
+
+const NEW_GAMES = [
+  { text: '¡Nueva partida! 🎮 Esperando jugadores...', file: 'new_game_0.mp3' },
+  { text: '¡Mesa limpia! Nueva partida iniciada. Vayan entrando todos. 🎮', file: 'new_game_1.mp3' },
+  { text: '¡Reiniciamos la diversión! Esperando que se unan los cantantes. 🚀', file: 'new_game_2.mp3' }
+];
+
+const AXOLO_SINGER_INTROS = [
+  { text: '¡Al micrófono! ¡Que el palenque tiemble! 🎤🔥', file: 'intro_0.mp3' },
+  { text: '¡Tiene el turno! ¡O canta o paga las chelas! 🍺', file: 'intro_1.mp3' },
+  { text: '¡Silencio, que va a demostrar de qué está hecho! 🎭', file: 'intro_2.mp3' },
+  { text: '¡El destino habló y tú tienes que obedecer! 🎰', file: 'intro_3.mp3' },
+  { text: '¡Abran paso, que viene la verdadera estrella de la noche! ⭐', file: 'intro_4.mp3' },
+  { text: '¡A tomar el escenario! Prepárense para lo que venga. 🚀', file: 'intro_5.mp3' },
+  { text: '¡Es el momento de la verdad! ¡Sin miedo al éxito, carnal! 💪', file: 'intro_6.mp3' },
+  { text: '¡Agárrense, que viene con todo el flow sonidero! 🔊', file: 'intro_7.mp3' },
+  { text: '¡Que pase al frente! ¡Que empiece la magia o el sufrimiento! 🎩', file: 'intro_8.mp3' },
+  { text: '¡La ruleta ha hablado y condena a nuestro cantante a deleitarnos! 🎭', file: 'intro_9.mp3' },
+];
+
+const AXOLO_VOTE_REACTIONS = {
+  100: [
+    { text: '¡GRAMMY! ¡GRAMMY! ¡Le lloran los micrófonos! 🏆', file: 'vote_100_0.mp3' },
+    { text: '¡ESO SÍ ES MÚSICA, no lo que ponen en el radio! 🎵', file: 'vote_100_1.mp3' },
+    { text: '¡Se ganó el tequila y la admiración de Tío Axolo! 🥃', file: 'vote_100_2.mp3' },
+    { text: '¡Se la rifó como los grandes del escenario! ⭐', file: 'vote_100_3.mp3' },
+    { text: '¡Qué bárbaro, cantas mejor que el promedio nacional! 🇲🇽', file: 'vote_100_4.mp3' },
+    { text: '¡Traes un vozarrón que hasta a mí me dio escalofríos! 🥶', file: 'vote_100_5.mp3' },
+    { text: '¡Eso no fue cantar, fue dar cátedra musical! 🎓', file: 'vote_100_6.mp3' },
+  ],
+  60: [
+    { text: '¡Ni fu ni fa, pero al menos no sangran los oídos! 👍', file: 'vote_60_0.mp3' },
+    { text: '¡Pasable, como el café de la oficina! ☕', file: 'vote_60_1.mp3' },
+    { text: '¡Sobrevivió, que no es poco mérito! 😅', file: 'vote_60_2.mp3' },
+    { text: '¡No estuvo mal, pero tampoco me hagas comprar el disco! 💿', file: 'vote_60_3.mp3' },
+    { text: '¡Cumpliste como los buenos, a secas! 📝', file: 'vote_60_4.mp3' },
+    { text: '¡Digamos que salvaste la noche por los pelos! 💈', file: 'vote_60_5.mp3' },
+    { text: '¡Un desempeño decente, te ganaste media chela! 🍺', file: 'vote_60_6.mp3' },
+  ],
+  30: [
+    { text: '¡Le echó ganas, que no es lo mismo que talento! 💪', file: 'vote_30_0.mp3' },
+    { text: '¡Intento valiente, resultado... cuestionable! 🤔', file: 'vote_30_1.mp3' },
+    { text: '¡El esfuerzo se nota, la afinación no tanto! 🎯', file: 'vote_30_2.mp3' },
+    { text: '¡Estuviste a dos notas de invocar la lluvia! 🌧️', file: 'vote_30_3.mp3' },
+    { text: '¡La intención es lo que cuenta, dicen por ahí! 🤷', file: 'vote_30_4.mp3' },
+    { text: '¡Uff, faltó aire y sobró confianza! 😮‍💨', file: 'vote_30_5.mp3' },
+    { text: '¡Sonó como motor de vocho en subida, compa! 🚗', file: 'vote_30_6.mp3' },
+  ],
+  10: [
+    { text: '¡GALLO SUPREMO DETECTADO! 🐓 ¡Los gallos de Sonora cantaron mejor!', file: 'vote_10_0.mp3' },
+    { text: '¡Eso no fue cantar, fue torturar las notas musicales! 😂', file: 'vote_10_1.mp3' },
+    { text: '¡Los vecinos ya pusieron denuncia por escándalo! 📝', file: 'vote_10_2.mp3' },
+    { text: '¡Hijo de su... qué fue eso! ¡Mis oídos de ajolote! 🙉', file: 'vote_10_3.mp3' },
+    { text: '¡Eso sonó como gato pisado en reversa! 🐱🚗', file: 'vote_10_4.mp3' },
+    { text: '¡Una afinación tan ausente como mi ex! 💔', file: 'vote_10_5.mp3' },
+    { text: '¡Te sugiero pedir perdón al micrófono de inmediato! 🎤🙇', file: 'vote_10_6.mp3' },
+  ],
+};
+
+function getGenreBark(player) {
+  const genre = (player.genres || [])[0] || 'default';
+  const barks  = GENRE_BARKS[genre] || GENRE_BARKS.default;
+  return barks[Math.floor(Math.random() * barks.length)];
+}
+
+function getVoteReaction(score) {
+  let key = 10;
+  if (score >= 80) key = 100;
+  else if (score >= 50) key = 60;
+  else if (score >= 25) key = 30;
+  const lines = AXOLO_VOTE_REACTIONS[key];
+  return lines[Math.floor(Math.random() * lines.length)];
+}
+
+
+const SAVE_KEY = 'ritmika_game_state';
+const SAVE_TTL = 4 * 60 * 60 * 1000; // 4 horas
+
+function saveGameState() {
+  try {
+    const data = {
+      v: 1,
+      savedAt: Date.now(),
+      players: state.players.map(p => ({
+        name: p.name, avatarId: p.avatarId,
+        score: p.score || 0, genres: p.genres || [],
+        artists: p.artists || [], tomatazos: p.tomatazos || 0,
+      })),
+      round: state.round,
+      currentSingerIdx: state.currentSingerIdx,
+      songQueue: state.songQueue,
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch (e) { /* ignore */ }
+}
+
+function loadSavedGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data.players || !data.players.length || Date.now() - data.savedAt > SAVE_TTL) {
+      localStorage.removeItem(SAVE_KEY);
+      return null;
+    }
+    return data;
+  } catch (e) { return null; }
+}
+
+function clearSavedGame() {
+  localStorage.removeItem(SAVE_KEY);
+}
+
+const state = {
+  roomCode:   null,
+  localIP:    '127.0.0.1',
+  hotspotSSID: 'Ritmika',
+  hotspotPassword: '',
+  players:    [],   // { socketId, name, avatarId, score, genres, artists, tomatazos }
+  round:      0,    // 0=lobby, 1, 2, 3
+  isRestored: false, // true si se restauró desde localStorage
+  singerQueue:  [],
+  currentSingerIdx: 0,
+  currentSong:  null,
+  votes:        [],
+  audioSabotageCount: 0,
+  AUDIO_SABOTAGE_THRESHOLD: 3,
+  songQueue:    [],  // songs already used
+  tomatazoCounts: {},
+  assignedSongs: {}, // targetSocketId → { attackerName, songId }
+};
+
+// ════════════════════════════════════════════
+//  JACKBOXFX — Sistema Central de Animaciones
+// ════════════════════════════════════════════
+const JackboxFX = {
+  // Aparición elástica desde escala 0 con rebote
+  popIn(selector, opts = {}) {
+    const delay    = opts.delay    ?? 0;
+    const duration = opts.duration ?? 800;
+    anime({
+      targets:  selector,
+      scale:    [0, 1.08, 1],
+      opacity:  [0, 1],
+      duration,
+      delay,
+      easing:   'easeOutElastic(1, .5)',
+    });
+  },
+
+  // Shake horizontal para errores / sabotajes
+  shakeError(selector) {
+    anime({
+      targets:   selector,
+      translateX: [0, -12, 12, -10, 10, -6, 6, 0],
+      duration:  500,
+      easing:    'easeInOutSine',
+    });
+  },
+
+  // Stagger popIn para listas de elementos
+  staggerIn(selector, staggerMs = 120) {
+    anime({
+      targets:    selector,
+      scale:      [0, 1.06, 1],
+      opacity:    [0, 1],
+      translateY: [20, 0],
+      duration:   700,
+      delay:      anime.stagger(staggerMs),
+      easing:     'easeOutElastic(1, .5)',
+    });
+  },
+};
+
+// ════════════════════════════════════════════
+//  SEQUENCED LOBBY WELCOME
+// ════════════════════════════════════════════
+let lobbyWelcomeDone = false;
+
+function animateLobbyWelcome() {
+  if (lobbyWelcomeDone) return;
+  lobbyWelcomeDone = true;
+
+  // Hide elements for staggered reveal (only on first load)
+  document.querySelectorAll('.lobby-stagger').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'scale(0.5)';
+  });
+  document.querySelectorAll('.lobby-slide').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+  });
+  document.querySelectorAll('.lobby-fade').forEach(el => {
+    el.style.opacity = '0';
+  });
+
+  const timeline = [
+    { sel: '.lobby-stagger[data-stagger="0"]', fn: 'popIn', delay: 200 },
+    { sel: '.lobby-stagger[data-stagger="1"]', fn: 'popIn', delay: 500 },
+    { sel: '.lobby-slide[data-stagger="3"]',   fn: 'slideUp', delay: 900 },
+    { sel: '.lobby-fade[data-stagger="4"]',    fn: 'popIn', delay: 1200 },
+    { sel: '.lobby-slide[data-stagger="5"]',   fn: 'slideUp', delay: 1500 },
+    { sel: '.lobby-fade[data-stagger="6"]',    fn: 'popIn', delay: 1700 },
+  ];
+
+  timeline.forEach(item => {
+    setTimeout(() => {
+      document.querySelectorAll(item.sel).forEach(el => {
+        el.style.opacity = '';
+        el.style.transform = '';
+      });
+      RitmikaStyleFX[item.fn](item.sel, { delay: 0 });
+    }, item.delay);
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.code-letter').forEach((el, i) => {
+      RitmikaStyleFX.dropIn(el, { delay: i * 120 });
+    });
+  }, 600);
+}
+
+// ════════════════════════════════════════════
+//  ROUND SPLASH CEREMONY
+// ════════════════════════════════════════════
+const ROUND_SPLASH_DATA = [
+  { number: 'RONDA 1', title: 'Tu Elección, Tu Condena',  subtitle: 'La ruleta decide quién canta primero' },
+  { number: 'RONDA 2', title: 'Fuego Cruzado',           subtitle: 'Asigna canciones a tus rivales' },
+  { number: 'RONDA 3', title: 'Apagón Mental',           subtitle: 'Canta de memoria o muere en el intento' },
+];
+
+function showRoundSplash(round, callback) {
+  const data = ROUND_SPLASH_DATA[round - 1] || ROUND_SPLASH_DATA[0];
+  const splash = document.getElementById('round-splash');
+  document.getElementById('splash-number-text').textContent = data.number;
+  document.getElementById('splash-title-text').textContent  = data.title;
+  document.getElementById('splash-subtitle-text').textContent = data.subtitle;
+
+  splash.style.opacity = '1';
+  splash.style.pointerEvents = 'all';
+
+  UISounds.playChime();
+  RitmikaStyleFX.bigReveal('#splash-number-text', { delay: 200, rotate: true });
+  setTimeout(() => { RitmikaStyleFX.slideUp('#splash-title-text'); }, 600);
+  setTimeout(() => { RitmikaStyleFX.popIn('#splash-subtitle-text'); }, 1000);
+
+  setTimeout(() => {
+    UISounds.playTone(880, 0.3, 'sine', 0.12);
+    RitmikaStyleFX.flashBang('#ffffff', 200);
+    splash.style.opacity = '0';
+    splash.style.pointerEvents = 'none';
+    ['splash-number-text','splash-title-text','splash-subtitle-text'].forEach(id => {
+      const el = document.getElementById(id);
+      el.style.opacity = '0';
+      el.style.transform = '';
+    });
+    if (callback) callback();
+  }, 2600);
+}
+
+// ════════════════════════════════════════════
+//  COUNTDOWN 3-2-1
+// ════════════════════════════════════════════
+function showCountdown(callback) {
+  const overlay = document.getElementById('countdown-overlay');
+  const numberEl = document.getElementById('countdown-number');
+  const steps = ['3', '2', '1', '¡YA!'];
+  let idx = 0;
+
+  overlay.style.opacity = '1';
+
+  function showStep() {
+    if (idx >= steps.length) {
+      overlay.style.opacity = '0';
+      if (callback) callback();
+      return;
+    }
+
+    numberEl.textContent = steps[idx];
+    numberEl.style.opacity = '0';
+    numberEl.style.transform = 'scale(0.5)';
+
+    if (steps[idx] !== '¡YA!') UISounds.tick();
+    else UISounds.stinger();
+
+    anime({
+      targets: numberEl,
+      scale: ['0.5', '1.2', '1'],
+      opacity: [0, 1, 1],
+      duration: 400,
+      easing: 'easeOutBack',
+      complete: () => {
+        setTimeout(() => {
+          anime({
+            targets: numberEl,
+            scale: ['1', '1.5'],
+            opacity: [1, 0],
+            duration: 250,
+            easing: 'easeInCubic',
+            complete: () => {
+              idx++;
+              if (steps[idx-1] === '¡YA!') {
+                RitmikaStyleFX.flashBang('#ffe600', 300);
+              }
+              showStep();
+            }
+          });
+        }, idx < steps.length ? 400 : 100);
+      }
+    });
+  }
+
+  showStep();
+}
+
+// ════════════════════════════════════════════
+//  SCREEN SYSTEM
+// ════════════════════════════════════════════
+function showScreen(id, transitionType, onComplete) {
+  const current = document.querySelector('.tv-screen.active');
+  const next    = document.getElementById(id);
+  if (!next || (current && current.id === id)) return;
+
+  if (!current) {
+    next.classList.add('active');
+    if (onComplete) onComplete();
+    return;
+  }
+
+  const type = transitionType || 'slide';
+
+  const transitions = {
+
+    // Default slide: current out left, new in from right
+    slide() {
+      UISounds.whoosh();
+      anime({
+        targets: current,
+        translateX: [0, '-100vw'],
+        opacity: [1, 0],
+        duration: 380,
+        easing: 'easeInCubic',
+        complete: () => {
+          current.classList.remove('active');
+          current.style.transform = '';
+          current.style.opacity = '';
+          current.style.display = '';
+          next.style.transform = 'translateX(100vw)';
+          next.style.opacity = '0';
+          next.style.display = '';
+          next.classList.add('active');
+          anime({
+            targets: next,
+            translateX: ['100vw', '0px'],
+            opacity: [0, 1],
+            duration: 500,
+            easing: 'easeOutElastic(1, .6)',
+            complete: () => {
+              next.style.transform = '';
+              next.style.opacity = '';
+              if (onComplete) onComplete();
+            }
+          });
+        }
+      });
+    },
+
+    // Flash: flash white, swap screens, popIn the new one
+    flash() {
+      current.classList.remove('active');
+      current.style.display = '';
+      current.style.opacity = '';
+      current.style.transform = '';
+      next.classList.add('active');
+      next.style.display = '';
+      next.style.opacity = '';
+      next.style.transform = '';
+      RitmikaStyleFX.flashBang('#ffffff', 300);
+      RitmikaStyleFX.popIn('#' + id);
+      if (onComplete) onComplete();
+    },
+
+    // Zoom out / in: current shrinks to 0, new expands from 0
+    zoom() {
+      anime({
+        targets: current,
+        scale: [1, 0],
+        opacity: [1, 0],
+        duration: 350,
+        easing: 'easeInCubic',
+        complete: () => {
+          current.classList.remove('active');
+          current.style.transform = '';
+          current.style.opacity = '';
+          current.style.display = '';
+          next.style.transform = 'scale(0.3)';
+          next.style.opacity = '0';
+          next.style.display = '';
+          next.classList.add('active');
+          anime({
+            targets: next,
+            scale: ['0.3', '1.05', '1'],
+            opacity: [0, 1],
+            duration: 600,
+            easing: 'easeOutElastic(1, .5)',
+            complete: () => {
+              next.style.transform = '';
+              next.style.opacity = '';
+              if (onComplete) onComplete();
+            }
+          });
+        }
+      });
+    },
+
+    // Fade: crossfade
+    fade() {
+      anime({
+        targets: current,
+        opacity: [1, 0],
+        duration: 300,
+        easing: 'easeInCubic',
+        complete: () => {
+          current.classList.remove('active');
+          current.style.opacity = '';
+          current.style.display = '';
+          current.style.transform = '';
+          next.style.opacity = '0';
+          next.style.display = '';
+          next.style.transform = '';
+          next.classList.add('active');
+          anime({
+            targets: next,
+            opacity: [0, 1],
+            duration: 400,
+            easing: 'easeOutCubic',
+            complete: () => {
+              next.style.opacity = '';
+              if (onComplete) onComplete();
+            }
+          });
+        }
+      });
+    },
+
+  };
+
+  (transitions[type] || transitions.slide)();
+}
+
+// ════════════════════════════════════════════
+//  SOCKET.IO
+// ════════════════════════════════════════════
+const socket = io();
+
+socket.on('connect', () => {
+  console.log('[TV] Conectado. Creando sala...');
+  boot.step(1, 'done');
+  socket.emit('tv:create_room');
+  loadCatalog();
+  // Check FFmpeg via health endpoint (step 4)
+  fetch('/api/health', { signal: AbortSignal.timeout(5000) })
+    .then(r => r.json())
+    .then(h => {
+      boot.step(4, 'done', h.ffmpeg ? 'FFmpeg disponible' : 'Sin FFmpeg (MP4 nativo OK)');
+    })
+    .catch(() => {
+      boot.step(4, 'done', 'no verificado');
+    });
+});
+
+socket.on('connect_error', () => {
+  boot.fail(1, 'Sin conexión al servidor');
+  updateTicker('No se puede conectar al servidor. ¿Está encendido?');
+});
+
+socket.on('tv:room_created', ({ roomCode, localIP, hotspotSSID, hotspotPassword }) => {
+  state.roomCode = roomCode;
+  state.localIP = localIP || window.location.hostname;
+  state.hotspotSSID = hotspotSSID || 'Ritmika';
+  state.hotspotPassword = hotspotPassword || 'Ritmika2026';
+  boot.step(2, 'done', 'Sala ' + roomCode);
+  renderRoomCode(roomCode);
+  inicializarQRConexion();
+  const st = document.getElementById('status-text');
+  st.textContent = 'Esperando jugadores';
+  anime({ targets: st, scale: [0.9, 1], opacity: [0.5, 1], duration: 300, easing: 'easeOutBack' });
+
+  const saved = loadSavedGame();
+  if (saved && !state.isRestored) {
+    document.getElementById('restore-banner').classList.remove('hidden');
+    document.getElementById('restore-players-count').textContent = `${saved.players.length} jugadores, Ronda ${saved.round}`;
+  } else {
+    document.getElementById('restore-banner').classList.add('hidden');
+    const rrChoice = ROOM_READY_PHRASES[Math.floor(Math.random() * ROOM_READY_PHRASES.length)];
+    lobbySoundPlayed = true;
+    axoloSay(rrChoice.text, rrChoice.file);
+  }
+  updateTicker(`Sala ${roomCode} creada. ¡Comparte el código!`);
+
+  // animateLobbyWelcome() is called by bootloader after transition
+});
+
+socket.on('tv:player_joined', ({ player, players }) => {
+  const saved = state.isRestored ? loadSavedGame() : null;
+  const matchedNames = new Set();
+  state.players = players.map(p => {
+    const existing = state.players.find(s => s.socketId === p.socketId);
+    if (existing) {
+      return { ...existing, ...p, score: existing.score ?? p.score ?? 0 };
+    }
+    // En modo restauración: buscar por nombre (una sola vez por nombre)
+    if (saved) {
+      if (!matchedNames.has(p.name)) {
+        const restored = saved.players.find(s => s.name === p.name);
+        if (restored) {
+          matchedNames.add(p.name);
+          return { ...p, ...restored, socketId: p.socketId };
+        }
+      }
+    }
+    return { ...p, score: 0, genres: [], artists: [], tomatazos: 0 };
+  });
+  // Si todos los jugadores se reconectaron, salir del modo restauración
+  if (state.isRestored && saved) {
+    const allBack = saved.players.every(sp => state.players.some(p => p.name === sp.name));
+    if (allBack) {
+      state.isRestored = false;
+      clearSavedGame();
+      document.getElementById('restore-banner')?.classList.add('hidden');
+      if (state.round > 0) {
+        startRoulette();
+      }
+    }
+  }
+  renderPlayerList();
+  updatePlayerCount(player);
+  saveGameState();
+  UISounds.chime();
+  animatePlayerJoin(player);
+  const joinLines = [
+    { text: "¡El nuevo jugador llegó a echar el grito! 🎤", file: "lobby_join_0.mp3" },
+    { text: "¡Órale, otro valiente se apuntó a sufrir! 😈", file: "lobby_join_1.mp3" },
+    { text: "¡Bienvenido al ruedo! ¡Espero que afines! 🎵", file: "lobby_join_2.mp3" },
+    { text: "¡Uno más al escenario! ¡El micrófono ya tiembla! 🎙️", file: "lobby_join_3.mp3" },
+    { text: "¡Eso es todo! Entrando con todo el estilo del palenque. 😎", file: "lobby_join_4.mp3" },
+    { text: "¡Cuidado que ahí viene la verdadera competencia! 🌟", file: "lobby_join_5.mp3" },
+    { text: "¡Ya llegó por quien lloraban! Prepárense para el show. 🎭", file: "lobby_join_6.mp3" },
+    { text: "¡Le dio clic al peligro! Bienvenido a la fiesta, compa. 💥", file: "lobby_join_7.mp3" },
+    { text: "¡Qué valor el tuyo de venir a cantar frente a todos! 👏", file: "lobby_join_8.mp3" },
+    { text: "¡Pásale, pásale! Que hay lugar para un desafinado más. 🥳", file: "lobby_join_9.mp3" }
+  ];
+  const choice = joinLines[Math.floor(Math.random() * joinLines.length)];
+  updateTicker(`¡${player.name} se unió! Ya somos ${state.players.length} 🎉`);
+  axoloSay(choice.text, choice.file);
+  if (state.players.length >= 1) {
+    document.getElementById('start-btn').classList.remove('hidden');
+    RitmikaStyleFX.popIn('#start-btn', { duration: 700 });
+  }
+});
+
+socket.on('tv:player_left', ({ socketId, name, players }) => {
+  state.players = players.map(p => ({
+    ...p,
+    score:     state.players.find(s => s.socketId === p.socketId)?.score ?? 0,
+    genres:    state.players.find(s => s.socketId === p.socketId)?.genres  ?? [],
+    artists:   state.players.find(s => s.socketId === p.socketId)?.artists ?? [],
+    tomatazos: state.players.find(s => s.socketId === p.socketId)?.tomatazos ?? 0,
+  }));
+  // Filtrar singerQueue y ajustar índice si el que se fue era el actual o estaba pendiente
+  const oldLen = state.singerQueue.length;
+  state.singerQueue = state.singerQueue.filter(p => p.socketId !== socketId);
+  if (state.singerQueue.length < oldLen && state.currentSingerIdx >= state.singerQueue.length) {
+    state.currentSingerIdx = Math.max(0, state.singerQueue.length - 1);
+  }
+  renderPlayerList(); updatePlayerCount();
+  updateTicker(`${name} abandonó la sala 👋`);
+  saveGameState();
+
+  // Sync mobile clients with updated player list
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'PLAYER_JOINED',
+    data: { players: state.players },
+  });
+
+  if (state.players.length < 1) document.getElementById('start-btn').classList.add('hidden');
+});
+
+socket.on('tv:player_genres', ({ socketId, genres }) => {
+  const p = state.players.find(x => x.socketId === socketId);
+  if (p) p.genres = genres;
+  const name = p?.name || 'Alguien';
+  updateTicker(`${name} eligió géneros: ${genres.join(', ')} 🎵`);
+});
+
+socket.on('tv:player_artists', ({ socketId, artists }) => {
+  const p = state.players.find(x => x.socketId === socketId);
+  if (p) p.artists = artists;
+  const name = p?.name || 'Alguien';
+  updateTicker(`${name} eligió artistas: ${artists.slice(0,3).join(', ')} 🎸`);
+});
+
+socket.on('tv:tomatazo', ({ attackerName, targetName }) => {
+  fireTomatazo(attackerName, targetName);
+  updateTicker(`🍅 ¡${attackerName} tomatazó a ${targetName}!`);
+  const target = state.players.find(p => p.name === targetName);
+  if (target) target.tomatazos = (target.tomatazos || 0) + 1;
+});
+
+socket.on('tv:emoji', ({ senderName, emoji }) => {
+  floatEmoji(emoji);
+  updateTicker(`${senderName} reaccionó con ${emoji}`);
+});
+
+socket.on('tv:sabotage_audio', () => {
+  state.audioSabotageCount++;
+  const pct = Math.round((state.audioSabotageCount / state.AUDIO_SABOTAGE_THRESHOLD) * 100);
+  updateTicker(`🔇 Sabotaje: ${pct}% (${state.audioSabotageCount}/${state.AUDIO_SABOTAGE_THRESHOLD})`);
+  if (state.audioSabotageCount >= state.AUDIO_SABOTAGE_THRESHOLD) {
+    triggerAudioSabotage();
+    state.audioSabotageCount = 0;
+  }
+});
+
+socket.on('tv:vote', ({ voterName, performerSocketId, score }) => {
+  state.votes.push({ voterName, performerSocketId, score });
+  updateTicker(`${voterName} votó: ${score} pts 🗳️`);
+});
+
+socket.on('tv:song_assigned', ({ attackerName, attackerSocketId, targetSocketId, songId }) => {
+  state.assignedSongs[targetSocketId] = { attackerName, attackerSocketId, songId };
+  updateTicker(`⚔️ ${attackerName} asignó una canción a su rival`);
+});
+
+socket.on('tv:start_game_trigger', () => {
+  const btn = document.getElementById('start-btn');
+  if (btn && !btn.classList.contains('hidden')) {
+    btn.click();
+  }
+});
+
+socket.on('tv:start_song_trigger', () => {
+  const btn = document.getElementById('go-karaoke-btn');
+  if (btn) {
+    btn.click();
+  }
+});
+
+socket.on('tv:next_turn_trigger', () => {
+  const btn = document.getElementById('continue-btn');
+  if (btn) {
+    btn.click();
+  }
+});
+
+// START GAME BUTTON
+document.getElementById('start-btn').addEventListener('click', () => {
+  if (!state.roomCode) return;
+  UISounds.stinger();
+  clearSavedGame();
+  state.round = 1;
+  state.singerQueue = [...state.players].sort(() => Math.random() - 0.5);
+  state.currentSingerIdx = 0;
+  if (idleInterval) { clearInterval(idleInterval); idleInterval = null; }
+  socket.emit('tv:start_game', { roomCode: state.roomCode });
+  startRoulette();
+});
+
+// DEBUG: Add bot player
+// Toggle Debug Panel (Ctrl + B) or Click on JUGADORES
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+    e.preventDefault();
+    const debugPanel = document.getElementById('debug-panel-container');
+    if (debugPanel) debugPanel.style.display = debugPanel.style.display === 'none' ? 'flex' : 'none';
+  }
+});
+
+const secretTrigger = document.getElementById('secret-debug-trigger');
+if (secretTrigger) {
+  secretTrigger.addEventListener('dblclick', () => {
+    const debugPanel = document.getElementById('debug-panel-container');
+    if (debugPanel) debugPanel.style.display = debugPanel.style.display === 'none' ? 'flex' : 'none';
+  });
+}
+
+
+document.getElementById('btn-debug-add-bot').addEventListener('click', () => {
+  if (!state.roomCode) return;
+  socket.emit('tv:add_bot', { roomCode: state.roomCode });
+});
+
+// DEBUG: Quick start game (forces adding bot if 0 players)
+document.getElementById('btn-debug-start-game').addEventListener('click', () => {
+  if (!state.roomCode) return;
+  if (state.players.length === 0) {
+    socket.emit('tv:add_bot', { roomCode: state.roomCode });
+    setTimeout(() => {
+      document.getElementById('start-btn').click();
+    }, 1200);
+  } else {
+    document.getElementById('start-btn').click();
+  }
+});
+
+document.getElementById('btn-restore').addEventListener('click', () => {
+  UISounds.click();
+  const saved = loadSavedGame();
+  if (!saved) return;
+  state.isRestored = true;
+  document.getElementById('restore-banner').classList.add('hidden');
+  // Cargar datos guardados al lobby
+  state.players = saved.players.map(sp => ({
+    name: sp.name, avatarId: sp.avatarId,
+    score: sp.score, genres: sp.genres, artists: sp.artists, tomatazos: sp.tomatazos,
+    socketId: null, // se llenará cuando se reconecten
+  }));
+  state.round = saved.round;
+  state.currentSingerIdx = saved.currentSingerIdx;
+  state.songQueue = saved.songQueue || [];
+  renderPlayerList();
+  updatePlayerCount();
+  if (state.players.length >= 1) {
+    document.getElementById('start-btn').classList.remove('hidden');
+  }
+  updateTicker(`Partida restaurada. Pídele a los jugadores que vuelvan a unirse con el nuevo código.`);
+  axoloSay('¡Partida restaurada! Los jugadores deben unirse de nuevo con el mismo nombre para recuperar sus puntos.', 'lobby_welcome.mp3');
+});
+
+document.getElementById('btn-dismiss-restore').addEventListener('click', () => {
+  clearSavedGame();
+  document.getElementById('restore-banner').classList.add('hidden');
+  const rrChoice = ROOM_READY_PHRASES[Math.floor(Math.random() * ROOM_READY_PHRASES.length)];
+  axoloSay(rrChoice.text, rrChoice.file);
+});
+
+// ════════════════════════════════════════════
+//  ROULETTE
+// ════════════════════════════════════════════
+let rouletteAngle = 0;
+let isSpinning    = false;
+let rouletteAutoSpinTimeout = null;
+let rouletteResultTimeout   = null;
+let scoreboardTimeout       = null;
+
+const ROULETTE_INTROS = [
+  { text: '¡La ruleta decide tu condena! ¡Que el destino sea justo... o no! 🎰', file: 'roulette_intro_0.mp3' },
+  { text: '¡Gira, gira, ruedita del dolor! ¡Alguien va a sufrir esta noche! 😈', file: 'roulette_intro_1.mp3' },
+  { text: '¡El universo karaoke ha hablado! ¡Prepárense! 🌌', file: 'roulette_intro_2.mp3' },
+  { text: '¡Nadie se escapa! ¡La ruleta del Tío Axolo todo lo ve! 👁️', file: 'roulette_intro_3.mp3' },
+];
+
+function startRoulette() {
+  showScreen('roulette-screen', 'flash');
+
+  const remaining = state.singerQueue.slice(state.currentSingerIdx);
+  if (remaining.length === 0) return; // safety
+
+  if (remaining.length === 1) {
+    const player = remaining[0];
+    buildRouletteWheel([player]);
+    document.getElementById('spin-btn').style.display = 'none';
+    
+    // Auto-select and show result immediately without spin
+    showRouletteResult(player);
+    return;
+  }
+
+  // Otherwise, show spin button and build wheel for all remaining
+  document.getElementById('spin-btn').style.display = 'block';
+  buildRouletteWheel(remaining);
+
+  const intro = ROULETTE_INTROS[Math.floor(Math.random() * ROULETTE_INTROS.length)];
+  axoloSay(intro.text, intro.file);
+
+  // Notify phones: roulette is spinning
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'ROULETTE_START',
+    data: {},
+  });
+
+  // Ronda 2: pedir a los jugadores que asignen canciones (Fuego Cruzado)
+  if (state.round === 2) {
+    socket.emit('tv:broadcast', {
+      roomCode: state.roomCode,
+      event: 'ROUND_2_ASSIGN',
+      data: {
+        players: state.players,
+        songs: window.catalogoKaraoke || [],
+      },
+    });
+    const r2Idx = Math.floor(Math.random() * 2);
+    const r2Text = r2Idx === 0 ? "¡Fuego cruzado activado! Asignen canciones a sus rivales 🔥" : "¡Ronda 2: Fuego Cruzado! Es hora de vengarse y darles la peor canción posible. 😈";
+    axoloSay(r2Text, `round_2_start_${r2Idx}.mp3`);
+  }
+
+  // Update round badge and heading
+  const badges = ['Ronda 1 — Tu Elección, Tu Condena', 'Ronda 2 — Fuego Cruzado', 'Ronda 3 — Apagón Mental'];
+  document.getElementById('roulette-round-badge').querySelector('span:last-child').textContent = badges[state.round - 1] || 'Ronda Final';
+  const headings = ['¿Quién canta primero?', 'Asignen canciones a sus rivales...', '¿Quién sobrevive al apagón?'];
+  document.getElementById('roulette-heading').textContent = headings[state.round - 1] || '¿Quién sigue?';
+
+  // Mini player avatars
+  const mini = document.getElementById('roulette-players-mini');
+  mini.innerHTML = '';
+  state.players.forEach(p => {
+    const av = getAvatar(p.avatarId);
+    const el = document.createElement('div');
+    el.className = 'roulette-player-chip';
+    el.id = `rchip-${p.socketId}`;
+    el.innerHTML = `
+      <img src="${av.img}" style="border-color:${av.border};" />
+      <span>${escapeHtml(p.name)}</span>
+      <span class="chip-score">${p.score || 0} pts</span>
+    `;
+    mini.appendChild(el);
+  });
+
+  // Reset banner
+  document.getElementById('selected-player-banner').style.opacity = '0';
+  document.getElementById('selected-player-banner').style.transform = 'scale(0.8)';
+  document.getElementById('spin-btn').disabled = false;
+
+  // Auto-spin after 4 seconds (Ronda 2: 30s para que asignen canciones)
+  if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+  const autoSpinDelay = state.round === 2 ? 30000 : 4000;
+  rouletteAutoSpinTimeout = setTimeout(() => {
+    spinRoulette();
+  }, autoSpinDelay);
+}
+
+function buildRouletteWheel(playersToDraw) {
+  const wheel = document.getElementById('roulette-wheel');
+  wheel.innerHTML = '';
+  const players   = playersToDraw || state.players;
+  const n         = players.length;
+  if (n === 0) return;
+
+  const cx = 250, cy = 250, r = 228;
+  const SLICE_COLORS = ['#ec4899','#22d3ee','#a855f7','#facc15','#f97316','#22c55e','#3b82f6','#06b6d4'];
+
+  if (n === 1) {
+    const p = players[0];
+    const av = getAvatar(p.avatarId);
+    
+    // Draw a single circle filling the roulette area
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx', cx);
+    circle.setAttribute('cy', cy);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', SLICE_COLORS[0]);
+    circle.setAttribute('stroke', '#111827');
+    circle.setAttribute('stroke-width', '4');
+    wheel.appendChild(circle);
+
+    // Position label coordinates (in upper area so it rotates nicely when spun)
+    const lx = cx;
+    const ly = cy - 95;
+    
+    // Image element (using local transparent PNG)
+    const avatarImg = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    avatarImg.setAttribute('href', av.img);
+    const imgSize = 90;
+    avatarImg.setAttribute('x', lx - imgSize / 2);
+    avatarImg.setAttribute('y', ly - imgSize / 2 - 12);
+    avatarImg.setAttribute('width', imgSize);
+    avatarImg.setAttribute('height', imgSize);
+    wheel.appendChild(avatarImg);
+
+    // Name text
+    const nameText = document.createElementNS('http://www.w3.org/2000/svg','text');
+    nameText.setAttribute('x', lx);
+    nameText.setAttribute('y', ly + imgSize / 2 + 15);
+    nameText.setAttribute('text-anchor','middle');
+    nameText.setAttribute('dominant-baseline','middle');
+    nameText.setAttribute('font-size', '22');
+    nameText.setAttribute('font-weight','900');
+    nameText.setAttribute('fill','white');
+    nameText.setAttribute('stroke','#111827');
+    nameText.setAttribute('stroke-width','5');
+    nameText.setAttribute('paint-order','stroke fill');
+    nameText.textContent = p.name.slice(0, 10);
+    wheel.appendChild(nameText);
+    return;
+  }
+
+  const sliceAngle = (2 * Math.PI) / n;
+
+  players.forEach((p, i) => {
+    const startA = i * sliceAngle - Math.PI / 2;
+    const endA   = startA + sliceAngle;
+    const x1 = cx + r * Math.cos(startA), y1 = cy + r * Math.sin(startA);
+    const x2 = cx + r * Math.cos(endA),   y2 = cy + r * Math.sin(endA);
+    const lg = '0';
+
+    // Slice path
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${lg},1 ${x2},${y2} Z`);
+    path.setAttribute('fill', SLICE_COLORS[i % SLICE_COLORS.length]);
+    path.setAttribute('stroke', '#111827');
+    path.setAttribute('stroke-width', '4');
+    path.style.opacity = '1';
+    wheel.appendChild(path);
+
+    // Label coordinates
+    const midA = startA + sliceAngle / 2;
+    const lx = cx + (r * 0.62) * Math.cos(midA);
+    const ly = cy + (r * 0.62) * Math.sin(midA);
+    const deg = (midA * 180 / Math.PI) + 90;
+
+    const av = getAvatar(p.avatarId);
+    
+    // Avatar Image (using local transparent PNG)
+    const avatarImg = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    avatarImg.setAttribute('href', av.img);
+    const imgSize = n > 6 ? 38 : 52;
+    avatarImg.setAttribute('x', lx - imgSize / 2);
+    avatarImg.setAttribute('y', ly - imgSize / 2 - 10);
+    avatarImg.setAttribute('width', imgSize);
+    avatarImg.setAttribute('height', imgSize);
+    avatarImg.setAttribute('transform', `rotate(${deg},${lx},${ly})`);
+    wheel.appendChild(avatarImg);
+
+    // Name text
+    const nameText = document.createElementNS('http://www.w3.org/2000/svg','text');
+    nameText.setAttribute('x', lx);
+    nameText.setAttribute('y', ly + imgSize / 2 + 6);
+    nameText.setAttribute('text-anchor','middle');
+    nameText.setAttribute('dominant-baseline','middle');
+    nameText.setAttribute('font-size', n > 6 ? '12' : '14');
+    nameText.setAttribute('font-weight','900');
+    nameText.setAttribute('fill','white');
+    nameText.setAttribute('stroke','#111827');
+    nameText.setAttribute('stroke-width','4');
+    nameText.setAttribute('paint-order','stroke fill');
+    nameText.setAttribute('transform', `rotate(${deg},${lx},${ly})`);
+    nameText.textContent = p.name.slice(0, 8);
+    wheel.appendChild(nameText);
+  });
+}
+
+document.getElementById('spin-btn').addEventListener('click', () => {
+  UISounds.click();
+  if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+  spinRoulette();
+});
+
+function spinRoulette() {
+  if (isSpinning) return;
+  isSpinning = true;
+  if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+  document.getElementById('spin-btn').disabled = true;
+  document.getElementById('selected-player-banner').style.opacity = '0';
+
+  // Pick winner deterministically
+  const winner = state.singerQueue[state.currentSingerIdx] || state.players[0];
+  const remaining = state.singerQueue.slice(state.currentSingerIdx);
+  const n         = remaining.length;
+
+  // Calculate angle to land on winner's slice
+  const sliceDeg   = 360 / n;
+  const targetSlice = remaining.findIndex(p => p.socketId === winner.socketId);
+  // Arrow is at top (270° in SVG terms); we want that slice under arrow
+  let targetAngle = 360 * 6 + (360 - targetSlice * sliceDeg - sliceDeg / 2);
+  if (n === 1) {
+    targetAngle = 360 * 6; // Spin exactly 6 times so it lands right-side up at the top
+  }
+
+  let lastTickSlice = -1;
+
+  anime({
+    targets: '#roulette-wheel',
+    rotate:  [rouletteAngle, rouletteAngle + targetAngle],
+    duration: 4500,
+    easing: 'cubicBezier(0.17, 0.67, 0.12, 0.99)',
+    update: (anim) => {
+      const currentRot = rouletteAngle + (anim.progress / 100) * targetAngle;
+      const tickAngle = currentRot + 90;
+      const currentSlice = Math.floor(tickAngle / sliceDeg);
+      if (currentSlice !== lastTickSlice) {
+        lastTickSlice = currentSlice;
+        UISounds.tick();
+        // CSS-based arrow bounce (no new anime() instance per tick)
+        const arrowEl = document.getElementById('roulette-arrow');
+        arrowEl.style.transition = 'none';
+        arrowEl.style.transform = 'rotate(-18deg)';
+        requestAnimationFrame(() => {
+          arrowEl.style.transition = 'transform 110ms cubic-bezier(0.34,1.56,0.64,1)';
+          arrowEl.style.transform = 'rotate(0deg)';
+        });
+      }
+    },
+    complete: () => {
+      rouletteAngle = (rouletteAngle + targetAngle) % 360;
+      isSpinning = false;
+      showRouletteResult(winner);
+    },
+  });
+
+  // Axolo excitement during spin
+  const spinChoice = ROULETTE_SPINS[Math.floor(Math.random() * ROULETTE_SPINS.length)];
+  axoloSay(spinChoice.text, spinChoice.file);
+}
+
+function showRouletteResult(player) {
+  if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+  state.votes = [];
+  const song = pickSongForPlayer(player);
+  state.currentSong = song;
+
+  document.getElementById('selected-player-avatar-img').src = getAvatar(player.avatarId).img;
+  document.getElementById('selected-player-name').textContent = player.name;
+  document.getElementById('selected-song-info').textContent = song
+    ? `Canción: "${song.title}" — ${song.artist}`
+    : '🎲 Canción aleatoria de la noche';
+
+  // Highlight winner chip
+  document.querySelectorAll('.roulette-player-chip').forEach(c => c.classList.remove('is-winner'));
+  const winnerChip = document.getElementById(`rchip-${player.socketId}`);
+  if (winnerChip) {
+    winnerChip.classList.add('is-winner');
+  }
+
+  const banner = document.getElementById('selected-player-banner');
+  anime({
+    targets: banner,
+    opacity: [0, 1], scale: [0.8, 1],
+    duration: 600, easing: 'easeOutBack',
+  });
+
+  const winMsgText = `¡${player.name} le toca cantar! ${state.currentSong ? `La canción es "${state.currentSong.title}"` : '¡La suerte eligió!'} ¡Que el palenque decida su destino! 🎤`;
+  const winChoice = ROULETTE_WINS[Math.floor(Math.random() * ROULETTE_WINS.length)];
+  axoloSay(winMsgText, winChoice.file);
+
+  // Notify phones: singer was selected
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'SINGER_SELECTED',
+    data: { socketId: player.socketId, name: player.name, song: state.currentSong },
+  });
+  // Private message to singer
+  socket.emit('tv:send_to_player', {
+    targetSocketId: player.socketId,
+    event: 'YOUR_TURN',
+    data: {},
+  });
+
+  // Auto-start karaoke after 8 seconds
+  if (rouletteResultTimeout) clearTimeout(rouletteResultTimeout);
+  rouletteResultTimeout = setTimeout(() => {
+    startKaraoke(player, state.currentSong);
+  }, 8000);
+}
+
+document.getElementById('go-karaoke-btn').addEventListener('click', () => {
+  UISounds.click();
+  if (rouletteResultTimeout) clearTimeout(rouletteResultTimeout);
+  const player = state.singerQueue[state.currentSingerIdx % state.players.length] || state.players[0];
+  startKaraoke(player, state.currentSong);
+});
+
+// ════════════════════════════════════════════
+//  KARAOKE PLAYER
+// ════════════════════════════════════════════
+let timerInterval   = null;
+let challengeFired  = false;
+let blackoutFired   = false;
+let blackoutTimeout = null;
+let karaokeGeneration = 0;
+const activeSfx = [];
+const SFX_VOLUME = 0.35;
+const SFX_DUCKED = 0.10;
+function playSfx(url, vol) {
+  const a = new Audio(url);
+  a.volume = vol ?? (currentAxoloAudio ? SFX_DUCKED : SFX_VOLUME);
+  activeSfx.push(a);
+  a.addEventListener('ended', () => {
+    const idx = activeSfx.indexOf(a);
+    if (idx > -1) activeSfx.splice(idx, 1);
+  }, { once: true });
+  a.play().catch(()=>{});
+  return a;
+}
+function duckSfx() {
+  activeSfx.forEach(a => { try { a.volume = SFX_DUCKED; } catch(e){} });
+}
+function unduckSfx() {
+  activeSfx.forEach(a => { try { a.volume = SFX_VOLUME; } catch(e){} });
+}
+function stopAllSfx() {
+  activeSfx.forEach(a => { try { a.pause(); a.src=''; } catch(e){} });
+  activeSfx.length = 0;
+}
+
+function startKaraoke(player, song) {
+  if (document.getElementById('karaoke-screen').classList.contains('active')) return;
+  karaokeGeneration++;
+  const myGeneration = karaokeGeneration;
+  showScreen('karaoke-screen', 'flash');
+
+  const av = getAvatar(player.avatarId);
+  document.getElementById('hud-singer-avatar-img').src = av.img;
+  document.getElementById('hud-singer-name').textContent = player.name;
+  document.getElementById('hud-round-label').textContent = 'Ronda ' + state.round;
+
+  challengeFired = false;
+  blackoutFired = false;
+  document.getElementById('challenge-banner').style.transform = 'translateY(60px)';
+  document.getElementById('blackout-banner').style.transform = 'scale(0)';
+  document.getElementById('scoreboard-overlay').classList.remove('visible');
+
+  // Video — recreate element and YIELD to compositor to fix black screen bug in WebView2
+  const oldVideo = document.getElementById('karaoke-video');
+  const video = document.createElement('video');
+  video.id = 'karaoke-video';
+  video.playsinline = true;
+  video.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1; background:#000;';
+  
+  if (oldVideo) {
+    oldVideo.parentNode.replaceChild(video, oldVideo);
+  } else {
+    const wrap = document.getElementById('karaoke-video-wrap');
+    if (wrap) wrap.appendChild(video);
+  }
+
+  if (song && song.url) {
+    document.getElementById('lyrics-text').textContent = song.title;
+    document.getElementById('np-artist').textContent = song.artist;
+  } else {
+    document.getElementById('lyrics-text').textContent = '¡Canta lo que quieras!';
+    document.getElementById('np-artist').textContent = '🎤';
+  }
+
+  // Notify phones and play Axolo intro immediately
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'KARAOKE_START',
+    data: { socketId: player.socketId, name: player.name, song: song },
+  });
+
+  const choice = AXOLO_SINGER_INTROS[Math.floor(Math.random() * AXOLO_SINGER_INTROS.length)];
+  const introMsg = choice.text;
+  axoloSay(introMsg, choice.file);
+
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  // YIELD to event loop so Chromium can attach the DOM element to the hardware compositor
+  // Without this double requestAnimationFrame, the second video will play audio only (black screen)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (myGeneration !== karaokeGeneration) return;
+
+      video.onplaying = () => {
+        if (myGeneration !== karaokeGeneration) return;
+        const errBanner = document.getElementById('video-error-banner');
+        if (errBanner) errBanner.classList.remove('visible');
+        if (!timerInterval) startKaraokeTimer(video, song);
+      };
+      
+      video.onerror = () => {
+        if (myGeneration !== karaokeGeneration) return;
+        console.error("Video load error, starting timer manually.");
+        const errBanner = document.getElementById('video-error-banner');
+        if (errBanner) errBanner.classList.add('visible');
+        if (!timerInterval) startKaraokeTimer(null, song || { duration: 120 });
+      };
+      
+      video.onended = () => {
+        if (myGeneration !== karaokeGeneration) return;
+        endSong(player);
+      };
+
+      if (song && song.url) {
+        let videoUrl = song.url;
+        const gdriveMatch = song.url.match(/[?&]id=([^&]+)/) || song.url.match(/\/file\/d\/([^/]+)/);
+        if (gdriveMatch && gdriveMatch[1]) {
+          videoUrl = `/api/video-proxy?id=${gdriveMatch[1]}`;
+        }
+        video.src = videoUrl;
+        video.muted = true;
+        
+        video.play().then(() => {
+          if (myGeneration !== karaokeGeneration) return;
+          const unmuteWhenReady = setInterval(() => {
+            if (myGeneration !== karaokeGeneration || !currentAxoloAudio) {
+              clearInterval(unmuteWhenReady);
+              video.muted = false;
+            }
+          }, 200);
+        }).catch(e => {
+          console.warn("Autoplay block or explicit play failed:", e);
+          if (!timerInterval) startKaraokeTimer(null, song);
+        });
+      } else {
+        startKaraokeTimer(null, song || { duration: 120 });
+      }
+    });
+  });
+}
+
+function startKaraokeTimer(video, song) {
+  if (timerInterval) clearInterval(timerInterval);
+  const duration = song?.duration || (video?.duration) || 120;
+  let elapsed = 0;
+
+  timerInterval = setInterval(() => {
+    elapsed++;
+    const remaining = Math.max(0, duration - elapsed);
+    const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+    const ss = String(remaining % 60).padStart(2, '0');
+    document.getElementById('hud-timer').textContent = `${mm}:${ss}`;
+
+    // Ronda 1: fire challenge at halfway
+    if (state.round === 1 && !challengeFired && elapsed >= duration * 0.5) {
+      challengeFired = true;
+      fireChallenge();
+    }
+
+    // Ronda 3: blackout at random point between 40-60%
+    if (state.round === 3 && !blackoutFired && elapsed >= duration * 0.4) {
+      blackoutFired = true;
+      fireBlackout();
+    }
+
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      if (!video) endSong(state.players[state.currentSingerIdx % state.players.length]);
+    }
+  }, 1000);
+}
+
+function fireChallenge() {
+  const reto = RETO_CHALLENGES[Math.floor(Math.random() * RETO_CHALLENGES.length)];
+  document.getElementById('challenge-text').textContent = reto;
+  const banner = document.getElementById('challenge-banner');
+
+  anime({
+    targets: banner,
+    opacity: [0, 1],
+    translateY: [60, 0],
+    duration: 700,
+    easing: 'easeOutBack',
+  });
+  const cChoice = CHALLENGE_INTROS[Math.floor(Math.random() * CHALLENGE_INTROS.length)];
+  const retoMsg = `¡RETO ACTIVADO! ${reto}`;
+  axoloSay(retoMsg, cChoice.file);
+
+  // Auto-hide after 8s
+  setTimeout(() => {
+    anime({ targets: banner, opacity: [1, 0], translateY: [0, 60], duration: 400, easing: 'easeInCubic' });
+  }, 8000);
+}
+
+function fireBlackout() {
+  const video = document.getElementById('karaoke-video');
+  const lyrics = document.getElementById('lyrics-text');
+
+  // Show blackout banner
+  anime({
+    targets: '#blackout-banner',
+    scale: [0, 1.05, 1],
+    duration: 600,
+    easing: 'easeOutBack',
+  });
+  lyrics.classList.add('blackout');
+  document.getElementById('np-artist').classList.add('blackout');
+  if (video) video.style.filter = 'brightness(0.05)';
+
+  const bIntroChoice = BLACKOUT_INTROS[Math.floor(Math.random() * BLACKOUT_INTROS.length)];
+  const blackoutMsg = bIntroChoice.text;
+  axoloSay(blackoutMsg, bIntroChoice.file);
+
+  const blackoutDuration = 5000 + Math.random() * 5000;
+  blackoutTimeout = setTimeout(() => {
+    blackoutTimeout = null;
+    anime({ targets: '#blackout-banner', scale: [1, 0], duration: 400, easing: 'easeInCubic' });
+    lyrics.classList.remove('blackout');
+    document.getElementById('np-artist').classList.remove('blackout');
+    if (video) video.style.filter = '';
+    const bEndChoice = BLACKOUT_ENDS[Math.floor(Math.random() * BLACKOUT_ENDS.length)];
+    axoloSay(bEndChoice.text, bEndChoice.file);
+  }, blackoutDuration);
+}
+
+function endSong(player) {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  const errBanner = document.getElementById('video-error-banner');
+  if (errBanner) errBanner.classList.remove('visible');
+  if (blackoutTimeout) { clearTimeout(blackoutTimeout); blackoutTimeout = null; }
+  _stopCurrentAxolo();
+  const mouthCss = document.getElementById('axolo-mouth-css');
+  if (mouthCss) mouthCss.classList.remove('open');
+  document.getElementById('lyrics-text').classList.remove('blackout');
+  document.getElementById('np-artist').classList.remove('blackout');
+
+  const video = document.getElementById('karaoke-video');
+  video.onplaying = null;
+  video.onerror   = null;
+  video.onended   = null;
+  video.style.filter = '';
+  video.pause();
+  video.removeAttribute('src');
+
+  const overlay = document.getElementById('scoreboard-overlay');
+  const list    = document.getElementById('score-results-list');
+  list.innerHTML = '';
+
+  const singerVotes = state.votes.filter(v => v.performerSocketId === player.socketId);
+  const avgScore    = singerVotes.length
+    ? Math.round(singerVotes.reduce((sum, v) => sum + v.score, 0) / singerVotes.length)
+    : 50;
+
+  const target = state.players.find(p => p.socketId === player.socketId);
+  if (target) target.score = (target.score || 0) + avgScore;
+
+  if (singerVotes.length === 0) {
+    list.innerHTML = `<p class="text-center" style="color:#64748b;">No hubo votos esta ronda</p>`;
+  } else {
+    singerVotes.forEach((v, i) => {
+      const row = document.createElement('div');
+      row.className = 'score-row';
+      row.style.cssText = `background:${v.score >= 80 ? '#facc1522' : v.score >= 50 ? '#22d3ee22' : '#6b728022'}; border:1px solid ${v.score >= 80 ? '#facc1544' : '#33415544'}; opacity:0; transform:translateX(-30px);`;
+      row.innerHTML = `
+        <span class="text-2xl">${v.score >= 80 ? '&#127942;' : v.score >= 50 ? '&#128077;' : '&#128128;'}</span>
+        <span class="font-bold text-sm flex-1" style="color:#f1f5f9;">${escapeHtml(v.voterName)}</span>
+        <span class="text-xl font-black vote-score" style="color:${v.score >= 80 ? '#facc15' : '#94a3b8'};">0 pts</span>
+      `;
+      list.appendChild(row);
+      setTimeout(() => {
+        anime({
+          targets: row, opacity: [0, 1], translateX: [-30, 0],
+          duration: 400, easing: 'easeOutBack',
+          complete: () => {
+            const scoreEl = row.querySelector('.vote-score');
+            RitmikaStyleFX.counter(scoreEl, 0, v.score, { duration: 500, suffix: ' pts' });
+          }
+        });
+      }, 300 + i * 250);
+    });
+  }
+
+  const totalRow = document.createElement('div');
+  totalRow.className = 'mt-4 p-3 rounded-xl text-center';
+  totalRow.style.cssText = 'background:#ec489922; border:1px solid #ec489966; opacity:0; transform:scale(0.8);';
+  totalRow.innerHTML = `<p class="font-bold" style="color:#64748b;">PUNTOS GANADOS</p><p id="total-score-display" class="text-4xl font-black" style="color:#ec4899;">0</p>`;
+  list.appendChild(totalRow);
+
+  const totalDelay = 300 + singerVotes.length * 250 + 300;
+  setTimeout(() => {
+    playSfx('/assets/audio/sfx_magic_reveal.mp3');
+    anime({
+      targets: totalRow, opacity: [0, 1], scale: [0.8, 1.05, 1],
+      duration: 600, easing: 'easeOutElastic(1, .5)',
+      complete: () => {
+        RitmikaStyleFX.counter(document.getElementById('total-score-display'), 0, avgScore, { duration: 800, prefix: '+' });
+      }
+    });
+  }, totalDelay);
+
+  saveGameState();
+  overlay.classList.add('visible');
+
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'SHOW_SCOREBOARD',
+    data: { performerSocketId: player.socketId, performerName: player.name },
+  });
+
+  const singer = state.players.find(p => p.socketId === player.socketId);
+  const genreBark = singer ? getGenreBark(singer) : '&#161;Vaya actuaci&#243;n!';
+  const voteReact = getVoteReaction(avgScore);
+  const endMsg = avgScore > 70 ? voteReact : genreBark;
+  axoloSay(endMsg.text, endMsg.file);
+
+  if (scoreboardTimeout) clearTimeout(scoreboardTimeout);
+  const ceremonyDuration = 300 + singerVotes.length * 250 + 900;
+  scoreboardTimeout = setTimeout(() => { nextTurn(); }, Math.max(ceremonyDuration + 4000, 12000));
+}
+
+document.getElementById('continue-btn').addEventListener('click', () => {
+  UISounds.click();
+  if (scoreboardTimeout) clearTimeout(scoreboardTimeout);
+  nextTurn();
+});
+
+function nextTurn() {
+  _stopCurrentAxolo();
+  stopAllSfx();
+  if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+  if (rouletteResultTimeout) clearTimeout(rouletteResultTimeout);
+  if (scoreboardTimeout) clearTimeout(scoreboardTimeout);
+  if (blackoutTimeout) { clearTimeout(blackoutTimeout); blackoutTimeout = null; }
+
+  document.getElementById('scoreboard-overlay').classList.remove('visible');
+  state.currentSingerIdx++;
+
+  if (state.currentSingerIdx >= state.players.length) {
+    state.currentSingerIdx = 0;
+    state.round++;
+
+    if (state.round > 3) {
+      showPodium();
+      return;
+    }
+
+    state.singerQueue = [...state.players].sort(() => Math.random() - 0.5);
+    saveGameState();
+
+    showRoundSplash(state.round, () => { startRoulette(); });
+    const rStartIdx = Math.floor(Math.random() * 2);
+    let rStartText = '';
+    if (state.round === 1) {
+      rStartText = rStartIdx === 0 ? "&#161;Ronda 1 iniciando! Prep&#225;rense para cantar." : "&#161;Arranca la Ronda 1! Escojan sus mejores rolas y demuestren talento.";
+    } else if (state.round === 2) {
+      rStartText = rStartIdx === 0 ? "&#161;Fuego cruzado activado! Asignen canciones a sus rivales" : "&#161;Ronda 2: Fuego Cruzado! Es hora de vengarse y darles la peor canci&#243;n posible.";
+    } else {
+      rStartText = rStartIdx === 0 ? "&#161;Ronda 3 iniciando! Se viene el apag&#243;n mental." : "&#161;Ronda 3! El Apag&#243;n Mental. Canten sin letra o queden en el olvido.";
+    }
+    axoloSay(rStartText, `round_${state.round}_start_${rStartIdx}.mp3`);
+    return;
+  }
+
+  startRoulette();
+}
+
+// ==============================================
+//  PODIO FINAL - PREMIUM
+// ==============================================
+const AWARD_CARRILLA = {
+  rey:      [{text:'&#161;La banda reconoci&#243; al verdadero &#237;dolo de la noche!', file:'award_rey_0.mp3'}, {text:'&#161;Nadie le llega ni a los talones!', file:'award_rey_1.mp3'}, {text:'&#161;El micr&#243;fono ya tiene nuevo due&#241;o permanente!', file:'award_rey_2.mp3'}],
+  gallo:    [{text:'&#161;Los perros del barrio aullaron de solidaridad!', file:'award_gallo_0.mp3'}, {text:'&#161;Urgen 3 meses de solfeo, urgente!', file:'award_gallo_1.mp3'}, {text:'&#161;El honor de la familia exige pr&#225;ctica diaria!', file:'award_gallo_2.mp3'}],
+  tomate:   [{text:'&#161;La banda habl&#243; con los proyectiles!', file:'award_tomate_0.mp3'}, {text:'&#161;Concentr&#243; todo el amor en forma de tomate!', file:'award_tomate_1.mp3'}, {text:'&#161;Tan bueno que mereci&#243; atenci&#243;n especial de todos!', file:'award_tomate_2.mp3'}],
+  vengador: [{text:'&#161;Rob&#243; m&#225;s puntos que el gobierno!', file:'award_vengador_0.mp3'}, {text:'&#161;La t&#225;ctica del ataque silencioso funcion&#243; perfecto!', file:'award_vengador_1.mp3'}, {text:'&#161;Estratega karaoke de alto nivel!', file:'award_vengador_2.mp3'}],
+};
+
+let podiumBgm = null;
+
+function showPodium() {
+  clearSavedGame();
+  if (podiumBgm) { podiumBgm.pause(); podiumBgm.currentTime = 0; podiumBgm = null; }
+
+  const sorted       = [...state.players].sort((a, b) => b.score - a.score);
+  const mostTomatoes = [...state.players].sort((a, b) => (b.tomatazos||0) - (a.tomatazos||0))[0];
+  const vengador     = sorted.length >= 3 ? sorted[1] : (sorted[1] || sorted[0]);
+  const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  const awardsData = [
+    { icon:'&#128019;', title:'Gallo Supremo',    subtitle:'Valor Desafinado', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: rand(AWARD_CARRILLA.gallo) },
+    { icon:'&#127813;', title:'Salsa de Tomate',  subtitle:'El M&#225;s Atacado',   player: mostTomatoes && mostTomatoes.tomatazos > 0 ? mostTomatoes : null, color:'#ef4444', border:'#dc2626', obj: rand(AWARD_CARRILLA.tomate) },
+    { icon:'&#128535;', title:'Vengador An&#243;nimo', subtitle:'Fuego Cruzado',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
+  ].map(a => ({...a, carrilla: a.obj.text, file: a.obj.file}));
+  const stepData = [
+    { place:3, player:sorted[2], rank:'&#129350;', label:'3er Lugar', color:'#f97316', glow:'#f9731640', pedColor:'linear-gradient(to top,#7c2d12,#f97316)', size:'5.5rem' },
+    { place:2, player:sorted[1], rank:'&#129349;', label:'2do Lugar', color:'#22d3ee', glow:'#22d3ee40', pedColor:'linear-gradient(to top,#164e63,#06b6d4)', size:'5.5rem' },
+    { place:1, player:sorted[0], rank:'&#129351;', label:'1er Lugar', color:'#facc15', glow:'#facc1560', pedColor:'linear-gradient(to top,#78350f,#eab308)', size:'7.5rem' },
+  ];
+
+  const axoloOverlay = document.getElementById('axolo-cutin-overlay');
+  if (axoloOverlay) axoloOverlay.style.zIndex = '10002';
+  document.querySelectorAll('.tv-screen').forEach(s => { s.classList.remove('active'); s.style.display='none'; });
+  const oldPodium = document.getElementById('podium-screen');
+  if (oldPodium && oldPodium.parentNode) oldPodium.parentNode.removeChild(oldPodium);
+
+  const ceremonyRoot = document.createElement('div');
+  ceremonyRoot.id = 'podium-screen';
+  ceremonyRoot.style.cssText = 'position:fixed;inset:0;z-index:10001;background:#0a0a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;font-family:Fredoka,sans-serif;';
+  document.body.appendChild(ceremonyRoot);
+
+  const starCanvas = document.createElement('canvas');
+  starCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;';
+  starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight;
+  ceremonyRoot.appendChild(starCanvas);
+  const starCtx = starCanvas.getContext('2d');
+  const stars = Array.from({length:120}, () => ({
+    x:Math.random()*starCanvas.width, y:Math.random()*starCanvas.height,
+    r:0.5+Math.random()*2, a:Math.random(), da:0.005+Math.random()*0.015,
+    vy:-0.15-Math.random()*0.3,
+    color:['#facc15','#ec4899','#22d3ee','#a855f7','#ffffff','#f97316'][Math.floor(Math.random()*6)],
+  }));
+  let starFrameId = null;
+  function drawStars() {
+    starCtx.clearRect(0,0,starCanvas.width,starCanvas.height);
+    stars.forEach(s => {
+      s.a += s.da; if(s.a>1||s.a<0) s.da*=-1;
+      s.y += s.vy; if(s.y<-5) s.y=starCanvas.height+5;
+      starCtx.globalAlpha = s.a*0.8;
+      starCtx.fillStyle = s.color;
+      starCtx.beginPath(); starCtx.arc(s.x,s.y,s.r,0,Math.PI*2); starCtx.fill();
+    });
+    starCtx.globalAlpha=1;
+    starFrameId = requestAnimationFrame(drawStars);
+  }
+  drawStars();
+
+  function fireworkBurst(x,y) {
+    RitmikaStyleFX.confettiBurst(x,y,{count:60,colors:['#facc15','#ec4899','#22d3ee','#a855f7','#f97316','#ffffff','#22c55e']});
+  }
+
+  function animatePodiumCounter(el, target, duration, suffix) {
+    duration = duration||1200; suffix = suffix||' pts';
+    let start=null;
+    function step(ts) {
+      if(!start) start=ts;
+      const progress=Math.min((ts-start)/duration,1);
+      const eased=1-Math.pow(1-progress,3);
+      el.textContent=Math.round(eased*target)+suffix;
+      if(progress<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function wait(ms) { return new Promise(r=>setTimeout(r,ms)); }
+
+  async function runCeremony() {
+
+    // FASE 1: Titulo epico
+    ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
+    const bgImg=document.createElement('div');
+    bgImg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0;z-index:0;transition:opacity 1.2s ease;';
+    ceremonyRoot.appendChild(bgImg);
+    const bgOvl=document.createElement('div');
+    bgOvl.style.cssText='position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,26,0.5) 0%,rgba(10,10,26,0.88) 100%);z-index:1;';
+    ceremonyRoot.appendChild(bgOvl);
+    setTimeout(()=>{ bgImg.style.opacity='1'; },100);
+
+    const titleWrap=document.createElement('div');
+    titleWrap.style.cssText='position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;';
+    ceremonyRoot.appendChild(titleWrap);
+
+    const trophyEl=document.createElement('img');
+    trophyEl.src='/assets/podium_trophy_glow.png';
+    trophyEl.style.cssText='width:150px;height:150px;object-fit:contain;opacity:0;transform:translateY(-60px) scale(0.5);filter:drop-shadow(0 0 30px #facc15) drop-shadow(0 0 60px #facc1588);';
+    titleWrap.appendChild(trophyEl);
+
+    const titleBlock=document.createElement('div');
+    titleBlock.style.cssText='display:inline-block;background:#ffe600;border:6px solid #111827;box-shadow:14px 14px 0 #111827;padding:28px 64px;border-radius:24px;text-align:center;opacity:0;transform:scale(0.5) rotate(-3deg);margin-top:18px;';
+    titleBlock.innerHTML='<h1 style="font-family:\'Paytone One\',sans-serif;font-size:64px;color:#111827;margin:0;line-height:1;">LA GRAN</h1><h1 style="font-family:\'Paytone One\',sans-serif;font-size:64px;color:#111827;margin:0;line-height:1;">PREMIACI&#211;N</h1>';
+    titleWrap.appendChild(titleBlock);
+
+    const subtitleEl=document.createElement('p');
+    subtitleEl.style.cssText='font-family:Fredoka,sans-serif;font-size:22px;color:#facc15;font-weight:900;margin-top:20px;opacity:0;letter-spacing:3px;text-shadow:0 0 20px #facc1588;position:relative;z-index:2;';
+    subtitleEl.innerHTML='&#10022; &#161;El T&#237;o Axolo reparte premios y carrilla! &#10022;';
+    titleWrap.appendChild(subtitleEl);
+
+    anime({targets:trophyEl,opacity:[0,1],translateY:[-60,0],scale:[0.5,1],duration:900,easing:'easeOutElastic(1,.5)'});
+    await wait(300);
+    anime({targets:titleBlock,opacity:[0,1],scale:[0.5,1.05,1],rotate:[-3,0],duration:900,easing:'easeOutBack'});
+    await wait(400);
+    anime({targets:subtitleEl,opacity:[0,1],translateY:[20,0],duration:600,easing:'easeOutQuad'});
+    anime({targets:trophyEl,scale:[1,1.08,1],duration:1800,loop:true,easing:'easeInOutSine'});
+    axoloSay('&#161;Bienvenidos, banda, a la Gran Premiaci&#243;n de R&#237;tmika! Lleg&#243; el momento de la verdad. Vamos a coronar al Rey del Palenque, pero tambi&#233;n vamos a dar carrilla. Premios especiales, podio de ganadores, y muchas sorpresas m&#225;s. &#161;Que empiece la ceremonia!','podium_intro_ceremony.mp3');
+    await wait(14000);
+    anime({targets:[titleBlock,subtitleEl,trophyEl],opacity:[1,0],translateY:[0,-40],duration:500,easing:'easeInCubic'});
+    await wait(600);
+
+    // FASE 2: Premios especiales
+    for (const award of awardsData) {
+      if (!award.player) continue;
+      const av=getAvatar(award.player.avatarId);
+      const sideDir=award.icon==='&#128019;'?-1:award.icon==='&#127813;'?1:0;
+      ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
+      const aBg=document.createElement('div');
+      aBg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.22;z-index:0;';
+      ceremonyRoot.appendChild(aBg);
+      const aOvl=document.createElement('div');
+      aOvl.style.cssText='position:absolute;inset:0;background:rgba(10,10,26,0.72);z-index:1;';
+      ceremonyRoot.appendChild(aOvl);
+      const sp=document.createElement('div');
+      sp.style.cssText='position:absolute;left:50%;top:50%;width:0;height:0;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:1;transition:all 0.6s ease;';
+      sp.style.background='radial-gradient(circle,'+award.color+'1a 0%,transparent 70%)';
+      ceremonyRoot.appendChild(sp);
+      setTimeout(()=>{sp.style.width='600px';sp.style.height='600px';},80);
+      const aPhase=document.createElement('div');
+      aPhase.style.cssText='position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;';
+      ceremonyRoot.appendChild(aPhase);
+      const aLabel=document.createElement('div');
+      aLabel.style.cssText='font-family:\'Paytone One\',sans-serif;font-size:24px;text-transform:uppercase;letter-spacing:10px;margin-bottom:22px;opacity:0;';
+      aLabel.style.color=award.color;
+      aLabel.style.textShadow='0 0 30px '+award.color+'88';
+      aLabel.innerHTML='&#10022; PREMIO ESPECIAL &#10022;';
+      const aCard=document.createElement('div');
+      aCard.style.cssText='border-radius:28px;padding:32px 52px;text-align:center;max-width:520px;width:90%;opacity:0;';
+      aCard.style.background='linear-gradient(135deg,rgba(15,23,42,0.95),rgba(30,27,75,0.9))';
+      aCard.style.border='5px solid '+award.color;
+      aCard.style.boxShadow='0 0 80px '+award.color+'44,10px 10px 0 #111827';
+      aCard.style.transform='translateX('+(sideDir*130)+'%)';
+      aCard.innerHTML='<div style="font-size:76px;margin-bottom:8px;filter:drop-shadow(0 0 18px '+award.color+');">'+award.icon+'</div>'
+        +'<h2 style="font-family:\'Paytone One\',sans-serif;font-size:42px;margin:6px 0;text-shadow:0 0 22px '+award.color+'66;color:'+award.color+';">'+award.title+'</h2>'
+        +'<p style="font-family:Fredoka,sans-serif;font-size:15px;color:#94a3b8;font-weight:700;margin-bottom:16px;letter-spacing:2px;text-transform:uppercase;">'+award.subtitle+'</p>'
+        +'<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0;padding:12px 20px;border-radius:16px;background:'+award.color+'11;border:2px solid '+award.color+'33;">'
+        +'<div style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:'+av.color+'33;border:4px solid '+av.border+';display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px '+av.border+'66;">'
+        +'<img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
+        +'<span style="font-family:\'Paytone One\',sans-serif;font-size:28px;color:#f1f5f9;">'+escapeHtml(award.player.name)+'</span></div>'
+        +'<div style="background:#0a0a1a;border:2px solid '+award.color+'33;border-radius:14px;padding:14px 20px;margin-top:10px;">'
+        +'<p style="font-family:Fredoka,sans-serif;font-size:16px;color:#cbd5e1;font-style:italic;margin:0;line-height:1.5;">&ldquo;'+award.carrilla+'&rdquo;</p></div>';
+      aPhase.appendChild(aLabel);
+      aPhase.appendChild(aCard);
+      anime({targets:aLabel,opacity:[0,1],translateY:[-20,0],duration:400,easing:'easeOutQuad'});
+      await wait(200);
+      anime({targets:aCard,opacity:[0,1],translateX:[sideDir*130+'%','0%'],duration:850,easing:'easeOutBack'});
+      if(axoloOverlay) axoloOverlay.style.zIndex='10002';
+      if(award.icon==='&#128019;' || award.icon==='&#127813;'){ playSfx('/assets/audio/sfx_comedy_fail.mp3'); } else { playSfx('/assets/audio/sfx_magic_reveal.mp3'); }
+      _stopCurrentAxolo();
+      const awardCeremonyFile = award.icon==='&#128019;' ? 'podium_award_gallo.mp3' : (award.icon==='&#127813;' ? 'podium_award_tomate.mp3' : 'podium_award_vengador.mp3');
+      const awardCeremonyText = award.icon==='&#128019;' ? '&#161;El primero de los premios especiales... Gallo Supremo! Para el m&#225;s valiente, el que se atrevi&#243; a cantar pareciendo gato en licuadora. Banda, el Gallo Supremo de la noche es...' : (award.icon==='&#127813;' ? '&#161;Y ahora el premio Salsa de Tomate! Para el que recibi&#243; m&#225;s tomatazos que la selecci&#243;n en el Azteca. El rey de los tomatazos de la noche es...' : '&#161;El premio al Vengador An&#243;nimo! Saboteador profesional con cara de inocente. Rob&#243; m&#225;s puntos que el SAT. El Vengador An&#243;nimo es...');
+      axoloSay(awardCeremonyText, awardCeremonyFile);
+      await wait(13000);
+      anime({targets:[aLabel,aCard],opacity:[1,0],translateY:[0,-40],duration:400,easing:'easeInCubic'});
+      if(sp&&sp.parentNode) sp.parentNode.removeChild(sp);
+      await wait(500);
+    }
+
+    // FASE 3: Revelacion 3ro y 2do
+    playSfx('/assets/audio/sfx_drumroll.mp3');
+    ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
+    const p3bg=document.createElement('div');
+    p3bg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.18;z-index:0;';
+    ceremonyRoot.appendChild(p3bg);
+    const p3ovl=document.createElement('div');
+    p3ovl.style.cssText='position:absolute;inset:0;background:radial-gradient(circle at center,rgba(30,27,75,0.55) 0%,rgba(10,10,26,0.92) 100%);z-index:1;';
+    ceremonyRoot.appendChild(p3ovl);
+    const p3wrap=document.createElement('div');
+    p3wrap.style.cssText='position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;height:100%;gap:8px;';
+    ceremonyRoot.appendChild(p3wrap);
+    const p3title=document.createElement('div');
+    p3title.style.cssText='font-family:\'Paytone One\',sans-serif;font-size:30px;color:#facc15;text-shadow:0 0 30px #facc1566;opacity:0;padding-top:28px;letter-spacing:4px;';
+    p3title.innerHTML='&#127942; PODIO DE GANADORES &#127942;';
+    p3wrap.appendChild(p3title);
+    anime({targets:p3title,opacity:[0,1],scale:[0.7,1],duration:700,easing:'easeOutBack'});
+    await wait(700);
+    const p3steps=document.createElement('div');
+    p3steps.style.cssText='display:flex;align-items:flex-end;justify-content:center;gap:2rem;width:100%;max-width:960px;height:360px;padding:0 20px;';
+    p3wrap.appendChild(p3steps);
+    const leftSlot=document.createElement('div'); leftSlot.style.cssText='width:240px;flex-shrink:0;';
+    const centerSlot=document.createElement('div');
+    centerSlot.style.cssText='width:260px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;';
+    const centerHolder=document.createElement('div');
+    centerHolder.style.cssText='width:100%;border-radius:1.5rem 1.5rem 0 0;height:160px;background:rgba(250,204,21,0.05);border:3px dashed rgba(250,204,21,0.2);border-bottom:none;display:flex;align-items:center;justify-content:center;';
+    centerHolder.innerHTML='<span style="font-size:3rem;opacity:0.2;">?</span>';
+    centerSlot.appendChild(centerHolder);
+    const rightSlot=document.createElement('div'); rightSlot.style.cssText='width:220px;flex-shrink:0;';
+    p3steps.appendChild(leftSlot);
+    p3steps.appendChild(centerSlot);
+    p3steps.appendChild(rightSlot);
+
+    const partialSteps=stepData.filter(sd=>sd.place!==1);
+    for (const sd of partialSteps) {
+      if(!sd.player) continue;
+      const av=getAvatar(sd.player.avatarId);
+      const pedH=sd.place===2?'110px':'75px';
+      const stepDiv=document.createElement('div');
+      stepDiv.style.cssText='display:flex;flex-direction:column;align-items:center;width:'+(sd.place===2?'240px':'220px')+';opacity:0;transform:translateY(80px);';
+      stepDiv.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px;">'
+        +'<span style="font-family:Fredoka,sans-serif;font-size:15px;font-weight:900;background:#111827;color:'+sd.color+';padding:5px 16px;border-radius:20px;border:2px solid '+sd.color+';margin-bottom:10px;letter-spacing:1px;">'+sd.rank+' '+sd.label+'</span>'
+        +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+'22;border:5px solid '+av.border+';display:flex;align-items:center;justify-content:center;width:'+sd.size+';height:'+sd.size+';box-shadow:0 0 22px '+av.border+'66;">'
+        +'<img src="'+av.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
+        +'<p style="font-family:Fredoka,sans-serif;font-size:19px;color:#f1f5f9;font-weight:700;margin:10px 0 2px;text-align:center;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(sd.player.name)+'</p>'
+        +'<p class="step-score-'+sd.place+'" style="font-family:\'Paytone One\',sans-serif;font-size:21px;color:'+sd.color+';margin:0;">0 pts</p></div>'
+        +'<div style="width:100%;border-radius:1.5rem 1.5rem 0 0;height:'+pedH+';background:'+sd.pedColor+';border:4px solid '+sd.color+';border-bottom:none;box-shadow:0 0 28px '+sd.glow+',0 -4px 16px '+sd.glow+';position:relative;overflow:hidden;">'
+        +'<div style="position:absolute;inset:0;background:linear-gradient(to right,transparent,rgba(255,255,255,0.07),transparent);"></div>'
+        +'<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:\'Paytone One\',sans-serif;font-size:3rem;font-weight:900;color:rgba(255,255,255,0.12);line-height:1;">'+sd.place+'</div></div>';
+      if(sd.place===2) p3steps.replaceChild(stepDiv,leftSlot);
+      else p3steps.replaceChild(stepDiv,rightSlot);
+      _stopCurrentAxolo();
+      if (sd.place===3) {
+        axoloSay('&#161;Antes del gran campe&#243;n, hay que reconocer a los que llegaron al podio! En tercer lugar, con una actuaci&#243;n que ni fu ni fa... &#161;' + escapeHtml(sd.player.name) + '!', 'podium_reveal_third.mp3');
+      } else {
+        axoloSay('&#161;Y en segundo lugar, alguien que se la rif&#243; y casi arrebata la corona! &#161;' + escapeHtml(sd.player.name) + '!', 'podium_reveal_second.mp3');
+      }
+      UISounds.reveal();
+      anime({targets:stepDiv,opacity:[0,1],translateY:['80px','0px'],duration:800,easing:'easeOutBack'});
+      const scoreEl=stepDiv.querySelector('.step-score-'+sd.place);
+      if(scoreEl) animatePodiumCounter(scoreEl,sd.player.score||0,1000);
+      await wait(11000);
+    }
+    await wait(400);
+
+    // FASE 4: MOMENTO WOW - 1er lugar
+    if(sorted[0]) {
+      const blackout=document.createElement('div');
+      blackout.style.cssText='position:fixed;inset:0;background:#000;opacity:0;z-index:10003;pointer-events:none;';
+      document.body.appendChild(blackout);
+      anime({targets:blackout,opacity:[0,0.95],duration:600,easing:'easeInQuad'});
+      await wait(400);
+      _stopCurrentAxolo();
+      axoloSay('&#161;Lleg&#243; el momento que todos esperaban! Despu&#233;s de tres rondas, canciones, tomatazos, y mucha carrilla... ha llegado la hora de coronar al Rey del Palenque. El ganador de R&#237;tmika es...', 'podium_winner_buildup.mp3');
+      await wait(2000);
+      blackout.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;"><p id="susp-text" style="font-family:\'Paytone One\',sans-serif;font-size:28px;color:#94a3b8;letter-spacing:10px;text-transform:uppercase;opacity:0;">Y el ganador es...</p><div id="countdown-wrap" style="display:flex;gap:30px;margin-top:10px;"></div></div>';
+      anime({targets:'#susp-text',opacity:[0,1],translateY:[20,0],duration:600,easing:'easeOutQuad'});
+      await wait(4000);
+      const cwrap=document.getElementById('countdown-wrap');
+      for(const n of ['3','2','1']){
+        const nd=document.createElement('div');
+        nd.style.cssText='font-family:\'Paytone One\',sans-serif;font-size:100px;color:#facc15;opacity:0;transform:scale(2);text-shadow:0 0 40px #facc15,0 0 80px #facc1566;line-height:1;';
+        nd.textContent=n;
+        cwrap.appendChild(nd);
+        UISounds.playTone(n==='3'?440:n==='2'?523:659,0.4,'sine',0.2);
+        anime({targets:nd,opacity:[0,1],scale:[2,1],duration:350,easing:'easeOutBack'});
+        await wait(650);
+        anime({targets:nd,opacity:[1,0],scale:[1,0.5],duration:250,easing:'easeInCubic'});
+        await wait(300);
+      }
+      anime({targets:blackout,opacity:[0.95,0],duration:200,easing:'easeOutQuad',complete:()=>{if(blackout.parentNode)blackout.parentNode.removeChild(blackout);}});
+      RitmikaStyleFX.flashBang('#facc15',600);
+      UISounds.playTone(880,0.6,'sine',0.3);
+      UISounds.playTone(1108,0.5,'sine',0.2);
+      setTimeout(()=>UISounds.playTone(1318,0.8,'sine',0.25),120);
+      [[0.2,0.3],[0.5,0.1],[0.8,0.35],[0.35,0.6],[0.65,0.25],[0.5,0.5]].forEach(([rx,ry],i)=>{
+        setTimeout(()=>fireworkBurst(window.innerWidth*rx,window.innerHeight*ry),i*180);
+      });
+      await wait(300);
+      const winnerScreen=document.createElement('div');
+      winnerScreen.style.cssText='position:fixed;inset:0;z-index:10004;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center,#1e1b4b 0%,#0a0a1a 100%);overflow:hidden;';
+      document.body.appendChild(winnerScreen);
+      const winnerAv=getAvatar(sorted[0].avatarId);
+      ['25%','50%','75%'].forEach((pos,i)=>{
+        const spl=document.createElement('div');
+        spl.style.cssText='position:absolute;left:'+pos+';top:0;width:4px;height:100%;background:linear-gradient(to bottom,#facc1544,transparent);transform:rotate('+(i-1)*15+'deg);transform-origin:top center;pointer-events:none;';
+        winnerScreen.appendChild(spl);
+        anime({targets:spl,opacity:[0,0.7,0.3],duration:2000,loop:true,easing:'easeInOutSine'});
+      });
+      const winnerContent=document.createElement('div');
+      winnerContent.id='winner-reveal-content';
+      winnerContent.style.cssText='position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;opacity:0;transform:scale(0.6);';
+      winnerContent.innerHTML='<img src="/assets/podium_crown.png" id="winner-crown" style="width:140px;height:auto;object-fit:contain;filter:drop-shadow(0 0 28px #facc15) drop-shadow(0 0 56px #facc1588);margin-bottom:-22px;z-index:3;position:relative;"/>'
+        +'<div style="width:180px;height:180px;border-radius:50%;overflow:hidden;background:'+winnerAv.color+'33;border:8px solid '+winnerAv.border+';display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px '+winnerAv.border+',0 0 120px '+winnerAv.border+'88;position:relative;z-index:2;">'
+        +'<img src="'+winnerAv.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
+        +'<div style="margin-top:24px;background:#ffe600;border:6px solid #111827;box-shadow:10px 10px 0 #111827;padding:18px 50px;border-radius:20px;text-align:center;">'
+        +'<div style="font-family:\'Paytone One\',sans-serif;font-size:24px;color:#111827;letter-spacing:6px;text-transform:uppercase;">&#129351; GANADOR &#129351;</div>'
+        +'<div style="font-family:\'Paytone One\',sans-serif;font-size:52px;color:#111827;line-height:1.1;margin-top:4px;">'+escapeHtml(sorted[0].name)+'</div></div>'
+        +'<div id="winner-score-display" style="font-family:\'Paytone One\',sans-serif;font-size:34px;color:#facc15;margin-top:18px;text-shadow:0 0 20px #facc15;opacity:0;">0 pts</div>';
+      winnerScreen.appendChild(winnerContent);
+      anime({targets:'#winner-reveal-content',opacity:[0,1],scale:[0.6,1.05,1],duration:900,easing:'easeOutBack'});
+      playSfx('/assets/audio/sfx_tada.mp3');
+      setTimeout(()=>{playSfx('/assets/audio/sfx_applause.mp3');}, 500);
+      await wait(400);
+      anime({targets:'#winner-crown',translateY:[0,-18,0],duration:1200,loop:true,easing:'easeInOutSine'});
+      anime({targets:'#winner-score-display',opacity:[0,1],translateY:[20,0],duration:500,easing:'easeOutQuad',delay:600});
+      const wScoreEl=document.getElementById('winner-score-display');
+      if(wScoreEl) setTimeout(()=>animatePodiumCounter(wScoreEl,sorted[0].score||0,1400),700);
+      _stopCurrentAxolo();
+      axoloSay('&#161;El nuevo Rey del Palenque! &#161;' + escapeHtml(sorted[0].name) + '! El que demostr&#243; que tiene flow y que no le tiembla la voz. &#161;Felicidades, campe&#243;n, de parte del T&#237;o Axolo y de toda la banda!', 'podium_winner_reveal.mp3');
+      [800,1200,1600,2000].forEach(delay=>{
+        setTimeout(()=>fireworkBurst(window.innerWidth*(0.2+Math.random()*0.6),window.innerHeight*(0.1+Math.random()*0.4)),delay);
+      });
+      await wait(15000);
+      anime({targets:'#winner-reveal-content',opacity:[1,0],scale:[1,0.8],duration:500,easing:'easeInCubic'});
+      await wait(600);
+      if(winnerScreen.parentNode) winnerScreen.parentNode.removeChild(winnerScreen);
+    }
+
+    // FASE 5: Podio final completo premium
+    ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
+    const finalBg=document.createElement('div');
+    finalBg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.16;z-index:0;';
+    ceremonyRoot.appendChild(finalBg);
+    const finalOvl=document.createElement('div');
+    finalOvl.style.cssText='position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(30,27,75,0.5) 0%,rgba(10,10,26,0.95) 100%);z-index:1;';
+    ceremonyRoot.appendChild(finalOvl);
+    const floorLine=document.createElement('div');
+    floorLine.style.cssText='position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(to top,rgba(250,204,21,0.05),transparent);z-index:1;pointer-events:none;';
+    ceremonyRoot.appendChild(floorLine);
+    const finalWrap=document.createElement('div');
+    finalWrap.id='final-podium';
+    finalWrap.style.cssText='position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;height:100%;padding:14px 28px 18px;opacity:0;gap:6px;';
+    ceremonyRoot.appendChild(finalWrap);
+    const fTitle=document.createElement('div');
+    fTitle.style.cssText='text-align:center;flex-shrink:0;';
+    fTitle.innerHTML='<h2 style="font-family:\'Paytone One\',sans-serif;font-size:34px;color:#facc15;margin:0;text-shadow:0 0 20px #facc15,0 0 60px #facc1566;letter-spacing:3px;">&#127942; PODIO DE GANADORES &#127942;</h2><p style="font-family:Fredoka,sans-serif;font-size:13px;color:#475569;margin:4px 0 0;letter-spacing:2px;text-transform:uppercase;">&#161;El T&#237;o Axolo presenta el podio final de la noche!</p>';
+    finalWrap.appendChild(fTitle);
+    const finalPodiumContainer=document.createElement('div');
+    finalPodiumContainer.style.cssText='display:flex;align-items:flex-end;justify-content:center;gap:2rem;width:100%;max-width:960px;flex:1;min-height:0;';
+    finalWrap.appendChild(finalPodiumContainer);
+    const orderedFinal=[
+      stepData.find(s=>s.place===2),
+      stepData.find(s=>s.place===1),
+      stepData.find(s=>s.place===3),
+    ].filter(Boolean);
+    const pedHeights={1:'160px',2:'115px',3:'80px'};
+    const avSizes={1:'8rem',2:'6rem',3:'5.5rem'};
+    orderedFinal.forEach(sd=>{
+      if(!sd.player) return;
+      const av=getAvatar(sd.player.avatarId);
+      const isWinner=sd.place===1;
+      const stepEl=document.createElement('div');
+      stepEl.style.cssText='display:flex;flex-direction:column;align-items:center;width:'+(isWinner?'260px':'210px')+';flex-shrink:0;';
+      stepEl.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px;position:relative;">'
+        +(isWinner?'<img src="/assets/podium_crown.png" style="width:68px;height:auto;object-fit:contain;filter:drop-shadow(0 0 14px #facc15);margin-bottom:-14px;z-index:3;position:relative;"/>':'')
+        +'<span style="font-family:Fredoka,sans-serif;font-size:'+(isWinner?'16px':'14px')+';font-weight:900;background:#111827;color:'+sd.color+';padding:5px 16px;border-radius:20px;border:2px solid '+sd.color+';margin-bottom:'+(isWinner?'12px':'8px')+';letter-spacing:1px;">'+sd.rank+' '+sd.label+'</span>'
+        +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+'22;border:'+(isWinner?'6px':'4px')+' solid '+av.border+';display:flex;align-items:center;justify-content:center;width:'+(avSizes[sd.place]||'5.5rem')+';height:'+(avSizes[sd.place]||'5.5rem')+';box-shadow:0 0 '+(isWinner?'40px':'20px')+' '+av.border+'66;">'
+        +'<img src="'+av.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
+        +'<p style="font-family:Fredoka,sans-serif;font-size:'+(isWinner?'19px':'16px')+';color:#f1f5f9;font-weight:700;margin:10px 0 2px;text-align:center;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(sd.player.name)+'</p>'
+        +'<p class="final-score-'+sd.place+'" style="font-family:\'Paytone One\',sans-serif;font-size:'+(isWinner?'24px':'20px')+';color:'+sd.color+';margin:0;text-shadow:0 0 12px '+sd.color+'66;">0 pts</p></div>'
+        +'<div style="width:100%;border-radius:1.5rem 1.5rem 0 0;height:'+(pedHeights[sd.place]||'80px')+';background:'+sd.pedColor+';border:4px solid '+sd.color+';border-bottom:none;box-shadow:0 0 40px '+sd.glow+',inset 0 1px 0 rgba(255,255,255,0.2);position:relative;overflow:hidden;">'
+        +'<div style="position:absolute;top:0;left:0;right:0;height:28px;background:linear-gradient(to bottom,rgba(255,255,255,0.14),transparent);border-radius:1.5rem 1.5rem 0 0;"></div>'
+        +'<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:\'Paytone One\',sans-serif;font-size:'+(isWinner?'4.5rem':'3rem')+';font-weight:900;color:rgba(255,255,255,0.12);line-height:1;">'+sd.place+'</div></div>';
+      finalPodiumContainer.appendChild(stepEl);
+    });
+    const bottomSection=document.createElement('div');
+    bottomSection.style.cssText='display:flex;gap:1.2rem;width:100%;max-width:1040px;align-items:stretch;flex-shrink:0;height:138px;';
+    finalWrap.appendChild(bottomSection);
+    const awardsPanel=document.createElement('div');
+    awardsPanel.style.cssText='flex:1;background:rgba(15,23,42,0.6);backdrop-filter:blur(12px);border:2px solid rgba(51,65,85,0.6);border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;';
+    awardsPanel.innerHTML='<p style="font-size:9px;font-weight:900;letter-spacing:3px;color:#475569;text-transform:uppercase;margin:0 0 8px;">&#127885; Premios Especiales</p>';
+    const awardsInner=document.createElement('div');
+    awardsInner.style.cssText='display:flex;gap:8px;flex:1;align-items:center;justify-content:space-around;';
+    awardsPanel.appendChild(awardsInner);
+    awardsData.forEach(a=>{
+      if(!a.player) return;
+      const av=getAvatar(a.player.avatarId);
+      const aEl=document.createElement('div');
+      aEl.style.cssText='display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;max-width:140px;gap:2px;';
+      aEl.innerHTML='<div style="font-size:26px;filter:drop-shadow(0 0 8px '+a.color+');">'+a.icon+'</div>'
+        +'<p style="font-size:10px;font-weight:900;text-transform:uppercase;color:'+a.color+';margin:0;letter-spacing:1px;">'+a.title+'</p>'
+        +'<div style="width:28px;height:28px;border-radius:50%;overflow:hidden;background:#0f172a;border:2px solid '+av.border+';display:flex;align-items:center;justify-content:center;margin:2px 0;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
+        +'<p style="font-size:12px;font-weight:800;color:#e2e8f0;margin:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(a.player.name)+'</p>';
+      awardsInner.appendChild(aEl);
+    });
+    bottomSection.appendChild(awardsPanel);
+    const sbPanel=document.createElement('div');
+    sbPanel.style.cssText='width:290px;background:rgba(15,23,42,0.6);backdrop-filter:blur(12px);border:2px solid rgba(51,65,85,0.6);border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;flex-shrink:0;';
+    sbPanel.innerHTML='<p style="font-size:9px;font-weight:900;letter-spacing:3px;color:#475569;text-transform:uppercase;margin:0 0 8px;">&#128202; Posiciones Finales</p>';
+    const sbInner=document.createElement('div');
+    sbInner.style.cssText='flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px;';
+    const medals=['&#129351;','&#129349;','&#129350;'];
+    sorted.forEach((p,i)=>{
+      const av=getAvatar(p.avatarId);
+      const isTop=i===0;
+      const scoreColor=i===0?'#facc15':i===sorted.length-1?'#6b7280':'#94a3b8';
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:10px;background:'+(isTop?'rgba(250,204,21,0.1)':'rgba(30,41,59,0.4)')+';border:1px solid '+(isTop?'rgba(250,204,21,0.3)':'rgba(51,65,85,0.4)')+';';
+      row.innerHTML='<span style="font-size:12px;width:18px;text-align:center;">'+(medals[i]||'#'+(i+1))+'</span>'
+        +'<div style="width:22px;height:22px;border-radius:5px;overflow:hidden;background:#0f172a;border:1px solid '+av.border+';display:flex;align-items:center;justify-content:center;flex-shrink:0;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
+        +'<span style="font-weight:700;flex:1;color:#e2e8f0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(p.name)+'</span>'
+        +'<span style="font-weight:900;font-size:12px;color:'+scoreColor+';">'+(p.score||0)+'</span>'
+        +'<span style="font-size:9px;color:#64748b;">pts</span>';
+      sbInner.appendChild(row);
+    });
+    sbPanel.appendChild(sbInner);
+    bottomSection.appendChild(sbPanel);
+    const restartBtn=document.createElement('button');
+    restartBtn.id='restart-btn-final';
+    restartBtn.style.cssText='background:linear-gradient(135deg,#ec4899,#a855f7);color:white;border:4px solid #111827;cursor:pointer;box-shadow:6px 6px 0 #111827;padding:13px 42px;border-radius:16px;font-family:\'Paytone One\',sans-serif;font-size:18px;letter-spacing:1px;margin-top:4px;flex-shrink:0;transition:transform 0.15s,box-shadow 0.15s;';
+    restartBtn.innerHTML='&#127918; Nueva Partida';
+    restartBtn.onmouseover=()=>{restartBtn.style.transform='translateY(-3px)';restartBtn.style.boxShadow='6px 9px 0 #111827';};
+    restartBtn.onmouseout=()=>{restartBtn.style.transform='';restartBtn.style.boxShadow='6px 6px 0 #111827';};
+    finalWrap.appendChild(restartBtn);
+    anime({targets:'#final-podium',opacity:[0,1],duration:700,easing:'easeOutQuad'});
+    playSfx('/assets/audio/sfx_applause.mp3');
+    orderedFinal.forEach(sd=>{
+      if(!sd.player) return;
+      const el=finalWrap.querySelector('.final-score-'+sd.place);
+      if(el) setTimeout(()=>animatePodiumCounter(el,sd.player.score||0,1400),400);
+    });
+    setTimeout(()=>{RitmikaStyleFX.confettiBurst(window.innerWidth/2,0,{count:80});},500);
+    setTimeout(()=>{RitmikaStyleFX.confettiBurst(window.innerWidth*0.2,0,{count:40});},1200);
+    setTimeout(()=>{RitmikaStyleFX.confettiBurst(window.innerWidth*0.8,0,{count:40});},1800);
+    restartBtn.addEventListener('click',()=>{
+      stopMouthAnimation();
+      _stopCurrentAxolo();
+      stopAllSfx();
+      if(starFrameId) cancelAnimationFrame(starFrameId);
+      if(axoloOverlay) axoloOverlay.style.zIndex='';
+      const podiumToRemove=document.getElementById('podium-screen');
+      if(podiumToRemove&&podiumToRemove.parentNode) podiumToRemove.parentNode.removeChild(podiumToRemove);
+      UISounds.click();
+      state.round=0;state.players=[];state.votes=[];state.currentSingerIdx=0;
+      state.singerQueue=[];state.audioSabotageCount=0;state.tomatazoCounts={};
+      socket.emit('tv:create_room');
+      showScreen('lobby-screen');
+      const newGameChoice=NEW_GAMES[Math.floor(Math.random()*NEW_GAMES.length)];
+      axoloSay(newGameChoice.text,newGameChoice.file,4000,true);
+    });
+    socket.emit('tv:broadcast',{
+      roomCode:state.roomCode,event:'GAME_OVER',
+      data:{results:sorted.map((p,i)=>({socketId:p.socketId,name:p.name,score:p.score,
+        award:i===0?'&#128081; Rey del Palenque':p===sorted[sorted.length-1]?'&#128019; Gallo Supremo':'&#127908; Participante'
+      }))},
+    });
+    const winner=sorted[0];
+    const fVictoryChoice=FINAL_VICTORIES[Math.floor(Math.random()*FINAL_VICTORIES.length)];
+    const pClimaxChoice=PODIUM_CLIMAXES[Math.floor(Math.random()*PODIUM_CLIMAXES.length)];
+    let customPodiumScript='';
+    if(pClimaxChoice.file==='podium_climax_0.mp3'){
+      customPodiumScript='&#161;Y as&#237; termina la noche m&#225;s &#233;pica del a&#241;o! Con '+(winner?.score||0)+' puntos, el ganador es... &#161;'+(winner?.name||'alguien misterioso')+'! &#161;El Rey del Palenque ha sido coronado! &#161;Gracias banda por esta noche de gloria, carrilla y alg&#250;n que otro tomate! &#161;Hasta la pr&#243;xima fiesta!';
+    } else if(pClimaxChoice.file==='podium_climax_1.mp3'){
+      customPodiumScript='&#161;Qu&#233; noche, se&#241;ores! Con '+(winner?.score||0)+' puntos, &#161;'+(winner?.name||'alguien misterioso')+'! es el campe&#243;n. El palenque se cierra pero las risas se quedan. &#161;Felicidades a los ganadores y gracias a todos por aguantar la carrilla!';
+    } else {
+      customPodiumScript='&#161;La fiesta lleg&#243; a su fin! Con '+(winner?.score||0)+' puntos, coronamos a &#161;'+(winner?.name||'alguien misterioso')+'! como el rey, abucheamos al gallo y nos divertimos como locos. &#161;Nos vemos en la pr&#243;xima ronda de R&#237;tmika! &#161;Adi&#243;s!';
+    }
+    axoloSay(fVictoryChoice.text,fVictoryChoice.file);
+    axoloSay(customPodiumScript,pClimaxChoice.file);
+    ['&#127881;','&#127882;','&#127942;','&#11088;','&#128293;','&#127925;','&#128171;','&#127775;'].forEach((e,i)=>
+      setTimeout(()=>floatEmoji(e),i*150)
+    );
+  }
+
+  runCeremony();
+}
+
+// ════════════════════════════════════════════
+//  LOBBY RENDER HELPERS
+// ════════════════════════════════════════════
+function renderRoomCode(code) {
+  const container = document.getElementById('room-code-display');
+  if (container) {
+    container.innerHTML = '';
+    [...code].forEach((letter, i) => {
+      const div = document.createElement('div');
+      div.className = 'code-letter';
+      div.textContent = letter;
+      // Inject Premium Styles to override the yellow default
+      div.style.background = 'rgba(10,10,26,0.9)';
+      div.style.color = '#22d3ee';
+      div.style.border = '2px solid rgba(34,211,238,0.5)';
+      div.style.boxShadow = '0 0 15px rgba(34,211,238,0.2), inset 0 0 10px rgba(34,211,238,0.1)';
+      div.style.textShadow = '0 0 10px #22d3ee';
+      div.style.borderRadius = '16px';
+      
+      div.style.opacity = '0';
+      container.appendChild(div);
+      anime({ targets: div, opacity:[0,1], translateY:[-20,0], scale:[0,1], delay: i*120, duration:600, easing:'easeOutBack', complete:() => { div.style.animation = 'letterGlow 2s ease-in-out infinite alternate'; } });
+    });
+  }
+
+  const joinUrl = `http://${state.localIP || window.location.hostname}:3000/join`;
+  const textoInstruccion = document.getElementById('texto-instruccion-unirse');
+  if (textoInstruccion) {
+    textoInstruccion.innerHTML = `Escanea el código QR o ingresa a:<br/><span style="color:#22d3ee; font-weight:900; letter-spacing:1px; text-shadow:0 0 8px rgba(34,211,238,0.5);">${joinUrl}</span>`;
+  }
+
+  // QR del WiFi — escanear para conectarse automáticamente a la red
+  const wifiQr = document.getElementById('qr-wifi');
+  if (wifiQr) {
+    wifiQr.src = '/qr-wifi';
+  }
+
+  // Mostrar credenciales WiFi
+  const wifiSsid = document.getElementById('wifi-ssid');
+  if (wifiSsid) {
+    wifiSsid.textContent = state.hotspotSSID;
+  }
+  const wifiPassword = document.getElementById('wifi-password');
+  if (wifiPassword) {
+    wifiPassword.textContent = state.hotspotPassword;
+  }
+}
+
+function renderPlayerList() {
+  const container = document.getElementById('players-list');
+  const emptyState = document.getElementById('empty-state');
+  if (state.players.length === 0) { emptyState.style.display='flex'; container.querySelectorAll('.player-card').forEach(c=>c.remove()); return; }
+  emptyState.style.display = 'none';
+  const existingIds = new Set([...container.querySelectorAll('.player-card')].map(el=>el.dataset.socketId));
+  state.players.forEach(player => {
+    if (!existingIds.has(player.socketId)) {
+      const card = buildPlayerCard(player);
+      container.appendChild(card);
+      anime({ targets: card, translateX:[60,0], opacity:[0,1], duration:500, easing:'easeOutBack' });
+    }
+  });
+  container.querySelectorAll('.player-card').forEach(card => {
+    if (!state.players.find(p => p.socketId === card.dataset.socketId)) {
+      anime({ targets:card, translateX:[0,60], opacity:[1,0], duration:300, easing:'easeInCubic', complete:()=>card.remove() });
+    }
+  });
+}
+
+function buildPlayerCard(player) {
+  const av = getAvatar(player.avatarId ?? 0);
+  const card = document.createElement('div');
+  card.className = 'player-card'; card.dataset.socketId = player.socketId;
+  card.style.setProperty('--card-accent', av.border);
+  card.style.setProperty('--card-glow', av.border + '44');
+  card.innerHTML = `
+    <div class="avatar-bubble" style="background:${av.color}22; border-color:${av.border}; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+      <img src="${av.img}" style="width:100%; height:100%; object-fit:contain;" />
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="font-bold truncate text-sm" style="color:#f1f5f9;">${escapeHtml(player.name)}</p>
+      <p class="text-xs truncate" style="color:#94a3b8;">${av.label}</p>
+    </div>
+    <div class="text-xs font-bold" style="color:#22d3ee;">${player.score||0} pts</div>
+  `;
+  return card;
+}
+
+function updatePlayerCount(joiningPlayer) {
+  const n = state.players.length;
+  const display = document.getElementById('player-count-display');
+  const badge = document.getElementById('player-count-badge');
+  if (joiningPlayer && n > 1) {
+    RitmikaStyleFX.counter(display, n - 1, n, { duration: 600, delay: 200 });
+  } else {
+    display.textContent = n;
+  }
+  badge.textContent = `${n} / 8`;
+  if (joiningPlayer) {
+    anime({ targets: display, scale: [1, 1.3, 1], duration: 400, easing: 'easeOutBack' });
+    anime({ targets: badge, scale: [1, 1.2, 1], duration: 400, easing: 'easeOutBack' });
+  }
+}
+
+function updateTicker(msg) {
+  const ticker = document.getElementById('event-ticker');
+  if (!ticker) return;
+  ticker.style.opacity = '0';
+  setTimeout(() => { ticker.textContent = msg; anime({ targets: ticker, opacity:[0,1], duration:300 }); }, 150);
+  const dot = document.querySelector('.live-dot');
+  if (dot) { anime({ targets: dot, scale: [1, 1.8, 1], duration: 300, easing: 'easeOutBack' }); }
+}
+
+// ════════════════════════════════════════════
+//  FX: TOMATAZO, EMOJI, SABOTAJE
+// ════════════════════════════════════════════
+function fireTomatazo(attackerName, targetName) {
+  const tomato = document.createElement('div');
+  tomato.className = 'tomato-projectile'; tomato.textContent = '🍅';
+  document.body.appendChild(tomato);
+  const sx = Math.random() * window.innerWidth * 0.3, sy = window.innerHeight * 0.8;
+  const ex = window.innerWidth * 0.4 + Math.random() * window.innerWidth * 0.3, ey = window.innerHeight * 0.3 + Math.random() * window.innerHeight * 0.3;
+  tomato.style.left = sx+'px'; tomato.style.top = sy+'px';
+  anime({ targets:tomato, left:[sx,ex], top:[sy,ey], rotate:[0,720], scale:[1,2,0.1], opacity:[1,1,0], duration:900, easing:'easeOutQuad', complete:()=>tomato.remove() });
+  setTimeout(() => {
+    const splat = document.createElement('div');
+    splat.style.cssText = `position:fixed; left:${ex-40}px; top:${ey-40}px; font-size:5rem; pointer-events:none; z-index:900; filter:drop-shadow(0 0 15px #ef4444);`;
+    splat.textContent = '💥'; document.body.appendChild(splat);
+    anime({ targets:splat, scale:[0,1.5,1], opacity:[1,1,0], duration:1000, easing:'easeOutBack', complete:()=>splat.remove() });
+  }, 850);
+}
+
+function floatEmoji(emoji) {
+  const el = document.createElement('div');
+  el.className = 'emoji-float'; el.textContent = emoji;
+  el.style.left = (20 + Math.random() * 60) + 'vw'; el.style.bottom = '80px'; el.style.opacity = '1';
+  document.body.appendChild(el);
+  anime({ targets:el, translateY:[0,-(window.innerHeight*0.7)], translateX:[(Math.random()-0.5)*100], rotate:[(Math.random()-0.5)*40], scale:[1,1.5,0.5], opacity:[1,1,0], duration:2500, easing:'easeOutCubic', complete:()=>el.remove() });
+}
+
+function triggerAudioSabotage() {
+  const sabotagePhrases = [
+    { text: '¡Auxilio! ¡Mis oídos! 🙉 ¡Suena peor que un gallo en el mercado!', file: 'sabotage_reaction_0.mp3' },
+    { text: '¡Qué horror! ¡Mis oídos! 🙉 ¡Apaguen eso por favor!', file: 'sabotage_reaction_1.mp3' },
+    { text: '¡Uy no! ¡Esa distorsión dolió más que patada de mula! 🫏', file: 'sabotage_reaction_2.mp3' },
+    { text: '¡Traigan tapones para los oídos! ¡Alguien está saboteando la frecuencia! 🚨', file: 'sabotage_reaction_3.mp3' },
+    { text: '¡Suena horrible! ¡Eso no es música, es una tortura cibernética! 🤖', file: 'sabotage_reaction_4.mp3' }
+  ];
+  const choice = sabotagePhrases[Math.floor(Math.random() * sabotagePhrases.length)];
+  axoloSay(choice.text, choice.file, 4000, true);
+
+  RitmikaStyleFX.screenShake(14, 600);
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed; inset:0; background:#f0047f; opacity:0; pointer-events:none; z-index:998;';
+  document.body.appendChild(overlay);
+  anime({ targets:overlay, opacity:[0,0.25,0], duration:550, easing:'easeInOutSine', complete:()=>overlay.remove() });
+}
+
+function animatePlayerJoin(player) {
+  RitmikaStyleFX.confettiBurst(window.innerWidth / 2, window.innerHeight * 0.3, { count: 30 });
+  setTimeout(() => RitmikaStyleFX.confettiBurst(window.innerWidth * 0.3, window.innerHeight * 0.5, { count: 15 }), 200);
+  setTimeout(() => RitmikaStyleFX.confettiBurst(window.innerWidth * 0.7, window.innerHeight * 0.5, { count: 15 }), 400);
+  ['🎉','🎊','⭐','✨'].forEach((emoji, i) => setTimeout(() => floatEmoji(emoji), i*80));
+  setTimeout(() => RitmikaStyleFX.axoloNod(2), 300);
+}
+
+//  TÍO AXOLO CHARACTER CUT-IN SYSTEM (Persona style)
+// ════════════════════════════════════════════
+let currentAxoloAudio = null;
+let axoloQueue = [];
+let cutinTimeout = null;
+
+// Programmatic Web Audio Synthesizer — singleton AudioContext to avoid leaks
+let _swooshCtx = null;
+function playSwooshSound() {
+  try {
+    if (!_swooshCtx) _swooshCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_swooshCtx.state === 'suspended') _swooshCtx.resume();
+    const ctx = _swooshCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(80, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.45);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(250, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(3200, ctx.currentTime + 0.45);
+
+    gain.gain.setValueAtTime(0.01, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.45);
+  } catch (e) {
+    console.warn('Web Audio swoosh failed:', e);
+  }
+}
+
+// Global Activation Logic for Character Cut-in
+function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
+  const bar = document.getElementById('axolo-cutin-bar');
+  const portrait = document.getElementById('axolo-cutin-portrait');
+  const textBox = document.getElementById('axolo-cutin-text');
+  
+  if (!bar || !portrait || !textBox) return;
+  
+  // Clear any existing timeout immediately
+  if (cutinTimeout) {
+    clearTimeout(cutinTimeout);
+    cutinTimeout = null;
+  }
+  
+  // 1. Map emotion to AI-generated assets and dynamic background colors
+  let assetName = 'neutral';
+  let bgColor = '#ffe600'; // Default Yellow
+  
+  if (emocion === 'laughing') {
+    assetName = 'laughing';
+    bgColor = '#f0047f'; // Magenta
+  } else if (emocion === 'mischievous') {
+    assetName = 'mischievous';
+    bgColor = '#9b00ff'; // Purple
+  } else if (emocion === 'sad') {
+    assetName = 'sad';
+    bgColor = '#1e293b'; // Slate Blue
+  } else if (emocion === 'angry') {
+    assetName = 'angry';
+    bgColor = '#ef4444'; // Red
+  } else if (emocion === 'singing') {
+    assetName = 'singing';
+    bgColor = '#22d3ee'; // Cyan
+  }
+  
+  // Adjust text color for dark backgrounds
+  if (emocion === 'sad') {
+    textBox.style.color = '#ffffff';
+    textBox.style.textShadow = '2px 2px 0px rgba(0,0,0,0.5)';
+  } else {
+    textBox.style.color = '#111827';
+    textBox.style.textShadow = '2px 2px 0px rgba(255,255,255,0.4)';
+  }
+  
+  // 2. Load the vignette asset and change style
+  portrait.src = `/assets/tio_axolo_vignette_${assetName}.png`;
+  bar.style.backgroundColor = bgColor;
+  textBox.textContent = texto;
+  
+  // 3. Play entry sound effect
+  playSwooshSound();
+  
+  // 4. Slide in (add active class, remove exit classes)
+  bar.classList.remove('slide-out');
+  bar.classList.add('active');
+  
+  // 5. If a numerical duration was passed, schedule auto-hide
+  if (typeof duracion === 'number') {
+    cutinTimeout = setTimeout(() => {
+      hideTioAxolCutin();
+    }, duracion);
+  }
+}
+
+// Exit transition logic
+function hideTioAxolCutin() {
+  const bar = document.getElementById('axolo-cutin-bar');
+  if (!bar || !bar.classList.contains('active')) return;
+  
+  if (cutinTimeout) {
+    clearTimeout(cutinTimeout);
+    cutinTimeout = null;
+  }
+  
+  // Play exit swoosh sound
+  playSwooshSound();
+  
+  // Slide out to the right off-screen
+  bar.classList.remove('active');
+  bar.classList.add('slide-out');
+  
+  // Clear classes after transition finishes
+  setTimeout(() => {
+    bar.classList.remove('slide-out');
+  }, 450);
+}
+
+const AXOLO_PRESET_MAP = {
+  // Talking (Yellow background)
+  'lobby_welcome.mp3': 'talking',
+  'lobby_welcome_0.mp3': 'talking',
+  'podium_intro_ceremony.mp3': 'laughing',
+  'podium_award_gallo.mp3': 'laughing',
+  'podium_award_tomate.mp3': 'laughing',
+  'podium_reveal_third.mp3': 'talking',
+  'podium_reveal_second.mp3': 'talking',
+  'podium_winner_buildup.mp3': 'talking',
+  'podium_winner_reveal.mp3': 'laughing',
+  'lobby_welcome_1.mp3': 'talking',
+  'lobby_welcome_2.mp3': 'talking',
+  'lobby_welcome_3.mp3': 'talking',
+  'lobby_welcome_4.mp3': 'talking',
+  'room_ready.mp3': 'talking',
+  'room_ready_0.mp3': 'talking',
+  'room_ready_1.mp3': 'talking',
+  'room_ready_2.mp3': 'talking',
+  'room_ready_3.mp3': 'talking',
+  'catalog_ready.mp3': 'talking',
+  'catalog_ready_0.mp3': 'talking',
+  'catalog_ready_1.mp3': 'talking',
+  'catalog_ready_2.mp3': 'talking',
+  'idle_0.mp3': 'talking',
+  'idle_1.mp3': 'talking',
+  'idle_2.mp3': 'talking',
+  'idle_3.mp3': 'talking',
+  'idle_4.mp3': 'talking',
+  'idle_5.mp3': 'talking',
+  'idle_6.mp3': 'talking',
+  'idle_7.mp3': 'talking',
+  'new_game.mp3': 'talking',
+  'new_game_0.mp3': 'talking',
+  'new_game_1.mp3': 'talking',
+  'new_game_2.mp3': 'talking',
+  'blackout_end.mp3': 'talking',
+  'blackout_end_0.mp3': 'talking',
+  'blackout_end_1.mp3': 'talking',
+  'blackout_end_2.mp3': 'talking',
+  'round_1_start.mp3': 'talking',
+  'round_1_start_0.mp3': 'talking',
+  'round_1_start_1.mp3': 'talking',
+  
+  // Mischievous (Purple background)
+  'round_2_start.mp3': 'mischievous',
+  'round_2_start_0.mp3': 'mischievous',
+  'round_2_start_1.mp3': 'mischievous',
+  'round_3_start.mp3': 'mischievous',
+  'round_3_start_0.mp3': 'mischievous',
+  'round_3_start_1.mp3': 'mischievous',
+  'challenge_intro.mp3': 'mischievous',
+  'challenge_intro_0.mp3': 'mischievous',
+  'challenge_intro_1.mp3': 'mischievous',
+  'challenge_intro_2.mp3': 'mischievous',
+  'blackout_intro.mp3': 'mischievous',
+  'blackout_intro_0.mp3': 'mischievous',
+  'blackout_intro_1.mp3': 'mischievous',
+  'blackout_intro_2.mp3': 'mischievous',
+  'roulette_intro_3.mp3': 'mischievous',
+  'roulette_spin.mp3': 'mischievous',
+  'roulette_spin_0.mp3': 'mischievous',
+  'roulette_spin_1.mp3': 'mischievous',
+  'roulette_spin_2.mp3': 'mischievous',
+  'podium_award_vengador.mp3': 'mischievous',
+  
+  // Laughing / Celebrating (Magenta background)
+  'roulette_win.mp3': 'laughing',
+  'roulette_win_0.mp3': 'laughing',
+  'roulette_win_1.mp3': 'laughing',
+  'roulette_win_2.mp3': 'laughing',
+  'final_victory.mp3': 'laughing',
+  'final_victory_0.mp3': 'laughing',
+  'final_victory_1.mp3': 'laughing',
+  'final_victory_2.mp3': 'laughing',
+  'podium_climax.mp3': 'laughing',
+  'podium_climax_0.mp3': 'laughing',
+  'podium_climax_1.mp3': 'laughing',
+  'podium_climax_2.mp3': 'laughing',
+
+  // Angry / Sabotage (Red/Dark Magenta background)
+  'audio_sabotage.mp3': 'angry',
+  'sabotage_reaction.mp3': 'angry',
+  'sabotage_reaction_0.mp3': 'angry',
+  'sabotage_reaction_1.mp3': 'angry',
+  'sabotage_reaction_2.mp3': 'angry',
+  'sabotage_reaction_3.mp3': 'angry',
+  'sabotage_reaction_4.mp3': 'angry',
+};
+
+// Deleted old unused mouth animators to keep logic modular
+function startMouthAnimation() {}
+function stopMouthAnimation() {}
+function axoloTalk() {}
+function setAxoloPreset() {}
+
+function _playAxoloAudio(texto, audioFileOrMood) {
+  const cleanName = audioFileOrMood.replace(/\.(wav|mp3)$/i, '') + '.mp3';
+  const audioUrl = `/assets/audio/${cleanName}`;
+  currentAxoloAudio = new Audio(audioUrl);
+
+  currentAxoloAudio.addEventListener('play', () => {
+    duckSfx();
+    const emotion = AXOLO_PRESET_MAP[audioFileOrMood] || 'talking';
+    triggerTioAxolCutin(texto, 'manual', emotion);
+  }, { once: true });
+
+  currentAxoloAudio.addEventListener('ended', () => {
+    hideTioAxolCutin();
+    currentAxoloAudio = null;
+    unduckSfx();
+    if (axoloQueue.length > 0) {
+      const next = axoloQueue.shift();
+      setTimeout(() => _playAxoloAudio(next.text, next.audioFile), 400);
+    }
+  }, { once: true });
+
+  currentAxoloAudio.addEventListener('pause', () => {
+    hideTioAxolCutin();
+    unduckSfx();
+  }, { once: true });
+
+  currentAxoloAudio.play().catch(e => {
+    console.warn('[Voice] Autoplay blocked:', e);
+    currentAxoloAudio = null;
+  });
+}
+
+function _stopCurrentAxolo() {
+  if (currentAxoloAudio) {
+    currentAxoloAudio.pause();
+    currentAxoloAudio.src = '';
+    currentAxoloAudio.load();
+    currentAxoloAudio = null;
+  }
+  unduckSfx();
+  axoloQueue = [];
+}
+
+async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt = false) {
+  const isAudioFile = typeof audioFileOrMood === 'string' &&
+                      (audioFileOrMood.endsWith('.wav') || audioFileOrMood.endsWith('.mp3'));
+
+  if (!isAudioFile) {
+    console.warn(`[Voice] No audio asset mapped for: "${texto}" (received: ${audioFileOrMood}). Staying silent.`);
+    return false;
+  }
+
+  try {
+    if (interrupt) {
+      _stopCurrentAxolo();
+      _playAxoloAudio(texto, audioFileOrMood);
+      return true;
+    }
+
+    if (currentAxoloAudio) {
+      axoloQueue.length = 0;
+      axoloQueue.push({ text: texto, audioFile: audioFileOrMood });
+      return true;
+    }
+
+    _playAxoloAudio(texto, audioFileOrMood);
+    return true;
+  } catch (err) {
+    console.error('[Voice] Error playing ElevenLabs audio asset:', err);
+    return false;
+  }
+}
+
+async function axoloSay(text, moodOrDuration = 'neutral', duration = 4000, interrupt = false) {
+  let audioFile = 'neutral';
+  let bubbleDur = duration;
+
+  if (typeof moodOrDuration === 'number') {
+    bubbleDur = moodOrDuration;
+  } else if (typeof moodOrDuration === 'string') {
+    audioFile = moodOrDuration;
+  }
+
+  const spokeWithAudio = await hacerHablarAlAxolo(text, audioFile, interrupt);
+
+  if (!spokeWithAudio) {
+    const emotion = AXOLO_PRESET_MAP[audioFile] || (typeof moodOrDuration === 'string' ? moodOrDuration : 'talking');
+    triggerTioAxolCutin(text, bubbleDur, emotion);
+  }
+}
+
+
+// Idle phrases
+const idlePhrases = [
+  { text: '¡Afinen esa voz, banda! 🎵', file: 'idle_0.mp3' },
+  { text: '¿Listos para la carrilla? 😈', file: 'idle_1.mp3' },
+  { text: '¡El que no canta, toma! 🍹', file: 'idle_2.mp3' },
+  { text: '¡El Palenque los espera! 🏆', file: 'idle_3.mp3' },
+  { text: '¿Qué esperan para darle al botón de jugar? ¡Me estoy secando! 🦎', file: 'idle_4.mp3' },
+  { text: 'Saquen las botanas en lo que se deciden a empezar. 🍕', file: 'idle_5.mp3' },
+  { text: 'Tengo el micrófono listo y el autotune apagado, apúrense. 🎚️', file: 'idle_6.mp3' },
+  { text: '¡El público se impacienta y yo también! ¡Vamos a darle! 📣', file: 'idle_7.mp3' },
+];
+let phraseIdx = 0;
+let idleInterval = setInterval(() => {
+  if (state.round === 0) {
+    const choice = idlePhrases[phraseIdx++ % idlePhrases.length];
+    axoloSay(choice.text, choice.file);
+  }
+}, 8000);
+// ════════════════════════════════════════════
+//  CONEXIÓN QR DINÁMICA
+// ════════════════════════════════════════════
+async function inicializarQRConexion() {
+  try {
+    const canvas = document.getElementById('qr-conexion-sala');
+    if (!canvas) return;
+
+    const port = window.location.port || '3000';
+    const joinUrl = `http://${state.localIP || window.location.hostname}:${port}/join?code=${state.roomCode || ''}`;
+
+    await QRCode.toCanvas(canvas, joinUrl, {
+      width: 180,
+      margin: 2,
+      color: { dark: '#000000', light: '#ffffff' },
+    });
+
+    const textoInstruccion = document.getElementById('texto-instruccion-unirse');
+    if (textoInstruccion) {
+      textoInstruccion.innerHTML = `Conéctate al mismo WiFi y escanea el código QR o ingresa desde tu móvil a: <br/><span class="text-cyan-400 font-bold text-lg">${joinUrl}</span>`;
+    }
+    console.log('[QR] Canvas renderizado para:', joinUrl);
+  } catch (err) {
+    console.error('[QR] Error al generar el código QR de vinculación de sala:', err);
+  }
+}
+
+let lobbySoundPlayed = false;
+setTimeout(() => {
+  if (lobbySoundPlayed) return;
+  lobbySoundPlayed = true;
+  const wChoice = LOBBY_WELCOME_PHRASES[Math.floor(Math.random() * LOBBY_WELCOME_PHRASES.length)];
+  axoloSay(wChoice.text, wChoice.file);
+}, 1200);
+
+// ════════════════════════════════════════════
+//  PARTICLES BACKGROUND
+// ════════════════════════════════════════════
+(function initParticles() {
+  const canvas = document.getElementById('particles-canvas');
+  const ctx    = canvas.getContext('2d', { alpha: true });
+  let W, H;
+  const resize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; };
+  window.addEventListener('resize', resize); resize();
+  const COLORS = ['#ec489933','#22d3ee33','#a855f733','#facc1522'];
+  const particles = Array.from({ length: 35 }, () => ({
+    x: Math.random()*W, y: Math.random()*H, r: Math.random()*1.5+0.5,
+    vx:(Math.random()-0.5)*0.3, vy:-(Math.random()*0.4+0.1),
+    color: COLORS[Math.floor(Math.random()*COLORS.length)],
+    alpha: Math.random()*0.7+0.3, life:0, maxLife: Math.random()*300+200,
+  }));
+  let rafId = null;
+  let lastTs = 0;
+  const FPS_INTERVAL = 1000 / 60;
+  function draw(ts) {
+    if (document.hidden) { rafId = null; return; }
+    rafId = requestAnimationFrame(draw);
+    const elapsed = ts - lastTs;
+    if (elapsed < FPS_INTERVAL) return;
+    lastTs = ts - (elapsed % FPS_INTERVAL);
+    ctx.clearRect(0,0,W,H);
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy; p.life++;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = p.color; ctx.globalAlpha = p.alpha*(1-p.life/p.maxLife); ctx.fill();
+      if (p.life >= p.maxLife || p.y < 0) {
+        p.x = Math.random()*W; p.y = H+10; p.life = 0; p.maxLife = Math.random()*300+200;
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !rafId) rafId = requestAnimationFrame(draw);
+  });
+  rafId = requestAnimationFrame(draw);
+})();
+
+// ════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════
+function escapeHtml(str='') {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+
+
+/* Debug: presiona Ctrl+Shift+D para podio de prueba (solo desarrollo) */
+// ── Keyboard shortcuts central ──────────────────────────────
+document.addEventListener('keydown', e => {
+  // Ctrl+Shift+S → Skip song (during karaoke)
+  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
+    e.preventDefault();
+    if (document.getElementById('karaoke-screen').classList.contains('active')) {
+      const currentPlayer = state.singerQueue[state.currentSingerIdx % state.players.length] || state.players[0];
+      if (currentPlayer) endSong(currentPlayer);
+    }
+  }
+  // Ctrl+Shift+P → Podium test (quick jump to end game)
+  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'p') {
+    e.preventDefault();
+    state.players = [
+      { socketId: 'mock1', name: 'El Taquero', avatarId: 0, score: 350, genres: ['reggaeton'], artists: [], tomatazos: 1 },
+      { socketId: 'mock2', name: 'La Chilena', avatarId: 1, score: 280, genres: ['banda'], artists: [], tomatazos: 4 },
+      { socketId: 'mock3', name: 'Tequilita', avatarId: 2, score: 190, genres: ['pop'], artists: [], tomatazos: 0 },
+      { socketId: 'mock4', name: 'Cumbiambero', avatarId: 4, score: 80, genres: ['cumbia'], artists: [], tomatazos: 2 }
+    ];
+    state.round = 3;
+    showPodium();
+  }
+});
+
+document.getElementById('btn-debug-skip-song').addEventListener('click', () => {
+  const currentPlayer = state.singerQueue[state.currentSingerIdx % state.players.length] || state.players[0];
+  if (currentPlayer) endSong(currentPlayer);
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const initButtons = () => {
+    const buttons = document.querySelectorAll('.jackbox-button-sticker, .jackbox-button-arcade');
+    
+    buttons.forEach(btn => {
+      if(btn.dataset.jackboxInit) return; // Prevent double binding
+      btn.dataset.jackboxInit = 'true';
+      
+      btn.addEventListener('mouseenter', () => RitmikaStyleFX.popOutOnHover(btn));
+      btn.addEventListener('mouseleave', () => RitmikaStyleFX.popInOnLeave(btn));
+      btn.addEventListener('focus', () => RitmikaStyleFX.popOutOnHover(btn));
+      btn.addEventListener('blur', () => RitmikaStyleFX.popInOnLeave(btn));
+      
+      btn.addEventListener('mousedown', () => { RitmikaStyleFX.punchOnPress(btn); if(window.UISounds) UISounds.playTone(600, 0.1); });
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          RitmikaStyleFX.punchOnPress(btn);
+          if(window.UISounds) UISounds.playTone(600, 0.1);
+        }
+      });
+    });
+  };
+
+  // Run once and on any DOM updates (if dynamic)
+  initButtons();
+  setTimeout(initButtons, 1000);
+
+  // D-Pad Logic
+  let currentFocus = -1;
+  document.addEventListener('keydown', (e) => {
+    // Only intercept if we are not typing in an input (though TV has no inputs)
+    const navItems = Array.from(document.querySelectorAll('.jackbox-button-sticker, .jackbox-button-arcade'));
+    if (navItems.length === 0) return;
+    
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      currentFocus = (currentFocus + 1) % navItems.length;
+      navItems[currentFocus].focus();
+      e.preventDefault();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      currentFocus = (currentFocus - 1 + navItems.length) % navItems.length;
+      navItems[currentFocus].focus();
+      e.preventDefault();
+    }
+  });
+});
+// ── Debug Panel (Ctrl+Shift+D) ─────────────────────────────
+(function() {
+  let debugVisible = false;
+  const panel = document.createElement('div');
+  panel.id = 'ritmika-debug';
+  panel.style.cssText = 'position:fixed;top:0;left:0;width:100%;z-index:99999;background:rgba(0,0,0,0.92);color:#0f0;font-family:monospace;font-size:12px;padding:8px;display:none;max-height:40vh;overflow-y:auto;border-bottom:2px solid #facc15';
+  panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>🎤 RÍTMIKA DEBUG</b><span><button id="debug-reload-cat" style="background:#facc15;color:#111;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;margin-right:8px">⟳ Recargar catálogo</button><span id="debug-close" style="cursor:pointer;color:#facc15">✕</span></span></div><div id="debug-content"></div>';
+  document.body.appendChild(panel);
+  document.getElementById('debug-close').onclick = () => { debugVisible = false; panel.style.display = 'none'; };
+  document.getElementById('debug-reload-cat').onclick = () => { if (window.reloadCatalog) window.reloadCatalog(); };
+
+  function updateDebug() {
+    if (!debugVisible) return;
+    const v = document.getElementById('karaoke-video');
+    const ci = document.getElementById('catalog-info');
+    const content = document.getElementById('debug-content');
+    const lines = [
+      'Catalog: ' + (window.catalogoKaraoke ? window.catalogoKaraoke.length + ' songs' : 'NOT LOADED'),
+      'Catalog status: ' + (ci ? ci.textContent : '?'),
+      'Current song: ' + (state.currentSong ? state.currentSong.title + ' — ' + state.currentSong.artist : 'none'),
+      'Song URL: ' + (state.currentSong ? (state.currentSong.url || 'none') : 'none'),
+      'Video src: ' + (v ? (v.src || 'empty') : 'no element'),
+      'Video readyState: ' + (v ? v.readyState : 'N/A'),
+      'Video error: ' + (v && v.error ? v.error.code + ': ' + v.error.message : 'none'),
+      'Video paused: ' + (v ? v.paused : 'N/A'),
+      'Video muted: ' + (v ? v.muted : 'N/A'),
+      'Room code: ' + (state.roomCode || '?'),
+      'Players: ' + (state.players ? state.players.length : 0),
+      'Round: ' + (state.round || 0),
+      'Timer interval: ' + (timerInterval ? 'running' : 'stopped'),
+      'FFmpeg (server): ' + (window.ffmpegAvailable !== undefined ? window.ffmpegAvailable : 'unknown'),
+    ];
+    content.innerHTML = lines.map(l => '<div>' + l + '</div>').join('');
+    setTimeout(updateDebug, 500);
+  }
+
+  // Using toLowerCase() so CapsLock doesn't break it
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+      e.preventDefault();
+      debugVisible = !debugVisible;
+      panel.style.display = debugVisible ? 'block' : 'none';
+      if (debugVisible) updateDebug();
+    }
+  });
+  // Expose debug
+  window.showDebug = () => { debugVisible = true; panel.style.display = 'block'; updateDebug(); };
+  window.hideDebug = () => { debugVisible = false; panel.style.display = 'none'; };
+})();
