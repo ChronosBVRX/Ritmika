@@ -1023,6 +1023,12 @@ function isVip() {
 // ── SOCKET.IO ─────────────────────────────────────────────
 const socket = io();
 
+socket.on('server_version', (v) => {
+  const vd = document.getElementById('version-display');
+  if (vd) vd.textContent = 'v' + v;
+});
+
+
 socket.on('connect', () => {
   console.log('[MOBILE] Conectado al servidor:', socket.id);
 });
@@ -1871,6 +1877,9 @@ function renderAssignScreen(players, songs) {
   let selectedSong   = null;
 
   targetList.innerHTML = '';
+  // Show placeholder until a victim is selected
+  songList.innerHTML = '<p class="text-xs text-center opacity-50 my-4">Selecciona una víctima primero...</p>';
+
   players
     .filter(p => p.socketId !== socket.id)
     .forEach(p => {
@@ -1889,25 +1898,49 @@ function renderAssignScreen(players, songs) {
         selectedTarget = p.socketId;
         document.querySelectorAll('#target-players-list button').forEach(b => b.style.borderColor = '#334155');
         btn.style.borderColor = '#ec4899';
+        
+        renderSongsForTarget(p);
         checkAssignReady();
       });
       targetList.appendChild(btn);
     });
 
-  songList.innerHTML = '';
-  (songs || []).forEach(song => {
-    const btn = document.createElement('button');
-    btn.className = 'artist-chip w-full text-left';
-    btn.textContent = `🎵 ${song.title} — ${song.artist}`;
-    btn.dataset.songId = song.id;
-    btn.addEventListener('click', () => {
-      selectedSong = song.id;
-      document.querySelectorAll('#assignable-songs-list button').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      checkAssignReady();
+  function renderSongsForTarget(targetPlayer) {
+    songList.innerHTML = '';
+    selectedSong = null;
+    
+    const targetGenres = targetPlayer.genres || [];
+    const targetArtists = targetPlayer.artists || [];
+    
+    // Filter the full songs array by genre or artist
+    let filteredSongs = (songs || []).filter(song => {
+      const matchGenre = targetGenres.includes(song.genre);
+      const matchArtist = targetArtists.includes(song.artist);
+      return matchGenre || matchArtist;
     });
-    songList.appendChild(btn);
-  });
+    
+    // If no matches (or they selected nothing), fallback to random songs
+    if (filteredSongs.length === 0) {
+      filteredSongs = [...(songs || [])].sort(() => 0.5 - Math.random()).slice(0, 30);
+    } else {
+      // Shuffle matches and limit to 40 to avoid infinite scrolling
+      filteredSongs = filteredSongs.sort(() => 0.5 - Math.random()).slice(0, 40);
+    }
+    
+    filteredSongs.forEach(song => {
+      const btn = document.createElement('button');
+      btn.className = 'artist-chip w-full text-left';
+      btn.textContent = `🎵 ${song.title} — ${song.artist}`;
+      btn.dataset.songId = song.id;
+      btn.addEventListener('click', () => {
+        selectedSong = song.id;
+        document.querySelectorAll('#assignable-songs-list button').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        checkAssignReady();
+      });
+      songList.appendChild(btn);
+    });
+  }
 
   function checkAssignReady() {
     document.getElementById('btn-send-assignment').disabled = !(selectedTarget && selectedSong);
@@ -2015,5 +2048,6 @@ function escapeHtml(str = '') {
   </div>
 </div>
 
+<div id="version-display" class="fixed bottom-2 right-2 text-[10px] text-slate-400/50 font-bold z-[9999] pointer-events-none" style="font-family: 'Fredoka', sans-serif;">v--</div>
 </body>
 </html>

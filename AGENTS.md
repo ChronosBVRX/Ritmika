@@ -91,6 +91,12 @@ PC (servidor + TV)
 
 ## Decisiones importantes
 
+### Versionado de la Aplicación y Git Local
+- **Control de Versiones**: Se requiere mantener el historial de cambios en el repositorio Git local.
+- **Flujo de Trabajo para Agentes**: Todos los agentes deben respetar la gestión de versiones local. Si se solicita incrementar la versión, debe hacerse usando los comandos integrados de npm (`npm version patch`, `npm version minor`, `npm version major`), lo cual actualiza el `package.json` y crea un tag en Git automáticamente.
+- **Sincronización con la Interfaz (UI)**: La versión está vinculada al `package.json`. El servidor (`server/index.js`) lee esta versión y la emite a los clientes en la conexión vía `socket.emit('server_version', ...)`.
+- **Visualización**: `tv.html` y `mobile.html` escuchan el evento `server_version` y lo muestran discretamente en un `div#version-display` en la esquina inferior derecha.
+
 ### Sin tunnel / online mode
 - `localtunnel` instalado originalmente, se eliminó por completo.
 - `jugar_online.bat` borrado.
@@ -284,6 +290,7 @@ Pasos:
 - [x] **Limpiar scripts legacy** — `Ritmika.ps1`, `Ritmika.bat`, `jugar.bat` eliminados.
 - [x] **Eliminar `err.txt`** — Artefacto stale eliminado.
 - [ ] **Probar restore banner en TV** (recargar en medio del juego)
+- [x] **Filtro dinámico en Ronda 2 (Fuego Cruzado)** implementado (la lista de canciones en el celular ahora se filtra inteligentemente por las preferencias de géneros y artistas de la víctima seleccionada).
 - [ ] **Probar Ronda 2 (Fuego Cruzado)** completa
 - [ ] **Probar con 4+ jugadores simultáneos**
 - [ ] Opcional: splash screen con logo antes del launcher
