@@ -535,6 +535,14 @@
       text-align: center;
     }
   </style>
+  <style>
+    /* Forzar aceleración por hardware en elementos animados */
+    .jackbox-panel, .jb-card, .party-bg::before, #particles-canvas, .screen, video, canvas {
+      transform: translateZ(0);
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+  </style>
 </head>
 
 <body>
@@ -2118,5 +2126,22 @@ function escapeHtml(str = '') {
 </div>
 
 <div id="version-display" class="fixed bottom-2 right-2 text-[10px] text-slate-400/50 font-bold z-[9999] pointer-events-none" style="font-family: 'Fredoka', sans-serif;">v--</div>
+<script>
+  // Iniciar en fullscreen al primer click o toque del usuario
+  document.addEventListener('click', function _fullscreenRequest() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.warn('Error al intentar entrar a fullscreen:', err);
+      });
+    }
+    document.removeEventListener('click', _fullscreenRequest);
+  }, { once: true });
+  document.addEventListener('touchstart', function _fullscreenRequestTouch() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {});
+    }
+    document.removeEventListener('touchstart', _fullscreenRequestTouch);
+  }, { once: true });
+</script>
 </body>
 </html>

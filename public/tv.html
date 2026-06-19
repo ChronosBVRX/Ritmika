@@ -1263,6 +1263,14 @@
     }
     .boot-retry-btn:hover { transform:translateY(-2px); box-shadow: 6px 6px 0px #111827; }
   </style>
+  <style>
+    /* Forzar aceleración por hardware en elementos animados */
+    .jackbox-panel, .jb-card, .party-bg::before, #particles-canvas, .screen, video, canvas {
+      transform: translateZ(0);
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+  </style>
 </head>
 
 <body class="scanlines party-bg">
@@ -5678,6 +5686,23 @@ document.addEventListener('DOMContentLoaded', () => {
   window.showDebug = () => { debugVisible = true; panel.style.display = 'block'; updateDebug(); };
   window.hideDebug = () => { debugVisible = false; panel.style.display = 'none'; };
 })();
+</script>
+<script>
+  // Iniciar en fullscreen al primer click o toque del usuario
+  document.addEventListener('click', function _fullscreenRequest() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.warn('Error al intentar entrar a fullscreen:', err);
+      });
+    }
+    document.removeEventListener('click', _fullscreenRequest);
+  }, { once: true });
+  document.addEventListener('touchstart', function _fullscreenRequestTouch() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {});
+    }
+    document.removeEventListener('touchstart', _fullscreenRequestTouch);
+  }, { once: true });
 </script>
 </body>
 </html>
