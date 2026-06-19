@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rítmika 🎤 — Pantalla Principal</title>
   <meta name="description" content="Rítmika: El Karaoke Party Game. Pantalla principal de TV." />
-  <link rel="icon" type="image/png" href="/assets/favicon.png" />
-  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-  <link rel="apple-touch-icon" href="/assets/favicon-64.png" />
+  <link rel="icon" type="image/png" href="./assets/favicon.png" />
+  <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
+  <link rel="apple-touch-icon" href="./assets/favicon-64.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -324,7 +324,7 @@
     #lobby-screen .lobby-glow-overlay {
       position:fixed; inset:0;
       pointer-events:none; z-index:3;
-      background: url('/assets/lobby_deco_glow.png') center/cover no-repeat;
+      background: url('./assets/lobby_deco_glow.png') center/cover no-repeat;
       mix-blend-mode: screen;
       opacity: 0.2;
       animation: lobbyGlowPulse 5s ease-in-out infinite alternate;
@@ -589,7 +589,7 @@
     #roulette-screen::before {
       content: '';
       position: absolute; inset: 0;
-      background-image: url('/assets/roulette_bg_stage.png');
+      background-image: url('./assets/roulette_bg_stage.png');
       background-size: cover;
       background-position: center;
       opacity: 0.35;
@@ -1282,10 +1282,10 @@
 ══════════════════════════════════════════════════════════ -->
 <div id="bootloader-screen" style="display:flex;">
   <audio id="boot-music" loop preload="auto">
-    <source src="/assets/audio/menu_music.mp3" type="audio/mpeg">
+    <source src="./assets/audio/menu_music.mp3" type="audio/mpeg">
   </audio>
   <video id="boot-video-bg" autoplay loop muted playsinline>
-    <source src="/assets/loading_bg.mp4" type="video/mp4">
+    <source src="./assets/loading_bg.mp4" type="video/mp4">
   </video>
   <div id="boot-overlay"></div>
 
@@ -1363,13 +1363,13 @@
   </style>
 
   <!-- Premium Background -->
-  <div style="position:absolute;inset:0;background:url(/assets/bg_neon_club.png) center/cover no-repeat;opacity:0.9;z-index:0;"></div>
+  <div style="position:absolute;inset:0;background:url(./assets/bg_neon_club.png) center/cover no-repeat;opacity:0.9;z-index:0;"></div>
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(15,23,42,0.4) 0%,rgba(10,10,26,0.85) 100%);z-index:1;"></div>
 
   <!-- Header -->
   <header class="flex items-center justify-between px-12 py-6 flex-shrink-0 relative z-20" style="background:linear-gradient(to bottom, rgba(10,10,26,0.9), transparent);">
     <div class="flex items-center gap-2">
-      <img src="/assets/logo_ritmika.png" alt="Rítmika" style="height:76px; width:auto; filter:drop-shadow(0 0 20px rgba(0,229,255,0.6));" />
+      <img src="./assets/logo_ritmika.png" alt="Rítmika" style="height:76px; width:auto; filter:drop-shadow(0 0 20px rgba(0,229,255,0.6));" />
     </div>
     <div class="flex items-center gap-2 px-4 py-2 rounded-full" style="background:rgba(30,41,59,0.8); backdrop-filter:blur(8px); border:1px solid rgba(236,72,153,0.4); box-shadow:0 0 15px rgba(236,72,153,0.2);">
       <div class="relative"><div class="w-2.5 h-2.5 rounded-full bg-neon-pink" style="box-shadow:0 0 8px #ec4899;"></div><div class="pulse-ring"></div></div>
@@ -1393,7 +1393,7 @@
       <button class="mode-card jackbox-button-sticker w-full text-center p-6 rounded-3xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer"
               data-mode="clasico" tabindex="0"
               style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:4px solid #facc15; box-shadow:8px 8px 0px rgba(250,204,21,0.5); outline:none;">
-        <img src="/assets/icon_classic.png" class="h-24 mb-4 object-contain" style="filter:drop-shadow(0 0 10px rgba(250,204,21,0.8));" />
+        <img src="./assets/icon_classic.png" class="h-24 mb-4 object-contain" style="filter:drop-shadow(0 0 10px rgba(250,204,21,0.8));" />
         <h2 class="text-3xl transition-colors" style="font-family:'Paytone One',sans-serif; color:#facc15; text-shadow:0 0 10px rgba(250,204,21,0.5);">Modo Clásico</h2>
       </button>
 
@@ -1402,28 +1402,28 @@
         <button class="mode-card jackbox-button-sticker p-4 rounded-3xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer"
                 data-mode="anime" tabindex="0"
                 style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:4px solid #111827; box-shadow:6px 6px 0px rgba(17,24,39,0.8); outline:none;">
-          <img src="/assets/icon_anime.png" class="h-20 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
+          <img src="./assets/icon_anime.png" class="h-20 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
           <h3 class="text-xl text-white transition-colors text-center" style="font-family:'Paytone One',sans-serif;">Fiesta Anime</h3>
         </button>
 
         <button class="mode-card jackbox-button-sticker p-4 rounded-3xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer"
                 data-mode="emo" tabindex="0"
                 style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:4px solid #111827; box-shadow:6px 6px 0px rgba(17,24,39,0.8); outline:none;">
-          <img src="/assets/icon_emo.png" class="h-20 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
+          <img src="./assets/icon_emo.png" class="h-20 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
           <h3 class="text-xl text-white transition-colors text-center" style="font-family:'Paytone One',sans-serif;">Fiesta Emo</h3>
         </button>
 
         <button class="mode-card jackbox-button-sticker p-4 rounded-3xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer"
                 data-mode="ranchera" tabindex="0"
                 style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:4px solid #111827; box-shadow:6px 6px 0px rgba(17,24,39,0.8); outline:none;">
-          <img src="/assets/icon_ranchera.png" class="h-16 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
+          <img src="./assets/icon_ranchera.png" class="h-16 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
           <h3 class="text-xl text-white transition-colors text-center" style="font-family:'Paytone One',sans-serif;">Dolidas & Rancheras</h3>
         </button>
 
         <button class="mode-card jackbox-button-sticker p-4 rounded-3xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer"
                 data-mode="nostalgia" tabindex="0"
                 style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:4px solid #111827; box-shadow:6px 6px 0px rgba(17,24,39,0.8); outline:none;">
-          <img src="/assets/icon_nostalgia.png" class="h-16 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
+          <img src="./assets/icon_nostalgia.png" class="h-16 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
           <h3 class="text-xl text-white transition-colors text-center" style="font-family:'Paytone One',sans-serif;">Nostalgia Pop</h3>
         </button>
       </div>
@@ -1438,7 +1438,7 @@
       <div id="mode-hologram-base" style="position:absolute; bottom:15%; left:10%; right:10%; height:20%; background:radial-gradient(ellipse at center, #facc15 0%, transparent 70%); opacity:0.6; filter:blur(15px); transform:perspective(500px) rotateX(70deg); transition:background 0.5s;"></div>
 
       <div class="absolute inset-0 flex justify-center items-end pb-28 z-10" style="perspective: 1000px;">
-        <img id="mode-axolo-img" src="/assets/tio_axolo_body.png" alt="Tío Axolo" class="max-h-[85vh] object-contain transition-all duration-500" style="filter: drop-shadow(0px 0px 25px rgba(250,204,21,0.8));" />
+        <img id="mode-axolo-img" src="./assets/tio_axolo_body.png" alt="Tío Axolo" class="max-h-[85vh] object-contain transition-all duration-500" style="filter: drop-shadow(0px 0px 25px rgba(250,204,21,0.8));" />
       </div>
 
       <!-- Translúcent Description Layer -->
@@ -1461,7 +1461,7 @@
       <!-- Host Avatar (Clásico) -->
       <div class="flex items-center gap-4 p-3 rounded-2xl" style="background:rgba(250,204,21,0.1); border:1px solid rgba(250,204,21,0.3);">
         <div class="w-16 h-16 rounded-full overflow-hidden" style="border:2px solid #facc15;">
-          <img src="/assets/tio_axolo_body.png" class="w-full h-full object-cover bg-black" />
+          <img src="./assets/tio_axolo_body.png" class="w-full h-full object-cover bg-black" />
         </div>
         <div>
           <p class="font-paytone text-white">Tío Axolo</p>
@@ -1496,7 +1496,7 @@
 <div id="lobby-screen" class="tv-screen" style="z-index:10;">
   
   <!-- Premium Background -->
-  <div style="position:absolute;inset:0;background:url(/assets/lobby_bg_premium.png) center/cover no-repeat;opacity:0.8;z-index:0;"></div>
+  <div style="position:absolute;inset:0;background:url(./assets/lobby_bg_premium.png) center/cover no-repeat;opacity:0.8;z-index:0;"></div>
   <!-- Overlay for readability -->
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(15,23,42,0.4) 0%,rgba(10,10,26,0.85) 100%);z-index:1;"></div>
 
@@ -1520,7 +1520,7 @@
   <header class="flex items-center justify-between px-8 py-4 flex-shrink-0 relative" style="z-index:2; background:linear-gradient(to bottom, rgba(10,10,26,0.9), transparent);">
       <div class="flex items-center gap-4 lobby-stagger" data-stagger="0">
         <button id="btn-back-to-modes" class="jackbox-button-sticker px-6 py-3 rounded-xl" style="font-family:'Paytone One',sans-serif; font-size: 1.5rem; background:#ef4444; color:#fff; border:4px solid #111827; box-shadow:4px 4px 0px #111827; cursor:pointer;" tabindex="0">◀ ATRÁS</button>
-        <img src="/assets/logo_ritmika.png" alt="Rítmika" style="height:76px; width:auto; filter:drop-shadow(0 0 20px rgba(0,229,255,0.6)) drop-shadow(0 0 60px rgba(0,229,255,0.2)); image-rendering:auto;" />
+        <img src="./assets/logo_ritmika.png" alt="Rítmika" style="height:76px; width:auto; filter:drop-shadow(0 0 20px rgba(0,229,255,0.6)) drop-shadow(0 0 60px rgba(0,229,255,0.2)); image-rendering:auto;" />
       </div>
       <div id="status-badge" class="flex items-center gap-2 px-4 py-2 rounded-full lobby-stagger" data-stagger="1" style="background:rgba(30,41,59,0.8); backdrop-filter:blur(8px); border:1px solid rgba(236,72,153,0.4); box-shadow:0 0 15px rgba(236,72,153,0.2);">
       <div class="relative"><div class="w-2.5 h-2.5 rounded-full bg-neon-pink" style="box-shadow:0 0 8px #ec4899;"></div><div class="pulse-ring"></div></div>
@@ -1617,7 +1617,7 @@
         <div id="empty-state" class="flex flex-col items-center justify-center flex-1 gap-4 opacity-60 py-12" style="animation: pulseBreath 4s infinite ease-in-out;">
           <div style="position:relative;">
             <div style="position:absolute;inset:0;background:#22d3ee;filter:blur(30px);opacity:0.2;border-radius:50%;"></div>
-            <img src="/assets/tio_axolo_vignette_neutral.png" alt="Tío Axolo" class="empty-state-axolo" style="filter:drop-shadow(0 0 20px rgba(34,211,238,0.2)); width:140px; height:auto;" />
+            <img src="./assets/tio_axolo_vignette_neutral.png" alt="Tío Axolo" class="empty-state-axolo" style="filter:drop-shadow(0 0 20px rgba(34,211,238,0.2)); width:140px; height:auto;" />
           </div>
           <p class="text-sm text-center font-bold" style="color:#94a3b8; letter-spacing:1px; line-height:1.6;">Nadie aquí todavía...<br/><span style="color:#cbd5e1;">¡Comparte el código!</span></p>
         </div>
@@ -1657,7 +1657,7 @@
 ══════════════════════════════════════════════════════════ -->
 <div id="roulette-screen" class="tv-screen">
   <!-- Floating deco stars (top-right) -->
-  <img src="/assets/roulette_stars_decoration.png" class="roulette-deco" id="rdeco-stars" alt="" />
+  <img src="./assets/roulette_stars_decoration.png" class="roulette-deco" id="rdeco-stars" alt="" />
 
   <div id="roulette-inner">
     <!-- Header -->
@@ -1673,7 +1673,7 @@
 
       <!-- LEFT: Axolo mascot -->
       <div id="roulette-axolo-side">
-        <img id="roulette-axolo-img" src="/assets/axolo_announcing.png" alt="Tío Axolo" />
+        <img id="roulette-axolo-img" src="./assets/axolo_announcing.png" alt="Tío Axolo" />
         <div style="background:rgba(236,72,153,0.15); border:2px solid #ec489966; border-radius:1rem; padding:0.6rem 1rem; text-align:center; max-width:220px;">
           <p style="font-family:'Fredoka',sans-serif; font-weight:700; font-size:1rem; color:#f9a8d4; line-height:1.3;" id="axolo-side-quote">¡La ruleta decide tu destino! 🎤</p>
         </div>
@@ -1807,7 +1807,7 @@
 <!-- Tomato splat overlay (aggressive, blocks vision) — outside karaoke to work in any screen -->
 <div id="tomato-splat-overlay" class="tomato-splat-overlay">
   <div class="splat-bg"></div>
-  <img class="splat-asset" src="/assets/tomato_splat.png" alt="🍅" />
+  <img class="splat-asset" src="./assets/tomato_splat.png" alt="🍅" />
   <div class="splat-drip-overlay"></div>
   <div class="splat-drip-line" style="left:25%; height:80px; transition-delay:0.1s;"></div>
   <div class="splat-drip-line" style="left:45%; height:120px; transition-delay:0.25s;"></div>
@@ -1911,7 +1911,7 @@
 <div id="axolo-cutin-overlay" class="pointer-events-none">
   <div id="axolo-cutin-bar">
     <div id="axolo-cutin-portrait-wrap">
-      <img id="axolo-cutin-portrait" src="/assets/tio_axolo_vignette_neutral.png" alt="Tío Axolo" draggable="false" />
+      <img id="axolo-cutin-portrait" src="./assets/tio_axolo_vignette_neutral.png" alt="Tío Axolo" draggable="false" />
     </div>
     <div id="axolo-cutin-textbox">
       <div id="axolo-cutin-text">¡Bienvenidos a Rítmika! 🎤</div>
@@ -2079,10 +2079,15 @@ const boot = {
         }, 400);
       } else {
         if (screen) screen.style.display = 'none';
+        const modeScreen = document.getElementById('mode-selection-screen');
         if (modeScreen) { modeScreen.classList.add('active'); }
+        wipeContainer.remove();
       }
-
-    }, 1200);
+    }; // Fin onclick
+    
+    const bootContent = document.querySelector('.boot-content');
+    if (bootContent) bootContent.appendChild(startBtn);
+    }
   },
   fail(n, msg) {
     const el = document.getElementById('boot-step-' + n);
@@ -2204,14 +2209,14 @@ function pickSongForPlayer(player) {
 //  GAME STATE
 // ════════════════════════════════════════════
 const AVATARS = [
-  { id:0, emoji:'🌮', label:'Taco Rockero',      color:'#f97316', border:'#ea580c', img:'/assets/avatars/avatar_0_taco_rockero.png' },
-  { id:1, emoji:'🌶️', label:'Chile Enmascarado', color:'#ef4444', border:'#dc2626', img:'/assets/avatars/avatar_1_chile_enmascarado.png' },
-  { id:2, emoji:'🍹', label:'Tequila Fiestero',  color:'#a855f7', border:'#9333ea', img:'/assets/avatars/avatar_2_tequila_fiestero.png' },
-  { id:3, emoji:'⭐', label:'Estrella de Rock',  color:'#facc15', border:'#eab308', img:'/assets/avatars/avatar_3_estrella_rock.png' },
-  { id:4, emoji:'🦜', label:'Loro Cumbiambero',  color:'#22c55e', border:'#16a34a', img:'/assets/avatars/avatar_4_loro_cumbiambero.png' },
-  { id:5, emoji:'🎸', label:'Guitarra Mágica',   color:'#3b82f6', border:'#2563eb', img:'/assets/avatars/avatar_5_guitarra_magica.png' },
-  { id:6, emoji:'👑', label:'Rey del Palenque',  color:'#ec4899', border:'#db2777', img:'/assets/avatars/avatar_6_rey_palenque.png' },
-  { id:7, emoji:'🐙', label:'Pulpo Salsero',     color:'#06b6d4', border:'#0891b2', img:'/assets/avatars/avatar_7_pulpo_salsero.png' },
+  { id:0, emoji:'🌮', label:'Taco Rockero',      color:'#f97316', border:'#ea580c', img:'./assets/avatars/avatar_0_taco_rockero.png' },
+  { id:1, emoji:'🌶️', label:'Chile Enmascarado', color:'#ef4444', border:'#dc2626', img:'./assets/avatars/avatar_1_chile_enmascarado.png' },
+  { id:2, emoji:'🍹', label:'Tequila Fiestero',  color:'#a855f7', border:'#9333ea', img:'./assets/avatars/avatar_2_tequila_fiestero.png' },
+  { id:3, emoji:'⭐', label:'Estrella de Rock',  color:'#facc15', border:'#eab308', img:'./assets/avatars/avatar_3_estrella_rock.png' },
+  { id:4, emoji:'🦜', label:'Loro Cumbiambero',  color:'#22c55e', border:'#16a34a', img:'./assets/avatars/avatar_4_loro_cumbiambero.png' },
+  { id:5, emoji:'🎸', label:'Guitarra Mágica',   color:'#3b82f6', border:'#2563eb', img:'./assets/avatars/avatar_5_guitarra_magica.png' },
+  { id:6, emoji:'👑', label:'Rey del Palenque',  color:'#ec4899', border:'#db2777', img:'./assets/avatars/avatar_6_rey_palenque.png' },
+  { id:7, emoji:'🐙', label:'Pulpo Salsero',     color:'#06b6d4', border:'#0891b2', img:'./assets/avatars/avatar_7_pulpo_salsero.png' },
 ];
 const getAvatar = id => AVATARS[id] || AVATARS[0];
 
@@ -3952,7 +3957,7 @@ function endSong(player) {
 
   const totalDelay = 300 + singerVotes.length * 250 + 300;
   setTimeout(() => {
-    playSfx('/assets/audio/sfx_magic_reveal.mp3');
+    playSfx('./assets/audio/sfx_magic_reveal.mp3');
     anime({
       targets: totalRow, opacity: [0, 1], scale: [0.8, 1.05, 1],
       duration: 600, easing: 'easeOutElastic(1, .5)',
@@ -4129,7 +4134,7 @@ function showPodium() {
     // FASE 1: Titulo epico
     ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
     const bgImg=document.createElement('div');
-    bgImg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0;z-index:0;transition:opacity 1.2s ease;';
+    bgImg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0;z-index:0;transition:opacity 1.2s ease;';
     ceremonyRoot.appendChild(bgImg);
     const bgOvl=document.createElement('div');
     bgOvl.style.cssText='position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,26,0.5) 0%,rgba(10,10,26,0.88) 100%);z-index:1;';
@@ -4141,7 +4146,7 @@ function showPodium() {
     ceremonyRoot.appendChild(titleWrap);
 
     const trophyEl=document.createElement('img');
-    trophyEl.src='/assets/podium_trophy_glow.png';
+    trophyEl.src='./assets/podium_trophy_glow.png';
     trophyEl.style.cssText='width:150px;height:150px;object-fit:contain;opacity:0;transform:translateY(-60px) scale(0.5);filter:drop-shadow(0 0 30px #facc15) drop-shadow(0 0 60px #facc1588);';
     titleWrap.appendChild(trophyEl);
 
@@ -4173,7 +4178,7 @@ function showPodium() {
       const sideDir=award.icon==='&#128019;'?-1:award.icon==='&#127813;'?1:0;
       ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
       const aBg=document.createElement('div');
-      aBg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.22;z-index:0;';
+      aBg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.22;z-index:0;';
       ceremonyRoot.appendChild(aBg);
       const aOvl=document.createElement('div');
       aOvl.style.cssText='position:absolute;inset:0;background:rgba(10,10,26,0.72);z-index:1;';
@@ -4212,7 +4217,7 @@ function showPodium() {
       await wait(200);
       anime({targets:aCard,opacity:[0,1],translateX:[sideDir*130+'%','0%'],duration:850,easing:'easeOutBack'});
       if(axoloOverlay) axoloOverlay.style.zIndex='10002';
-      if(award.icon==='&#128019;' || award.icon==='&#127813;'){ playSfx('/assets/audio/sfx_comedy_fail.mp3'); } else { playSfx('/assets/audio/sfx_magic_reveal.mp3'); }
+      if(award.icon==='&#128019;' || award.icon==='&#127813;'){ playSfx('./assets/audio/sfx_comedy_fail.mp3'); } else { playSfx('./assets/audio/sfx_magic_reveal.mp3'); }
       _stopCurrentAxolo();
       const awardCeremonyFile = award.icon==='&#128019;' ? 'podium_award_gallo.mp3' : (award.icon==='&#127813;' ? 'podium_award_tomate.mp3' : 'podium_award_vengador.mp3');
       const awardCeremonyText = award.icon==='&#128019;' ? '&#161;El primero de los premios especiales... Gallo Supremo! Para el m&#225;s valiente, el que se atrevi&#243; a cantar pareciendo gato en licuadora. Banda, el Gallo Supremo de la noche es...' : (award.icon==='&#127813;' ? '&#161;Y ahora el premio Salsa de Tomate! Para el que recibi&#243; m&#225;s tomatazos que la selecci&#243;n en el Azteca. El rey de los tomatazos de la noche es...' : '&#161;El premio al Vengador An&#243;nimo! Saboteador profesional con cara de inocente. Rob&#243; m&#225;s puntos que el SAT. El Vengador An&#243;nimo es...');
@@ -4224,10 +4229,10 @@ function showPodium() {
     }
 
     // FASE 3: Revelacion 3ro y 2do
-    playSfx('/assets/audio/sfx_drumroll.mp3');
+    playSfx('./assets/audio/sfx_drumroll.mp3');
     ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
     const p3bg=document.createElement('div');
-    p3bg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.18;z-index:0;';
+    p3bg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.18;z-index:0;';
     ceremonyRoot.appendChild(p3bg);
     const p3ovl=document.createElement('div');
     p3ovl.style.cssText='position:absolute;inset:0;background:radial-gradient(circle at center,rgba(30,27,75,0.55) 0%,rgba(10,10,26,0.92) 100%);z-index:1;';
@@ -4335,7 +4340,7 @@ function showPodium() {
       const winnerContent=document.createElement('div');
       winnerContent.id='winner-reveal-content';
       winnerContent.style.cssText='position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;opacity:0;transform:scale(0.6);';
-      winnerContent.innerHTML='<img src="/assets/podium_crown.png" id="winner-crown" style="width:140px;height:auto;object-fit:contain;filter:drop-shadow(0 0 28px #facc15) drop-shadow(0 0 56px #facc1588);margin-bottom:-22px;z-index:3;position:relative;"/>'
+      winnerContent.innerHTML='<img src="./assets/podium_crown.png" id="winner-crown" style="width:140px;height:auto;object-fit:contain;filter:drop-shadow(0 0 28px #facc15) drop-shadow(0 0 56px #facc1588);margin-bottom:-22px;z-index:3;position:relative;"/>'
         +'<div style="width:180px;height:180px;border-radius:50%;overflow:hidden;background:'+winnerAv.color+';border:8px solid #111827;display:flex;align-items:center;justify-content:center;box-shadow:14px 14px 0 #111827;position:relative;z-index:2;">'
         +'<img src="'+winnerAv.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
         +'<div style="margin-top:24px;background:#ffe600;border:6px solid #111827;box-shadow:16px 16px 0 #111827;padding:18px 50px;border-radius:0;text-align:center;">'
@@ -4344,8 +4349,8 @@ function showPodium() {
         +'<div id="winner-score-display" style="font-family:\'Paytone One\',sans-serif;font-size:42px;color:#facc15;margin-top:18px;text-shadow:6px 6px 0 #111827, 0 0 20px #facc15;opacity:0;background:#0f172a;border:6px solid #111827;padding:4px 30px;box-shadow:10px 10px 0 #111827;">0 pts</div>';
       winnerScreen.appendChild(winnerContent);
       anime({targets:'#winner-reveal-content',opacity:[0,1],scale:[0.6,1.05,1],duration:900,easing:'easeOutBack'});
-      playSfx('/assets/audio/sfx_tada.mp3');
-      setTimeout(()=>{playSfx('/assets/audio/sfx_applause.mp3');}, 500);
+      playSfx('./assets/audio/sfx_tada.mp3');
+      setTimeout(()=>{playSfx('./assets/audio/sfx_applause.mp3');}, 500);
       await wait(400);
       anime({targets:'#winner-crown',translateY:[0,-18,0],duration:1200,loop:true,easing:'easeInOutSine'});
       anime({targets:'#winner-score-display',opacity:[0,1],translateY:[20,0],duration:500,easing:'easeOutQuad',delay:600});
@@ -4365,7 +4370,7 @@ function showPodium() {
     // FASE 5: Podio final completo premium
     ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
     const finalBg=document.createElement('div');
-    finalBg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.16;z-index:0;';
+    finalBg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.16;z-index:0;';
     ceremonyRoot.appendChild(finalBg);
     const finalOvl=document.createElement('div');
     finalOvl.style.cssText='position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(30,27,75,0.5) 0%,rgba(10,10,26,0.95) 100%);z-index:1;';
@@ -4398,7 +4403,7 @@ function showPodium() {
       const stepEl=document.createElement('div');
       stepEl.style.cssText='display:flex;flex-direction:column;align-items:center;width:'+(isWinner?'260px':'210px')+';flex-shrink:0;';
       stepEl.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px;position:relative;">'
-        +(isWinner?'<img src="/assets/podium_crown.png" style="width:68px;height:auto;object-fit:contain;filter:drop-shadow(0 0 14px #facc15);margin-bottom:-14px;z-index:3;position:relative;"/>':'')
+        +(isWinner?'<img src="./assets/podium_crown.png" style="width:68px;height:auto;object-fit:contain;filter:drop-shadow(0 0 14px #facc15);margin-bottom:-14px;z-index:3;position:relative;"/>':'')
         +'<span style="font-family:Fredoka,sans-serif;font-size:'+(isWinner?'16px':'14px')+';font-weight:900;background:#111827;color:'+sd.color+';padding:5px 16px;border-radius:20px;border:2px solid '+sd.color+';margin-bottom:'+(isWinner?'12px':'8px')+';letter-spacing:1px;">'+sd.rank+' '+sd.label+'</span>'
         +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+';border:6px solid #111827;display:flex;align-items:center;justify-content:center;width:'+(avSizes[sd.place]||'5.5rem')+';height:'+(avSizes[sd.place]||'5.5rem')+';box-shadow:8px 8px 0 #111827;">'
         +'<img src="'+av.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
@@ -4459,7 +4464,7 @@ function showPodium() {
     restartBtn.onmouseout=()=>{restartBtn.style.transform='';restartBtn.style.boxShadow='10px 10px 0 #111827';};
     finalWrap.appendChild(restartBtn);
     anime({targets:'#final-podium',opacity:[0,1],duration:700,easing:'easeOutQuad'});
-    playSfx('/assets/audio/sfx_applause.mp3');
+    playSfx('./assets/audio/sfx_applause.mp3');
     orderedFinal.forEach(sd=>{
       if(!sd.player) return;
       const el=finalWrap.querySelector('.final-score-'+sd.place);
@@ -4664,7 +4669,7 @@ function fireTomatazo(attackerName, targetName, cost) {
   // 1. Lanzamiento premium del tomate volador
   const tomato = document.createElement('div');
   tomato.className = 'tomato-projectile';
-  tomato.innerHTML = '<img src="/assets/tomato_projectile.png" alt="🍅" />';
+  tomato.innerHTML = '<img src="./assets/tomato_projectile.png" alt="🍅" />';
   document.body.appendChild(tomato);
 
   const startSide = Math.random() > 0.5 ? 1 : -1;
@@ -4871,7 +4876,7 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
   }
   
   // 2. Load the vignette asset and change style
-  portrait.src = `/assets/tio_axolo_vignette_${assetName}.png`;
+  portrait.src = `./assets/tio_axolo_vignette_${assetName}.png`;
   bar.style.backgroundColor = bgColor;
   textBox.textContent = texto;
   
@@ -5013,7 +5018,7 @@ function setAxoloPreset() {}
 
 function _playAxoloAudio(texto, audioFileOrMood) {
   const cleanName = audioFileOrMood.replace(/\.(wav|mp3)$/i, '') + '.mp3';
-  const audioUrl = `/assets/audio/${cleanName}`;
+  const audioUrl = `./assets/audio/${cleanName}`;
   currentAxoloAudio = new Audio(audioUrl);
 
   const emotion = AXOLO_PRESET_MAP[audioFileOrMood] || 'talking';
@@ -5366,31 +5371,31 @@ document.addEventListener('DOMContentLoaded', () => {
     'clasico': {
       title: 'Modo Clásico',
       desc: 'El modo definitivo de Jackbox Karaoke. Canciones variadas, minijuegos y sabotajes libres.',
-      img: '/assets/tio_axolo_body.png',
+      img: './assets/tio_axolo_body.png',
       color: '#facc15'
     },
     'anime': {
       title: 'Fiesta Anime',
       desc: '¡Saca tu nivel de poder! Solo openings, endings y mucho neón eléctrico.',
-      img: '/assets/axolo_anime.png',
+      img: './assets/axolo_anime.png',
       color: '#fb923c'
     },
     'emo': {
       title: 'Fiesta Emo',
       desc: 'Porque no es una fase. Puro pop punk, delineador negro y corazones rotos.',
-      img: '/assets/axolo_emo.png',
+      img: './assets/axolo_emo.png',
       color: '#d946ef'
     },
     'ranchera': {
       title: 'Dolidas & Rancheras',
       desc: 'Para cantar con sentimiento. Prepara la garganta y el pañuelo.',
-      img: '/assets/axolo_ranchera.png',
+      img: './assets/axolo_ranchera.png',
       color: '#d97706'
     },
     'nostalgia': {
       title: 'Nostalgia Pop',
       desc: 'Saca la mezclilla y las estrellas. Un viaje a la era del playback, los celulares plegables y el pop de plástico.',
-      img: '/assets/axolo_nostalgia.png',
+      img: './assets/axolo_nostalgia.png',
       color: '#FF71CE'
     }
   };
