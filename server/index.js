@@ -146,7 +146,8 @@ const QRCode = require('qrcode');
 app.get('/qr-game', (req, res) => {
   const ip = getLocalIP();
   const port = process.env.PORT || 3000;
-  const url = `http://${ip}:${port}/join`;
+  const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || `http://${ip}:${port}`;
+  const url = `${baseUrl}/join`;
   res.setHeader('Cache-Control', 'no-cache');
   QRCode.toFileStream(res, url, { type: 'png', width: 400, margin: 2, color: { dark: '#000', light: '#fff' } });
 });
@@ -171,7 +172,8 @@ app.get('/api/network-config', async (req, res) => {
   }
 
   const port = parseInt(process.env.PORT || '3000', 10);
-  res.json({ ip, port, joinUrl: `http://${ip}:${port}/join` });
+  const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || `http://${ip}:${port}`;
+  res.json({ ip, port, joinUrl: `${baseUrl}/join` });
 });
 
 // ── Local Karaoke Catalog Database ───────────────────────────
@@ -455,6 +457,17 @@ io.on('connection', (socket) => {
       hotspotPassword: process.env.HOTSPOT_PASSWORD || 'Ritmika2026',
     });
     console.log(`[SALA] Creada: ${code} por TV ${socket.id}`);
+  });
+
+  socket.on('tv:close_room', () => {
+    const oldRoom = getRoomByTvSocket(socket.id);
+    if (oldRoom) {
+      socket.to(oldRoom.code).emit('game:tv_disconnected', {
+        message: 'La sala ha sido cerrada.',
+      });
+      rooms.delete(oldRoom.code);
+      console.log(`[SALA] Cerrada (Back button): ${oldRoom.code}`);
+    }
   });
 
   // ──────────────────────────────────────────────────────────

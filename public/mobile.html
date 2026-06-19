@@ -787,6 +787,11 @@
   </div>
   <div id="mobile-timer-bar" class="hidden"><div id="mobile-timer-fill"></div></div>
 
+  <!-- Player score display -->
+  <div class="text-center mb-2">
+    <span id="my-score-display" class="inline-block px-4 py-1 rounded-full text-sm font-black" style="background:#1e293b; border:1px solid #facc1566; color:#facc15;">0 pts</span>
+  </div>
+
   <!-- DYNAMIC STATE CONTEXT CARD (HOST/SINGER CONTROLS) -->
   <div id="game-state-context-card" class="jackbox-panel p-4 mb-4 hidden" style="background:#1e293b; border:2px solid #ec4899;">
     <!-- Populated dynamically -->
@@ -820,7 +825,7 @@
     <button id="tomatazo-btn" class="action-btn btn-primary text-left flex items-center gap-3">
       <span class="text-2xl">🍅</span>
       <div>
-        <p class="font-black">¡Tomatazo!</p>
+        <p class="font-black">¡Tomatazo! <span id="tomatazo-cost-label" class="text-xs font-bold" style="color:#fca5a5;">(-30 pts)</span></p>
         <p class="text-xs opacity-70" id="tomatazo-remaining">3 tomates restantes</p>
       </div>
       <div class="ml-auto flex gap-1" id="tomatazo-pips">
@@ -1012,6 +1017,7 @@ const me = {
   tomatazosLeft: 3,
   hasVoted: false,
   currentSingerSocketId: null,
+  score: 0,
 };
 
 let roomPlayers = [];
@@ -1173,6 +1179,25 @@ function handleGameEvent(event, data) {
         timerText.classList.add('hidden');
         timerBar.classList.add('hidden');
         timerFill.style.width = '0%';
+      }
+      break;
+
+    case 'SCORE_UPDATE':
+      if (data && data.players) {
+        const myUpdate = data.players.find(p => p.socketId === socket.id);
+        if (myUpdate && myUpdate.score !== undefined) {
+          const prevScore = typeof me.score === 'number' ? me.score : 0;
+          const diff = prevScore - myUpdate.score;
+          if (diff > 0) {
+            showToast(`🍅 Perdiste ${diff} pts por tomatazo!`);
+            UISounds.playTone(200, 0.15, 'square', 0.08);
+            if (navigator.vibrate) navigator.vibrate([50, 30, 80]);
+          }
+          me.score = myUpdate.score;
+          const scoreDisp = document.getElementById('my-score-display');
+          if (scoreDisp) scoreDisp.textContent = myUpdate.score + ' pts';
+          updateTomatazoPips();
+        }
       }
       break;
   }
@@ -1338,6 +1363,21 @@ function handlePrivateEvent(event, data) {
       showToast('🎤 ¡Es tu turno! ¡A cantar!');
       document.getElementById('current-singer-name').textContent = '¡TÚ! 🎤';
       me.currentSingerSocketId = socket.id;
+      break;
+
+    case 'TOMATAZO_REJECTED':
+      showToast('❌ ' + (data?.reason || 'Puntos insuficientes') + ' (-' + (data?.cost || 30) + ' pts)');
+      // Restore tomatazo count
+      me.tomatazosLeft = Math.min(3, (me.tomatazosLeft || 0) + 1);
+      updateTomatazoPips();
+      // Restore score
+      const rejCost = data?.cost || 30;
+      me.score = (me.score || 0) + rejCost;
+      const scoreDispR = document.getElementById('my-score-display');
+      if (scoreDispR) scoreDispR.textContent = me.score + ' pts';
+      // Haptic error feedback
+      UISounds.playTone(150, 0.3, 'square', 0.1);
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
       break;
   }
 }
@@ -1770,7 +1810,13 @@ document.querySelectorAll('.emoji-btn').forEach(btn => {
 
 // Tomatazo button
 document.getElementById('tomatazo-btn').addEventListener('click', () => {
+  const cost = 30;
   if (me.tomatazosLeft <= 0) return;
+  if ((me.score || 0) < cost) {
+    showToast('❌ Puntos insuficientes para tomatazo');
+    UISounds.playTone(150, 0.3, 'square', 0.1);
+    return;
+  }
   UISounds.click();
 
   // Get current singer name
@@ -1780,10 +1826,16 @@ document.getElementById('tomatazo-btn').addEventListener('click', () => {
   me.tomatazosLeft--;
   updateTomatazoPips();
 
-  // Haptic feedback (where supported)
-  if (navigator.vibrate) navigator.vibrate([30, 20, 50]);
+  // Preview cost deduction in local score
+  const prevScore = typeof me.score === 'number' ? me.score : 0;
+  me.score = Math.max(0, prevScore - cost);
+  const scoreDisp = document.getElementById('my-score-display');
+  if (scoreDisp) scoreDisp.textContent = me.score + ' pts';
 
-  // Animate button
+  // Haptic feedback (where supported)
+  if (navigator.vibrate) navigator.vibrate([50, 30, 80, 30, 50]);
+
+  // Animate button with cost indicator
   anime({
     targets: '#tomatazo-btn',
     scale: [1, 1.1, 0.95, 1],
@@ -1792,7 +1844,19 @@ document.getElementById('tomatazo-btn').addEventListener('click', () => {
     easing: 'easeOutBack',
   });
 
-  showToast('🍅 ¡Tomatazo lanzado!');
+  showToast(`🍅 ¡Tomatazo lanzado! (-${cost} pts)`);
+
+  // Flash the cost label
+  const costLabel = document.getElementById('tomatazo-cost-label');
+  if (costLabel) {
+    anime({
+      targets: costLabel,
+      scale: [1, 1.5, 1],
+      color: ['#fca5a5', '#ef4444', '#fca5a5'],
+      duration: 600,
+      easing: 'easeOutBack',
+    });
+  }
 });
 
 function updateTomatazoPips() {
@@ -1801,9 +1865,14 @@ function updateTomatazoPips() {
   pips.forEach((pip, i) => {
     pip.style.opacity = i < me.tomatazosLeft ? '0.9' : '0.1';
   });
+  const cost = 30;
+  const hasEnoughPoints = (me.score || 0) >= cost;
+  const outOfTomatoes = me.tomatazosLeft <= 0;
   document.getElementById('tomatazo-remaining').textContent =
-    me.tomatazosLeft > 0 ? `${me.tomatazosLeft} tomate${me.tomatazosLeft !== 1 ? 's' : ''} restante${me.tomatazosLeft !== 1 ? 's' : ''}` : '¡Sin tomates!';
-  btn.disabled = me.tomatazosLeft === 0;
+    outOfTomatoes ? '¡Sin tomates!' :
+    !hasEnoughPoints ? `-${cost} pts (puntos insuficientes)` :
+    `${me.tomatazosLeft} tomate${me.tomatazosLeft !== 1 ? 's' : ''} restante${me.tomatazosLeft !== 1 ? 's' : ''}`;
+  btn.disabled = outOfTomatoes || !hasEnoughPoints;
 }
 
 // Sabotage button

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="tomatoBody" cx="38%" cy="32%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="30%" stop-color="#ef4444"/>
+      <stop offset="70%" stop-color="#b91c1c"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </radialGradient>
+    <radialGradient id="tomatoHighlight" cx="32%" cy="25%">
+      <stop offset="0%" stop-color="#fca5a5" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="tomatoShadow">
+      <feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+    <linearGradient id="stemGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#166534"/>
+    </linearGradient>
+  </defs>
+  <!-- Soft shadow on ground -->
+  <ellipse cx="52" cy="85" rx="30" ry="8" fill="rgba(0,0,0,0.25)"/>
+  <!-- Tomato body -->
+  <path d="M50 8 C30 8 8 28 8 55 C8 78 22 88 50 88 C78 88 92 78 92 55 C92 28 70 8 50 8Z" fill="url(#tomatoBody)" filter="url(#tomatoShadow)"/>
+  <!-- Highlight reflection -->
+  <path d="M50 15 C34 15 16 30 16 55 C16 72 24 82 50 84 C38 78 26 66 26 52 C26 35 36 20 50 15Z" fill="url(#tomatoHighlight)"/>
+  <!-- Secondary highlight -->
+  <ellipse cx="35" cy="28" rx="10" ry="7" fill="rgba(255,255,255,0.2)" transform="rotate(-25 35 28)"/>
+  <!-- Stem -->
+  <path d="M48 8 Q50 1 55 4 Q58 7 56 11 Q52 13 48 8Z" fill="url(#stemGrad)"/>
+  <!-- Calyx (sepals) -->
+  <path d="M50 8 Q42 3 38 8 Q42 10 50 8Z" fill="#22c55e" opacity="0.85"/>
+  <path d="M52 8 Q60 3 64 9 Q60 11 52 8Z" fill="#22c55e" opacity="0.85"/>
+  <path d="M48 9 Q44 4 40 10 Q44 11 48 9Z" fill="#16a34a" opacity="0.7"/>
+  <path d="M54 9 Q60 5 63 11 Q60 12 54 9Z" fill="#16a34a" opacity="0.7"/>
+  <!-- Motion lines (added dynamically via CSS) -->
+</svg>

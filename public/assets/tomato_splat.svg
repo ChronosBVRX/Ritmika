@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <radialGradient id="splatGrad" cx="45%" cy="45%">
+      <stop offset="0%" stop-color="#ff4d4d"/>
+      <stop offset="35%" stop-color="#ef4444"/>
+      <stop offset="70%" stop-color="#b91c1c"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </radialGradient>
+    <radialGradient id="splatCore" cx="40%" cy="40%">
+      <stop offset="0%" stop-color="#fca5a5" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="dripGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#dc2626" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#991b1b" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Outer splatter drops -->
+  <circle cx="85" cy="100" r="18" fill="#dc2626" filter="url(#shadow)" opacity="0.85"/>
+  <circle cx="60" cy="160" r="12" fill="#ef4444" filter="url(#shadow)" opacity="0.7"/>
+  <circle cx="310" cy="90" r="22" fill="#dc2626" filter="url(#shadow)" opacity="0.85"/>
+  <circle cx="350" cy="160" r="14" fill="#ef4444" filter="url(#shadow)" opacity="0.7"/>
+  <circle cx="330" cy="270" r="16" fill="#b91c1c" filter="url(#shadow)" opacity="0.8"/>
+  <circle cx="280" cy="350" r="13" fill="#dc2626" filter="url(#shadow)" opacity="0.75"/>
+  <circle cx="110" cy="340" r="11" fill="#ef4444" filter="url(#shadow)" opacity="0.7"/>
+  <circle cx="70" cy="260" r="15" fill="#b91c1c" filter="url(#shadow)" opacity="0.8"/>
+  <!-- Tiny splatter dots -->
+  <circle cx="55" cy="65" r="7" fill="#ef4444" opacity="0.9"/>
+  <circle cx="95" cy="55" r="5" fill="#dc2626" opacity="0.8"/>
+  <circle cx="340" cy="55" r="8" fill="#ef4444" opacity="0.9"/>
+  <circle cx="365" cy="120" r="6" fill="#dc2626" opacity="0.8"/>
+  <circle cx="375" cy="210" r="9" fill="#b91c1c" opacity="0.7"/>
+  <circle cx="310" cy="380" r="8" fill="#dc2626" opacity="0.7"/>
+  <circle cx="90" cy="380" r="7" fill="#b91c1c" opacity="0.7"/>
+  <circle cx="45" cy="210" r="6" fill="#ef4444" opacity="0.8"/>
+  <circle cx="140" cy="45" r="6" fill="#dc2626" opacity="0.7"/>
+  <circle cx="260" cy="40" r="7" fill="#ef4444" opacity="0.8"/>
+  <!-- Main splat blob -->
+  <path d="M200 85 C270 65 330 110 350 180 C365 240 345 300 300 330 C255 360 185 370 145 345 C90 315 55 260 50 200 C45 140 85 95 145 85 C165 80 185 82 200 85Z" fill="url(#splatGrad)" filter="url(#shadow)"/>
+  <!-- Core brightness -->
+  <path d="M200 120 C240 110 280 140 290 180 C300 220 280 270 260 285 C230 305 180 310 155 290 C125 265 105 220 105 190 C105 155 130 125 165 120 C178 117 190 118 200 120Z" fill="url(#splatCore)"/>
+  <!-- Drips -->
+  <path d="M175 350 Q172 390 170 415" stroke="url(#dripGrad)" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.8"/>
+  <path d="M225 355 Q228 395 225 425" stroke="url(#dripGrad)" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M200 362 Q196 400 198 435" stroke="url(#dripGrad)" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M155 340 Q150 375 148 400" stroke="url(#dripGrad)" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M250 345 Q253 380 255 405" stroke="url(#dripGrad)" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.65"/>
+  <!-- Impact rays -->
+  <path d="M200 20 L205 70 L195 70Z" fill="#fca5a5" opacity="0.5"/>
+  <path d="M340 130 L310 155 L320 140Z" fill="#fca5a5" opacity="0.4"/>
+  <path d="M60 130 L90 155 L80 140Z" fill="#fca5a5" opacity="0.4"/>
+  <path d="M280 370 L260 345 L270 355Z" fill="#fca5a5" opacity="0.3"/>
+  <path d="M120 370 L140 345 L130 355Z" fill="#fca5a5" opacity="0.3"/>
+</svg>

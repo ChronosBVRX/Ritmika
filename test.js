@@ -57,7 +57,7 @@ window.catalogoKaraoke = [];
 //  BOOTLOADER STATE MACHINE
 // ════════════════════════════════════════════
 const boot = {
-  steps: { 1: false, 2: false, 3: false, 4: false },
+  steps: { 1: false, 2: false, 3: false, 4: false, 5: false },
   queue: [],
   processing: false,
   step(n, state, detail) {
@@ -93,6 +93,15 @@ const boot = {
     this.processing = false;
   },
   checkAll() {
+    if (this.steps[1] && this.steps[2] && this.steps[3] && this.steps[4] && !this.steps[5] && !this.simulating5) {
+      this.simulating5 = true;
+      this.step(5, 'active', 'Inicializando recursos premium...');
+      this.step(5, 'active', 'Cargando modelos acústicos...');
+      this.step(5, 'active', 'Afinando instrumentos del Tío Axolo...');
+      this.step(5, 'active', 'Renderizando texturas 4K...');
+      this.step(5, 'done', 'Motor gráfico y de audio listo');
+      return;
+    }
     const allDone = Object.values(this.steps).every(v => v);
     if (!allDone) return;
     const banner = document.getElementById('boot-done');
@@ -132,8 +141,9 @@ const boot = {
           try { if(typeof UISounds !== 'undefined') UISounds.stinger(); } catch(e){}
           anime({ targets: centerLogo, scale: [0, 1.2, 1], rotate: ['-5deg', '5deg', '0deg'], duration: 800, easing: 'easeOutElastic(1, .5)' });
           
+          const modeScreen = document.getElementById('mode-selection-screen');
           if (screen) { screen.style.display = 'none'; }
-          if (lobby) { lobby.classList.add('active'); }
+          if (modeScreen) { modeScreen.classList.add('active'); }
 
           setTimeout(() => {
             try { if(typeof UISounds !== 'undefined') UISounds.whoosh(); } catch(e){}
@@ -141,15 +151,12 @@ const boot = {
             anime({ targets: rightWipe, right: '-100%', duration: 600, easing: 'easeInExpo' });
             anime({ targets: centerLogo, scale: 0, duration: 400, easing: 'easeInExpo' });
             
-            if (typeof animateLobbyWelcome === 'function') animateLobbyWelcome();
-            
             setTimeout(() => { wipeContainer.remove(); }, 700);
           }, 1400);
         }, 400);
       } else {
         if (screen) screen.style.display = 'none';
-        if (lobby) { lobby.classList.add('active'); }
-        if (typeof animateLobbyWelcome === 'function') animateLobbyWelcome();
+        if (modeScreen) { modeScreen.classList.add('active'); }
       }
 
     }, 1200);
@@ -307,6 +314,16 @@ const GENRE_BARKS = {
     { text: '¡Flow de tianguis de domingo: barato pero con mucho estilo! 🛍️', file: 'genre_reggaeton_7.mp3' },
     { text: '¡Eso fue puro dembow de la vieja escuela... o de la prepa! 🎒', file: 'genre_reggaeton_8.mp3' },
     { text: '¡Nos pusiste a perrear hasta el subsuelo, carnal! 🕺', file: 'genre_reggaeton_9.mp3' },
+    { text: '¡Hasta Yandel se asustó con ese perreo! 😱', file: 'genre_reggaeton_10.mp3' },
+    { text: '¡Esa nota estuvo más abajo que el subsuelo, rey! ⬇️', file: 'genre_reggaeton_11.mp3' },
+    { text: '¡Le metiste más autotune que J Balvin en concierto! 🤖', file: 'genre_reggaeton_12.mp3' },
+    { text: '¡Con ese flow no pasas ni del casting de Venga la Alegría! 📺', file: 'genre_reggaeton_13.mp3' },
+    { text: '¡Te faltó calle, perro, pero sobró actitud! 🐶', file: 'genre_reggaeton_14.mp3' },
+    { text: '¡Traes el ritmo en la sangre, pero la sangre de horchata! 🥤', file: 'genre_reggaeton_15.mp3' },
+    { text: '¡Eso fue un perreo galáctico, nos mandaste a volar de lo feo! 🚀', file: 'genre_reggaeton_16.mp3' },
+    { text: '¡Mejor dedícate a otra cosa, el dembow no te quiere! 🛑', file: 'genre_reggaeton_17.mp3' },
+    { text: '¡Ese autotune pide a gritos la jubilación anticipada! 👴', file: 'genre_reggaeton_18.mp3' },
+    { text: '¡Ni Maluma baby se atrevería a soltar ese desastre! 👶', file: 'genre_reggaeton_19.mp3' }
   ],
   banda: [
     { text: '¡El Recodo te manda sus condolencias! 🎺😂', file: 'genre_banda_0.mp3' },
@@ -319,6 +336,16 @@ const GENRE_BARKS = {
     { text: '¡Hasta a Chuy Lizárraga se le salieron las lágrimas de oírte! 😢', file: 'genre_banda_7.mp3' },
     { text: '¡Traes todo el sentimiento del rancho, lástima el afinador! 🌾', file: 'genre_banda_8.mp3' },
     { text: '¡Eso sonó a banda sinaloense, pero después de un terremoto! 🌋', file: 'genre_banda_9.mp3' },
+    { text: '¡Julión Álvarez te mandó bloquear de WhatsApp! 🚫', file: 'genre_banda_10.mp3' },
+    { text: '¡Parece que estabas arreando vacas en vez de cantar! 🐄', file: 'genre_banda_11.mp3' },
+    { text: '¡Esa trompeta sonó a elefante constipado! 🐘', file: 'genre_banda_12.mp3' },
+    { text: '¡Ni con seis caguamas te sale bien esa rola! 🍻', file: 'genre_banda_13.mp3' },
+    { text: '¡Si fueras del Recodo, ya te habrían regresado al rancho! 🚜', file: 'genre_banda_14.mp3' },
+    { text: '¡Con ese ritmo espantaste hasta a las moscas del establo! 🪰', file: 'genre_banda_15.mp3' },
+    { text: '¡Suena a banda del recodo... pero en un simulacro de sismo! 🚨', file: 'genre_banda_16.mp3' },
+    { text: '¡Te juro que la tambora lloró cuando empezaste a cantar! 🥁', file: 'genre_banda_17.mp3' },
+    { text: '¡Ay dolor! Ya me volviste a dar, pero en los tímpanos. 🤕', file: 'genre_banda_18.mp3' },
+    { text: '¡El sombrero te queda grande y la canción también, compa! 🤠', file: 'genre_banda_19.mp3' }
   ],
   ranchera: [
     { text: '¡Don Vicente te escuchó y pidió otro tequila! 🥃', file: 'genre_ranchera_0.mp3' },
@@ -331,6 +358,16 @@ const GENRE_BARKS = {
     { text: '¡Con ese grito espantaste a los caballos del patrón! 🐴', file: 'genre_ranchera_7.mp3' },
     { text: '¡Le pusiste garra, pero nos quedamos sin gallinero de tanto gallo! 🐔', file: 'genre_ranchera_8.mp3' },
     { text: '¡Para cantar así se necesita tequila, mezcal y mucha anestesia! 💉', file: 'genre_ranchera_9.mp3' },
+    { text: '¡Ese mariachi ya pidió asilo político en otro lado! 🏃', file: 'genre_ranchera_10.mp3' },
+    { text: '¡Hasta los agaves se secaron con ese falsete! 🌵', file: 'genre_ranchera_11.mp3' },
+    { text: '¡Le echaste más crema que a los tacos, pero sin sabor! 🌮', file: 'genre_ranchera_12.mp3' },
+    { text: '¡Don Chente desde el cielo te está mandando un rayo! ⚡', file: 'genre_ranchera_13.mp3' },
+    { text: '¡Se me rompió el jarrito de barro de puro dolor auditivo! 🏺', file: 'genre_ranchera_14.mp3' },
+    { text: '¡Por tu culpa el mariachi loco quiere dejar de bailar! 💃', file: 'genre_ranchera_15.mp3' },
+    { text: '¡Traes dolor, traes despecho, pero te falta garganta! 🗣️', file: 'genre_ranchera_16.mp3' },
+    { text: '¡Pobre caballo blanco, de escucharte ya no quiso correr! 🐎', file: 'genre_ranchera_17.mp3' },
+    { text: '¡Ese grito de mariachi sonó a llanta frenando en seco! 🚗', file: 'genre_ranchera_18.mp3' },
+    { text: '¡Un tequilazo doble para el público, que esto duele! 🥃', file: 'genre_ranchera_19.mp3' }
   ],
   rock: [
     { text: '¡Maná te hubiera dado el micrófono... para callarte! 🎸', file: 'genre_rock_0.mp3' },
@@ -343,6 +380,16 @@ const GENRE_BARKS = {
     { text: '¡Alex Lora te daría un abrazo por el puro valor! 🫂', file: 'genre_rock_7.mp3' },
     { text: '¡Sonó como solo de guitarra eléctrica sin afinar desde el 85! 📅', file: 'genre_rock_8.mp3' },
     { text: '¡Ese headbanging estuvo chido, el canto... dejémoslo en intento! 🫠', file: 'genre_rock_9.mp3' },
+    { text: '¡Ni Metallica en sus peores días sonaba tan destructivo! 💥', file: 'genre_rock_10.mp3' },
+    { text: '¡El único rock que haces es cuando te tropiezas con una piedra! 🪨', file: 'genre_rock_11.mp3' },
+    { text: '¡Rompiste la guitarra, el bajo, y mis tímpanos de paso! 🎸', file: 'genre_rock_12.mp3' },
+    { text: '¡Ese solo vocal sonó a frenazo de camión de basura! 🚛', file: 'genre_rock_13.mp3' },
+    { text: '¡Axl Rose te mandó saludos... y una orden de restricción! 📜', file: 'genre_rock_14.mp3' },
+    { text: '¡El espíritu del rock and roll está pidiendo auxilio! 🆘', file: 'genre_rock_15.mp3' },
+    { text: '¡Tanto ruido y tan poca música, parece microbús sin escape! 🚌', file: 'genre_rock_16.mp3' },
+    { text: '¡Eso fue heavy metal... pero pesado de aguantar! 🪨', file: 'genre_rock_17.mp3' },
+    { text: '¡Ni rompiendo la guitarra salvas esa presentación! 🎸', file: 'genre_rock_18.mp3' },
+    { text: '¡Los decibeles al máximo y la afinación en negativo! 📉', file: 'genre_rock_19.mp3' }
   ],
   pop: [
     { text: '¡Taylor Swift acaba de bloquear tu número! 📵', file: 'genre_pop_0.mp3' },
@@ -355,6 +402,16 @@ const GENRE_BARKS = {
     { text: '¡Ese falsete estuvo más falso que billete de 300 pesos! 💵', file: 'genre_pop_7.mp3' },
     { text: '¡Parece que cantas pop en inglés pero con pronunciación de secundaria! 🏫', file: 'genre_pop_8.mp3' },
     { text: '¡Un autotune no te caería nada mal para la próxima, de veras! 🎚️', file: 'genre_pop_9.mp3' },
+    { text: '¡Más desafinado que corista de quinceañera! 👗', file: 'genre_pop_10.mp3' },
+    { text: '¡Esa coreografía estuvo chida, lástima que estamos calificando la voz! 💃', file: 'genre_pop_11.mp3' },
+    { text: '¡Hasta Timbiriche te hubiera sacado del grupo! 🎤', file: 'genre_pop_12.mp3' },
+    { text: '¡Cantaste tan fresa que me dio alergia musical! 🍓', file: 'genre_pop_13.mp3' },
+    { text: '¡Belinda ya se desmayó de escuchar eso, y no por el sapito! 🐸', file: 'genre_pop_14.mp3' },
+    { text: '¡Pop latino, de ese que te hace cambiar de estación! 📻', file: 'genre_pop_15.mp3' },
+    { text: '¡Súper fresa, lástima que la fresa venía pasada! 🍓', file: 'genre_pop_16.mp3' },
+    { text: '¡Ni todos los brillos del mundo tapan esos gallos! ✨', file: 'genre_pop_17.mp3' },
+    { text: '¡Qué bonito bailas, ojalá cantaras la mitad de bien! 💃', file: 'genre_pop_18.mp3' },
+    { text: '¡Ese agudo rompió tres copas y dos amistades! 🥂', file: 'genre_pop_19.mp3' }
   ],
   cumbia: [
     { text: '¡Los Ángeles Azules te piden que guardes el micrófono! 💃', file: 'genre_cumbia_0.mp3' },
@@ -367,9 +424,19 @@ const GENRE_BARKS = {
     { text: '¡Hasta el microbús se detuvo a bailar con ese ritmo! 🚌', file: 'genre_cumbia_7.mp3' },
     { text: '¡Cumbia de la buena, ideal para barrer el piso con el compadre! 🧹', file: 'genre_cumbia_8.mp3' },
     { text: '¡Traes el güiro bien dominado, al menos eso se escuchó bien! 🥁', file: 'genre_cumbia_9.mp3' },
+    { text: '¡Ese pasito tun tun te salió más bien pasito pum pum! 💥', file: 'genre_cumbia_10.mp3' },
+    { text: '¡Si esto fuera un sonidero, ya te hubieran desconectado la bocina! 🔌', file: 'genre_cumbia_11.mp3' },
+    { text: '¡Traes la cumbia en las venas, pero la circulación tapada! 🩸', file: 'genre_cumbia_12.mp3' },
+    { text: '¡Celso Piña estaría tocando el acordeón... para no oírte! 🪗', file: 'genre_cumbia_13.mp3' },
+    { text: '¡Qué cumbión tan mareador, me dio vértigo de lo mal que sonó! 😵', file: 'genre_cumbia_14.mp3' },
+    { text: '¡Baila la cumbia... y mejor no cantes la cumbia! 💃', file: 'genre_cumbia_15.mp3' },
+    { text: '¡Ese güiro tiene más ritmo que tus cuerdas vocales! 🥁', file: 'genre_cumbia_16.mp3' },
+    { text: '¡Nos pusiste a sudar, pero de puro nervio al escucharte! 💦', file: 'genre_cumbia_17.mp3' },
+    { text: '¡La pista está llena, pero todos huyendo del sonido! 🏃', file: 'genre_cumbia_18.mp3' },
+    { text: '¡Sabor tropical que se quedó en el refrigerador! 🧊', file: 'genre_cumbia_19.mp3' }
   ],
   balada: [
-    { text: '¡Luis Miguel lloró... pero no de emotion! 😢', file: 'genre_balada_0.mp3' },
+    { text: '¡Luis Miguel lloró... pero no de emoción! 😢', file: 'genre_balada_0.mp3' },
     { text: '¡Eso fue más dramático que telenovela de Televisa! 📺', file: 'genre_balada_1.mp3' },
     { text: '¡El amor duele, pero esa nota duele más! 💔', file: 'genre_balada_2.mp3' },
     { text: '¡Alejandro Sanz se fue de tour por no escuchar eso! 🌍', file: 'genre_balada_3.mp3' },
@@ -379,6 +446,16 @@ const GENRE_BARKS = {
     { text: '¡Esa nota alta fue un grito de auxilio, confiesa! 🚨', file: 'genre_balada_7.mp3' },
     { text: '¡Sonó triste, sobre todo para los que tenemos oídos! 🦻', file: 'genre_balada_8.mp3' },
     { text: '¡La dedicatoria estuvo chida, el canto amerita divorcio exprés! 💍', file: 'genre_balada_9.mp3' },
+    { text: '¡Lloré, pero porque me acordé que todavía faltan más por cantar! 😭', file: 'genre_balada_10.mp3' },
+    { text: '¡Ese drama no lo compra ni TV Azteca! 📺', file: 'genre_balada_11.mp3' },
+    { text: '¡Cristian Castro te manda sus alas para que vueles lejos del micro! 🕊️', file: 'genre_balada_12.mp3' },
+    { text: '¡Te dolió tanto la rola que hasta el aire te faltó, mijo! 😮‍💨', file: 'genre_balada_13.mp3' },
+    { text: '¡Pura cortavenas, pero de las que infectan! 🩹', file: 'genre_balada_14.mp3' },
+    { text: '¡Tanto drama que ya me siento en el capítulo final! 📺', file: 'genre_balada_15.mp3' },
+    { text: '¡Cantas al desamor, pero enamoras a la desgracia! 💔', file: 'genre_balada_16.mp3' },
+    { text: '¡Traigan los pañuelos, que mis oídos están sangrando! 🩸', file: 'genre_balada_17.mp3' },
+    { text: '¡Esa lágrima fue real, pero de dolor físico al oírte! 😭', file: 'genre_balada_18.mp3' },
+    { text: '¡Una balada que pasará a la historia como arma letal! 💣', file: 'genre_balada_19.mp3' }
   ],
   electronica: [
     { text: '¡Daft Punk se quitó el casco de vergüenza! 🤖', file: 'genre_electronica_0.mp3' },
@@ -391,6 +468,16 @@ const GENRE_BARKS = {
     { text: '¡Hasta el DJ se puso audífonos para taparse las orejas! 🎚️', file: 'genre_electronica_7.mp3' },
     { text: '¡Mucha luces, mucho humo, pero poca melodía, mi buen! 🌫️', file: 'genre_electronica_8.mp3' },
     { text: '¡El sintetizador intentó salvarte, pero ni él pudo tanto! 🎹', file: 'genre_electronica_9.mp3' },
+    { text: '¡Ese sintetizador sonó como gato peleando en el techo! 🐈', file: 'genre_electronica_10.mp3' },
+    { text: '¡La rola era house pero nos dejaste a todos out! 🏠', file: 'genre_electronica_11.mp3' },
+    { text: '¡Ni Skrillex se atrevería a soltar ese ruido tan random! 🎛️', file: 'genre_electronica_12.mp3' },
+    { text: '¡Parecía que se te quedó trabado el teclado de la computadora! ⌨️', file: 'genre_electronica_13.mp3' },
+    { text: '¡Mucho punchis punchis, pero el talento andaba en el baño! 🚽', file: 'genre_electronica_14.mp3' },
+    { text: '¡Apaguen esa consola, que huele a cable quemado! 🔌', file: 'genre_electronica_15.mp3' },
+    { text: '¡Mucho láser, mucho humo, cero talento musical! 🕶️', file: 'genre_electronica_16.mp3' },
+    { text: '¡Ese beat estuvo tan raro que se me reinició el Windows! 💻', file: 'genre_electronica_17.mp3' },
+    { text: '¡Rave de pesadilla, de aquí al psicólogo todos! 🧠', file: 'genre_electronica_18.mp3' },
+    { text: '¡La máquina hace la mitad del trabajo y ni así pudiste! 🤖', file: 'genre_electronica_19.mp3' }
   ],
   default: [
     { text: '¡Eso fue... algo! ¡No sé si cantar o rezar! 🙏', file: 'genre_default_0.mp3' },
@@ -403,6 +490,170 @@ const GENRE_BARKS = {
     { text: '¡Le faltó sal a ese taco de canción! 🧂', file: 'genre_default_7.mp3' },
     { text: '¡Traes el espíritu afinado, el resto... va en camino! 🚶', file: 'genre_default_8.mp3' },
     { text: '¡Eso fue cantar a capela... pero sin afinación alguna! 🔇', file: 'genre_default_9.mp3' },
+    { text: '¡Ni Google Translate entiende lo que acabas de cantar! 🌐', file: 'genre_default_10.mp3' },
+    { text: '¡Qué valor, qué coraje, qué falta de talento! 👏', file: 'genre_default_11.mp3' },
+    { text: '¡Esto es un karaoke, no un concurso de gritos en el mercado! 🛒', file: 'genre_default_12.mp3' },
+    { text: '¡Me duelen los oídos, los ojos y la dignidad! 🙈', file: 'genre_default_13.mp3' },
+    { text: '¡Otra así y mejor desconecto el servidor! 🔌', file: 'genre_default_14.mp3' },
+    { text: '¡Un talento oculto... y mejor que siga bien escondido! 🥷', file: 'genre_default_15.mp3' },
+    { text: '¡El micrófono acaba de meter una demanda por abuso! 🎤', file: 'genre_default_16.mp3' },
+    { text: '¡Cantas con el alma, porque con la voz de plano no! 👻', file: 'genre_default_17.mp3' },
+    { text: '¡Una actuación inolvidable, aunque queramos olvidarla! 🧠', file: 'genre_default_18.mp3' },
+    { text: '¡Te mereces un aplauso, pero en la cara y con una silla! 🪑', file: 'genre_default_19.mp3' }
+  ]
+};
+  reggaeton: [
+    { text: '¡Perreo intelectual, la neta! 🍑🔥', file: 'genre_reggaeton_0.mp3' },
+    { text: '¡El Benito estaría orgulloso... o llorando! 🎤', file: 'genre_reggaeton_1.mp3' },
+    { text: '¡Más sabor que un trompo al pastor! 🌮', file: 'genre_reggaeton_2.mp3' },
+    { text: '¡Eso no era nota, era accidente de tráfico musical! 🚗💥', file: 'genre_reggaeton_3.mp3' },
+    { text: '¡Tiembla Bellakath, que ya te salió competencia de la buena! 🐱', file: 'genre_reggaeton_4.mp3' },
+    { text: '¡Traes el flow pesado, pero el micrófono te quedó un poco ligero! 💸', file: 'genre_reggaeton_5.mp3' },
+    { text: '¡Eso sí es chacaleo del bueno, mi estimado ajolote! 🐊', file: 'genre_reggaeton_6.mp3' },
+    { text: '¡Flow de tianguis de domingo: barato pero con mucho estilo! 🛍️', file: 'genre_reggaeton_7.mp3' },
+    { text: '¡Eso fue puro dembow de la vieja escuela... o de la prepa! 🎒', file: 'genre_reggaeton_8.mp3' },
+    { text: '¡Nos pusiste a perrear hasta el subsuelo, carnal! 🕺', file: 'genre_reggaeton_9.mp3' },
+    { text: '¡Hasta Yandel se asustó con ese perreo! 😱', file: 'genre_reggaeton_10.mp3' },
+    { text: '¡Esa nota estuvo más abajo que el subsuelo, rey! ⬇️', file: 'genre_reggaeton_11.mp3' },
+    { text: '¡Le metiste más autotune que J Balvin en concierto! 🤖', file: 'genre_reggaeton_12.mp3' },
+    { text: '¡Con ese flow no pasas ni del casting de Venga la Alegría! 📺', file: 'genre_reggaeton_13.mp3' },
+    { text: '¡Te faltó calle, perro, pero sobró actitud! 🐶', file: 'genre_reggaeton_14.mp3' }
+  ],
+  banda: [
+    { text: '¡El Recodo te manda sus condolencias! 🎺😂', file: 'genre_banda_0.mp3' },
+    { text: '¡Eso sonó más raro que tuba en discoteca! 🪗', file: 'genre_banda_1.mp3' },
+    { text: '¡El palenque está llorando... de risa! 🤠', file: 'genre_banda_2.mp3' },
+    { text: '¡Eso fue banda, pero más bien banda ancha de desafine! 📡', file: 'genre_banda_3.mp3' },
+    { text: '¡Siento que me caigo de la troca con semejantes notas! 🛻', file: 'genre_banda_4.mp3' },
+    { text: '¡Sírvanme otro mezcal para aguantar la segunda estrofa! 🥃', file: 'genre_banda_5.mp3' },
+    { text: '¡Ese grito dolió más que la cruda del lunes! 🥴', file: 'genre_banda_6.mp3' },
+    { text: '¡Hasta a Chuy Lizárraga se le salieron las lágrimas de oírte! 😢', file: 'genre_banda_7.mp3' },
+    { text: '¡Traes todo el sentimiento del rancho, lástima el afinador! 🌾', file: 'genre_banda_8.mp3' },
+    { text: '¡Eso sonó a banda sinaloense, pero después de un terremoto! 🌋', file: 'genre_banda_9.mp3' },
+    { text: '¡Julión Álvarez te mandó bloquear de WhatsApp! 🚫', file: 'genre_banda_10.mp3' },
+    { text: '¡Parece que estabas arreando vacas en vez de cantar! 🐄', file: 'genre_banda_11.mp3' },
+    { text: '¡Esa trompeta sonó a elefante constipado! 🐘', file: 'genre_banda_12.mp3' },
+    { text: '¡Ni con seis caguamas te sale bien esa rola! 🍻', file: 'genre_banda_13.mp3' },
+    { text: '¡Si fueras del Recodo, ya te habrían regresado al rancho! 🚜', file: 'genre_banda_14.mp3' }
+  ],
+  ranchera: [
+    { text: '¡Don Vicente te escuchó y pidió otro tequila! 🥃', file: 'genre_ranchera_0.mp3' },
+    { text: '¡Eso estuvo tan emocionante que se me fue el hipo! 😭', file: 'genre_ranchera_1.mp3' },
+    { text: '¡El charro más valiente no aguantó esa nota! 🐎', file: 'genre_ranchera_2.mp3' },
+    { text: '¡Gritaste el gallo antes de que saliera el sol! 🐓', file: 'genre_ranchera_3.mp3' },
+    { text: '¡Se me hace que ese mariachi era de mentiras, carnal! 🎺', file: 'genre_ranchera_4.mp3' },
+    { text: '¡Cantas con el sentimiento de quien debe la tanda! 💸', file: 'genre_ranchera_5.mp3' },
+    { text: '¡Esa nota estuvo más desafinada que guitarra de Garibaldi! 🎸', file: 'genre_ranchera_6.mp3' },
+    { text: '¡Con ese grito espantaste a los caballos del patrón! 🐴', file: 'genre_ranchera_7.mp3' },
+    { text: '¡Le pusiste garra, pero nos quedamos sin gallinero de tanto gallo! 🐔', file: 'genre_ranchera_8.mp3' },
+    { text: '¡Para cantar así se necesita tequila, mezcal y mucha anestesia! 💉', file: 'genre_ranchera_9.mp3' },
+    { text: '¡Ese mariachi ya pidió asilo político en otro lado! 🏃', file: 'genre_ranchera_10.mp3' },
+    { text: '¡Hasta los agaves se secaron con ese falsete! 🌵', file: 'genre_ranchera_11.mp3' },
+    { text: '¡Le echaste más crema que a los tacos, pero sin sabor! 🌮', file: 'genre_ranchera_12.mp3' },
+    { text: '¡Don Chente desde el cielo te está mandando un rayo! ⚡', file: 'genre_ranchera_13.mp3' },
+    { text: '¡Se me rompió el jarrito de barro de puro dolor auditivo! 🏺', file: 'genre_ranchera_14.mp3' }
+  ],
+  rock: [
+    { text: '¡Maná te hubiera dado el micrófono... para callarte! 🎸', file: 'genre_rock_0.mp3' },
+    { text: '¡Eso no fue rock, fue terremoto con guitarra! 🌋', file: 'genre_rock_1.mp3' },
+    { text: '¡Hasta las bocinas pidieron piedad! 🔊', file: 'genre_rock_2.mp3' },
+    { text: '¡Kurt Cobain se revolvió en su tumba, pero de alegría! 🤘', file: 'genre_rock_3.mp3' },
+    { text: '¡Mucho ruido y pocas nueces, como concierto de rock urbano! 🥁', file: 'genre_rock_4.mp3' },
+    { text: '¡Traes toda la actitud de rockstar, lástima por las cuerdas vocales! 🎤', file: 'genre_rock_5.mp3' },
+    { text: '¡Eso fue metal pesado, sobre todo por lo pesado de escuchar! ⛓️', file: 'genre_rock_6.mp3' },
+    { text: '¡Alex Lora te daría un abrazo por el puro valor! 🫂', file: 'genre_rock_7.mp3' },
+    { text: '¡Sonó como solo de guitarra eléctrica sin afinar desde el 85! 📅', file: 'genre_rock_8.mp3' },
+    { text: '¡Ese headbanging estuvo chido, el canto... dejémoslo en intento! 🫠', file: 'genre_rock_9.mp3' },
+    { text: '¡Ni Metallica en sus peores días sonaba tan destructivo! 💥', file: 'genre_rock_10.mp3' },
+    { text: '¡El único rock que haces es cuando te tropiezas con una piedra! 🪨', file: 'genre_rock_11.mp3' },
+    { text: '¡Rompiste la guitarra, el bajo, y mis tímpanos de paso! 🎸', file: 'genre_rock_12.mp3' },
+    { text: '¡Ese solo vocal sonó a frenazo de camión de basura! 🚛', file: 'genre_rock_13.mp3' },
+    { text: '¡Axl Rose te mandó saludos... y una orden de restricción! 📜', file: 'genre_rock_14.mp3' }
+  ],
+  pop: [
+    { text: '¡Taylor Swift acaba de bloquear tu número! 📵', file: 'genre_pop_0.mp3' },
+    { text: '¡Eso estuvo tan pop como refresco caliente! 🥤', file: 'genre_pop_1.mp3' },
+    { text: '¡Los BTS están viendo el partido de fut! ⚽', file: 'genre_pop_2.mp3' },
+    { text: '¡Spotify te quitó 3 reproducciones por eso! 📉', file: 'genre_pop_3.mp3' },
+    { text: '¡Sonó tan fresa que me empalagó el oído! 🍓', file: 'genre_pop_4.mp3' },
+    { text: '¡Luismi ya canceló su próximo concierto por tu culpa! 🎤', file: 'genre_pop_5.mp3' },
+    { text: '¡Pop de plástico, pero del que se recicla! ♻️', file: 'genre_pop_6.mp3' },
+    { text: '¡Ese falsete estuvo más falso que billete de 300 pesos! 💵', file: 'genre_pop_7.mp3' },
+    { text: '¡Parece que cantas pop en inglés pero con pronunciación de secundaria! 🏫', file: 'genre_pop_8.mp3' },
+    { text: '¡Un autotune no te caería nada mal para la próxima, de veras! 🎚️', file: 'genre_pop_9.mp3' },
+    { text: '¡Más desafinado que corista de quinceañera! 👗', file: 'genre_pop_10.mp3' },
+    { text: '¡Esa coreografía estuvo chida, lástima que estamos calificando la voz! 💃', file: 'genre_pop_11.mp3' },
+    { text: '¡Hasta Timbiriche te hubiera sacado del grupo! 🎤', file: 'genre_pop_12.mp3' },
+    { text: '¡Cantaste tan fresa que me dio alergia musical! 🍓', file: 'genre_pop_13.mp3' },
+    { text: '¡Belinda ya se desmayó de escuchar eso, y no por el sapito! 🐸', file: 'genre_pop_14.mp3' }
+  ],
+  cumbia: [
+    { text: '¡Los Ángeles Azules te piden que guardes el micrófono! 💃', file: 'genre_cumbia_0.mp3' },
+    { text: '¡Más sabroso que elote con chile y limón! 🌽', file: 'genre_cumbia_1.mp3' },
+    { text: '¡Eso movió el esqueleto y también el estómago! 🦴', file: 'genre_cumbia_2.mp3' },
+    { text: '¡La Sonora Dinamita explotó de vergüenza ajena! 💣', file: 'genre_cumbia_3.mp3' },
+    { text: '¡Traes el ritmo en los pies, pero la afinación en otra galaxia! 🌌', file: 'genre_cumbia_4.mp3' },
+    { text: '¡Sabor a barrio, sabor a sonidero tapando la calle! 🎺', file: 'genre_cumbia_5.mp3' },
+    { text: '¡Eso fue cumbia lagunera, bien rasposa! 🐊', file: 'genre_cumbia_6.mp3' },
+    { text: '¡Hasta el microbús se detuvo a bailar con ese ritmo! 🚌', file: 'genre_cumbia_7.mp3' },
+    { text: '¡Cumbia de la buena, ideal para barrer el piso con el compadre! 🧹', file: 'genre_cumbia_8.mp3' },
+    { text: '¡Traes el güiro bien dominado, al menos eso se escuchó bien! 🥁', file: 'genre_cumbia_9.mp3' },
+    { text: '¡Ese pasito tun tun te salió más bien pasito pum pum! 💥', file: 'genre_cumbia_10.mp3' },
+    { text: '¡Si esto fuera un sonidero, ya te hubieran desconectado la bocina! 🔌', file: 'genre_cumbia_11.mp3' },
+    { text: '¡Traes la cumbia en las venas, pero la circulación tapada! 🩸', file: 'genre_cumbia_12.mp3' },
+    { text: '¡Celso Piña estaría tocando el acordeón... para no oírte! 🪗', file: 'genre_cumbia_13.mp3' },
+    { text: '¡Qué cumbión tan mareador, me dio vértigo de lo mal que sonó! 😵', file: 'genre_cumbia_14.mp3' }
+  ],
+  balada: [
+    { text: '¡Luis Miguel lloró... pero no de emotion! 😢', file: 'genre_balada_0.mp3' },
+    { text: '¡Eso fue más dramático que telenovela de Televisa! 📺', file: 'genre_balada_1.mp3' },
+    { text: '¡El amor duele, pero esa nota duele más! 💔', file: 'genre_balada_2.mp3' },
+    { text: '¡Alejandro Sanz se fue de tour por no escuchar eso! 🌍', file: 'genre_balada_3.mp3' },
+    { text: '¡Perfecto para cortarse las venas con galletas de animalitos! 🍪', file: 'genre_balada_4.mp3' },
+    { text: '¡Ese drama no lo tiene ni la Rosa de Guadalupe! 🌹', file: 'genre_balada_5.mp3' },
+    { text: '¡Le pusiste sentimiento, pero te faltó tantita escala musical! 🎼', file: 'genre_balada_6.mp3' },
+    { text: '¡Esa nota alta fue un grito de auxilio, confiesa! 🚨', file: 'genre_balada_7.mp3' },
+    { text: '¡Sonó triste, sobre todo para los que tenemos oídos! 🦻', file: 'genre_balada_8.mp3' },
+    { text: '¡La dedicatoria estuvo chida, el canto amerita divorcio exprés! 💍', file: 'genre_balada_9.mp3' },
+    { text: '¡Lloré, pero porque me acordé que todavía faltan más por cantar! 😭', file: 'genre_balada_10.mp3' },
+    { text: '¡Ese drama no lo compra ni TV Azteca! 📺', file: 'genre_balada_11.mp3' },
+    { text: '¡Cristian Castro te manda sus alas para que vueles lejos del micro! 🕊️', file: 'genre_balada_12.mp3' },
+    { text: '¡Te dolió tanto la rola que hasta el aire te faltó, mijo! 😮‍💨', file: 'genre_balada_13.mp3' },
+    { text: '¡Pura cortavenas, pero de las que infectan! 🩹', file: 'genre_balada_14.mp3' }
+  ],
+  electronica: [
+    { text: '¡Daft Punk se quitó el casco de vergüenza! 🤖', file: 'genre_electronica_0.mp3' },
+    { text: '¡Eso sonó como Windows 98 crasheando! 💻', file: 'genre_electronica_1.mp3' },
+    { text: '¡El drop estuvo más plano que mi cartera! 💸', file: 'genre_electronica_2.mp3' },
+    { text: '¡Avicii estaría orgulloso... o confundido! 🎧', file: 'genre_electronica_3.mp3' },
+    { text: '¡Sonó como licuadora con piedras en la cocina! 🌪️', file: 'genre_electronica_4.mp3' },
+    { text: '¡Traes el beat de guaracha, pero te faltó el ritmo! 🕺', file: 'genre_electronica_5.mp3' },
+    { text: '¡Eso no fue rave, fue cortocircuito en el transformador! ⚡', file: 'genre_electronica_6.mp3' },
+    { text: '¡Hasta el DJ se puso audífonos para taparse las orejas! 🎚️', file: 'genre_electronica_7.mp3' },
+    { text: '¡Mucha luces, mucho humo, pero poca melodía, mi buen! 🌫️', file: 'genre_electronica_8.mp3' },
+    { text: '¡El sintetizador intentó salvarte, pero ni él pudo tanto! 🎹', file: 'genre_electronica_9.mp3' },
+    { text: '¡Ese sintetizador sonó como gato peleando en el techo! 🐈', file: 'genre_electronica_10.mp3' },
+    { text: '¡La rola era house pero nos dejaste a todos out! 🏠', file: 'genre_electronica_11.mp3' },
+    { text: '¡Ni Skrillex se atrevería a soltar ese ruido tan random! 🎛️', file: 'genre_electronica_12.mp3' },
+    { text: '¡Parecía que se te quedó trabado el teclado de la computadora! ⌨️', file: 'genre_electronica_13.mp3' },
+    { text: '¡Mucho punchis punchis, pero el talento andaba en el baño! 🚽', file: 'genre_electronica_14.mp3' }
+  ],
+  default: [
+    { text: '¡Eso fue... algo! ¡No sé si cantar o rezar! 🙏', file: 'genre_default_0.mp3' },
+    { text: '¡Los vecinos ya llamaron al 911! 🚨', file: 'genre_default_1.mp3' },
+    { text: '¡Hasta el perro de la cuadra aúlla diferente! 🐕', file: 'genre_default_2.mp3' },
+    { text: '¡Eso tuvo más quiebres que la economía nacional! 📊', file: 'genre_default_3.mp3' },
+    { text: '¡La afinación está en vacaciones! ✈️', file: 'genre_default_4.mp3' },
+    { text: '¡Corazón valiente, oídos sufridos! ❤️', file: 'genre_default_5.mp3' },
+    { text: '¡Eso estuvo más raro que tamal de pizza! 🍕', file: 'genre_default_6.mp3' },
+    { text: '¡Le faltó sal a ese taco de canción! 🧂', file: 'genre_default_7.mp3' },
+    { text: '¡Traes el espíritu afinado, el resto... va en camino! 🚶', file: 'genre_default_8.mp3' },
+    { text: '¡Eso fue cantar a capela... pero sin afinación alguna! 🔇', file: 'genre_default_9.mp3' },
+    { text: '¡Ni Google Translate entiende lo que acabas de cantar! 🌐', file: 'genre_default_10.mp3' },
+    { text: '¡Qué valor, qué coraje, qué falta de talento! 👏', file: 'genre_default_11.mp3' },
+    { text: '¡Esto es un karaoke, no un concurso de gritos en el mercado! 🛒', file: 'genre_default_12.mp3' },
+    { text: '¡Me duelen los oídos, los ojos y la dignidad! 🙈', file: 'genre_default_13.mp3' },
+    { text: '¡Otra así y mejor desconecto el servidor! 🔌', file: 'genre_default_14.mp3' }
   ],
 };
 
@@ -475,6 +726,20 @@ const NEW_GAMES = [
   { text: '¡Reiniciamos la diversión! Esperando que se unan los cantantes. 🚀', file: 'new_game_2.mp3' }
 ];
 
+const AXOLO_MODE_INTROS = {
+  clasico: { text: "¡Modo Clásico! Rondas, ruleta y la carrilla de siempre. ¡A darle! 🎤", file: "mode_intro_clasico.mp3" },
+  ranchera: { text: "¡Noche de despecho! Puro dolor, mariachi y tequila. ¡Agárrense! 🥃", file: "mode_intro_ranchera.mp3" },
+  nostalgia: { text: "¡Modo Nostalgia 2000s! Saca tu discman y tu lado emo, que esto se va a poner intenso. 🖤", file: "mode_intro_nostalgia.mp3" },
+  anime: { text: "¡Otaku Fest! A cantar los mejores openings antes de que caiga el meteorito. 🌸", file: "mode_intro_anime.mp3" }
+};
+
+const AXOLO_MODE_SELECTED = {
+  clasico: { text: "¡Vámonos recio con lo Clásico! 🚀", file: "mode_selected_clasico.mp3" },
+  ranchera: { text: "¡A llorar se ha dicho, puro mariachi! 🎺", file: "mode_selected_ranchera.mp3" },
+  nostalgia: { text: "¡Sacando el fleco emo y el delineador! 🎸", file: "mode_selected_nostalgia.mp3" },
+  anime: { text: "¡Prepara tus jutsus que nos vamos a Japón! 🎌", file: "mode_selected_anime.mp3" }
+};
+
 const AXOLO_SINGER_INTROS = [
   { text: '¡Al micrófono! ¡Que el palenque tiemble! 🎤🔥', file: 'intro_0.mp3' },
   { text: '¡Tiene el turno! ¡O canta o paga las chelas! 🍺', file: 'intro_1.mp3' },
@@ -486,6 +751,16 @@ const AXOLO_SINGER_INTROS = [
   { text: '¡Agárrense, que viene con todo el flow sonidero! 🔊', file: 'intro_7.mp3' },
   { text: '¡Que pase al frente! ¡Que empiece la magia o el sufrimiento! 🎩', file: 'intro_8.mp3' },
   { text: '¡La ruleta ha hablado y condena a nuestro cantante a deleitarnos! 🎭', file: 'intro_9.mp3' },
+  { text: '¡Pásale a lo barrido, que aquí no hay piedad! 🧹', file: 'intro_10.mp3' },
+  { text: '¡Agarra el micrófono como si fuera tu última caguama! 🍺', file: 'intro_11.mp3' },
+  { text: '¡Demuestra que esos años cantando en la regadera valieron la pena! 🚿', file: 'intro_12.mp3' },
+  { text: '¡El que sigue! Que no tiemblen las corvas. 🦵', file: 'intro_13.mp3' },
+  { text: '¡Prepárense para una obra maestra... o para el fin del mundo! 🌎', file: 'intro_14.mp3' },
+  { text: '¡Respira profundo, porque allá arriba no hay piedad! 😮‍💨', file: 'intro_15.mp3' },
+  { text: '¡El reflector te llama, a ver si no te quema! 💡', file: 'intro_16.mp3' },
+  { text: '¡Toma el micro y reza tus oraciones! 🙏', file: 'intro_17.mp3' },
+  { text: '¡Público exigente hoy, así que saca los pasos prohibidos! 🕺', file: 'intro_18.mp3' },
+  { text: '¡Si fallas, ya hay tomates listos en el refri! 🍅', file: 'intro_19.mp3' }
 ];
 
 const AXOLO_VOTE_REACTIONS = {
@@ -497,6 +772,14 @@ const AXOLO_VOTE_REACTIONS = {
     { text: '¡Qué bárbaro, cantas mejor que el promedio nacional! 🇲🇽', file: 'vote_100_4.mp3' },
     { text: '¡Traes un vozarrón que hasta a mí me dio escalofríos! 🥶', file: 'vote_100_5.mp3' },
     { text: '¡Eso no fue cantar, fue dar cátedra musical! 🎓', file: 'vote_100_6.mp3' },
+    { text: '¡Pónganle una estatua a este compa en su barrio! 🗽', file: 'vote_100_7.mp3' },
+    { text: '¡Impecable! ¡Sublime! ¡Te quiero mucho! ❤️', file: 'vote_100_8.mp3' },
+    { text: '¡De aquí directo a llenar el Foro Sol! 🏟️', file: 'vote_100_9.mp3' },
+    { text: '¡Mis respetos, eso fue oro puro en el micrófono! 🥇', file: 'vote_100_10.mp3' },
+    { text: '¡Me puse de pie en la sala, qué nivel de presentación! 🧍‍♂️', file: 'vote_100_11.mp3' },
+    { text: '¡Firmame un autógrafo antes de que te vuelvas famoso! 📝', file: 'vote_100_12.mp3' },
+    { text: '¡Si hubiera boletos, yo pagaba primera fila! 🎟️', file: 'vote_100_13.mp3' },
+    { text: '¡Talento del bueno, sin exagerar ni un gramo! ✨', file: 'vote_100_14.mp3' }
   ],
   60: [
     { text: '¡Ni fu ni fa, pero al menos no sangran los oídos! 👍', file: 'vote_60_0.mp3' },
@@ -506,6 +789,14 @@ const AXOLO_VOTE_REACTIONS = {
     { text: '¡Cumpliste como los buenos, a secas! 📝', file: 'vote_60_4.mp3' },
     { text: '¡Digamos que salvaste la noche por los pelos! 💈', file: 'vote_60_5.mp3' },
     { text: '¡Un desempeño decente, te ganaste media chela! 🍺', file: 'vote_60_6.mp3' },
+    { text: '¡Suficiente para aprobar la materia, pero sin honores! 🎓', file: 'vote_60_7.mp3' },
+    { text: '¡Cantaste como en martes: ni muy muy, ni tan tan! 🗓️', file: 'vote_60_8.mp3' },
+    { text: '¡Hubo fallas técnicas, pero la actitud te salvó de milagro! 🛠️', file: 'vote_60_9.mp3' },
+    { text: '¡No deslumbraste, pero al menos no apagaste la fiesta! 🕯️', file: 'vote_60_10.mp3' },
+    { text: '¡Palomita en la boleta, pero sin derecho a beca! ✅', file: 'vote_60_11.mp3' },
+    { text: '¡Estuvo regular, te faltó ensayar en la regadera! 🚿', file: 'vote_60_12.mp3' },
+    { text: '¡Aceptable, supongo que has tenido mejores días! 🤷', file: 'vote_60_13.mp3' },
+    { text: '¡Ni fu ni fa, quedaste empatado con el silencio! 😐', file: 'vote_60_14.mp3' }
   ],
   30: [
     { text: '¡Le echó ganas, que no es lo mismo que talento! 💪', file: 'vote_30_0.mp3' },
@@ -515,6 +806,14 @@ const AXOLO_VOTE_REACTIONS = {
     { text: '¡La intención es lo que cuenta, dicen por ahí! 🤷', file: 'vote_30_4.mp3' },
     { text: '¡Uff, faltó aire y sobró confianza! 😮‍💨', file: 'vote_30_5.mp3' },
     { text: '¡Sonó como motor de vocho en subida, compa! 🚗', file: 'vote_30_6.mp3' },
+    { text: '¡De panzazo y rozando la tragedia, carnal! 🤕', file: 'vote_30_7.mp3' },
+    { text: '¡Traías el volumen al cien pero el talento en modo avión! ✈️', file: 'vote_30_8.mp3' },
+    { text: '¡Se agradece la participación, ahora siéntate por favor! 🪑', file: 'vote_30_9.mp3' },
+    { text: '¡Eso sonó a lamento boliviano, pero mal cantado! 😢', file: 'vote_30_10.mp3' },
+    { text: '¡Menos mal que no cobran entrada para escucharte! 💸', file: 'vote_30_11.mp3' },
+    { text: '¡Si cantaras como respiras, seríamos millonarios! 💰', file: 'vote_30_12.mp3' },
+    { text: '¡Faltó poquito para que fuera bueno... bueno, faltó mucho! 🤏', file: 'vote_30_13.mp3' },
+    { text: '¡Un aplauso por el valor, porque de voz andamos escasos! 👏', file: 'vote_30_14.mp3' }
   ],
   10: [
     { text: '¡GALLO SUPREMO DETECTADO! 🐓 ¡Los gallos de Sonora cantaron mejor!', file: 'vote_10_0.mp3' },
@@ -524,7 +823,15 @@ const AXOLO_VOTE_REACTIONS = {
     { text: '¡Eso sonó como gato pisado en reversa! 🐱🚗', file: 'vote_10_4.mp3' },
     { text: '¡Una afinación tan ausente como mi ex! 💔', file: 'vote_10_5.mp3' },
     { text: '¡Te sugiero pedir perdón al micrófono de inmediato! 🎤🙇', file: 'vote_10_6.mp3' },
-  ],
+    { text: '¡Por favor, que alguien llame a control de animales! 🐕', file: 'vote_10_7.mp3' },
+    { text: '¡Mis respetos... por tener el valor de hacer el ridículo así! 🤡', file: 'vote_10_8.mp3' },
+    { text: '¡Ni con autotune divino se arregla ese desastre! 👼', file: 'vote_10_9.mp3' },
+    { text: '¡Cantas tan feo que hasta la cebolla lloró! 🧅', file: 'vote_10_10.mp3' },
+    { text: '¡Un minuto de silencio por mis tímpanos fallecidos! 🪦', file: 'vote_10_11.mp3' },
+    { text: '¡Eso fue un crimen de lesa humanidad musical! 🚓', file: 'vote_10_12.mp3' },
+    { text: '¡Ni el micrófono te quiere ya, devuélvelo por favor! 🎤', file: 'vote_10_13.mp3' },
+    { text: '¡Rompiste la barrera del sonido... y del buen gusto! 💥', file: 'vote_10_14.mp3' }
+  ]
 };
 
 function getGenreBark(player) {
@@ -688,6 +995,16 @@ function animateLobbyWelcome() {
       RitmikaStyleFX.dropIn(el, { delay: i * 120 });
     });
   }, 600);
+
+  setTimeout(() => {
+    if (window.pendingLobbyAudio) {
+      axoloSay(window.pendingLobbyAudio.text, window.pendingLobbyAudio.file);
+      window.pendingLobbyAudio = null;
+    } else {
+      const wChoice = LOBBY_WELCOME_PHRASES[Math.floor(Math.random() * LOBBY_WELCOME_PHRASES.length)];
+      axoloSay(wChoice.text, wChoice.file);
+    }
+  }, 1200);
 }
 
 // ════════════════════════════════════════════
@@ -792,6 +1109,9 @@ function showScreen(id, transitionType, onComplete) {
   if (!next || (current && current.id === id)) return;
 
   if (!current) {
+    next.style.display = '';
+    next.style.opacity = '';
+    next.style.transform = '';
     next.classList.add('active');
     if (onComplete) onComplete();
     return;
@@ -924,9 +1244,9 @@ function showScreen(id, transitionType, onComplete) {
 const socket = io();
 
 socket.on('connect', () => {
-  console.log('[TV] Conectado. Creando sala...');
+  console.log('[TV] Conectado. Preparando sala...');
   boot.step(1, 'done');
-  socket.emit('tv:create_room');
+  boot.step(2, 'done', 'Esperando selección de modo');
   loadCatalog();
   // Check FFmpeg via health endpoint (step 4)
   fetch('/api/health', { signal: AbortSignal.timeout(5000) })
@@ -949,7 +1269,6 @@ socket.on('tv:room_created', ({ roomCode, localIP, hotspotSSID, hotspotPassword 
   state.localIP = localIP || window.location.hostname;
   state.hotspotSSID = hotspotSSID || 'Ritmika';
   state.hotspotPassword = hotspotPassword || 'Ritmika2026';
-  boot.step(2, 'done', 'Sala ' + roomCode);
   renderRoomCode(roomCode);
   inicializarQRConexion();
   const st = document.getElementById('status-text');
@@ -963,8 +1282,7 @@ socket.on('tv:room_created', ({ roomCode, localIP, hotspotSSID, hotspotPassword 
   } else {
     document.getElementById('restore-banner').classList.add('hidden');
     const rrChoice = ROOM_READY_PHRASES[Math.floor(Math.random() * ROOM_READY_PHRASES.length)];
-    lobbySoundPlayed = true;
-    axoloSay(rrChoice.text, rrChoice.file);
+    window.pendingLobbyAudio = rrChoice;
   }
   updateTicker(`Sala ${roomCode} creada. ¡Comparte el código!`);
 
@@ -1140,10 +1458,10 @@ document.getElementById('start-btn').addEventListener('click', () => {
 // DEBUG: Add bot player
 // Toggle Debug Panel (Ctrl + B) or Click on JUGADORES
 document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+  if (e.key === 'F9') {
     e.preventDefault();
-    const debugPanel = document.getElementById('debug-panel-container');
-    if (debugPanel) debugPanel.style.display = debugPanel.style.display === 'none' ? 'flex' : 'none';
+    const debugPanel = document.getElementById('secret-debug-panel');
+    if (debugPanel) debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
   }
 });
 
@@ -1926,9 +2244,9 @@ function showPodium() {
     { icon:'&#128535;', title:'Vengador An&#243;nimo', subtitle:'Fuego Cruzado',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
   ].map(a => ({...a, carrilla: a.obj.text, file: a.obj.file}));
   const stepData = [
-    { place:3, player:sorted[2], rank:'&#129350;', label:'3er Lugar', color:'#f97316', glow:'#f9731640', pedColor:'linear-gradient(to top,#7c2d12,#f97316)', size:'5.5rem' },
-    { place:2, player:sorted[1], rank:'&#129349;', label:'2do Lugar', color:'#22d3ee', glow:'#22d3ee40', pedColor:'linear-gradient(to top,#164e63,#06b6d4)', size:'5.5rem' },
-    { place:1, player:sorted[0], rank:'&#129351;', label:'1er Lugar', color:'#facc15', glow:'#facc1560', pedColor:'linear-gradient(to top,#78350f,#eab308)', size:'7.5rem' },
+    { place:3, player:sorted[2], rank:'&#129350;', label:'3er Lugar', color:'#f97316', glow:'#f9731640', pedColor:'#f97316', size:'5.5rem' },
+    { place:2, player:sorted[1], rank:'&#129349;', label:'2do Lugar', color:'#22d3ee', glow:'#22d3ee40', pedColor:'#06b6d4', size:'5.5rem' },
+    { place:1, player:sorted[0], rank:'&#129351;', label:'1er Lugar', color:'#facc15', glow:'#facc1560', pedColor:'#facc15', size:'7.5rem' },
   ];
 
   const axoloOverlay = document.getElementById('axolo-cutin-overlay');
@@ -2009,7 +2327,7 @@ function showPodium() {
     titleWrap.appendChild(trophyEl);
 
     const titleBlock=document.createElement('div');
-    titleBlock.style.cssText='display:inline-block;background:#ffe600;border:6px solid #111827;box-shadow:14px 14px 0 #111827;padding:28px 64px;border-radius:24px;text-align:center;opacity:0;transform:scale(0.5) rotate(-3deg);margin-top:18px;';
+    titleBlock.style.cssText='display:inline-block;background:#ffe600;border:6px solid #111827;box-shadow:16px 16px 0 #111827;padding:28px 64px;border-radius:0;text-align:center;opacity:0;transform:scale(0.5) rotate(-3deg);margin-top:18px;';
     titleBlock.innerHTML='<h1 style="font-family:\'Paytone One\',sans-serif;font-size:64px;color:#111827;margin:0;line-height:1;">LA GRAN</h1><h1 style="font-family:\'Paytone One\',sans-serif;font-size:64px;color:#111827;margin:0;line-height:1;">PREMIACI&#211;N</h1>';
     titleWrap.appendChild(titleBlock);
 
@@ -2052,23 +2370,23 @@ function showPodium() {
       const aLabel=document.createElement('div');
       aLabel.style.cssText='font-family:\'Paytone One\',sans-serif;font-size:24px;text-transform:uppercase;letter-spacing:10px;margin-bottom:22px;opacity:0;';
       aLabel.style.color=award.color;
-      aLabel.style.textShadow='0 0 30px '+award.color+'88';
+      aLabel.style.textShadow='6px 6px 0 #111827, 0 0 30px '+award.color+'88';
       aLabel.innerHTML='&#10022; PREMIO ESPECIAL &#10022;';
       const aCard=document.createElement('div');
-      aCard.style.cssText='border-radius:28px;padding:32px 52px;text-align:center;max-width:520px;width:90%;opacity:0;';
-      aCard.style.background='linear-gradient(135deg,rgba(15,23,42,0.95),rgba(30,27,75,0.9))';
-      aCard.style.border='5px solid '+award.color;
-      aCard.style.boxShadow='0 0 80px '+award.color+'44,10px 10px 0 #111827';
+      aCard.style.cssText='border-radius:0;padding:32px 52px;text-align:center;max-width:520px;width:90%;opacity:0;';
+      aCard.style.background='#0f172a';
+      aCard.style.border='6px solid '+award.color;
+      aCard.style.boxShadow='16px 16px 0 #111827, 0 0 40px '+award.color+'88';
       aCard.style.transform='translateX('+(sideDir*130)+'%)';
       aCard.innerHTML='<div style="font-size:76px;margin-bottom:8px;filter:drop-shadow(0 0 18px '+award.color+');">'+award.icon+'</div>'
         +'<h2 style="font-family:\'Paytone One\',sans-serif;font-size:42px;margin:6px 0;text-shadow:0 0 22px '+award.color+'66;color:'+award.color+';">'+award.title+'</h2>'
         +'<p style="font-family:Fredoka,sans-serif;font-size:15px;color:#94a3b8;font-weight:700;margin-bottom:16px;letter-spacing:2px;text-transform:uppercase;">'+award.subtitle+'</p>'
-        +'<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0;padding:12px 20px;border-radius:16px;background:'+award.color+'11;border:2px solid '+award.color+'33;">'
-        +'<div style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:'+av.color+'33;border:4px solid '+av.border+';display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px '+av.border+'66;">'
+        +'<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0;padding:12px 20px;border-radius:0;background:'+award.color+';border:6px solid #111827;box-shadow:8px 8px 0 #111827;">'
+        +'<div style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:'+av.color+';border:6px solid #111827;display:flex;align-items:center;justify-content:center;box-shadow:6px 6px 0 #111827, 0 0 20px '+av.border+'66;">'
         +'<img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
-        +'<span style="font-family:\'Paytone One\',sans-serif;font-size:28px;color:#f1f5f9;">'+escapeHtml(award.player.name)+'</span></div>'
-        +'<div style="background:#0a0a1a;border:2px solid '+award.color+'33;border-radius:14px;padding:14px 20px;margin-top:10px;">'
-        +'<p style="font-family:Fredoka,sans-serif;font-size:16px;color:#cbd5e1;font-style:italic;margin:0;line-height:1.5;">&ldquo;'+award.carrilla+'&rdquo;</p></div>';
+        +'<span style="font-family:\'Paytone One\',sans-serif;font-size:28px;color:#111827;">'+escapeHtml(award.player.name)+'</span></div>'
+        +'<div style="background:#1e293b;border:6px solid #111827;border-radius:0;padding:14px 20px;margin-top:10px;box-shadow:8px 8px 0 #111827;">'
+        +'<p style="font-family:Fredoka,sans-serif;font-size:16px;color:#f8fafc;font-weight:900;margin:0;line-height:1.5;">&ldquo;'+award.carrilla+'&rdquo;</p></div>';
       aPhase.appendChild(aLabel);
       aPhase.appendChild(aCard);
       anime({targets:aLabel,opacity:[0,1],translateY:[-20,0],duration:400,easing:'easeOutQuad'});
@@ -2099,7 +2417,7 @@ function showPodium() {
     p3wrap.style.cssText='position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;height:100%;gap:8px;';
     ceremonyRoot.appendChild(p3wrap);
     const p3title=document.createElement('div');
-    p3title.style.cssText='font-family:\'Paytone One\',sans-serif;font-size:30px;color:#facc15;text-shadow:0 0 30px #facc1566;opacity:0;padding-top:28px;letter-spacing:4px;';
+    p3title.style.cssText='font-family:\'Paytone One\',sans-serif;font-size:36px;color:#facc15;text-shadow:6px 6px 0 #111827, 0 0 30px #facc1566;opacity:0;padding-top:28px;letter-spacing:4px;border:6px solid #111827;background:#0f172a;padding:10px 30px;box-shadow:10px 10px 0 #111827;';
     p3title.innerHTML='&#127942; PODIO DE GANADORES &#127942;';
     p3wrap.appendChild(p3title);
     anime({targets:p3title,opacity:[0,1],scale:[0.7,1],duration:700,easing:'easeOutBack'});
@@ -2111,7 +2429,7 @@ function showPodium() {
     const centerSlot=document.createElement('div');
     centerSlot.style.cssText='width:260px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;';
     const centerHolder=document.createElement('div');
-    centerHolder.style.cssText='width:100%;border-radius:1.5rem 1.5rem 0 0;height:160px;background:rgba(250,204,21,0.05);border:3px dashed rgba(250,204,21,0.2);border-bottom:none;display:flex;align-items:center;justify-content:center;';
+    centerHolder.style.cssText='width:100%;border-radius:0;height:160px;background:#0f172a;border:6px dashed #111827;border-bottom:none;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 20px rgba(0,0,0,0.5);margin-bottom:-6px;';
     centerHolder.innerHTML='<span style="font-size:3rem;opacity:0.2;">?</span>';
     centerSlot.appendChild(centerHolder);
     const rightSlot=document.createElement('div'); rightSlot.style.cssText='width:220px;flex-shrink:0;';
@@ -2128,11 +2446,11 @@ function showPodium() {
       stepDiv.style.cssText='display:flex;flex-direction:column;align-items:center;width:'+(sd.place===2?'240px':'220px')+';opacity:0;transform:translateY(80px);';
       stepDiv.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px;">'
         +'<span style="font-family:Fredoka,sans-serif;font-size:15px;font-weight:900;background:#111827;color:'+sd.color+';padding:5px 16px;border-radius:20px;border:2px solid '+sd.color+';margin-bottom:10px;letter-spacing:1px;">'+sd.rank+' '+sd.label+'</span>'
-        +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+'22;border:5px solid '+av.border+';display:flex;align-items:center;justify-content:center;width:'+sd.size+';height:'+sd.size+';box-shadow:0 0 22px '+av.border+'66;">'
+        +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+';border:6px solid #111827;display:flex;align-items:center;justify-content:center;width:'+sd.size+';height:'+sd.size+';box-shadow:8px 8px 0 #111827;">'
         +'<img src="'+av.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
         +'<p style="font-family:Fredoka,sans-serif;font-size:19px;color:#f1f5f9;font-weight:700;margin:10px 0 2px;text-align:center;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(sd.player.name)+'</p>'
-        +'<p class="step-score-'+sd.place+'" style="font-family:\'Paytone One\',sans-serif;font-size:21px;color:'+sd.color+';margin:0;">0 pts</p></div>'
-        +'<div style="width:100%;border-radius:1.5rem 1.5rem 0 0;height:'+pedH+';background:'+sd.pedColor+';border:4px solid '+sd.color+';border-bottom:none;box-shadow:0 0 28px '+sd.glow+',0 -4px 16px '+sd.glow+';position:relative;overflow:hidden;">'
+        +'<p class="step-score-'+sd.place+'" style="font-family:\'Paytone One\',sans-serif;font-size:24px;color:'+sd.color+';margin:0;text-shadow:4px 4px 0 #111827;">0 pts</p></div>'
+        +'<div style="width:100%;border-radius:0;height:'+pedH+';background:'+sd.color+';border:6px solid #111827;border-bottom:none;box-shadow:8px 8px 0 #111827, inset 0 0 20px '+sd.glow+';position:relative;overflow:hidden;margin-bottom:-6px;">'
         +'<div style="position:absolute;inset:0;background:linear-gradient(to right,transparent,rgba(255,255,255,0.07),transparent);"></div>'
         +'<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:\'Paytone One\',sans-serif;font-size:3rem;font-weight:900;color:rgba(255,255,255,0.12);line-height:1;">'+sd.place+'</div></div>';
       if(sd.place===2) p3steps.replaceChild(stepDiv,leftSlot);
@@ -2199,12 +2517,12 @@ function showPodium() {
       winnerContent.id='winner-reveal-content';
       winnerContent.style.cssText='position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;opacity:0;transform:scale(0.6);';
       winnerContent.innerHTML='<img src="/assets/podium_crown.png" id="winner-crown" style="width:140px;height:auto;object-fit:contain;filter:drop-shadow(0 0 28px #facc15) drop-shadow(0 0 56px #facc1588);margin-bottom:-22px;z-index:3;position:relative;"/>'
-        +'<div style="width:180px;height:180px;border-radius:50%;overflow:hidden;background:'+winnerAv.color+'33;border:8px solid '+winnerAv.border+';display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px '+winnerAv.border+',0 0 120px '+winnerAv.border+'88;position:relative;z-index:2;">'
+        +'<div style="width:180px;height:180px;border-radius:50%;overflow:hidden;background:'+winnerAv.color+';border:8px solid #111827;display:flex;align-items:center;justify-content:center;box-shadow:14px 14px 0 #111827;position:relative;z-index:2;">'
         +'<img src="'+winnerAv.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
-        +'<div style="margin-top:24px;background:#ffe600;border:6px solid #111827;box-shadow:10px 10px 0 #111827;padding:18px 50px;border-radius:20px;text-align:center;">'
+        +'<div style="margin-top:24px;background:#ffe600;border:6px solid #111827;box-shadow:16px 16px 0 #111827;padding:18px 50px;border-radius:0;text-align:center;">'
         +'<div style="font-family:\'Paytone One\',sans-serif;font-size:24px;color:#111827;letter-spacing:6px;text-transform:uppercase;">&#129351; GANADOR &#129351;</div>'
         +'<div style="font-family:\'Paytone One\',sans-serif;font-size:52px;color:#111827;line-height:1.1;margin-top:4px;">'+escapeHtml(sorted[0].name)+'</div></div>'
-        +'<div id="winner-score-display" style="font-family:\'Paytone One\',sans-serif;font-size:34px;color:#facc15;margin-top:18px;text-shadow:0 0 20px #facc15;opacity:0;">0 pts</div>';
+        +'<div id="winner-score-display" style="font-family:\'Paytone One\',sans-serif;font-size:42px;color:#facc15;margin-top:18px;text-shadow:6px 6px 0 #111827, 0 0 20px #facc15;opacity:0;background:#0f172a;border:6px solid #111827;padding:4px 30px;box-shadow:10px 10px 0 #111827;">0 pts</div>';
       winnerScreen.appendChild(winnerContent);
       anime({targets:'#winner-reveal-content',opacity:[0,1],scale:[0.6,1.05,1],duration:900,easing:'easeOutBack'});
       playSfx('/assets/audio/sfx_tada.mp3');
@@ -2242,7 +2560,7 @@ function showPodium() {
     ceremonyRoot.appendChild(finalWrap);
     const fTitle=document.createElement('div');
     fTitle.style.cssText='text-align:center;flex-shrink:0;';
-    fTitle.innerHTML='<h2 style="font-family:\'Paytone One\',sans-serif;font-size:34px;color:#facc15;margin:0;text-shadow:0 0 20px #facc15,0 0 60px #facc1566;letter-spacing:3px;">&#127942; PODIO DE GANADORES &#127942;</h2><p style="font-family:Fredoka,sans-serif;font-size:13px;color:#475569;margin:4px 0 0;letter-spacing:2px;text-transform:uppercase;">&#161;El T&#237;o Axolo presenta el podio final de la noche!</p>';
+    fTitle.innerHTML='<div style="background:#0f172a;border:6px solid #111827;padding:10px 40px;box-shadow:10px 10px 0 #111827;display:inline-block;"><h2 style="font-family:\'Paytone One\',sans-serif;font-size:34px;color:#facc15;margin:0;text-shadow:6px 6px 0 #111827,0 0 20px #facc1566;letter-spacing:3px;">&#127942; PODIO DE GANADORES &#127942;</h2><p style="font-family:Fredoka,sans-serif;font-size:16px;font-weight:900;color:#f8fafc;margin:4px 0 0;letter-spacing:2px;text-transform:uppercase;text-shadow:4px 4px 0 #111827;">&#161;El T&#237;o Axolo presenta el podio final de la noche!</p></div>';
     finalWrap.appendChild(fTitle);
     const finalPodiumContainer=document.createElement('div');
     finalPodiumContainer.style.cssText='display:flex;align-items:flex-end;justify-content:center;gap:2rem;width:100%;max-width:960px;flex:1;min-height:0;';
@@ -2263,11 +2581,11 @@ function showPodium() {
       stepEl.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px;position:relative;">'
         +(isWinner?'<img src="/assets/podium_crown.png" style="width:68px;height:auto;object-fit:contain;filter:drop-shadow(0 0 14px #facc15);margin-bottom:-14px;z-index:3;position:relative;"/>':'')
         +'<span style="font-family:Fredoka,sans-serif;font-size:'+(isWinner?'16px':'14px')+';font-weight:900;background:#111827;color:'+sd.color+';padding:5px 16px;border-radius:20px;border:2px solid '+sd.color+';margin-bottom:'+(isWinner?'12px':'8px')+';letter-spacing:1px;">'+sd.rank+' '+sd.label+'</span>'
-        +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+'22;border:'+(isWinner?'6px':'4px')+' solid '+av.border+';display:flex;align-items:center;justify-content:center;width:'+(avSizes[sd.place]||'5.5rem')+';height:'+(avSizes[sd.place]||'5.5rem')+';box-shadow:0 0 '+(isWinner?'40px':'20px')+' '+av.border+'66;">'
+        +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+';border:6px solid #111827;display:flex;align-items:center;justify-content:center;width:'+(avSizes[sd.place]||'5.5rem')+';height:'+(avSizes[sd.place]||'5.5rem')+';box-shadow:8px 8px 0 #111827;">'
         +'<img src="'+av.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
         +'<p style="font-family:Fredoka,sans-serif;font-size:'+(isWinner?'19px':'16px')+';color:#f1f5f9;font-weight:700;margin:10px 0 2px;text-align:center;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(sd.player.name)+'</p>'
-        +'<p class="final-score-'+sd.place+'" style="font-family:\'Paytone One\',sans-serif;font-size:'+(isWinner?'24px':'20px')+';color:'+sd.color+';margin:0;text-shadow:0 0 12px '+sd.color+'66;">0 pts</p></div>'
-        +'<div style="width:100%;border-radius:1.5rem 1.5rem 0 0;height:'+(pedHeights[sd.place]||'80px')+';background:'+sd.pedColor+';border:4px solid '+sd.color+';border-bottom:none;box-shadow:0 0 40px '+sd.glow+',inset 0 1px 0 rgba(255,255,255,0.2);position:relative;overflow:hidden;">'
+        +'<p class="final-score-'+sd.place+'" style="font-family:\'Paytone One\',sans-serif;font-size:'+(isWinner?'28px':'22px')+';color:'+sd.color+';margin:0;text-shadow:4px 4px 0 #111827,0 0 12px '+sd.color+'66;">0 pts</p></div>'
+        +'<div style="width:100%;border-radius:0;height:'+(pedHeights[sd.place]||'80px')+';background:'+sd.color+';border:6px solid #111827;border-bottom:none;box-shadow:12px 12px 0 #111827,inset 0 0 20px rgba(255,255,255,0.3);position:relative;overflow:hidden;margin-bottom:-6px;">'
         +'<div style="position:absolute;top:0;left:0;right:0;height:28px;background:linear-gradient(to bottom,rgba(255,255,255,0.14),transparent);border-radius:1.5rem 1.5rem 0 0;"></div>'
         +'<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:\'Paytone One\',sans-serif;font-size:'+(isWinner?'4.5rem':'3rem')+';font-weight:900;color:rgba(255,255,255,0.12);line-height:1;">'+sd.place+'</div></div>';
       finalPodiumContainer.appendChild(stepEl);
@@ -2276,7 +2594,7 @@ function showPodium() {
     bottomSection.style.cssText='display:flex;gap:1.2rem;width:100%;max-width:1040px;align-items:stretch;flex-shrink:0;height:138px;';
     finalWrap.appendChild(bottomSection);
     const awardsPanel=document.createElement('div');
-    awardsPanel.style.cssText='flex:1;background:rgba(15,23,42,0.6);backdrop-filter:blur(12px);border:2px solid rgba(51,65,85,0.6);border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;';
+    awardsPanel.style.cssText='flex:1;background:#1e293b;border:6px solid #111827;border-radius:0;padding:10px 14px;display:flex;flex-direction:column;box-shadow:10px 10px 0 #111827;';
     awardsPanel.innerHTML='<p style="font-size:9px;font-weight:900;letter-spacing:3px;color:#475569;text-transform:uppercase;margin:0 0 8px;">&#127885; Premios Especiales</p>';
     const awardsInner=document.createElement('div');
     awardsInner.style.cssText='display:flex;gap:8px;flex:1;align-items:center;justify-content:space-around;';
@@ -2288,13 +2606,13 @@ function showPodium() {
       aEl.style.cssText='display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;max-width:140px;gap:2px;';
       aEl.innerHTML='<div style="font-size:26px;filter:drop-shadow(0 0 8px '+a.color+');">'+a.icon+'</div>'
         +'<p style="font-size:10px;font-weight:900;text-transform:uppercase;color:'+a.color+';margin:0;letter-spacing:1px;">'+a.title+'</p>'
-        +'<div style="width:28px;height:28px;border-radius:50%;overflow:hidden;background:#0f172a;border:2px solid '+av.border+';display:flex;align-items:center;justify-content:center;margin:2px 0;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
+        +'<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;background:'+av.color+';border:4px solid #111827;display:flex;align-items:center;justify-content:center;margin:2px 0;box-shadow:4px 4px 0 #111827;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
         +'<p style="font-size:12px;font-weight:800;color:#e2e8f0;margin:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(a.player.name)+'</p>';
       awardsInner.appendChild(aEl);
     });
     bottomSection.appendChild(awardsPanel);
     const sbPanel=document.createElement('div');
-    sbPanel.style.cssText='width:290px;background:rgba(15,23,42,0.6);backdrop-filter:blur(12px);border:2px solid rgba(51,65,85,0.6);border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;flex-shrink:0;';
+    sbPanel.style.cssText='width:290px;background:#1e293b;border:6px solid #111827;border-radius:0;padding:10px 14px;display:flex;flex-direction:column;flex-shrink:0;box-shadow:10px 10px 0 #111827;';
     sbPanel.innerHTML='<p style="font-size:9px;font-weight:900;letter-spacing:3px;color:#475569;text-transform:uppercase;margin:0 0 8px;">&#128202; Posiciones Finales</p>';
     const sbInner=document.createElement('div');
     sbInner.style.cssText='flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px;';
@@ -2304,22 +2622,22 @@ function showPodium() {
       const isTop=i===0;
       const scoreColor=i===0?'#facc15':i===sorted.length-1?'#6b7280':'#94a3b8';
       const row=document.createElement('div');
-      row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:10px;background:'+(isTop?'rgba(250,204,21,0.1)':'rgba(30,41,59,0.4)')+';border:1px solid '+(isTop?'rgba(250,204,21,0.3)':'rgba(51,65,85,0.4)')+';';
-      row.innerHTML='<span style="font-size:12px;width:18px;text-align:center;">'+(medals[i]||'#'+(i+1))+'</span>'
-        +'<div style="width:22px;height:22px;border-radius:5px;overflow:hidden;background:#0f172a;border:1px solid '+av.border+';display:flex;align-items:center;justify-content:center;flex-shrink:0;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
-        +'<span style="font-weight:700;flex:1;color:#e2e8f0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(p.name)+'</span>'
-        +'<span style="font-weight:900;font-size:12px;color:'+scoreColor+';">'+(p.score||0)+'</span>'
-        +'<span style="font-size:9px;color:#64748b;">pts</span>';
+      row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:0;background:'+(isTop?'#facc15':'#334155')+';border:4px solid #111827;box-shadow:4px 4px 0 #111827;';
+      row.innerHTML='<span style="font-size:12px;width:18px;text-align:center;font-weight:900;color:'+(isTop?'#111827':'#f1f5f9')+';">'+(medals[i]||'#'+(i+1))+'</span>'
+        +'<div style="width:24px;height:24px;border-radius:50%;overflow:hidden;background:'+av.color+';border:2px solid #111827;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
+        +'<span style="font-weight:900;flex:1;color:'+(isTop?'#111827':'#e2e8f0')+';font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(p.name)+'</span>'
+        +'<span style="font-weight:900;font-size:12px;color:'+(isTop?'#111827':scoreColor)+';">'+(p.score||0)+'</span>'
+        +'<span style="font-size:9px;color:'+(isTop?'#111827':'#64748b')+';font-weight:900;">pts</span>';
       sbInner.appendChild(row);
     });
     sbPanel.appendChild(sbInner);
     bottomSection.appendChild(sbPanel);
     const restartBtn=document.createElement('button');
     restartBtn.id='restart-btn-final';
-    restartBtn.style.cssText='background:linear-gradient(135deg,#ec4899,#a855f7);color:white;border:4px solid #111827;cursor:pointer;box-shadow:6px 6px 0 #111827;padding:13px 42px;border-radius:16px;font-family:\'Paytone One\',sans-serif;font-size:18px;letter-spacing:1px;margin-top:4px;flex-shrink:0;transition:transform 0.15s,box-shadow 0.15s;';
+    restartBtn.style.cssText='background:#ffe600;color:#111827;border:6px solid #111827;cursor:pointer;box-shadow:10px 10px 0 #111827;padding:13px 42px;border-radius:0;font-family:\'Paytone One\',sans-serif;font-size:22px;letter-spacing:1px;margin-top:4px;flex-shrink:0;transition:transform 0.15s,box-shadow 0.15s;text-transform:uppercase;';
     restartBtn.innerHTML='&#127918; Nueva Partida';
-    restartBtn.onmouseover=()=>{restartBtn.style.transform='translateY(-3px)';restartBtn.style.boxShadow='6px 9px 0 #111827';};
-    restartBtn.onmouseout=()=>{restartBtn.style.transform='';restartBtn.style.boxShadow='6px 6px 0 #111827';};
+    restartBtn.onmouseover=()=>{restartBtn.style.transform='translateY(4px) translateX(4px)';restartBtn.style.boxShadow='6px 6px 0 #111827';};
+    restartBtn.onmouseout=()=>{restartBtn.style.transform='';restartBtn.style.boxShadow='10px 10px 0 #111827';};
     finalWrap.appendChild(restartBtn);
     anime({targets:'#final-podium',opacity:[0,1],duration:700,easing:'easeOutQuad'});
     playSfx('/assets/audio/sfx_applause.mp3');
@@ -2423,23 +2741,42 @@ function renderRoomCode(code) {
 }
 
 function renderPlayerList() {
-  const container = document.getElementById('players-list');
-  const emptyState = document.getElementById('empty-state');
-  if (state.players.length === 0) { emptyState.style.display='flex'; container.querySelectorAll('.player-card').forEach(c=>c.remove()); return; }
-  emptyState.style.display = 'none';
-  const existingIds = new Set([...container.querySelectorAll('.player-card')].map(el=>el.dataset.socketId));
-  state.players.forEach(player => {
-    if (!existingIds.has(player.socketId)) {
-      const card = buildPlayerCard(player);
-      container.appendChild(card);
-      anime({ targets: card, translateX:[60,0], opacity:[0,1], duration:500, easing:'easeOutBack' });
+  const lobbyContainer = document.getElementById('players-list');
+  const modeContainer = document.getElementById('mode-players-list');
+  
+  // Sync the player count badges
+  const modeCountStr = `${state.players.length} / 8`;
+  const mBadge = document.getElementById('mode-player-badge');
+  if (mBadge) mBadge.textContent = modeCountStr;
+  const mCount = document.getElementById('mode-player-count');
+  if (mCount) mCount.textContent = state.players.length;
+
+  const renderToContainer = (container, emptyStateId) => {
+    if (!container) return;
+    const emptyState = document.getElementById(emptyStateId);
+    if (state.players.length === 0) { 
+      if(emptyState) emptyState.style.display='flex'; 
+      container.querySelectorAll('.player-card').forEach(c=>c.remove()); 
+      return; 
     }
-  });
-  container.querySelectorAll('.player-card').forEach(card => {
-    if (!state.players.find(p => p.socketId === card.dataset.socketId)) {
-      anime({ targets:card, translateX:[0,60], opacity:[1,0], duration:300, easing:'easeInCubic', complete:()=>card.remove() });
-    }
-  });
+    if(emptyState) emptyState.style.display = 'none';
+    const existingIds = new Set([...container.querySelectorAll('.player-card')].map(el=>el.dataset.socketId));
+    state.players.forEach(player => {
+      if (!existingIds.has(player.socketId)) {
+        const card = buildPlayerCard(player);
+        container.appendChild(card);
+        anime({ targets: card, translateX:[60,0], opacity:[0,1], duration:500, easing:'easeOutBack' });
+      }
+    });
+    container.querySelectorAll('.player-card').forEach(card => {
+      if (!state.players.find(p => p.socketId === card.dataset.socketId)) {
+        anime({ targets:card, translateX:[0,60], opacity:[1,0], duration:300, easing:'easeInCubic', complete:()=>card.remove() });
+      }
+    });
+  };
+
+  renderToContainer(lobbyContainer, 'empty-state');
+  renderToContainer(modeContainer, 'mode-empty-state');
 }
 
 function buildPlayerCard(player) {
@@ -2900,13 +3237,7 @@ async function inicializarQRConexion() {
   }
 }
 
-let lobbySoundPlayed = false;
-setTimeout(() => {
-  if (lobbySoundPlayed) return;
-  lobbySoundPlayed = true;
-  const wChoice = LOBBY_WELCOME_PHRASES[Math.floor(Math.random() * LOBBY_WELCOME_PHRASES.length)];
-  axoloSay(wChoice.text, wChoice.file);
-}, 1200);
+
 
 // ════════════════════════════════════════════
 //  PARTICLES BACKGROUND
@@ -3019,22 +3350,336 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(initButtons, 1000);
 
   // D-Pad Logic
-  let currentFocus = -1;
   document.addEventListener('keydown', (e) => {
-    // Only intercept if we are not typing in an input (though TV has no inputs)
-    const navItems = Array.from(document.querySelectorAll('.jackbox-button-sticker, .jackbox-button-arcade'));
+    const activeScreen = document.querySelector('.tv-screen.active');
+    if (!activeScreen) return;
+
+    if (activeScreen.id === 'mode-selection-screen') {
+      const modeCards = Array.from(activeScreen.querySelectorAll('.mode-card'));
+      const btnCrear = document.getElementById('btn-crear-sala-modo');
+      const activeEl = document.activeElement;
+      
+      const isCard = modeCards.includes(activeEl);
+      const isBtn = activeEl === btnCrear;
+
+      // Handle uninitialized focus
+      if (!isCard && !isBtn && (e.key.startsWith('Arrow') || e.key === 'Enter')) {
+        const selected = activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`);
+        if (selected) selected.focus();
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+         if (isCard) {
+            let idx = modeCards.indexOf(activeEl);
+            idx = (idx + 1) % modeCards.length;
+            modeCards[idx].focus();
+            e.preventDefault();
+         }
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+         if (isBtn) {
+            const selected = activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`);
+            if (selected) selected.focus();
+            else modeCards[0].focus();
+            e.preventDefault();
+         } else if (isCard) {
+            let idx = modeCards.indexOf(activeEl);
+            idx = (idx - 1 + modeCards.length) % modeCards.length;
+            modeCards[idx].focus();
+            e.preventDefault();
+         }
+      }
+      return; // Handled specially for this screen
+    }
+
+    // Default global fallback for other screens
+    const navItems = Array.from(activeScreen.querySelectorAll('.jackbox-button-sticker, .jackbox-button-arcade'));
     if (navItems.length === 0) return;
     
+    let currentFocus = navItems.indexOf(document.activeElement);
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
       currentFocus = (currentFocus + 1) % navItems.length;
       navItems[currentFocus].focus();
       e.preventDefault();
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      currentFocus = (currentFocus - 1 + navItems.length) % navItems.length;
+      if (currentFocus === -1) currentFocus = 0;
+      else currentFocus = (currentFocus - 1 + navItems.length) % navItems.length;
       navItems[currentFocus].focus();
       e.preventDefault();
     }
   });
+
+  // ── Mode Selection Logic ─────────────────────────────
+  const modesConfig = {
+    'clasico': {
+      title: 'Modo Clásico',
+      desc: 'El modo definitivo de Jackbox Karaoke. Canciones variadas, minijuegos y sabotajes libres.',
+      img: '/assets/tio_axolo_body.png',
+      color: '#facc15'
+    },
+    'anime': {
+      title: 'Fiesta Anime',
+      desc: '¡Saca tu nivel de poder! Solo openings, endings y mucho neón eléctrico.',
+      img: '/assets/axolo_anime.png',
+      color: '#fb923c'
+    },
+    'emo': {
+      title: 'Fiesta Emo',
+      desc: 'Porque no es una fase. Puro pop punk, delineador negro y corazones rotos.',
+      img: '/assets/axolo_emo.png',
+      color: '#d946ef'
+    },
+    'ranchera': {
+      title: 'Dolidas & Rancheras',
+      desc: 'Para cantar con sentimiento. Prepara la garganta y el pañuelo.',
+      img: '/assets/axolo_ranchera.png',
+      color: '#d97706'
+    },
+    'nostalgia': {
+      title: 'Nostalgia Pop',
+      desc: 'Saca la mezclilla y las estrellas. Un viaje a la era del playback, los celulares plegables y el pop de plástico.',
+      img: '/assets/axolo_nostalgia.png',
+      color: '#FF71CE'
+    }
+  };
+
+  let selectedMode = 'clasico';
+  const modeCards = document.querySelectorAll('.mode-card');
+  const modePreviewPanel = document.getElementById('mode-preview-panel');
+  const modeAxoloImg = document.getElementById('mode-axolo-img');
+  const modeDesc = document.getElementById('mode-description');
+  const btnCrearSalaModo = document.getElementById('btn-crear-sala-modo');
+
+  const modeHologramBase = document.getElementById('mode-hologram-base');
+
+  function hexToRgbStr(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}` : '255,255,255';
+  }
+
+  function selectMode(modeId) {
+    if(!modesConfig[modeId]) return;
+    selectedMode = modeId;
+    const config = modesConfig[modeId];
+    const rgbStr = hexToRgbStr(config.color);
+
+    // Update UI
+    modeCards.forEach(card => {
+      const isSelected = card.dataset.mode === modeId;
+      if(isSelected) {
+        card.style.borderColor = config.color;
+        card.style.boxShadow = `8px 8px 0px rgba(${rgbStr},0.5)`;
+        card.style.transform = 'scale(1.02)';
+        card.style.background = 'rgba(15,23,42,0.8)';
+        const titleEl = card.querySelector('h2, h3');
+        if(titleEl) {
+          titleEl.style.color = config.color;
+          titleEl.style.textShadow = `0 0 10px rgba(${rgbStr},0.5)`;
+        }
+      } else {
+        card.style.borderColor = '#111827';
+        card.style.boxShadow = '6px 6px 0px rgba(17,24,39,0.8)';
+        card.style.transform = 'scale(1)';
+        card.style.background = 'rgba(15,23,42,0.6)';
+        const titleEl = card.querySelector('h2, h3');
+        if(titleEl) {
+          titleEl.style.color = '#fff';
+          titleEl.style.textShadow = 'none';
+        }
+      }
+    });
+
+    // Update Panel
+    if (modePreviewPanel) {
+      modePreviewPanel.style.borderColor = config.color;
+      modePreviewPanel.style.boxShadow = `0 0 30px rgba(${rgbStr},0.3), inset 0 0 50px rgba(${rgbStr},0.1)`;
+    }
+    if (modeHologramBase) {
+      modeHologramBase.style.background = `radial-gradient(ellipse at center, ${config.color} 0%, transparent 70%)`;
+    }
+    if (modeAxoloImg) {
+      modeAxoloImg.src = config.img;
+      modeAxoloImg.style.filter = `drop-shadow(0px 0px 25px rgba(${rgbStr},0.8))`;
+      
+      // Limpiar glitter si no es nostalgia
+      if (modeId !== 'nostalgia') {
+        document.querySelectorAll('.glitter-particle').forEach(el => el.remove());
+        if (window.glitterInterval) clearInterval(window.glitterInterval);
+        if (btnCrearSalaModo) {
+          btnCrearSalaModo.style.boxShadow = `0 0 20px rgba(${rgbStr},0.6), 6px 6px 0px #111827`;
+        }
+      }
+
+      if (modeId === 'emo') {
+        modeAxoloImg.style.animation = 'glitchAnim 2s infinite';
+        if (modeDesc) modeDesc.style.animation = 'glitchText 2s infinite';
+      } else if (modeId === 'nostalgia') {
+        modeAxoloImg.style.animation = 'none';
+        if (modeDesc) modeDesc.style.animation = 'none';
+        
+        if (btnCrearSalaModo) {
+          btnCrearSalaModo.style.boxShadow = `0 0 30px rgba(${rgbStr},0.8), 0 0 20px #01CDFE, 6px 6px 0px #111827`;
+        }
+
+        // Crear partículas glitter cíclicamente
+        if (window.glitterInterval) clearInterval(window.glitterInterval);
+        window.glitterInterval = setInterval(() => {
+          const p = document.createElement('div');
+          p.className = 'glitter-particle';
+          p.style.width = Math.random() * 8 + 4 + 'px';
+          p.style.height = p.style.width;
+          p.style.left = Math.random() * 80 + 10 + '%';
+          p.style.bottom = Math.random() * 40 + 10 + '%';
+          const dur = Math.random() * 1.5 + 1;
+          p.style.animationDuration = dur + 's';
+          modePreviewPanel.appendChild(p);
+          setTimeout(() => p.remove(), dur * 1000);
+        }, 300);
+
+      } else {
+        modeAxoloImg.style.animation = 'none';
+        if (modeDesc) modeDesc.style.animation = 'none';
+      }
+    }
+    if (modeDesc) modeDesc.textContent = config.desc;
+    if (btnCrearSalaModo) {
+      btnCrearSalaModo.style.background = config.color;
+      btnCrearSalaModo.style.boxShadow = `0 0 20px rgba(${rgbStr},0.6), 8px 8px 0px #111827`;
+    }
+  }
+
+  modeCards.forEach(card => {
+    const triggerSelect = () => {
+      if (selectedMode !== card.dataset.mode) {
+        selectMode(card.dataset.mode);
+        try { if(window.UISounds) UISounds.playTone(400, 0.05); } catch(e){}
+        const bark = AXOLO_MODE_INTROS[card.dataset.mode];
+        if (bark && typeof axoloSay === 'function') {
+          axoloSay(bark.text, bark.file, 4000, true);
+        }
+      }
+    };
+    card.addEventListener('mouseenter', triggerSelect);
+    card.addEventListener('focus', triggerSelect);
+    card.addEventListener('click', () => {
+      triggerSelect();
+      try { if(window.UISounds) UISounds.playTone(600, 0.1); } catch(e){}
+      if (btnCrearSalaModo) btnCrearSalaModo.focus();
+    });
+  });
+
+  if (btnCrearSalaModo) {
+    btnCrearSalaModo.addEventListener('click', () => {
+      if (selectedMode !== 'clasico') {
+        try { if(window.UISounds) UISounds.playTone(150, 0.3, 'sawtooth'); } catch(e){}
+        if (typeof axoloSay === 'function') {
+          axoloSay("¡Aguanta compa! Los changos del código siguen armando este modo.", "sad", 4000, true);
+        }
+        const oldText = btnCrearSalaModo.textContent;
+        const oldBg = btnCrearSalaModo.style.background;
+        btnCrearSalaModo.textContent = '¡PRÓXIMAMENTE!';
+        btnCrearSalaModo.style.background = '#ef4444';
+        setTimeout(() => {
+          btnCrearSalaModo.textContent = oldText;
+          btnCrearSalaModo.style.background = oldBg;
+        }, 1500);
+        return;
+      }
+      
+      try { if(window.UISounds) UISounds.playTone(800, 0.15); } catch(e){}
+
+      const bark = AXOLO_MODE_SELECTED[selectedMode];
+      if (bark && typeof axoloSay === 'function') {
+        axoloSay(bark.text, bark.file, 4000, true);
+      }
+      
+      // Request room from server
+      socket.emit('tv:create_room', { mode: selectedMode });
+
+      // Transition to Lobby (simulating the wipe)
+      const wipeContainer = document.createElement('div');
+      wipeContainer.style.cssText = 'position:fixed;inset:0;z-index:999999;pointer-events:none;overflow:hidden;display:flex;';
+      
+      const leftWipe = document.createElement('div');
+      leftWipe.style.cssText = 'position:absolute;top:0;left:-70%;width:70%;height:100%;background:#ffe600;transform:skewX(12deg);border-right:15px solid #111827;box-shadow:20px 0 0 #111827;';
+      
+      const rightWipe = document.createElement('div');
+      rightWipe.style.cssText = 'position:absolute;top:0;right:-70%;width:70%;height:100%;background:#ec4899;transform:skewX(12deg);border-left:15px solid #111827;box-shadow:-20px 0 0 #111827;';
+      
+      wipeContainer.appendChild(leftWipe);
+      wipeContainer.appendChild(rightWipe);
+      document.body.appendChild(wipeContainer);
+
+      try { if(typeof UISounds !== 'undefined') UISounds.whoosh(); } catch(e){}
+
+      if (typeof anime !== 'undefined') {
+        anime({ targets: leftWipe, left: '-10%', duration: 450, easing: 'easeOutExpo' });
+        anime({ targets: rightWipe, right: '-10%', duration: 450, easing: 'easeOutExpo' });
+        
+        setTimeout(() => {
+          document.getElementById('mode-selection-screen').classList.remove('active');
+          document.getElementById('lobby-screen').classList.add('active');
+          
+          if (typeof animateLobbyWelcome === 'function') animateLobbyWelcome();
+          
+          // Send mode to server if needed
+          console.log("SALA CREADA CON MODO:", selectedMode);
+
+          setTimeout(() => {
+            try { if(typeof UISounds !== 'undefined') UISounds.whoosh(); } catch(e){}
+            anime({ targets: leftWipe, left: '-110%', duration: 500, easing: 'easeInExpo', delay: 100 });
+            anime({ targets: rightWipe, right: '-110%', duration: 500, easing: 'easeInExpo', delay: 100, 
+              complete: () => { wipeContainer.remove(); }
+            });
+          }, 500);
+        }, 600);
+      } else {
+        document.getElementById('mode-selection-screen').classList.remove('active');
+        document.getElementById('lobby-screen').classList.add('active');
+        if (typeof animateLobbyWelcome === 'function') animateLobbyWelcome();
+        wipeContainer.remove();
+      }
+    });
+  }
+
+  const btnBackToModes = document.getElementById('btn-back-to-modes');
+  if (btnBackToModes) {
+    btnBackToModes.addEventListener('click', () => {
+      try { if(window.UISounds) UISounds.playTone(400, 0.15); } catch(e){}
+      
+      socket.emit('tv:close_room');
+      
+      const wipeContainer = document.createElement('div');
+      wipeContainer.style.cssText = 'position:fixed;inset:0;z-index:999999;pointer-events:none;overflow:hidden;display:flex;';
+      const leftWipe = document.createElement('div');
+      leftWipe.style.cssText = 'position:absolute;top:0;left:-70%;width:70%;height:100%;background:#ec4899;transform:skewX(-12deg);border-right:15px solid #111827;box-shadow:20px 0 0 #111827;';
+      const rightWipe = document.createElement('div');
+      rightWipe.style.cssText = 'position:absolute;top:0;right:-70%;width:70%;height:100%;background:#00e5ff;transform:skewX(-12deg);border-left:15px solid #111827;box-shadow:-20px 0 0 #111827;';
+      
+      wipeContainer.appendChild(leftWipe);
+      wipeContainer.appendChild(rightWipe);
+      document.body.appendChild(wipeContainer);
+      
+      if (typeof anime !== 'undefined') {
+        anime({ targets: leftWipe, left: '-10%', duration: 450, easing: 'easeOutExpo' });
+        anime({ targets: rightWipe, right: '-10%', duration: 450, easing: 'easeOutExpo' });
+        setTimeout(() => {
+          document.getElementById('lobby-screen').classList.remove('active');
+          document.getElementById('mode-selection-screen').classList.add('active');
+          
+          setTimeout(() => {
+            anime({ targets: leftWipe, left: '-110%', duration: 500, easing: 'easeInExpo' });
+            anime({ targets: rightWipe, right: '-110%', duration: 500, easing: 'easeInExpo', complete: () => wipeContainer.remove() });
+          }, 300);
+        }, 600);
+      } else {
+        document.getElementById('lobby-screen').classList.remove('active');
+        document.getElementById('mode-selection-screen').classList.add('active');
+        wipeContainer.remove();
+      }
+    });
+  }
 });
 // ── Debug Panel (Ctrl+Shift+D) ─────────────────────────────
 (function() {
@@ -3085,3 +3730,4 @@ document.addEventListener('DOMContentLoaded', () => {
   window.showDebug = () => { debugVisible = true; panel.style.display = 'block'; updateDebug(); };
   window.hideDebug = () => { debugVisible = false; panel.style.display = 'none'; };
 })();
+
