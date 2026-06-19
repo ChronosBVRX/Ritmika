@@ -4528,7 +4528,7 @@ function renderRoomCode(code) {
     });
   }
 
-  const joinUrl = `http://${state.localIP || window.location.hostname}:3000/join`;
+  const joinUrl = `${window.location.origin}/join?code=${state.roomCode || ''}`;
   const textoInstruccion = document.getElementById('texto-instruccion-unirse');
   if (textoInstruccion) {
     textoInstruccion.innerHTML = `Escanea el código QR o ingresa a:<br/><span style="color:#22d3ee; font-weight:900; letter-spacing:1px; text-shadow:0 0 8px rgba(34,211,238,0.5);">${joinUrl}</span>`;
@@ -4899,6 +4899,14 @@ function hideTioAxolCutin() {
   }, 450);
 }
 
+function inicializarQRConexion(canvas) {
+  if (!canvas) return;
+
+  const joinUrl = `${window.location.origin}/join?code=${state.roomCode || ''}`;
+
+  QRCode.toCanvas(canvas, joinUrl, { width: 200, color: { dark: '#0f172a', light: '#ffffff' } });
+}
+
 const AXOLO_PRESET_MAP = {
   // Talking (Yellow background)
   'lobby_welcome.mp3': 'talking',
@@ -5162,7 +5170,7 @@ async function inicializarQRConexion() {
 
     const textoInstruccion = document.getElementById('texto-instruccion-unirse');
     if (textoInstruccion) {
-      textoInstruccion.innerHTML = `Conéctate al mismo WiFi y escanea el código QR o ingresa desde tu móvil a: <br/><span class="text-cyan-400 font-bold text-lg">${joinUrl}</span>`;
+      textoInstruccion.innerHTML = `Escanea el código QR o ingresa desde tu móvil a: <br/><span class="text-cyan-400 font-bold text-lg">${joinUrl}</span>`;
     }
     console.log('[QR] Canvas renderizado para:', joinUrl);
   } catch (err) {
