@@ -1279,7 +1279,7 @@
      BOOTLOADER — Loads everything before game starts
 ══════════════════════════════════════════════════════════ -->
 <div id="bootloader-screen" style="display:flex;">
-  <audio id="boot-music" loop preload="none">
+  <audio id="boot-music" loop preload="auto">
     <source src="./assets/audio/menu_music.mp3" type="audio/mpeg">
   </audio>
   <video id="boot-video-bg" loop muted playsinline preload="none">
@@ -1996,6 +1996,7 @@ const boot = {
       this.step(5, 'active', 'Afinando instrumentos del Tío Axolo...');
       this.step(5, 'active', 'Renderizando texturas 4K...');
       this.step(5, 'done', 'Motor gráfico y de audio listo');
+      _audioPreloader.start();
       return;
     }
     const allDone = Object.values(this.steps).every(v => v);
@@ -2018,6 +2019,7 @@ const boot = {
     startBtn.onclick = () => {
       startBtn.remove();
       if (banner) banner.classList.remove('show');
+      _resumeAudioContext();
       if (typeof bootMusic !== 'undefined' && bootMusic) bootMusic.play().catch(()=>{});
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(()=>{});
@@ -2120,16 +2122,94 @@ const boot = {
 };
 boot.step(1, 'active');
 
+// ─── Audio Preloader ──────────────────────────
+// Downloads all MP3s into browser cache during bootloader so they play instantly later
+const _audioPreloader = {
+  _queue: [],
+  _active: 0,
+  _maxConcurrent: 6,
+  _started: false,
+  _total: 0,
+  _loaded: 0,
+  async start() {
+    if (this._started) return;
+    this._started = true;
+    try {
+      const res = await fetch('/api/audio-files');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const files = await res.json();
+      if (!Array.isArray(files)) throw new Error('Invalid response');
+      this._total = files.length;
+      this._queue = files.map(f => './assets/audio/' + f);
+      this._processQueue();
+    } catch (e) {
+      console.warn('[Preloader] Could not fetch audio list:', e.message);
+    }
+  },
+  _processQueue() {
+    while (this._active < this._maxConcurrent && this._queue.length > 0) {
+      const url = this._queue.shift();
+      this._active++;
+      this._preloadOne(url);
+    }
+  },
+  _preloadOne(url) {
+    const audio = new Audio(url);
+    audio.preload = 'auto';
+    audio.addEventListener('canplaythrough', () => {
+      this._loaded++;
+      this._active--;
+      this._updateDetail();
+      this._processQueue();
+    }, { once: true });
+    audio.addEventListener('error', () => {
+      this._active--;
+      this._processQueue();
+    }, { once: true });
+    audio.load();
+  },
+  _updateDetail() {
+    const det = document.getElementById('boot-detail-5');
+    if (det && this._total > 0) {
+      det.textContent = 'Precargando audio: ' + this._loaded + '/' + this._total;
+    }
+  }
+};
+
+// ─── Audio Context Resume ──
+// Browsers block AudioContext until user gesture; this forces resume on first interaction
+let _audioCtxResumed = false;
+function _resumeAudioContext() {
+  if (_audioCtxResumed) return;
+  _audioCtxResumed = true;
+  try {
+    if (window.AudioContext || window.webkitAudioContext) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+    }
+  } catch(e) {}
+}
+
+function _setupFirstInteraction() {
+  const handler = () => {
+    _resumeAudioContext();
+    document.removeEventListener('click', handler);
+    document.removeEventListener('touchstart', handler);
+    document.removeEventListener('keydown', handler);
+  };
+  document.addEventListener('click', handler, { once: true });
+  document.addEventListener('touchstart', handler, { once: true });
+  document.addEventListener('keydown', handler, { once: true });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   bootMusic = document.getElementById('boot-music');
-  if (bootMusic) {
-    bootMusic.volume = 0.4;
-    bootMusic.play().catch(() => {});
-  }
+  if (bootMusic) bootMusic.volume = 0.4;
   const bootVideo = document.getElementById('boot-video-bg');
   if (bootVideo) {
     bootVideo.play().catch(() => {});
   }
+  _setupFirstInteraction();
 });
 
 async function loadCatalog(retries = 3) {
@@ -5871,8 +5951,9 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 <script>
-  // Iniciar en fullscreen al primer click o toque del usuario
+  // Iniciar en fullscreen + audio al primer click o toque del usuario
   document.addEventListener('click', function _fullscreenRequest() {
+    _resumeAudioContext();
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(err => {
         console.warn('Error al intentar entrar a fullscreen:', err);
@@ -5881,6 +5962,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.removeEventListener('click', _fullscreenRequest);
   }, { once: true });
   document.addEventListener('touchstart', function _fullscreenRequestTouch() {
+    _resumeAudioContext();
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(err => {});
     }

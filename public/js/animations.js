@@ -92,6 +92,7 @@ const UISounds = (() => {
     reveal:    playReveal,
     stinger:   playStinger,
     playTone,
+    playToneSweep,
     playChime,
   };
 })();

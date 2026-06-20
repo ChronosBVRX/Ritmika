@@ -264,7 +264,16 @@ app.get('/api/songs', (req, res) => {
   res.json([]);
 });
 
-// ── Health check for bootloader ──────────────────────────────
+// ── Audio files listing (for preloader) ──
+app.get('/api/audio-files', (req, res) => {
+  const audioDir = path.join(__dirname, '../public/assets/audio');
+  fs.readdir(audioDir, (err, files) => {
+    if (err) return res.status(500).json({ error: 'Cannot read audio directory' });
+    res.json(files.filter(f => f.endsWith('.mp3')).sort());
+  });
+});
+
+// ── Health check for bootloader ──
 app.get('/api/health', (req, res) => {
   res.json({
     server: true,
