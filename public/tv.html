@@ -2053,15 +2053,15 @@ const boot = {
         if (bootMusic && !bootMusic.paused) {
           const fadeSteps = 30;
           const fadeInterval = 50;
-          const volStep = bootMusic.volume / fadeSteps;
+          const targetVol = 0.06;
+          const volStep = (bootMusic.volume - targetVol) / fadeSteps;
           let step = 0;
           const fadeOut = setInterval(() => {
             step++;
-            bootMusic.volume = Math.max(0, bootMusic.volume - volStep);
+            bootMusic.volume = Math.max(targetVol, bootMusic.volume - volStep);
             if (step >= fadeSteps) {
               clearInterval(fadeOut);
-              bootMusic.pause();
-              bootMusic.volume = 0.4;
+              bootMusic.volume = targetVol;
             }
           }, fadeInterval);
         }
@@ -4045,6 +4045,8 @@ function startKaraoke(player, song) {
         video.src = song.url;
         video.muted = true;
         
+        if (typeof bootMusic !== 'undefined' && bootMusic) bootMusic.pause();
+        
         video.play().then(() => {
           if (myGeneration !== karaokeGeneration) return;
           const unmuteWhenReady = setInterval(() => {
@@ -4251,6 +4253,10 @@ document.getElementById('continue-btn').addEventListener('click', () => {
 });
 
 function nextTurn() {
+  if (typeof bootMusic !== 'undefined' && bootMusic && bootMusic.paused) {
+    bootMusic.volume = 0.06;
+    bootMusic.play().catch(()=>{});
+  }
   _stopCurrentAxolo();
   stopAllSfx();
   if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
@@ -4303,6 +4309,7 @@ const AWARD_CARRILLA = {
 let podiumBgm = null;
 
 function showPodium() {
+  if (typeof bootMusic !== 'undefined' && bootMusic) { bootMusic.pause(); }
   clearSavedGame();
   if (podiumBgm) { podiumBgm.pause(); podiumBgm.currentTime = 0; podiumBgm = null; }
 
