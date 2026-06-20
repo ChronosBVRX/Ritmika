@@ -846,6 +846,50 @@
       color:#fca5a5; line-height:1.4;
     }
 
+    /* Audio-only placeholder */
+    #audio-only-placeholder {
+      position:absolute; inset:0; z-index:5;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);
+      opacity:0; pointer-events:none; transition:opacity 0.6s ease;
+    }
+    #audio-only-placeholder.visible {
+      opacity:1;
+    }
+    #audio-only-placeholder .aop-icon {
+      font-size:5rem; margin-bottom:1rem;
+      animation:aop-bounce 2s ease-in-out infinite;
+    }
+    #audio-only-placeholder .aop-title {
+      font-family:'Paytone One',sans-serif; font-size:2rem; font-weight:900;
+      color:#f1f5f9; text-align:center; text-shadow:0 0 30px rgba(0,229,255,0.3);
+      max-width:80vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    #audio-only-placeholder .aop-artist {
+      font-family:'Fredoka',sans-serif; font-size:1.1rem; font-weight:700;
+      color:#94a3b8; margin-top:0.5rem;
+    }
+    #audio-only-placeholder .aop-bar {
+      width:200px; height:4px; margin-top:2rem;
+      background:linear-gradient(90deg,#ec4899,#a855f7,#22d3ee,#facc15);
+      background-size:300% 100%;
+      border-radius:4px;
+      animation:aop-bar-shift 3s ease-in-out infinite, aop-bar-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes aop-bounce {
+      0%,100% { transform:translateY(0); }
+      50% { transform:translateY(-15px); }
+    }
+    @keyframes aop-bar-shift {
+      0% { background-position:0% 50%; }
+      50% { background-position:100% 50%; }
+      100% { background-position:0% 50%; }
+    }
+    @keyframes aop-bar-pulse {
+      0%,100% { width:200px; opacity:0.7; }
+      50% { width:280px; opacity:1; }
+    }
+
     /* Now Playing overlay */
     #lyrics-overlay {
       position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
@@ -1831,6 +1875,14 @@
       <div class="error-icon">⚠️</div>
       <div class="error-title">Video no disponible</div>
       <div class="error-desc">El formato del video no es compatible con el reproductor o hubo un error de conexión. El temporizador continúa para que la canción siga.</div>
+    </div>
+
+    <!-- Audio-only placeholder (shown when video file has no video track) -->
+    <div id="audio-only-placeholder">
+      <div class="aop-icon">🎵</div>
+      <div class="aop-title" id="aop-title"></div>
+      <div class="aop-artist" id="aop-artist"></div>
+      <div class="aop-bar"></div>
     </div>
 
     <!-- Now Playing overlay -->
@@ -3912,6 +3964,7 @@ document.getElementById('spin-btn').addEventListener('click', () => {
 function spinRoulette() {
   if (isSpinning) return;
   isSpinning = true;
+  if (state.round === 2) state.assignedBy = new Set();
   if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
   document.getElementById('spin-btn').disabled = true;
   document.getElementById('selected-player-banner').style.opacity = '0';
@@ -4038,6 +4091,8 @@ let challengeFired  = false;
 let blackoutFired   = false;
 let blackoutTimeout = null;
 let karaokeGeneration = 0;
+let songEnded = false;
+let currentSongPerformer = null;
 const activeSfx = [];
 const SFX_VOLUME = 0.35;
 const SFX_DUCKED = 0.10;
@@ -4066,6 +4121,8 @@ function stopAllSfx() {
 function startKaraoke(player, song) {
   if (document.getElementById('karaoke-screen').classList.contains('active')) return;
   karaokeGeneration++;
+  songEnded = false;
+  currentSongPerformer = player;
   const myGeneration = karaokeGeneration;
   showScreen('karaoke-screen', 'flash');
 
@@ -4102,6 +4159,8 @@ function startKaraoke(player, song) {
   document.getElementById('challenge-banner').style.transform = 'translateY(60px)';
   document.getElementById('blackout-banner').style.transform = 'scale(0)';
   document.getElementById('scoreboard-overlay').classList.remove('visible');
+  const aph = document.getElementById('audio-only-placeholder');
+  if (aph) aph.classList.remove('visible');
 
   // Video — recreate element and YIELD to compositor to fix black screen bug in WebView2
   const oldVideo = document.getElementById('karaoke-video');
@@ -4152,6 +4211,9 @@ function startKaraoke(player, song) {
         const errBanner = document.getElementById('video-error-banner');
         if (errBanner) errBanner.classList.remove('visible');
         if (!timerInterval) startKaraokeTimer(video, song);
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          showAudioOnlyPlaceholder(song);
+        }
       };
       
       video.onerror = () => {
@@ -4196,6 +4258,16 @@ function startKaraoke(player, song) {
   });
 }
 
+function showAudioOnlyPlaceholder(song) {
+  const el = document.getElementById('audio-only-placeholder');
+  if (!el) return;
+  const titleEl = document.getElementById('aop-title');
+  const artistEl = document.getElementById('aop-artist');
+  if (titleEl && song) titleEl.textContent = song.title || 'Sin título';
+  if (artistEl && song) artistEl.textContent = song.artist || '';
+  el.classList.add('visible');
+}
+
 function startKaraokeTimer(video, song) {
   if (timerInterval) clearInterval(timerInterval);
   const duration = song?.duration || (video?.duration) || 120;
@@ -4232,8 +4304,8 @@ function startKaraokeTimer(video, song) {
 
     if (remaining <= 0) {
       clearInterval(timerInterval);
-      const fallbackSinger = state.singerQueue[state.currentSingerIdx % state.singerQueue.length] || state.players.find(p => !p.disconnected);
-      if (!video) endSong(fallbackSinger);
+      const fallbackSinger = currentSongPerformer || state.singerQueue[state.currentSingerIdx % state.singerQueue.length] || state.players.find(p => !p.disconnected);
+      endSong(fallbackSinger);
     }
   }, 1000);
 }
@@ -4292,6 +4364,8 @@ function fireBlackout() {
 }
 
 function endSong(player) {
+  if (songEnded) return;
+  songEnded = true;
   clearInterval(timerInterval);
   timerInterval = null;
   const errBanner = document.getElementById('video-error-banner');
@@ -4307,6 +4381,8 @@ function endSong(player) {
   video.onplaying = null;
   video.onerror   = null;
   video.onended   = null;
+  const aph = document.getElementById('audio-only-placeholder');
+  if (aph) aph.classList.remove('visible');
   video.style.filter = '';
   video.pause();
   video.removeAttribute('src');
@@ -4422,6 +4498,10 @@ function nextTurn() {
     if (state.round > 3) {
       showPodium();
       return;
+    }
+
+    if (state.round === 2) {
+      state.assignedBy = new Set();
     }
 
     socket.emit('tv:broadcast', {
