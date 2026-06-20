@@ -754,6 +754,18 @@
       margin-left: auto;
       font-weight: 900; font-size: 0.85rem; color: #facc15;
     }
+    .assignment-status {
+      font-size: 1.2rem; margin-left: 0.3rem;
+      transition: opacity 0.3s;
+    }
+    .assignment-status.done { opacity: 1; }
+    .assignment-status.waiting { opacity: 0.5; }
+    #roulette-assign-progress {
+      text-align: center; margin-top: 0.5rem;
+      font-family: 'Fredoka',sans-serif; font-weight: 600;
+      color: #facc15; font-size: 0.9rem;
+      min-height: 1.4rem;
+    }
 
     /* Spin button */
     #spin-btn {
@@ -3573,11 +3585,29 @@ socket.on('tv:song_assigned', ({ attackerName, attackerSocketId, targetSocketId,
     state.assignedBy = state.assignedBy || new Set();
     state.assignedBy.add(attackerSocketId);
     
+    // Update visual status indicator on the player chip
+    const statusEl = document.getElementById(`astatus-${attackerSocketId}`);
+    if (statusEl) {
+      statusEl.textContent = '✅';
+      statusEl.className = 'assignment-status done';
+    }
+    
+    // Update progress text
+    const progEl = document.getElementById('roulette-assign-progress');
+    if (progEl) {
+      const activeR2Players = state.players.filter(p => !p.disconnected);
+      const doneCount = [...state.assignedBy].filter(id => activeR2Players.some(p => p.socketId === id)).length;
+      progEl.textContent = `Asignaciones: ${doneCount}/${activeR2Players.length}`;
+    }
+    
     // Check if all active players have submitted
     if (state.assignedBy.size >= state.players.filter(p => !p.disconnected).length) {
       console.log("[AUTO-FLOW] ¡Todos los jugadores asignaron canción! Girando ruleta...");
       if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
-      spinRoulette();
+      // Show spin button briefly before spinning
+      document.getElementById('spin-btn').style.display = 'block';
+      document.getElementById('roulette-heading').textContent = '¡Todas las asignaciones recibidas!';
+      setTimeout(() => { spinRoulette(); }, 1200);
     }
   }
 });
@@ -3729,9 +3759,14 @@ function startRoulette() {
     return;
   }
 
-  // Otherwise, show spin button and build wheel for all remaining
-  document.getElementById('spin-btn').style.display = 'block';
+  // Otherwise, build wheel for all remaining
   buildRouletteWheel(remaining);
+  // Hide spin button during Ronda 2 assignment phase — show only after all assign
+  if (state.round === 2) {
+    document.getElementById('spin-btn').style.display = 'none';
+  } else {
+    document.getElementById('spin-btn').style.display = 'block';
+  }
 
   const intro = ROULETTE_INTROS[Math.floor(Math.random() * ROULETTE_INTROS.length)];
   axoloSay(intro.text, intro.file);
@@ -3799,11 +3834,27 @@ function startRoulette() {
             
             state.assignedBy.add(p.socketId);
             
+            // Update visual status indicator on the player chip
+            const statusEl = document.getElementById(`astatus-${p.socketId}`);
+            if (statusEl) {
+              statusEl.textContent = '✅';
+              statusEl.className = 'assignment-status done';
+            }
+            
+            // Update progress text
+            const progEl = document.getElementById('roulette-assign-progress');
+            if (progEl) {
+              const doneCount = [...state.assignedBy].filter(id => activeR2Players.some(p2 => p2.socketId === id)).length;
+              progEl.textContent = `Asignaciones: ${doneCount}/${activeR2Players.length}`;
+            }
+            
             // Check if all active players have submitted
             if (state.assignedBy.size >= activeR2Players.length) {
               console.log("[AUTO-FLOW] ¡Todos los jugadores asignaron canción (con bots)! Girando ruleta...");
               if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
-              spinRoulette();
+              document.getElementById('spin-btn').style.display = 'block';
+              document.getElementById('roulette-heading').textContent = '¡Todas las asignaciones recibidas!';
+              setTimeout(() => { spinRoulette(); }, 1200);
             }
           }
         }, botDelay);
@@ -3833,9 +3884,25 @@ function startRoulette() {
       <img src="${av.img}" style="border-color:${av.border};" />
       <span>${escapeHtml(p.name)}</span>
       <span class="chip-score">${p.score || 0} pts</span>
+      ${state.round === 2 ? `<span id="astatus-${p.socketId}" class="assignment-status waiting" title="Esperando asignación">⏳</span>` : ''}
     `;
     mini.appendChild(el);
   });
+  // Add assignment progress text for Ronda 2
+  let progEl = document.getElementById('roulette-assign-progress');
+  if (state.round === 2) {
+    if (!progEl) {
+      progEl = document.createElement('div');
+      progEl.id = 'roulette-assign-progress';
+      mini.parentNode.appendChild(progEl);
+    }
+    const activeR2Players = state.players.filter(p => !p.disconnected);
+    const doneCount = [...(state.assignedBy || [])].filter(id => activeR2Players.some(p => p.socketId === id)).length;
+    progEl.textContent = `Asignaciones: ${doneCount}/${activeR2Players.length}`;
+    progEl.style.display = 'block';
+  } else if (progEl) {
+    progEl.style.display = 'none';
+  }
 
   // Reset banner
   document.getElementById('selected-player-banner').style.opacity = '0';
@@ -3846,6 +3913,10 @@ function startRoulette() {
   if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
   const autoSpinDelay = state.round === 2 ? 30000 : 4000;
   rouletteAutoSpinTimeout = setTimeout(() => {
+    if (state.round === 2) {
+      document.getElementById('spin-btn').style.display = 'block';
+      document.getElementById('roulette-heading').textContent = '¡Tiempo agotado!';
+    }
     spinRoulette();
   }, autoSpinDelay);
 }
@@ -4183,9 +4254,13 @@ function startKaraoke(player, song) {
     if (wrap) wrap.appendChild(video);
   }
 
+  // Set video src IMMEDIATELY so the compositor sees a valid source from frame 1
   if (song && song.url) {
     document.getElementById('lyrics-text').textContent = song.title;
     document.getElementById('np-artist').textContent = song.artist;
+    video.muted = true;
+    video.src = song.url;
+    if (typeof bootMusic !== 'undefined' && bootMusic) bootMusic.pause();
   } else {
     document.getElementById('lyrics-text').textContent = '¡Canta lo que quieras!';
     document.getElementById('np-artist').textContent = '🎤';
@@ -4219,7 +4294,11 @@ function startKaraoke(player, song) {
         if (errBanner) errBanner.classList.remove('visible');
         if (!timerInterval) startKaraokeTimer(video, song);
         if (video.videoWidth === 0 || video.videoHeight === 0) {
-          showAudioOnlyPlaceholder(song);
+          setTimeout(() => {
+            if (video.videoWidth === 0 || video.videoHeight === 0) {
+              showAudioOnlyPlaceholder(song);
+            }
+          }, 500);
         }
       };
       
@@ -4237,14 +4316,17 @@ function startKaraoke(player, song) {
       };
 
       if (song && song.url) {
-        if (typeof bootMusic !== 'undefined' && bootMusic) bootMusic.pause();
-        
-        video.muted = true;
-        
+        // Try to upgrade to presigned URL (non-blocking, compositor already has src)
         fetch('/api/video-url?id=' + encodeURIComponent(song.id))
           .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-          .then(data => { video.src = data.url || song.url; return video.play(); })
-          .catch(() => { video.src = song.url; return video.play(); })
+          .then(data => {
+            if (data.url && data.url !== video.src) video.src = data.url;
+            return video.play();
+          })
+          .catch(() => {
+            if (video.src !== song.url) video.src = song.url;
+            return video.play();
+          })
           .then(() => {
             if (myGeneration !== karaokeGeneration) return;
             const unmuteWhenReady = setInterval(() => {
