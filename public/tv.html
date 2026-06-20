@@ -2867,7 +2867,7 @@ function saveGameState() {
     const data = {
       v: 1,
       savedAt: Date.now(),
-      players: state.players.map(p => ({
+      players: state.players.filter(p => !p.disconnected).map(p => ({
         name: p.name, avatarId: p.avatarId,
         score: p.score || 0, genres: p.genres || [],
         artists: p.artists || [], tomatazos: p.tomatazos || 0,
@@ -3309,6 +3309,12 @@ socket.on('tv:player_joined', ({ player, players }) => {
     if (existing) {
       return { ...existing, ...p, score: existing.score ?? p.score ?? 0 };
     }
+    // Check if this player was disconnected (reconnection by name)
+    const pending = state.players.find(s => s.disconnected && s.name === p.name && !matchedNames.has(p.name));
+    if (pending) {
+      matchedNames.add(p.name);
+      return { ...p, ...pending, socketId: p.socketId, disconnected: false };
+    }
     // En modo restauración: buscar por nombre (una sola vez por nombre)
     if (saved) {
       if (!matchedNames.has(p.name)) {
@@ -3321,6 +3327,9 @@ socket.on('tv:player_joined', ({ player, players }) => {
     }
     return { ...p, score: 0, genres: [], artists: [], tomatazos: 0 };
   });
+  // Preserve unmatched pending entries (disconnected players who haven't rejoined yet)
+  const previousPending = state.players.filter(s => s.disconnected && !matchedNames.has(s.name));
+  previousPending.forEach(pp => state.players.push(pp));
   // Si todos los jugadores se reconectaron, salir del modo restauración
   if (state.isRestored && saved) {
     const allBack = saved.players.every(sp => state.players.some(p => p.name === sp.name));
@@ -3351,19 +3360,22 @@ socket.on('tv:player_joined', ({ player, players }) => {
     { text: "¡Pásale, pásale! Que hay lugar para un desafinado más. 🥳", file: "lobby_join_9.mp3" }
   ];
   const choice = joinLines[Math.floor(Math.random() * joinLines.length)];
-  updateTicker(`¡${player.name} se unió! Ya somos ${state.players.length} 🎉`);
+  const activeCount = state.players.filter(p => !p.disconnected).length;
+  updateTicker(`¡${player.name} se unió! Ya somos ${activeCount} 🎉`);
   const now = Date.now();
   if (!window.lastLobbyVoice || now - window.lastLobbyVoice > 3500) {
     window.lastLobbyVoice = now;
     axoloSay(choice.text, choice.file);
   }
-  if (state.players.length >= 1) {
+  if (activeCount >= 1) {
     document.getElementById('start-btn').classList.remove('hidden');
     RitmikaStyleFX.popIn('#start-btn', { duration: 700 });
   }
 });
 
 socket.on('tv:player_left', ({ socketId, name, players }) => {
+  // Keep disconnected player's state for potential reconnection
+  const disconnectedPlayer = state.players.find(s => s.socketId === socketId);
   state.players = players.map(p => ({
     ...p,
     score:     state.players.find(s => s.socketId === p.socketId)?.score ?? 0,
@@ -3371,6 +3383,19 @@ socket.on('tv:player_left', ({ socketId, name, players }) => {
     artists:   state.players.find(s => s.socketId === p.socketId)?.artists ?? [],
     tomatazos: state.players.find(s => s.socketId === p.socketId)?.tomatazos ?? 0,
   }));
+  // Preserve disconnected player's data with flag for reconnection (avoid duplicates)
+  if (disconnectedPlayer && !state.players.some(s => s.disconnected && s.name === disconnectedPlayer.name)) {
+    state.players.push({
+      name: disconnectedPlayer.name,
+      avatarId: disconnectedPlayer.avatarId,
+      socketId: 'pending_' + disconnectedPlayer.name,
+      score: disconnectedPlayer.score ?? 0,
+      genres: disconnectedPlayer.genres ?? [],
+      artists: disconnectedPlayer.artists ?? [],
+      tomatazos: disconnectedPlayer.tomatazos ?? 0,
+      disconnected: true,
+    });
+  }
   // Filtrar singerQueue y ajustar índice si el que se fue era el actual o estaba pendiente
   const oldLen = state.singerQueue.length;
   state.singerQueue = state.singerQueue.filter(p => p.socketId !== socketId);
@@ -3388,7 +3413,7 @@ socket.on('tv:player_left', ({ socketId, name, players }) => {
     data: { players: state.players },
   });
 
-  if (state.players.length < 1) document.getElementById('start-btn').classList.add('hidden');
+  if (state.players.filter(p => !p.disconnected).length < 1) document.getElementById('start-btn').classList.add('hidden');
 });
 
 socket.on('tv:player_genres', ({ socketId, genres }) => {
@@ -3492,8 +3517,8 @@ socket.on('tv:song_assigned', ({ attackerName, attackerSocketId, targetSocketId,
     state.assignedBy = state.assignedBy || new Set();
     state.assignedBy.add(attackerSocketId);
     
-    // Check if everyone has submitted
-    if (state.assignedBy.size >= state.players.length) {
+    // Check if all active players have submitted
+    if (state.assignedBy.size >= state.players.filter(p => !p.disconnected).length) {
       console.log("[AUTO-FLOW] ¡Todos los jugadores asignaron canción! Girando ruleta...");
       if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
       spinRoulette();
@@ -3575,7 +3600,7 @@ document.getElementById('btn-debug-add-bot').addEventListener('click', () => {
 // DEBUG: Quick start game (forces adding bot if 0 players)
 document.getElementById('btn-debug-start-game').addEventListener('click', () => {
   if (!state.roomCode) return;
-  if (state.players.length === 0) {
+  if (state.players.filter(p => !p.disconnected).length === 0) {
     socket.emit('tv:add_bot', { roomCode: state.roomCode });
     setTimeout(() => {
       document.getElementById('start-btn').click();
@@ -3602,7 +3627,7 @@ document.getElementById('btn-restore').addEventListener('click', () => {
   state.songQueue = saved.songQueue || [];
   renderPlayerList();
   updatePlayerCount();
-  if (state.players.length >= 1) {
+  if (state.players.filter(p => !p.disconnected).length >= 1) {
     document.getElementById('start-btn').classList.remove('hidden');
   }
   updateTicker(`Partida restaurada. Pídele a los jugadores que vuelvan a unirse con el nuevo código.`);
@@ -3666,9 +3691,10 @@ function startRoulette() {
   if (state.round === 2) {
     state.assignedBy = new Set();
     
-    // Gather all genres selected by players for relevance filtering
+    // Gather all genres selected by active players for relevance filtering
+    const activeR2Players = state.players.filter(p => !p.disconnected);
     const allPlayerGenres = new Set();
-    state.players.forEach(p => { if (p.genres) p.genres.forEach(g => allPlayerGenres.add(g)); });
+    activeR2Players.forEach(p => { if (p.genres) p.genres.forEach(g => allPlayerGenres.add(g)); });
     let round2Songs = [];
     if (window.catalogoKaraoke) {
       // Prefer songs matching any player's selected genres
@@ -3685,7 +3711,7 @@ function startRoulette() {
       roomCode: state.roomCode,
       event: 'ROUND_2_ASSIGN',
       data: {
-        players: state.players.map(p => ({
+        players: activeR2Players.map(p => ({
           socketId: p.socketId,
           name: p.name,
           avatarId: p.avatarId,
@@ -3697,15 +3723,15 @@ function startRoulette() {
     });
 
     // Automate assignments for bot players
-    state.players.forEach(p => {
+    activeR2Players.forEach(p => {
       if (p.socketId.startsWith('bot_')) {
         const botDelay = 1500 + Math.random() * 2500; // 1.5 - 4 seconds delay
         setTimeout(() => {
           const lobbyScreen = document.getElementById('roulette-screen');
           if (state.round === 2 && lobbyScreen && lobbyScreen.classList.contains('active') && !state.assignedBy.has(p.socketId)) {
-            // Pick a random target (not the bot itself)
-            const targets = state.players.filter(t => t.socketId !== p.socketId);
-            const target = targets[Math.floor(Math.random() * targets.length)] || state.players[0];
+            // Pick a random target (not the bot itself, only active players)
+            const targets = activeR2Players.filter(t => t.socketId !== p.socketId);
+            const target = targets[Math.floor(Math.random() * targets.length)] || activeR2Players[0];
             
             // Pick a random song from catalog (use larger pool)
             const songs = window.catalogoKaraoke || [];
@@ -3717,8 +3743,8 @@ function startRoulette() {
             
             state.assignedBy.add(p.socketId);
             
-            // Check if everyone has submitted
-            if (state.assignedBy.size >= state.players.length) {
+            // Check if all active players have submitted
+            if (state.assignedBy.size >= activeR2Players.length) {
               console.log("[AUTO-FLOW] ¡Todos los jugadores asignaron canción (con bots)! Girando ruleta...");
               if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
               spinRoulette();
@@ -3742,7 +3768,7 @@ function startRoulette() {
   // Mini player avatars
   const mini = document.getElementById('roulette-players-mini');
   mini.innerHTML = '';
-  state.players.forEach(p => {
+  state.players.filter(p => !p.disconnected).forEach(p => {
     const av = getAvatar(p.avatarId);
     const el = document.createElement('div');
     el.className = 'roulette-player-chip';
@@ -3999,7 +4025,8 @@ function showRouletteResult(player) {
 document.getElementById('go-karaoke-btn').addEventListener('click', () => {
   UISounds.click();
   if (rouletteResultTimeout) clearTimeout(rouletteResultTimeout);
-  const player = state.singerQueue[state.currentSingerIdx % state.players.length] || state.players[0];
+  const singerQueue = state.singerQueue.length ? state.singerQueue : state.players.filter(p => !p.disconnected);
+  const player = singerQueue[state.currentSingerIdx % singerQueue.length] || singerQueue[0];
   startKaraoke(player, state.currentSong);
 });
 
@@ -4205,7 +4232,8 @@ function startKaraokeTimer(video, song) {
 
     if (remaining <= 0) {
       clearInterval(timerInterval);
-      if (!video) endSong(state.players[state.currentSingerIdx % state.players.length]);
+      const fallbackSinger = state.singerQueue[state.currentSingerIdx % state.singerQueue.length] || state.players.find(p => !p.disconnected);
+      if (!video) endSong(fallbackSinger);
     }
   }, 1000);
 }
@@ -4387,7 +4415,7 @@ function nextTurn() {
   document.getElementById('scoreboard-overlay').classList.remove('visible');
   state.currentSingerIdx++;
 
-  if (state.currentSingerIdx >= state.players.length) {
+  if (state.currentSingerIdx >= state.singerQueue.length) {
     state.currentSingerIdx = 0;
     state.round++;
 
@@ -4402,7 +4430,7 @@ function nextTurn() {
       data: { round: state.round },
     });
 
-    state.singerQueue = [...state.players].sort(() => Math.random() - 0.5);
+    state.singerQueue = [...state.players.filter(p => !p.disconnected)].sort(() => Math.random() - 0.5);
     saveGameState();
 
     showRoundSplash(state.round, () => { startRoulette(); });
@@ -4957,25 +4985,26 @@ function renderRoomCode(code) {
 function renderPlayerList() {
   const lobbyContainer = document.getElementById('players-list');
   const modeContainer = document.getElementById('mode-players-list');
+  const activePlayers = state.players.filter(p => !p.disconnected);
   
   // Sync the player count badges
-  const modeCountStr = `${state.players.length} / 8`;
+  const modeCountStr = `${activePlayers.length} / 8`;
   const mBadge = document.getElementById('mode-player-badge');
   if (mBadge) mBadge.textContent = modeCountStr;
   const mCount = document.getElementById('mode-player-count');
-  if (mCount) mCount.textContent = state.players.length;
+  if (mCount) mCount.textContent = activePlayers.length;
 
   const renderToContainer = (container, emptyStateId) => {
     if (!container) return;
     const emptyState = document.getElementById(emptyStateId);
-    if (state.players.length === 0) { 
+    if (activePlayers.length === 0) { 
       if(emptyState) emptyState.style.display='flex'; 
       container.querySelectorAll('.player-card').forEach(c=>c.remove()); 
       return; 
     }
     if(emptyState) emptyState.style.display = 'none';
     const existingIds = new Set([...container.querySelectorAll('.player-card')].map(el=>el.dataset.socketId));
-    state.players.forEach(player => {
+    activePlayers.forEach(player => {
       if (!existingIds.has(player.socketId)) {
         const card = buildPlayerCard(player);
         container.appendChild(card);
@@ -4983,7 +5012,7 @@ function renderPlayerList() {
       }
     });
     container.querySelectorAll('.player-card').forEach(card => {
-      if (!state.players.find(p => p.socketId === card.dataset.socketId)) {
+      if (!activePlayers.find(p => p.socketId === card.dataset.socketId)) {
         anime({ targets:card, translateX:[0,60], opacity:[1,0], duration:300, easing:'easeInCubic', complete:()=>card.remove() });
       }
     });
@@ -5028,7 +5057,7 @@ function updateAllPlayerCardScores() {
 }
 
 function updatePlayerCount(joiningPlayer) {
-  const n = state.players.length;
+  const n = state.players.filter(p => !p.disconnected).length;
   const display = document.getElementById('player-count-display');
   const badge = document.getElementById('player-count-badge');
   if (joiningPlayer && n > 1) {
@@ -5681,7 +5710,8 @@ document.addEventListener('keydown', e => {
   if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
     e.preventDefault();
     if (document.getElementById('karaoke-screen').classList.contains('active')) {
-      const currentPlayer = state.singerQueue[state.currentSingerIdx % state.players.length] || state.players[0];
+      const sq = state.singerQueue.length ? state.singerQueue : state.players.filter(p => !p.disconnected);
+      const currentPlayer = sq[state.currentSingerIdx % sq.length] || sq[0];
       if (currentPlayer) endSong(currentPlayer);
     }
   }
@@ -5700,7 +5730,8 @@ document.addEventListener('keydown', e => {
 });
 
 document.getElementById('btn-debug-skip-song').addEventListener('click', () => {
-  const currentPlayer = state.singerQueue[state.currentSingerIdx % state.players.length] || state.players[0];
+  const sq = state.singerQueue.length ? state.singerQueue : state.players.filter(p => !p.disconnected);
+  const currentPlayer = sq[state.currentSingerIdx % sq.length] || sq[0];
   if (currentPlayer) endSong(currentPlayer);
 });
 </script>
