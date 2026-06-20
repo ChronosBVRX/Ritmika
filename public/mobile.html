@@ -795,6 +795,7 @@
 
   <!-- Player score display -->
   <div class="text-center mb-2">
+    <span id="round-label" class="inline-block px-3 py-1 rounded-full text-xs font-black mr-2" style="background:#1e293b; border:1px solid #22d3ee66; color:#22d3ee;">Ronda 1</span>
     <span id="my-score-display" class="inline-block px-4 py-1 rounded-full text-sm font-black" style="background:#1e293b; border:1px solid #facc1566; color:#facc15;">0 pts</span>
   </div>
 
@@ -1029,7 +1030,8 @@ const me = {
 let roomPlayers = [];
 
 function isVip() {
-  return roomPlayers.length > 0 && roomPlayers[0].socketId === socket.id;
+  if (roomPlayers.length === 0) return false;
+  return roomPlayers[0].name === me.name;
 }
 
 // ── SOCKET.IO ─────────────────────────────────────────────
@@ -1045,6 +1047,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 socket.on('connect', () => {
   console.log('[MOBILE] Conectado al servidor:', socket.id);
+  if (me.roomCode && me.name && me.avatarId !== null) {
+    socket.emit('player:join', {
+      roomCode: me.roomCode,
+      name: me.name,
+      avatarId: me.avatarId,
+    });
+    setTimeout(() => {
+      if (me.genres.length) socket.emit('player:select_genres', { roomCode: me.roomCode, genres: me.genres });
+      if (me.artists.length) socket.emit('player:select_artists', { roomCode: me.roomCode, artists: me.artists });
+    }, 500);
+  }
 });
 
 socket.on('connect_error', () => {
@@ -1160,6 +1173,13 @@ function handleGameEvent(event, data) {
     case 'PLAYER_LEFT':
       roomPlayers = data.players || [];
       updateWaitingRoomPlayers(data.players);
+      break;
+
+    case 'ROUND_INFO':
+      {
+        const roundLabel = document.getElementById('round-label');
+        if (roundLabel) roundLabel.textContent = `Ronda ${data.round}`;
+      }
       break;
 
     case 'VOTE_COUNT':

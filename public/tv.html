@@ -3384,7 +3384,7 @@ socket.on('tv:player_left', ({ socketId, name, players }) => {
   // Sync mobile clients with updated player list
   socket.emit('tv:broadcast', {
     roomCode: state.roomCode,
-    event: 'PLAYER_JOINED',
+    event: 'PLAYER_LEFT',
     data: { players: state.players },
   });
 
@@ -3453,6 +3453,14 @@ socket.on('tv:vote', ({ voterName, performerSocketId, score, voterSocketId }) =>
   
   state.votedBy = state.votedBy || new Set();
   if (voterSocketId) state.votedBy.add(voterSocketId);
+  
+  // Broadcast vote count to mobiles
+  const expectedCount = state.players.filter(p => p.socketId !== performerSocketId).length;
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'VOTE_COUNT',
+    data: { count: state.votedBy.size, total: expectedCount },
+  });
   
   // Check if all votes are in
   checkAllVotesSubmitted(performerSocketId);
@@ -3532,6 +3540,11 @@ document.getElementById('start-btn').addEventListener('click', () => {
   state.currentSingerIdx = 0;
   if (idleInterval) { clearInterval(idleInterval); idleInterval = null; }
   socket.emit('tv:start_game', { roomCode: state.roomCode });
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'ROUND_INFO',
+    data: { round: state.round },
+  });
   startRoulette();
 });
 
@@ -4139,13 +4152,23 @@ function startKaraokeTimer(video, song) {
   if (timerInterval) clearInterval(timerInterval);
   const duration = song?.duration || (video?.duration) || 120;
   let elapsed = 0;
+  let timerBcastTick = 0;
 
   timerInterval = setInterval(() => {
     elapsed++;
+    timerBcastTick++;
     const remaining = Math.max(0, duration - elapsed);
     const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
     const ss = String(remaining % 60).padStart(2, '0');
     document.getElementById('hud-timer').textContent = `${mm}:${ss}`;
+
+    if (timerBcastTick % 3 === 0 && state.roomCode) {
+      socket.emit('tv:broadcast', {
+        roomCode: state.roomCode,
+        event: 'SONG_TIMER',
+        data: { active: true, elapsed, duration },
+      });
+    }
 
     // Ronda 1: fire challenge at halfway
     if (state.round === 1 && !challengeFired && elapsed >= duration * 0.5) {
@@ -4251,6 +4274,13 @@ function endSong(player) {
   const target = state.players.find(p => p.socketId === player.socketId);
   if (target) target.score = (target.score || 0) + avgScore;
 
+  // Broadcast score update to mobiles
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'SCORE_UPDATE',
+    data: { players: state.players.map(p => ({ socketId: p.socketId, score: p.score || 0, name: p.name })) },
+  });
+
   if (singerVotes.length === 0) {
     list.innerHTML = `<p class="text-center" style="color:#64748b;">No hubo votos esta ronda</p>`;
   } else {
@@ -4344,6 +4374,12 @@ function nextTurn() {
       showPodium();
       return;
     }
+
+    socket.emit('tv:broadcast', {
+      roomCode: state.roomCode,
+      event: 'ROUND_INFO',
+      data: { round: state.round },
+    });
 
     state.singerQueue = [...state.players].sort(() => Math.random() - 0.5);
     saveGameState();
