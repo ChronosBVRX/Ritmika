@@ -1,1691 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rítmika 🎤 — Pantalla Principal</title>
-  <meta name="description" content="Rítmika: El Karaoke Party Game. Pantalla principal de TV." />
-  <link rel="icon" type="image/png" href="/assets/favicon.png" />
-  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-  <link rel="apple-touch-icon" href="/assets/favicon-64.png" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Fredoka:wght@300;400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
-
-  <script src="/libs/tailwind.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'neon-pink':   '#ec4899', 'neon-cyan': '#22d3ee',
-            'neon-purple': '#a855f7', 'neon-yellow': '#facc15',
-            'antro-bg':    '#0f172a', 'antro-card': '#1e293b',
-            'jb-magenta':  '#f0047f', 'jb-cyan':    '#00e5ff',
-            'jb-yellow':   '#ffe600', 'jb-lime':    '#b8ff57',
-            'jb-orange':   '#ff6b00', 'jb-purple':  '#9b00ff',
-          },
-          fontFamily: {
-            outfit:  ['Outfit','sans-serif'],
-            fredoka: ['Fredoka','sans-serif'],
-            paytone: ['Paytone One','sans-serif'],
-          },
-          rotate: { '1.5': '1.5deg', '-1.5': '-1.5deg', '2.5': '2.5deg', '-2.5': '-2.5deg' },
-        },
-      },
-    };
-  </script>
-  <script src="/libs/anime.min.js"></script>
-  <script src="/js/styles.js"></script>
-  <script src="/js/animations.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/libs/qrcode.min.js"></script>
-
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin:0; padding:0; width:100vw; height:100vh; overflow:hidden; background:#0f172a; font-family:'Fredoka',sans-serif; }
-
-    /* ── Neon utilities ── */
-    .glow-pink  { text-shadow: 0 0 20px #ec4899, 0 0 60px #ec489966; }
-    .glow-cyan  { text-shadow: 0 0 20px #22d3ee, 0 0 60px #22d3ee66; }
-    .glow-box-cyan { box-shadow: 0 0 30px #22d3ee66, inset 0 0 20px #22d3ee11; }
-
-    /* ── Scanlines + Neon Grid ── */
-    .scanlines::after {
-      content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
-      background:
-        repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px),
-        linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
-      background-size: auto, 80px 80px, 80px 80px;
-      will-change: auto;
-    }
-
-    /* ══════════════════════════════════════════
-       POP-ART ANIMATED BACKGROUND
-    ══════════════════════════════════════════ */
-    @keyframes stripe-drift {
-      0%   { background-position: 0 0; }
-      100% { background-position: 80px 80px; }
-    }
-    @keyframes mesh-rotate {
-      0%   { transform: rotate(0deg) scale(1.5); }
-      100% { transform: rotate(360deg) scale(1.5); }
-    }
-
-    .party-bg {
-      background-color: #0a0a14;
-      background-image:
-        repeating-linear-gradient(
-          -45deg,
-          transparent,
-          transparent 18px,
-          rgba(240, 4, 127, 0.04) 18px,
-          rgba(240, 4, 127, 0.04) 20px
-        ),
-        repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 18px,
-          rgba(0, 229, 255, 0.035) 18px,
-          rgba(0, 229, 255, 0.035) 20px
-        );
-      animation: stripe-drift 8s linear infinite;
-    }
-
-    /* ── Pop-Art Mesh overlay (GPU layer) ── */
-    .party-bg::before {
-      content:'';
-      position:fixed; inset:-50%; width:200%; height:200%;
-      pointer-events:none; z-index:1;
-      background: radial-gradient(ellipse at center,
-        rgba(155,0,255,0.06) 0%,
-        rgba(240,4,127,0.04) 30%,
-        transparent 70%);
-      animation: mesh-rotate 20s linear infinite;
-      will-change: transform;
-    }
-
-    /* ══════════════════════════════════════════
-       JACKBOX NEO-BRUTALISMO — SISTEMA CENTRAL
-    ══════════════════════════════════════════ */
-    .jackbox-panel {
-      border: 4px solid #111827;
-      box-shadow: 6px 6px 0px #111827;
-      border-radius: 16px;
-      transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
-    }
-    .jackbox-panel:active {
-      transform: translate(4px, 4px);
-      box-shadow: 2px 2px 0px #111827;
-    }
-
-    .jb-cyan    { background-color: #00e5ff; color: #0a0a14; }
-    .jb-magenta { background-color: #f0047f; color: #fff; }
-    .jb-yellow  { background-color: #ffe600; color: #0a0a14; }
-    .jb-lime    { background-color: #b8ff57; color: #0a0a14; }
-    .jb-purple  { background-color: #9b00ff; color: #fff; }
-    .jb-orange  { background-color: #ff6b00; color: #fff; }
-
-    /* Jackbox card = full sticker effect */
-    .jb-card {
-      border: 3px solid #111827;
-      box-shadow: 4px 4px 0px #111827;
-      border-radius: 14px;
-      transition: transform 0.12s ease, box-shadow 0.12s ease;
-    }
-    .jb-card:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px #111827;
-    }
-
-    /* Paytone One para títulos */
-    .font-paytone { font-family: 'Paytone One', sans-serif !important; }
-    .font-fredoka  { font-family: 'Fredoka', sans-serif !important; }
-
-    /* ── Particles ── */
-    #particles-canvas { position:fixed; inset:0; pointer-events:none; z-index:0; will-change:transform; contain:strict; }
-
-    /* ── SCREEN SYSTEM ── */
-    .tv-screen { position:fixed; inset:0; width:100vw; height:100vh; display:none; z-index:10; }
-    .tv-screen.active { display:flex; flex-direction:column; }
-
-    /* ── Room code — Jackbox sticker style ── */
-    .code-letter {
-      display:inline-flex; align-items:center; justify-content:center;
-      width:4rem; height:4.5rem; font-size:2.5rem;
-      background: #ffe600;
-      border: 4px solid #111827;
-      box-shadow: 5px 5px 0px #111827;
-      border-radius:1rem;
-      font-family: 'Paytone One', sans-serif;
-      font-size:3.5rem; font-weight:900;
-      color:#111827;
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
-    }
-    .code-letter:hover {
-      transform: translate(-2px,-2px);
-      box-shadow: 7px 7px 0px #111827;
-    }
-
-    /* ── Player card — Jackbox sticker ── */
-    .player-card {
-      display:flex; align-items:center; gap:0.75rem; padding:0.7rem 1rem;
-      border: 3px solid #111827;
-      box-shadow: 4px 4px 0px #111827;
-      border-radius:14px;
-      font-family: 'Fredoka', sans-serif;
-      transform:translateX(80px) scale(0); opacity:0;
-      transition: box-shadow 0.12s ease, transform 0.12s ease;
-    }
-    .player-card:hover {
-      transform: translate(-2px,-2px) rotate(var(--card-rot, 0deg)) !important;
-      box-shadow: 6px 6px 0px #111827;
-    }
-    .avatar-bubble { width:2.8rem; height:2.8rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; border:3px solid #111827; }
-
-    /* ── Axolo Character Cut-in (Persona/Fighting Game style) ── */
-    #axolo-cutin-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #axolo-cutin-bar {
-      position: absolute;
-      top: 30%;
-      left: 0;
-      width: 100%;
-      height: 180px;
-      background: #ffe600;
-      border-top: 6px solid #111827;
-      border-bottom: 6px solid #111827;
-      box-shadow: 0 12px 0px rgba(17, 24, 39, 0.35);
-      transform: translateX(-110%) skewX(-12deg);
-      transition: transform 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.2), filter 0.45s ease;
-      display: flex;
-      align-items: center;
-      filter: blur(10px);
-    }
-    #axolo-cutin-bar.active {
-      transform: translateX(0) skewX(-12deg);
-      filter: blur(0);
-    }
-    #axolo-cutin-bar.slide-out {
-      transform: translateX(110%) skewX(-12deg);
-      filter: blur(10px);
-    }
-    #axolo-cutin-portrait-wrap {
-      position: absolute;
-      left: 15%;
-      bottom: -15px;
-      height: 230px;
-      transform: skewX(12deg); /* Un-skew portrait */
-      filter: drop-shadow(8px 4px 0px #111827);
-    }
-    #axolo-cutin-portrait {
-      height: 100%;
-      width: auto;
-      object-fit: contain;
-      display: block;
-    }
-    #axolo-cutin-textbox {
-      position: absolute;
-      left: 32%;
-      right: 10%;
-      transform: skewX(12deg); /* Un-skew text box */
-      font-family: 'Fredoka', sans-serif;
-    }
-    #axolo-cutin-text {
-      font-size: 2.3rem;
-      font-weight: 900;
-      color: #111827;
-      line-height: 1.25;
-      text-shadow: 2px 2px 0px rgba(255,255,255,0.4);
-      word-break: break-word;
-      white-space: normal;
-    }
-
-    /* ── Tomato / Emoji ── */
-    .tomato-projectile { position:fixed; font-size:3rem; pointer-events:none; z-index:900; filter:drop-shadow(0 0 10px #ef4444); }
-    .emoji-float { position:fixed; font-size:2.5rem; pointer-events:none; z-index:800; }
-
-    /* ── Ticker ── */
-    .url-strip { background:linear-gradient(90deg,transparent,#22d3ee22,transparent); border-top:1px solid #22d3ee33; border-bottom:1px solid #22d3ee33; }
-
-    /* ── Pulse ring ── */
-    @keyframes pulse-ring { 0%{transform:scale(0.8);opacity:0.8;} 100%{transform:scale(1.6);opacity:0;} }
-    .pulse-ring { position:absolute; inset:-8px; border-radius:50%; border:2px solid #ec4899; animation:pulse-ring 1.5s ease-out infinite; }
-
-    /* ── Scrollbar ── */
-    #players-list::-webkit-scrollbar { width:4px; }
-    #players-list::-webkit-scrollbar-thumb { background:#ec489966; border-radius:2px; }
-
-    /* QR glow */
-    @keyframes qrGlow {
-      0%   { box-shadow:3px 3px 0px #111827, 0 0 10px rgba(0,229,255,0.2); }
-      100% { box-shadow:3px 3px 0px #111827, 0 0 30px rgba(0,229,255,0.4), 0 0 60px rgba(0,229,255,0.1); }
-    }
-    #qr-conexion-sala {
-      animation: qrGlow 3s ease-in-out infinite alternate;
-    }
-
-    /* ── Blink dots ── */
-    @keyframes blink { 0%,100%{opacity:0.2; filter:drop-shadow(0 0 4px transparent);} 50%{opacity:1; filter:drop-shadow(0 0 8px rgba(240,4,127,0.6));} }
-    .dot1{animation:blink 1.4s 0.0s infinite;} .dot2{animation:blink 1.4s 0.2s infinite;} .dot3{animation:blink 1.4s 0.4s infinite;}
-
-    /* ════════════════════════════════════════════
-        PREMIUM LOBBY — UPGRADES 2026
-    ════════════════════════════════════════════ */
-
-    /* Decorative Glow Overlay (PNG with neon lines / orbs) */
-    #lobby-screen .lobby-glow-overlay {
-      position:fixed; inset:0;
-      pointer-events:none; z-index:3;
-      background: url('/assets/lobby_deco_glow.png') center/cover no-repeat;
-      mix-blend-mode: screen;
-      opacity: 0.2;
-      animation: lobbyGlowPulse 5s ease-in-out infinite alternate;
-    }
-    @keyframes lobbyGlowPulse {
-      0%   { opacity: 0.15; }
-      100% { opacity: 0.30; }
-    }
-
-    /* Vignette (dark edges, focus center) */
-    #lobby-screen::before {
-      content:''; position:fixed; inset:0;
-      pointer-events:none; z-index:4;
-      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
-    }
-
-    /* Floating neon orbs */
-    .lobby-orb {
-      position:fixed;
-      border-radius:50%;
-      pointer-events:none;
-      z-index:2;
-      filter:blur(80px);
-      mix-blend-mode:screen;
-    }
-    #orb-cyan {
-      width:400px; height:400px;
-      background:rgba(0,229,255,0.08);
-      top:-80px; right:10%;
-      animation: orbFloat 12s ease-in-out infinite alternate, orbPulse 8s ease-in-out infinite alternate;
-    }
-    #orb-pink {
-      width:500px; height:500px;
-      background:rgba(236,72,153,0.06);
-      bottom:-120px; left:-80px;
-      animation: orbFloat 15s ease-in-out infinite alternate-reverse, orbPulse 10s ease-in-out infinite alternate;
-    }
-    #orb-purple {
-      width:350px; height:350px;
-      background:rgba(168,85,247,0.05);
-      bottom:30%; left:50%;
-      animation: orbFloat 18s ease-in-out infinite alternate, orbPulse 12s ease-in-out infinite alternate;
-    }
-    #orb-magenta {
-      width:300px; height:300px;
-      background:rgba(240,4,127,0.05);
-      top:20%; right:-80px;
-      animation: orbFloat 14s ease-in-out infinite alternate-reverse, orbPulse 9s ease-in-out infinite alternate;
-    }
-    @keyframes orbFloat {
-      0%   { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(40px, -30px) scale(1.15); }
-    }
-    @keyframes orbPulse {
-      0%   { opacity:0.6; }
-      100% { opacity:1; }
-    }
-
-    /* Corner neon decorations */
-    .lobby-corner {
-      position:fixed;
-      pointer-events:none;
-      z-index:5;
-    }
-    .lobby-corner-tl, .lobby-corner-tr,
-    .lobby-corner-bl, .lobby-corner-br {
-      width:80px; height:80px;
-      border-color:#00e5ff;
-      border-style:solid;
-      opacity:0.5;
-      transition:opacity 0.5s;
-    }
-    .lobby-corner-tl { top:10px; left:10px; border-width:3px 0 0 3px; border-radius:6px 0 0 0; }
-    .lobby-corner-tr { top:10px; right:10px; border-width:3px 3px 0 0; border-radius:0 6px 0 0; }
-    .lobby-corner-bl { bottom:40px; left:10px; border-width:0 0 3px 3px; border-radius:0 0 0 6px; }
-    .lobby-corner-br { bottom:40px; right:10px; border-width:0 3px 3px 0; border-radius:0 0 6px 0; }
-    .lobby-corner-tl:hover, .lobby-corner-tr:hover,
-    .lobby-corner-bl:hover, .lobby-corner-br:hover { opacity:1; }
-
-    /* Shine effect on connection panel */
-    .connection-panel {
-      position:relative;
-      overflow:hidden;
-    }
-    .connection-panel::after {
-      content:'';
-      position:absolute;
-      top:-50%; left:-50%;
-      width:200%; height:200%;
-      background: linear-gradient(
-        135deg,
-        transparent 35%,
-        rgba(255,255,255,0.12) 45%,
-        rgba(255,255,255,0.03) 50%,
-        transparent 60%
-      );
-      transform: rotate(45deg) translateX(-100%);
-      animation: shineSweep 6s ease-in-out infinite;
-      pointer-events:none;
-    }
-    @keyframes shineSweep {
-      0%   { transform: rotate(45deg) translateX(-100%); }
-      20%  { transform: rotate(45deg) translateX(100%); }
-      100% { transform: rotate(45deg) translateX(200%); }
-    }
-
-    /* Connection card glow pulse */
-    .connection-card-glow {
-      animation: cardGlow 3s ease-in-out infinite alternate;
-    }
-    @keyframes cardGlow {
-      0%   { box-shadow:7px 7px 0px #111827, 0 0 15px rgba(0,229,255,0.2); }
-      100% { box-shadow:7px 7px 0px #111827, 0 0 40px rgba(0,229,255,0.4), 0 0 80px rgba(0,229,255,0.1); }
-    }
-
-    /* Premium code letters */
-    @keyframes letterPop {
-      0% { transform:scale(0) rotate(-15deg); opacity:0; }
-      100% { transform:scale(1) rotate(0deg); opacity:1; }
-    }
-    @keyframes letterGlow {
-      0% { box-shadow:5px 5px 0px #111827, 0 0 8px rgba(255,230,0,0.2); }
-      100% { box-shadow:5px 5px 0px #111827, 0 0 25px rgba(255,230,0,0.5), 0 0 50px rgba(255,230,0,0.1); }
-    }
-
-    /* Status badge premium */
-    #status-badge {
-      position:relative;
-      overflow:hidden;
-    }
-    #status-badge::before {
-      content:'';
-      position:absolute; inset:0;
-      background: linear-gradient(90deg, transparent, rgba(236,72,153,0.08), transparent);
-      animation: badgeShimmer 4s ease-in-out infinite;
-      pointer-events:none;
-    }
-    @keyframes badgeShimmer {
-      0%   { transform:translateX(-100%); }
-      100% { transform:translateX(100%); }
-    }
-
-    /* Player count badge premium */
-    #player-count-display {
-      text-shadow: 0 0 15px rgba(34,211,238,0.4), 0 0 40px rgba(34,211,238,0.2);
-      transition: text-shadow 0.3s;
-    }
-
-    /* Premium empty state */
-    .empty-state-axolo {
-      width:100px; height:auto;
-      animation: emptyAxoloFloat 3s ease-in-out infinite, emptyAxoloBounce 6s ease-in-out infinite;
-      filter:drop-shadow(0 0 20px rgba(236,72,153,0.3));
-      opacity:0.7;
-    }
-    @keyframes emptyAxoloFloat {
-      0%,100% { transform:translateY(0px); }
-      50%     { transform:translateY(-10px); }
-    }
-    @keyframes emptyAxoloBounce {
-      0%,100% { transform:scale(1); }
-      30%     { transform:scale(1.03); }
-    }
-
-    /* Premium player card */
-    .player-card {
-      border: 3px solid #111827;
-      box-shadow: 4px 4px 0px #111827;
-      border-radius:14px;
-      padding:0.7rem 1rem;
-      display:flex; align-items:center; gap:0.75rem;
-      transform:translateX(80px) scale(0); opacity:0;
-      transition: box-shadow 0.12s ease, transform 0.12s ease, border-color 0.3s;
-      position:relative;
-      overflow:hidden;
-    }
-    .player-card::before {
-      content:'';
-      position:absolute; left:0; top:0; bottom:0;
-      width:3px;
-      background: var(--card-accent, #ec4899);
-      opacity:0.6;
-      transition:opacity 0.3s;
-    }
-    .player-card:hover::before {
-      opacity:1;
-    }
-    .player-card:hover {
-      transform: translate(-2px,-2px) rotate(var(--card-rot, 0deg)) !important;
-      box-shadow: 6px 6px 0px #111827, 0 0 15px var(--card-glow, rgba(236,72,153,0.2));
-    }
-
-    /* Footer premium */
-    #lobby-screen footer {
-      position:relative;
-    }
-    #lobby-screen footer::before {
-      content:'';
-      position:absolute; top:-1px; left:10%; right:10%;
-      height:1px;
-      background: linear-gradient(90deg, transparent, #ec489966, transparent);
-      animation: footerLine 3s ease-in-out infinite;
-    }
-    @keyframes footerLine {
-      0%,100% { opacity:0.3; }
-      50%     { opacity:1; }
-    }
-
-    /* ── Ticker live indicator ── */
-    .live-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 8px rgba(34,197,94,0.6);
-      animation: liveDotPulse 2s ease-in-out infinite;
-    }
-    @keyframes liveDotPulse {
-      0%,100% { opacity:1; box-shadow:0 0 8px rgba(34,197,94,0.6); }
-      50%     { opacity:0.4; box-shadow:0 0 3px rgba(34,197,94,0.2); }
-    }
-
-    /* ── Step pills premium ── */
-    .step-pill {
-      background: linear-gradient(135deg, #1e293baa, #1e293b44);
-      border: 1px solid #334155;
-      backdrop-filter: blur(4px);
-      transition: all 0.3s;
-    }
-    .step-pill:hover {
-      background: linear-gradient(135deg, #1e293bdd, #1e293b88);
-      border-color: #00e5ff44;
-      transform: translateY(-2px);
-    }
-
-    /* ── Entrance orchestrator ── */
-    @keyframes lobbyReveal {
-      0%   { opacity:0; transform:scale(1.1); }
-      100% { opacity:1; transform:scale(1); }
-    }
-    .lobby-reveal {
-      animation: lobbyReveal 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
-    }
-    .lobby-reveal-delay-1 { animation-delay: 0.2s; }
-    .lobby-reveal-delay-2 { animation-delay: 0.5s; }
-    .lobby-reveal-delay-3 { animation-delay: 0.8s; }
-    .lobby-reveal-delay-4 { animation-delay: 1.2s; }
-    .lobby-reveal-delay-5 { animation-delay: 1.6s; }
-    .lobby-reveal-delay-6 { animation-delay: 2.0s; }
-
-    /* ════════════════════════════════════════════
-        RULETA
-    ════════════════════════════════════════════ */
-    #roulette-screen {
-      background: #0a0a18;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* Stage background image */
-    #roulette-screen::before {
-      content: '';
-      position: absolute; inset: 0;
-      background-image: url('/assets/roulette_bg_stage.png');
-      background-size: cover;
-      background-position: center;
-      opacity: 0.35;
-      z-index: 0;
-      will-change: transform;
-    }
-
-    /* Floating stars decoration (transparent PNG overlay) */
-    .roulette-deco {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      opacity: 0.3;
-      z-index: 1;
-      pointer-events: none;
-      mix-blend-mode: screen;
-    }
-
-    /* Vignette on top of bg + deco */
-    #roulette-screen::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.75) 100%);
-      z-index: 2;
-      pointer-events: none;
-    }
-
-    /* All roulette content above bg */
-    #roulette-inner {
-      position: relative; z-index: 3;
-      width: 100%; height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 0 2rem;
-    }
-
-    /* Header bar */
-    #roulette-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    /* Main content: Axolo | Wheel | Players */
-    #roulette-main {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 2.5rem;
-      width: 100%;
-      max-width: 1400px;
-    }
-
-    /* Left side: Axolo mascot */
-    #roulette-axolo-side {
-      flex: 0 0 260px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    #roulette-axolo-img {
-      width: 230px; height: auto;
-      filter: drop-shadow(0 0 24px rgba(236,72,153,0.7)) drop-shadow(0 4px 8px rgba(0,0,0,0.5));
-      animation: axolo-float 3s ease-in-out infinite;
-    }
-    @keyframes axolo-float {
-      0%,100% { transform: translateY(0px); }
-      50%      { transform: translateY(-12px); }
-    }
-
-    /* Center: Wheel */
-    #roulette-center {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      flex: 0 0 auto;
-    }
-
-    #roulette-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 500px;
-      height: 500px;
-      filter: drop-shadow(0 0 30px rgba(0,229,255,0.3)) drop-shadow(0 8px 24px rgba(0,0,0,0.7));
-    }
-    #roulette-svg { width: 500px; height: 500px; filter: none; will-change: transform; }
-    #roulette-wheel {
-      transform-origin: 250px 250px;
-      will-change: transform;
-    }
-
-    /* Arrow */
-    #roulette-arrow-anchor {
-      position: absolute; top: -36px; left: 50%; transform: translateX(-50%);
-      z-index: 20; pointer-events: none;
-    }
-    #roulette-arrow {
-      font-size: 4.5rem; color: #ffe600;
-      transform-origin: 50% 10%;
-      text-shadow:
-        -3px -3px 0 #111827,  3px -3px 0 #111827,
-        -3px  3px 0 #111827,  3px  3px 0 #111827,
-         0    5px 0 #111827;
-      display: inline-block;
-      filter: drop-shadow(0 0 12px rgba(255,230,0,0.8));
-    }
-
-    /* Right side: Players */
-    #roulette-players-side {
-      flex: 0 0 260px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.6rem;
-    }
-    #roulette-players-label {
-      font-family: 'Paytone One', sans-serif;
-      font-size: 0.85rem;
-      letter-spacing: 0.15em;
-      color: #64748b;
-      margin-bottom: 0.25rem;
-    }
-    .roulette-player-chip {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      background: rgba(30,41,59,0.85);
-      border: 2px solid #334155;
-      border-radius: 999px;
-      padding: 0.35rem 0.9rem 0.35rem 0.35rem;
-      width: 100%;
-      box-shadow: 3px 3px 0 #111827;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-    .roulette-player-chip.is-winner {
-      border-color: #ffe600;
-      background: rgba(255,230,0,0.15);
-      box-shadow: 0 0 16px rgba(255,230,0,0.5), 3px 3px 0 #111827;
-      animation: chip-winner-pulse 0.8s ease-in-out infinite alternate;
-    }
-    @keyframes chip-winner-pulse {
-      from { transform: scale(1); }
-      to   { transform: scale(1.04); }
-    }
-    .roulette-player-chip img {
-      width: 36px; height: 36px; object-fit: contain;
-      border-radius: 50%; background: #0f172a;
-      border: 2px solid #334155;
-    }
-    .roulette-player-chip span {
-      font-weight: 700; font-size: 0.9rem; color: #e2e8f0;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .roulette-player-chip .chip-score {
-      margin-left: auto;
-      font-weight: 900; font-size: 0.85rem; color: #facc15;
-    }
-
-    /* Spin button */
-    #spin-btn {
-      margin-top: 0.75rem;
-      padding: 0.9rem 3rem;
-      border-radius: 1rem;
-      border: 4px solid #111827;
-      cursor: pointer;
-      background: #ffe600;
-      color: #111827;
-      font-family: 'Paytone One', sans-serif;
-      font-size: 1.4rem;
-      font-weight: 900;
-      box-shadow: 6px 6px 0px #111827;
-      transition: transform 0.1s, box-shadow 0.1s;
-      position: relative; z-index: 3;
-    }
-    #spin-btn:hover  { transform: translate(-2px,-2px); box-shadow: 8px 8px 0px #111827; }
-    #spin-btn:active { transform: translate(3px,3px);   box-shadow: 2px 2px 0px #111827; }
-    #spin-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: 2px 2px 0px #111827; }
-
-    /* Selected player banner */
-    #selected-player-banner {
-      position: absolute;
-      bottom: 2rem;
-      left: 0; right: 0;
-      margin: 0 auto;
-      width: max-content;
-      transform: scale(0.8);
-      padding: 1rem 2.5rem;
-      border-radius: 1.25rem;
-      text-align: center;
-      background: #00e5ff;
-      border: 4px solid #111827;
-      box-shadow: 8px 8px 0px #111827;
-      opacity: 0;
-      color: #111827;
-      min-width: 500px;
-      z-index: 10;
-      white-space: nowrap;
-    }
-
-    #go-karaoke-btn {
-      margin-top: 0.65rem; padding: 0.65rem 2rem; border-radius: 0.75rem;
-      border: 4px solid #111827; cursor: pointer;
-      background: #ffe600; color: #111827;
-      font-family: 'Paytone One', sans-serif; font-size: 1.2rem; font-weight: 900;
-      box-shadow: 4px 4px 0px #111827;
-      transition: transform 0.1s, box-shadow 0.1s;
-    }
-    #go-karaoke-btn:hover  { transform: translate(-1px,-1px); box-shadow: 5px 5px 0px #111827; }
-    #go-karaoke-btn:active { transform: translate(2px,2px);   box-shadow: 2px 2px 0px #111827; }
-
-    /* ══════════════════════════════════════════
-       KARAOKE PLAYER SCREEN
-    ══════════════════════════════════════════ */
-    #karaoke-screen { background:#000; position:relative; width:100vw; height:100vh; overflow:hidden; }
-
-    #karaoke-video-wrap {
-      position:relative; width:100vw; height:100vh;
-      display:flex; align-items:center; justify-content:center;
-      flex-grow:1;
-    }
-    #karaoke-video {
-      position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#000;
-      z-index:1;
-    }
-
-    /* Video error banner */
-    #video-error-banner {
-      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-      z-index:30; pointer-events:none; text-align:center;
-      opacity:0; transition:opacity 0.3s ease;
-      max-width:500px; padding:1.5rem 2rem;
-      background:rgba(0,0,0,0.85); border:2px solid #ef4444; border-radius:16px;
-      display:none;
-    }
-    #video-error-banner.visible {
-      display:block; opacity:1;
-    }
-    #video-error-banner .error-icon {
-      font-size:2.5rem; margin-bottom:0.5rem;
-    }
-    #video-error-banner .error-title {
-      font-family:'Fredoka',sans-serif; font-weight:900; font-size:1.25rem;
-      color:#fef2f2; margin-bottom:0.25rem;
-    }
-    #video-error-banner .error-desc {
-      font-family:'Fredoka',sans-serif; font-size:0.85rem;
-      color:#fca5a5; line-height:1.4;
-    }
-
-    /* Now Playing overlay */
-    #lyrics-overlay {
-      position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
-      pointer-events:none; z-index:20;
-    }
-    #now-playing-card {
-      display:flex; align-items:center; gap:0.75rem;
-      padding:0.6rem 1.4rem 0.6rem 1rem;
-      background:rgba(15,23,42,0.88); backdrop-filter:blur(12px);
-      border:3px solid #111827; border-radius:1rem;
-      box-shadow:4px 4px 0px #111827, 0 0 24px rgba(0,229,255,0.15);
-      animation:np-slide-in 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards,
-                np-fade-out 0.6s ease 5s forwards;
-    }
-    #np-icon {
-      font-size:1.6rem;
-      filter:drop-shadow(0 0 8px rgba(0,229,255,0.6));
-      flex-shrink:0;
-    }
-    #np-info { text-align:left; line-height:1.2; }
-    #lyrics-text {
-      font-family:'Paytone One',sans-serif;
-      font-size:1.2rem; font-weight:900; color:#00e5ff;
-      text-shadow:0 0 12px rgba(0,229,255,0.4);
-      white-space:nowrap;
-    }
-    #np-artist {
-      font-family:'Fredoka',sans-serif;
-      font-size:0.8rem; font-weight:700; color:#94a3b8;
-      margin-top:2px;
-      white-space:nowrap;
-    }
-    #lyrics-text.blackout, #np-artist.blackout { opacity:0; }
-    @keyframes np-slide-in {
-      from { opacity:0; transform:translateY(20px) scale(0.95); }
-      to   { opacity:1; transform:translateY(0) scale(1); }
-    }
-    @keyframes np-fade-out {
-      to { opacity:0; transform:translateY(8px); }
-    }
-
-    /* HUD overlay on karaoke */
-    #karaoke-hud {
-      position:absolute; top:0; left:0; right:0;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:1rem 1.5rem; z-index:30;
-      background:linear-gradient(180deg,rgba(0,0,0,0.7) 0%,transparent 100%);
-    }
-    .hud-singer-badge {
-      display:flex; align-items:center; gap:0.75rem;
-      padding:0.5rem 1rem; border-radius:999px;
-      background:rgba(236,72,153,0.25); border:1px solid #ec489966;
-      backdrop-filter:blur(8px);
-    }
-    #hud-timer {
-      font-size:2rem; font-weight:900; color:#facc15;
-      text-shadow:0 0 15px #facc15;
-    }
-
-    /* Round badge */
-    .round-badge {
-      display:inline-flex; align-items:center; gap:0.5rem;
-      padding:0.4rem 1rem; border-radius:999px; font-size:0.85rem; font-weight:700;
-    }
-
-    /* Blackout challenge banner */
-    #blackout-banner {
-      position:absolute; top:0; bottom:0; left:0; right:0;
-      margin:auto; width:max-content; height:max-content;
-      transform: scale(0);
-      background:linear-gradient(135deg,#1e293b,#0f172a); border:3px solid #facc15;
-      border-radius:1.5rem; padding:2rem 3rem; text-align:center;
-      box-shadow:0 0 60px #facc1566; z-index:40;
-    }
-
-    /* Challenge banner (Ronda 1 reto) */
-    #challenge-banner {
-      position:absolute; bottom:160px; left:0; right:0;
-      margin: 0 auto; width: max-content;
-      transform: translateY(60px);
-      background:linear-gradient(135deg,#7c3aed,#1e293b); border:2px solid #a855f7;
-      border-radius:1.25rem; padding:1rem 2rem; text-align:center;
-      box-shadow:0 0 30px #a855f766; opacity:0; max-width:700px; z-index:35;
-    }
-
-    /* ── Round Splash Overlay ── */
-    #round-splash {
-      position:fixed; inset:0; display:flex; flex-direction:column;
-      align-items:center; justify-content:center; z-index:9997;
-      background:#0f172a; opacity:0; pointer-events:none;
-    }
-    #round-splash.active { pointer-events:all; }
-    #round-splash .splash-number {
-      font-family:'Paytone One',sans-serif; font-size:8rem; font-weight:900;
-      background:linear-gradient(135deg,#ec4899,#facc15);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      background-clip:text; text-shadow:none; filter:drop-shadow(0 0 40px #ec489966);
-      opacity:0; transform:scale(0.3);
-    }
-    #round-splash .splash-title {
-      font-family:'Paytone One',sans-serif; font-size:3.5rem; font-weight:900;
-      color:#f1f5f9; text-shadow:0 0 30px #a855f766;
-      opacity:0; transform:translateY(40px);
-    }
-    #round-splash .splash-subtitle {
-      font-family:'Fredoka',sans-serif; font-size:1.2rem; font-weight:400;
-      color:#64748b; margin-top:0.5rem;
-      opacity:0;
-    }
-
-    /* ── Countdown Overlay ── */
-    #countdown-overlay {
-      position:fixed; inset:0; display:flex; align-items:center;
-      justify-content:center; z-index:9997; pointer-events:none;
-      background:rgba(0,0,0,0.6);
-      opacity:0;
-    }
-    #countdown-overlay.active { opacity:1; }
-    #countdown-number {
-      font-family:'Paytone One',sans-serif; font-size:12rem; font-weight:900;
-      color:#ffe600; text-shadow:0 0 60px #ffe60066, 0 0 120px #ffe60033;
-      opacity:0; transform:scale(0.5);
-    }
-
-    /* ══════════════════════════════════════════
-       PODIUM SCREEN (Fase F)
-     ══════════════════════════════════════════ */
-    #podium-screen {
-      background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
-      align-items: center;
-      justify-content: center;
-    }
-    .podium-container {
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 2rem;
-      width: 100%;
-      max-width: 900px;
-      margin: 1.5rem 0;
-      height: 380px;
-    }
-    .podium-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 220px;
-    }
-    .podium-pedestal {
-      width: 100%;
-      border-top-left-radius: 1.5rem;
-      border-top-right-radius: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      border-top: 4px solid;
-    }
-    
-    /* 1st Place Pedestal */
-    .step-1st {
-      height: 180px;
-      background: linear-gradient(to top, #78350f, #eab308);
-      border-color: #facc15;
-      box-shadow: 0 0 30px rgba(250, 204, 21, 0.3);
-    }
-    .step-1st::after {
-      content: '1';
-      font-size: 5rem;
-      font-weight: 900;
-      color: rgba(255, 255, 255, 0.15);
-      position: absolute;
-      bottom: 10px;
-      line-height: 1;
-    }
-
-    /* 2nd Place Pedestal */
-    .step-2nd {
-      height: 130px;
-      background: linear-gradient(to top, #164e63, #06b6d4);
-      border-color: #22d3ee;
-      box-shadow: 0 0 25px rgba(34, 211, 238, 0.25);
-    }
-    .step-2nd::after {
-      content: '2';
-      font-size: 4rem;
-      font-weight: 900;
-      color: rgba(255, 255, 255, 0.15);
-      position: absolute;
-      bottom: 10px;
-      line-height: 1;
-    }
-
-    /* 3rd Place Pedestal */
-    .step-3rd {
-      height: 90px;
-      background: linear-gradient(to top, #7c2d12, #f97316);
-      border-color: #ffedd5;
-      box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
-    }
-    .step-3rd::after {
-      content: '3';
-      font-size: 3rem;
-      font-weight: 900;
-      color: rgba(255, 255, 255, 0.15);
-      position: absolute;
-      bottom: 10px;
-      line-height: 1;
-    }
-
-    .podium-avatar-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 0.75rem;
-      width: 100%;
-      text-align: center;
-      transform: translateY(-20px);
-      opacity: 0;
-    }
-
-    .podium-rank-badge {
-      font-size: 0.8rem;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      padding: 0.2rem 0.75rem;
-      border-radius: 999px;
-      margin-bottom: 0.5rem;
-      border: 1px solid;
-    }
-
-    .badge-1st {
-      background-color: rgba(250, 204, 21, 0.2);
-      border-color: #facc15;
-      color: #facc15;
-      text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
-    }
-    .badge-2nd {
-      background-color: rgba(34, 211, 238, 0.2);
-      border-color: #22d3ee;
-      color: #22d3ee;
-      text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
-    }
-    .badge-3rd {
-      background-color: rgba(249, 115, 22, 0.2);
-      border-color: #f97316;
-      color: #f97316;
-      text-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
-    }
-
-    /* Scoreboard overlay */
-    #scoreboard-overlay {
-      position:absolute; inset:0; background:rgba(0,0,0,0.85);
-      display:flex; align-items:center; justify-content:center;
-      z-index:50; opacity:0; pointer-events:none;
-    }
-    #scoreboard-overlay.visible { opacity:1; pointer-events:all; }
-    .score-row { display:flex; align-items:center; gap:1rem; padding:0.75rem 1.5rem; border-radius:1rem; margin:0.4rem 0; }
-
-    /* ══════════════════════════════════════════
-       PODIUM SCREEN
-    ══════════════════════════════════════════ */
-    #podium-screen { background:#0f172a; align-items:center; justify-content:center; }
-    .award-card {
-      padding:1.5rem 2rem; border-radius:1.5rem; text-align:center;
-      background:linear-gradient(135deg,#1e293b,#0f172a);
-      transition:transform 0.3s;
-    }
-    .award-card:hover { transform:translateY(-4px); }
-
-    /* ══════════════════════════════════════════
-       CATALOG STATUS
-    ══════════════════════════════════════════ */
-    #catalog-status {
-      position:fixed; top:1rem; left:50%; transform:translateX(-50%);
-      z-index:200; padding:0.5rem 1.25rem; border-radius:999px;
-      font-size:0.8rem; font-weight:700;
-      background:#1e293b; border:1px solid #334155; color:#64748b;
-      display:none;
-    }
-    #catalog-status.visible { display:block; }
-
-    /* ══════════════════════════════════════════
-       BOOTLOADER SCREEN
-    ══════════════════════════════════════════ */
-    #bootloader-screen {
-      position:fixed; inset:0; z-index:100000;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      background:#0f172a;
-      transition: opacity 0.6s ease;
-      overflow: hidden;
-    }
-    #bootloader-screen.fade-out { opacity:0; pointer-events:none; }
-
-    #boot-video-bg {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      object-fit: cover; z-index: 0;
-    }
-    #boot-overlay {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.4); z-index: 1;
-    }
-
-    .boot-content {
-      position: relative; z-index: 10;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      width: 100%; height: 100%;
-    }
-
-    .boot-checklist {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 140px;
-      width: 100%;
-    }
-
-    .boot-check {
-      position: absolute;
-      opacity: 0;
-      transform: scale(0.9);
-      transition: all 0.5s cubic-bezier(0.34,1.56,0.64,1);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-      width: 100%;
-    }
-    .boot-check.active {
-      opacity: 1;
-      transform: scale(1);
-    }
-    .boot-check.done {
-      opacity: 0;
-      transform: scale(1.1);
-      pointer-events: none;
-    }
-    .boot-check.error {
-      opacity: 1;
-      transform: scale(1);
-    }
-    
-    .boot-check-text {
-      font-family: 'Paytone One', sans-serif;
-      font-size: 2.2rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #fff;
-      text-shadow: 4px 4px 0px #111827, 0 0 20px rgba(0,0,0,0.8);
-      text-align: center;
-      animation: pulse-text 1.5s infinite alternate;
-    }
-    @keyframes pulse-text {
-      0% { text-shadow: 4px 4px 0px #111827, 0 0 10px rgba(0,229,255,0.4); }
-      100% { text-shadow: 4px 4px 0px #111827, 0 0 30px rgba(0,229,255,0.8); color: #cffafe; }
-    }
-    
-    /* Cyber Progress Bar for each step */
-    .cyber-loader {
-      width: 250px;
-      height: 6px;
-      background: rgba(15, 23, 42, 0.6);
-      border-radius: 10px;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid rgba(0, 229, 255, 0.3);
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-    .cyber-loader::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; height: 100%; width: 40%;
-      background: linear-gradient(90deg, transparent, #00e5ff, transparent);
-      animation: scan-bar 1s ease-in-out infinite;
-    }
-    @keyframes scan-bar {
-      0% { left: -40%; }
-      100% { left: 100%; }
-    }
-
-    .boot-check-icon { display: none; }
-    .boot-check-detail { display: none; }
-
-    .boot-done-banner {
-      position: absolute;
-      font-family:'Paytone One',sans-serif; font-size:2.5rem;
-      letter-spacing:2px; color: #22c55e;
-      text-transform: uppercase;
-      text-shadow: 4px 4px 0px #111827, 0 0 30px rgba(34,197,94,0.6);
-      opacity:0; transform:scale(0.8);
-      transition: all 0.5s cubic-bezier(0.34,1.56,0.64,1);
-    }
-    .boot-done-banner.show { opacity:1; transform:scale(1); }
-    
-    .boot-retry-btn {
-      position: absolute;
-      bottom: 2rem;
-      padding:0.6rem 1.5rem;
-      background:#ef4444; color:#111827; border:3px solid #111827; border-radius:10px;
-      font-family:'Fredoka',sans-serif; font-size:1.2rem; font-weight:900;
-      cursor:pointer; display:none;
-      box-shadow: 4px 4px 0px #111827;
-      z-index: 20;
-    }
-    .boot-retry-btn:hover { transform:translateY(-2px); box-shadow: 6px 6px 0px #111827; }
-  </style>
-</head>
-
-<body class="scanlines party-bg">
-<canvas id="particles-canvas"></canvas>
-<div id="catalog-status">📀 Cargando catálogo...</div>
-
-<!-- ══════════════════════════════════════════════════════════
-     BOOTLOADER — Loads everything before game starts
-══════════════════════════════════════════════════════════ -->
-<div id="bootloader-screen" style="display:flex;">
-  <video id="boot-video-bg" autoplay loop muted playsinline>
-    <source src="/assets/loading_bg.mp4" type="video/mp4">
-  </video>
-  <div id="boot-overlay"></div>
-
-  <div class="boot-content">
-    <div class="boot-checklist">
-      <div class="boot-check" id="boot-step-1">
-        <span class="boot-check-text">Conectando al servidor</span>
-        <div class="cyber-loader"></div>
-        <span class="boot-check-icon" id="boot-icon-1">⏳</span>
-        <span class="boot-check-detail" id="boot-detail-1"></span>
-      </div>
-      <div class="boot-check" id="boot-step-2">
-        <span class="boot-check-text">Creando sala</span>
-        <div class="cyber-loader"></div>
-        <span class="boot-check-icon" id="boot-icon-2">⏳</span>
-        <span class="boot-check-detail" id="boot-detail-2"></span>
-      </div>
-      <div class="boot-check" id="boot-step-3">
-        <span class="boot-check-text">Cargando catálogo</span>
-        <div class="cyber-loader"></div>
-        <span class="boot-check-icon" id="boot-icon-3">⏳</span>
-        <span class="boot-check-detail" id="boot-detail-3"></span>
-      </div>
-      <div class="boot-check" id="boot-step-4">
-        <span class="boot-check-text">Verificando FFmpeg</span>
-        <div class="cyber-loader"></div>
-        <span class="boot-check-icon" id="boot-icon-4">⏳</span>
-        <span class="boot-check-detail" id="boot-detail-4"></span>
-      </div>
-    </div>
-    
-    <div class="boot-done-banner" id="boot-done">¡TODO LISTO!</div>
-    <button class="boot-retry-btn" id="boot-retry" onclick="location.reload()">🔄 Reintentar</button>
-  </div>
-</div>
-<!-- ══════════════════════════════════════════════════════════
-     SCREEN A — LOBBY
-═══════════════════════════════════════════════════════════ -->
-<div id="lobby-screen" class="tv-screen" style="z-index:10;">
-  
-  <!-- Premium Background -->
-  <div style="position:absolute;inset:0;background:url(/assets/lobby_bg_premium.png) center/cover no-repeat;opacity:0.8;z-index:0;"></div>
-  <!-- Overlay for readability -->
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(15,23,42,0.4) 0%,rgba(10,10,26,0.85) 100%);z-index:1;"></div>
-
-  <!-- Ambient Particles via CSS (reusing some podium styles conceptually) -->
-  <div class="lobby-particles" style="position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;">
-    <div style="position:absolute;top:20%;left:10%;width:4px;height:4px;background:#facc15;box-shadow:0 0 10px #facc15;border-radius:50%;animation:floatUp 15s infinite linear;opacity:0.6;"></div>
-    <div style="position:absolute;top:60%;left:30%;width:3px;height:3px;background:#22d3ee;box-shadow:0 0 8px #22d3ee;border-radius:50%;animation:floatUp 12s infinite linear 2s;opacity:0.5;"></div>
-    <div style="position:absolute;top:80%;left:70%;width:5px;height:5px;background:#ec4899;box-shadow:0 0 12px #ec4899;border-radius:50%;animation:floatUp 18s infinite linear 1s;opacity:0.7;"></div>
-    <div style="position:absolute;top:40%;left:85%;width:4px;height:4px;background:#a855f7;box-shadow:0 0 10px #a855f7;border-radius:50%;animation:floatUp 14s infinite linear 3s;opacity:0.6;"></div>
-  </div>
-  <style>
-    @keyframes floatUp {
-      0% { transform:translateY(100px) scale(0.8); opacity:0; }
-      20% { opacity: 0.8; scale:1.2; }
-      80% { opacity: 0.8; scale:1; }
-      100% { transform:translateY(-200px) scale(0.5); opacity:0; }
-    }
-  </style>
-
-  <!-- Top bar -->
-  <header class="flex items-center justify-between px-8 py-4 flex-shrink-0 relative" style="z-index:2; background:linear-gradient(to bottom, rgba(10,10,26,0.9), transparent);">
-      <div class="flex items-center gap-2 lobby-stagger" data-stagger="0">
-        <img src="/assets/logo_ritmika.png" alt="Rítmika" style="height:76px; width:auto; filter:drop-shadow(0 0 20px rgba(0,229,255,0.6)) drop-shadow(0 0 60px rgba(0,229,255,0.2)); image-rendering:auto;" />
-      </div>
-      <div id="status-badge" class="flex items-center gap-2 px-4 py-2 rounded-full lobby-stagger" data-stagger="1" style="background:rgba(30,41,59,0.8); backdrop-filter:blur(8px); border:1px solid rgba(236,72,153,0.4); box-shadow:0 0 15px rgba(236,72,153,0.2);">
-      <div class="relative"><div class="w-2.5 h-2.5 rounded-full bg-neon-pink" style="box-shadow:0 0 8px #ec4899;"></div><div class="pulse-ring"></div></div>
-      <span id="status-text" class="text-sm font-semibold" style="color:#f9a8d4; letter-spacing:1px;">Esperando jugadores</span>
-    </div>
-    <div class="flex items-center gap-2 lobby-reveal lobby-reveal-delay-2" style="opacity:0;">
-      <span class="text-2xl drop-shadow-lg" style="filter:drop-shadow(0 0 8px rgba(34,211,238,0.6));">🎤</span>
-      <span id="player-count-display" class="text-3xl font-black" style="color:#22d3ee; text-shadow:0 0 15px rgba(34,211,238,0.5);">0</span>
-      <span class="text-sm font-bold uppercase tracking-widest" style="color:#94a3b8;">jugadores</span>
-    </div>
-  </header>
-
-  <!-- Main -->
-  <main class="flex flex-1 gap-4 px-8 pb-2 overflow-hidden relative" style="z-index:2;">
-    <!-- Left: join panel -->
-    <section class="flex flex-col items-center justify-center flex-1 gap-8">
-      
-      <!-- Premium Connection Panel -->
-      <div class="relative flex flex-col items-center justify-center p-4 text-center" style="min-width:440px; transform:rotate(-1deg); transition:transform 0.3s ease;">
-        
-        <!-- PURE CSS NEON FRAME -->
-        <div style="position:absolute;inset:0;background:rgba(10,10,26,0.85); backdrop-filter:blur(10px); border-radius:24px; border:3px solid #22d3ee; box-shadow:0 0 40px rgba(34,211,238,0.3), inset 0 0 30px rgba(236,72,153,0.2); z-index:0;"></div>
-        <div style="position:absolute;inset:-6px;border-radius:28px;border:2px solid #ec4899;opacity:0.6;filter:blur(4px);z-index:0;pointer-events:none;"></div>
-        
-        <div style="position:relative; z-index:1; padding:10px; width:100%; display:flex; flex-direction:column; align-items:center;">
-          
-          <div style="display:inline-block; background:linear-gradient(135deg, #ec4899, #a855f7); padding:8px 24px; border-radius:12px; border:2px solid #fbcfe8; box-shadow:0 0 20px rgba(236,72,153,0.4); margin-bottom:12px; transform:rotate(1deg);">
-            <p class="font-paytone text-sm tracking-widest" style="color:#ffffff; letter-spacing:0.2em; margin:0; text-shadow:0 2px 4px rgba(0,0,0,0.5);">📡 CÓDIGO DE SALA</p>
-          </div>
-          
-          <!-- Code Container -->
-          <div id="room-code-display" class="flex justify-center gap-4 mb-6">
-            <!-- Handled by JS now -->
-          </div>
-          
-          <div class="py-3 px-5 rounded-xl mb-6 mx-auto" style="background:rgba(0,0,0,0.4); border:1px solid rgba(34,211,238,0.3); max-width:90%;">
-            <p id="texto-instruccion-unirse" class="font-fredoka" style="color:#f1f5f9; font-weight:700; font-size:1.1rem; line-height:1.4; text-shadow:0 0 10px rgba(255,255,255,0.2);">
-              📡 Escanea el código QR
-            </p>
-
-          <!-- QR panel -->
-          <div class="flex items-center justify-center mb-2">
-            <div class="flex flex-col items-center gap-4">
-              <div style="padding:12px; background:white; border-radius:16px; box-shadow:0 0 30px rgba(255,255,255,0.2), 0 0 15px rgba(34,211,238,0.4); transform:rotate(-1deg);">
-                <canvas id="qr-conexion-sala" class="mx-auto" style="display:block;"></canvas>
-              </div>
-              <p class="font-fredoka" style="color:#94a3b8; font-weight:800; font-size:0.9rem; letter-spacing:1px; text-transform:uppercase;">Usa tu celular como control</p>
-            </div>
-          </div>
-          
-        </div>
-      </div>
-
-      <div class="flex gap-6 lobby-reveal lobby-reveal-delay-4" style="opacity:0; margin-top:20px; z-index:10; position:relative;">
-        <button class="jackbox-button-sticker jackbox-color-cyan jackbox-rot-left" tabindex="0">📱 Entra</button>
-        <button class="jackbox-button-sticker jackbox-color-magenta jackbox-rot-right" tabindex="0">🔢 Código</button>
-        <button class="jackbox-button-sticker jackbox-color-yellow jackbox-rot-left" tabindex="0">🎭 Avatar</button>
-        <button class="jackbox-button-sticker jackbox-color-orange jackbox-rot-right" tabindex="0">🎵 ¡A cantar!</button>
-      </div>
-
-      <!-- Restore banner -->
-      <div id="restore-banner" class="hidden flex items-center gap-4 p-4 rounded-2xl" style="position:absolute; bottom:2rem; left:2rem; background:linear-gradient(135deg,rgba(168,85,247,0.4),rgba(124,58,237,0.4)); border:2px solid #c084fc; box-shadow:0 0 30px rgba(168,85,247,0.3); max-width:500px; backdrop-filter:blur(10px); z-index:50;">
-        <span class="text-3xl drop-shadow-lg" style="filter:drop-shadow(0 0 8px rgba(168,85,247,0.8));">💾</span>
-        <div class="flex-1">
-          <p class="text-sm font-bold uppercase tracking-widest" style="color:#e9d5ff; text-shadow:0 0 10px rgba(168,85,247,0.6);">Partida guardada detectada</p>
-          <p id="restore-players-count" class="text-xs font-semibold" style="color:#c084fc;"></p>
-        </div>
-        <button id="btn-restore" class="px-4 py-2 rounded-xl font-black text-sm transition-all" style="background:#ffe600; color:#111827; border:none; cursor:pointer; box-shadow:0 0 20px rgba(255,230,0,0.4);"
-          onmouseover="this.style.transform='scale(1.05)';"
-          onmouseout="this.style.transform='none';">
-          RESTAURAR
-        </button>
-        <button id="btn-dismiss-restore" class="px-3 py-2 rounded-xl font-bold text-xs transition-all" style="background:rgba(15,23,42,0.6); color:#cbd5e1; border:1px solid #475569; cursor:pointer;"
-          onmouseover="this.style.background='rgba(15,23,42,0.9)';"
-          onmouseout="this.style.background='rgba(15,23,42,0.6)';">
-          ✕
-        </button>
-      </div>
-      <button id="start-btn" class="hidden px-14 py-5 rounded-2xl text-2xl" style="font-family:'Paytone One',sans-serif; font-weight:900; letter-spacing:0.05em; background:linear-gradient(135deg, #ffe600, #f59e0b); color:#111827; border:4px solid #111827; cursor:pointer; box-shadow:0 0 40px rgba(255,230,0,0.5), 8px 8px 0px #111827; transition:transform 0.15s,box-shadow 0.15s,filter 0.3s; transform:rotate(1.2deg);"
-        onmouseover="this.style.transform='scale(1.08) rotate(1.2deg)'; this.style.boxShadow='12px 12px 0px #111827, 0 0 60px rgba(255,230,0,0.6)';"
-        onmouseout="this.style.transform='rotate(1.2deg)'; this.style.boxShadow='8px 8px 0px #111827, 0 0 40px rgba(255,230,0,0.5)';"
-        onmousedown="this.style.transform='translate(4px,4px) rotate(1.2deg)'; this.style.boxShadow='2px 2px 0px #111827';">
-        🎤 ¡QUE EMPIECE LA FIESTA!
-      </button>
-    </section>
-
-    <!-- Right: player list -->
-    <aside class="flex flex-col w-72 flex-shrink-0 gap-4 relative" style="z-index:2; background:rgba(15,23,42,0.6); backdrop-filter:blur(12px); border:1px solid rgba(51,65,85,0.8); border-radius:24px; padding:20px; box-shadow:0 0 30px rgba(0,0,0,0.5);">
-      <div class="flex items-center justify-between mb-2">
-        <h2 id="secret-debug-trigger" class="text-sm font-paytone tracking-widest lobby-slide" data-stagger="5" style="font-family:'Paytone One',sans-serif; color:#ffe600; text-shadow:0 0 10px rgba(255,230,0,0.4); letter-spacing:0.2em; cursor:pointer;" title="Doble clic para opciones de desarrollo">JUGADORES</h2>
-        <span id="player-count-badge" class="text-xs font-paytone px-3 py-1 rounded-full lobby-slide" data-stagger="5" style="font-family:'Paytone One',sans-serif; background:#ec4899; color:#fff; border:2px solid #be185d; box-shadow:0 0 15px rgba(236,72,153,0.5);">0 / 8</span>
-      </div>
-      <div id="players-list" class="flex flex-col gap-3 overflow-y-auto flex-1 pr-2 lobby-fade custom-scrollbar" data-stagger="6">
-        <div id="empty-state" class="flex flex-col items-center justify-center flex-1 gap-4 opacity-60 py-12" style="animation: pulseBreath 4s infinite ease-in-out;">
-          <div style="position:relative;">
-            <div style="position:absolute;inset:0;background:#22d3ee;filter:blur(30px);opacity:0.2;border-radius:50%;"></div>
-            <img src="/assets/tio_axolo_vignette_neutral.png" alt="Tío Axolo" class="empty-state-axolo" style="filter:drop-shadow(0 0 20px rgba(34,211,238,0.2)); width:140px; height:auto;" />
-          </div>
-          <p class="text-sm text-center font-bold" style="color:#94a3b8; letter-spacing:1px; line-height:1.6;">Nadie aquí todavía...<br/><span style="color:#cbd5e1;">¡Comparte el código!</span></p>
-        </div>
-      </div>
-      <style>
-        @keyframes pulseBreath {
-          0%, 100% { transform: translateY(0) scale(1); opacity:0.6; }
-          50% { transform: translateY(-5px) scale(1.02); opacity:0.9; }
-        }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15,23,42,0.5); border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(51,65,85,0.8); border-radius: 4px; }
-      </style>
-      <div class="h-px" style="background:linear-gradient(90deg,transparent,rgba(236,72,153,0.5),transparent);"></div>
-      <div class="flex items-start gap-3 p-3 rounded-xl transition-all" style="background:rgba(30,41,59,0.5); border:1px solid rgba(168,85,247,0.3); box-shadow:0 0 15px rgba(168,85,247,0.1);">
-        <span class="text-xl flex-shrink-0 drop-shadow-lg" style="filter:drop-shadow(0 0 6px rgba(168,85,247,0.6));">🎯</span>
-        <p class="text-xs" style="color:#cbd5e1; line-height:1.6; font-weight:600;">Mínimo <strong style="color:#d8b4fe; text-shadow:0 0 8px rgba(168,85,247,0.5); font-weight:900;">1 jugador</strong> para empezar.</p>
-      </div>
-
-      <!-- Panel de Debug -->
-      <div class="flex flex-col gap-2 p-3 rounded-xl mt-2" style="background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.2);">
-        <span class="text-[10px] font-black uppercase tracking-widest" style="color:#ef4444;">⚙️ Debug</span>
-        <div class="flex gap-2">
-          <button id="btn-debug-add-bot" class="jackbox-button-arcade flex-1" tabindex="0" style="background:#e11d48; font-size:12px; padding:6px;">🤖 +Bot</button>
-          <button id="btn-debug-start-game" class="jackbox-button-arcade flex-1" tabindex="0" style="background:#059669; font-size:12px; padding:6px;">⚡ Forzar</button>
-        </div>
-      </div>
-    </aside>
-  </main>
-
-  
-</div>
-<!-- ══════════════════════════════════════════════════════════
-     SCREEN B — ROULETTE
-══════════════════════════════════════════════════════════ -->
-<div id="roulette-screen" class="tv-screen">
-  <!-- Floating deco stars (top-right) -->
-  <img src="/assets/roulette_stars_decoration.png" class="roulette-deco" id="rdeco-stars" alt="" />
-
-  <div id="roulette-inner">
-    <!-- Header -->
-    <div id="roulette-header">
-      <div id="roulette-round-badge" class="round-badge" style="background:#ec489922; border:1px solid #ec489966; color:#f9a8d4; margin-bottom:0.5rem;">
-        <span>🎰</span><span id="roulette-round-badge-text">Ronda 1 — Tu Elección, Tu Condena</span>
-      </div>
-      <h2 id="roulette-heading">¿Quién canta primero?</h2>
-    </div>
-
-    <!-- 3-column main layout -->
-    <div id="roulette-main">
-
-      <!-- LEFT: Axolo mascot -->
-      <div id="roulette-axolo-side">
-        <img id="roulette-axolo-img" src="/assets/axolo_announcing.png" alt="Tío Axolo" />
-        <div style="background:rgba(236,72,153,0.15); border:2px solid #ec489966; border-radius:1rem; padding:0.6rem 1rem; text-align:center; max-width:220px;">
-          <p style="font-family:'Fredoka',sans-serif; font-weight:700; font-size:1rem; color:#f9a8d4; line-height:1.3;" id="axolo-side-quote">¡La ruleta decide tu destino! 🎤</p>
-        </div>
-      </div>
-
-      <!-- CENTER: Wheel -->
-      <div id="roulette-center">
-        <div id="roulette-wrap">
-          <div id="roulette-arrow-anchor">
-            <div id="roulette-arrow">▼</div>
-          </div>
-          <svg id="roulette-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
-            <!-- Shadow -->
-            <circle cx="256" cy="256" r="238" fill="#000000" opacity="0.5"/>
-            <!-- Background -->
-            <circle cx="250" cy="250" r="238" fill="#111827"/>
-            <g id="roulette-wheel" style="transform-origin:250px 250px;"></g>
-            <!-- Outer ring gold -->
-            <circle cx="250" cy="250" r="238" fill="none" stroke="#ffe600" stroke-width="5"/>
-            <!-- Outer ring black -->
-            <circle cx="250" cy="250" r="243" fill="none" stroke="#111827" stroke-width="4"/>
-            <!-- Inner ring -->
-            <circle cx="250" cy="250" r="232" fill="none" stroke="rgba(255,230,0,0.25)" stroke-width="2"/>
-            <!-- Center hub glow -->
-            <circle cx="250" cy="250" r="42" fill="#ffe600" stroke="#111827" stroke-width="5"/>
-            <circle cx="250" cy="250" r="36" fill="#ffb300" stroke="none"/>
-            <text x="250" y="257" text-anchor="middle" dominant-baseline="middle" fill="#111827" font-size="28" font-weight="900">🎰</text>
-          </svg>
-        </div>
-        <button id="spin-btn">🎰 ¡Girar la Ruleta!</button>
-      </div>
-
-      <!-- RIGHT: Players list -->
-      <div id="roulette-players-side">
-        <p id="roulette-players-label">👥 JUGADORES</p>
-        <div id="roulette-players-mini" style="display:flex; flex-direction:column; gap:0.5rem; width:100%;"></div>
-      </div>
-
-    </div><!-- /roulette-main -->
-
-    <!-- Winner banner (absolute, bottom center) -->
-    <div id="selected-player-banner">
-      <p class="text-sm font-bold mb-1" style="color:#111827; opacity:0.8; letter-spacing:0.05em;">🏆 ¡EL DESTINO HABLÓ!</p>
-      <div class="flex items-center justify-center gap-4 my-2">
-        <img id="selected-player-avatar-img" src="" style="width:72px; height:72px; object-fit:contain;" />
-        <div style="text-align:left;">
-          <p id="selected-player-name" class="text-3xl font-black" style="color:#111827; text-shadow:2px 2px 0 #ffffff;"></p>
-          <p id="selected-song-info" class="text-sm font-bold" style="color:#1e293b;"></p>
-        </div>
-      </div>
-      <button id="go-karaoke-btn">🎤 ¡A cantar!</button>
-    </div>
-
-  </div><!-- /roulette-inner -->
-</div>
-
-<!-- ══════════════════════════════════════════════════════════
-     SCREEN C — KARAOKE PLAYER
-══════════════════════════════════════════════════════════ -->
-<div id="karaoke-screen" class="tv-screen">
-  <div id="karaoke-video-wrap">
-    <!-- HUD -->
-    <div id="karaoke-hud">
-      <div class="hud-singer-badge flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-900 border-2 flex items-center justify-center" id="hud-singer-avatar-container">
-          <img id="hud-singer-avatar-img" src="" class="w-8 h-8 object-contain" />
-        </div>
-        <div>
-          <p class="text-xs font-bold" style="color:#64748b;">CANTANDO</p>
-          <p id="hud-singer-name" class="text-lg font-black" style="color:#f1f5f9;"></p>
-        </div>
-      </div>
-      <div id="hud-round-label" class="round-badge" style="background:#22d3ee22; border:1px solid #22d3ee66; color:#22d3ee;">Ronda 1</div>
-      <div class="flex items-center gap-4">
-        <div id="hud-timer" class="font-black" style="color:#facc15;">--:--</div>
-        <button id="btn-debug-skip-song" class="px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer bg-red-600 hover:bg-red-500 text-white border-2 border-slate-950 transition-transform active:scale-95" style="box-shadow: 2px 2px 0px #090d16; font-family: sans-serif;">
-          Skip ⏭️
-        </button>
-      </div>
-    </div>
-
-    <!-- VIDEO -->
-    <video id="karaoke-video" playsinline style="width:100% !important; height:100% !important; object-fit:contain;"></video>
-
-    <!-- Video error banner -->
-    <div id="video-error-banner">
-      <div class="error-icon">⚠️</div>
-      <div class="error-title">Video no disponible</div>
-      <div class="error-desc">El formato del video no es compatible con el reproductor o hubo un error de conexión. El temporizador continúa para que la canción siga.</div>
-    </div>
-
-    <!-- Now Playing overlay -->
-    <div id="lyrics-overlay">
-      <div id="now-playing-card">
-        <span id="np-icon">🎵</span>
-        <div id="np-info">
-          <p id="lyrics-text"></p>
-          <p id="np-artist"></p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Challenge banner (Ronda 1 reto a mitad de canción) -->
-    <div id="challenge-banner">
-      <p class="text-xs font-bold mb-1" style="color:#a855f7; letter-spacing:0.2em;">🎭 RETO DE ACTUACIÓN</p>
-      <p id="challenge-text" class="text-xl font-black" style="color:#f1f5f9;"></p>
-    </div>
-
-    <!-- Blackout banner (Ronda 3) -->
-    <div id="blackout-banner">
-      <p class="text-4xl mb-2">🌑</p>
-      <p class="text-3xl font-black" style="color:#facc15;">¡APAGÓN MENTAL!</p>
-      <p class="text-lg mt-2" style="color:#94a3b8;">Canta de memoria...</p>
-    </div>
-
-    <!-- Score overlay (post-song) -->
-    <div id="scoreboard-overlay">
-      <div class="p-8 rounded-3xl" style="background:#1e293b; border:2px solid #facc1566; min-width:500px; max-width:700px;">
-        <h3 class="text-2xl font-black text-center mb-4" style="color:#facc15;">🗳️ Resultado de la votación</h3>
-        <div id="score-results-list"></div>
-        <button id="continue-btn" class="mt-6 w-full py-3 rounded-xl font-black text-lg"
-          style="background:linear-gradient(135deg,#ec4899,#a855f7); color:white; border:none; cursor:pointer;">
-          Siguiente →
-        </button>
-      </div>
-    </div>
-
-  <!-- Emoji/tomato floats appear here too -->
-</div>
-
-<!-- ══════════════════════════════════════════════════════════
-     OVERLAYS: ROUND SPLASH + COUNTDOWN
-     ══════════════════════════════════════════════════════════ -->
-<div id="round-splash">
-  <div class="splash-number" id="splash-number-text">RONDA 1</div>
-  <div class="splash-title" id="splash-title-text">Tu Elección, Tu Condena</div>
-  <div class="splash-subtitle" id="splash-subtitle-text">La ruleta decide quién canta primero</div>
-</div>
-
-<div id="countdown-overlay">
-  <div id="countdown-number">3</div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════
-     SCREEN D — PODIUM / CEREMONIA FINAL
-     ══════════════════════════════════════════════════════════ -->
-<div id="podium-screen" class="tv-screen">
-  <div class="flex flex-col items-center justify-center flex-1 gap-4 px-8 py-6 w-full h-full relative">
-    
-    <!-- Title -->
-    <div class="text-center">
-      <h2 class="text-5xl font-black glow-yellow" style="color:#facc15; text-shadow:0 0 20px #facc15,0 0 60px #facc1566;">🏆 PODIO DE GANADORES 🏆</h2>
-      <p class="text-lg mt-1 text-slate-400">¡El Tío Axolo presenta el podio final de la noche!</p>
-    </div>
-
-    <!-- 3-Step Podium -->
-    <div id="podium-container" class="podium-container">
-      <!-- 2nd place step -->
-      <div id="podium-step-2" class="podium-step step-2nd-parent">
-        <div class="podium-avatar-wrapper">
-          <span class="podium-rank-badge badge-2nd">🥈 2do Lugar</span>
-          <div class="avatar-bubble text-5xl mb-2 flex items-center justify-center" id="podium-avatar-2" style="width:5rem; height:5rem; border-radius:50%; border:4px solid #111827; box-shadow:6px 6px 0px #111827;"></div>
-          <p class="font-bold text-slate-100 text-lg truncate w-full max-w-[200px]" id="podium-name-2"></p>
-          <p class="font-black text-cyan-400 text-xl" id="podium-score-2"></p>
-        </div>
-        <div class="podium-pedestal step-2nd"></div>
-      </div>
-
-      <!-- 1st place step -->
-      <div id="podium-step-1" class="podium-step step-1st-parent">
-        <div class="podium-avatar-wrapper">
-          <span class="podium-rank-badge badge-1st">🥇 1er Lugar</span>
-          <div class="relative mb-2">
-            <div class="pulse-ring" style="border-color:#facc15;"></div>
-            <div class="avatar-bubble text-6xl flex items-center justify-center relative z-10" id="podium-avatar-1" style="width:6rem; height:6rem; border-radius:50%; border:4px solid #111827; box-shadow:6px 6px 0px #111827;"></div>
-          </div>
-          <p class="font-black text-slate-50 text-xl truncate w-full max-w-[200px]" id="podium-name-1"></p>
-          <p class="font-black text-yellow-400 text-2xl" id="podium-score-1"></p>
-        </div>
-        <div class="podium-pedestal step-1st"></div>
-      </div>
-
-      <!-- 3rd place step -->
-      <div id="podium-step-3" class="podium-step step-3rd-parent">
-        <div class="podium-avatar-wrapper">
-          <span class="podium-rank-badge badge-3rd">🥉 3er Lugar</span>
-          <div class="avatar-bubble text-5xl mb-2 flex items-center justify-center" id="podium-avatar-3" style="width:5rem; height:5rem; border-radius:50%; border:4px solid #111827; box-shadow:6px 6px 0px #111827;"></div>
-          <p class="font-bold text-slate-100 text-lg truncate w-full max-w-[200px]" id="podium-name-3"></p>
-          <p class="font-black text-orange-400 text-xl" id="podium-score-3"></p>
-        </div>
-        <div class="podium-pedestal step-3rd"></div>
-      </div>
-    </div>
-
-    <!-- Bottom Split: Special Awards & Standing Standings -->
-    <div class="flex gap-6 w-full max-w-5xl mt-2 items-stretch justify-center h-[170px]">
-      <!-- Special Awards Column -->
-      <div class="flex-1 rounded-2xl p-4 flex flex-col justify-between" style="background:#1e293b; border:4px solid #111827; box-shadow:8px 8px 0px #111827;">
-        <p class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-2">🏅 Premios Especiales</p>
-        <div id="awards-list" class="flex gap-4 flex-1 items-center justify-around">
-          <!-- Award cards populated dynamically -->
-        </div>
-      </div>
-      
-      <!-- Full Scoreboard Column -->
-      <div class="w-[360px] rounded-2xl p-4 flex flex-col" style="background:#1e293b; border:4px solid #111827; box-shadow:8px 8px 0px #111827;">
-        <p class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-2">📊 Posiciones Finales</p>
-        <div id="final-scoreboard" class="flex-1 overflow-y-auto pr-1 flex flex-col gap-2">
-          <!-- Scoreboard rows populated dynamically -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Restart Button -->
-    <button id="restart-btn" class="px-10 py-3 rounded-xl font-black text-lg mt-2"
-      style="background:linear-gradient(135deg,#ec4899,#a855f7); color:white; border:none; cursor:pointer; box-shadow:0 0 30px #ec489966; z-index:20;">
-      🎮 Nueva Partida
-    </button>
-  </div>
-</div>
-
-<!-- Character Cut-in Overlay (Persona/Fighting game style) -->
-<div id="axolo-cutin-overlay" class="pointer-events-none">
-  <div id="axolo-cutin-bar">
-    <div id="axolo-cutin-portrait-wrap">
-      <img id="axolo-cutin-portrait" src="/assets/tio_axolo_vignette_neutral.png" alt="Tío Axolo" draggable="false" />
-    </div>
-    <div id="axolo-cutin-textbox">
-      <div id="axolo-cutin-text">¡Bienvenidos a Rítmika! 🎤</div>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══════════════════════════════════════════════════════════
-     SCRIPTS — RÍTMIKA BRAIN
-══════════════════════════════════════════════════════════ -->
-<script>
 /* ═══════════════════════════════════════════════════════════
    RÍTMIKA TV BRAIN v2 — Fases A-F
    Arquitectura: estado en memoria, servidor es pasarela.
@@ -1716,7 +29,7 @@ window.catalogoKaraoke = [];
 //  BOOTLOADER STATE MACHINE
 // ════════════════════════════════════════════
 const boot = {
-  steps: { 1: false, 2: false, 3: false, 4: false },
+  steps: { 1: false, 2: false, 3: false, 4: false, 5: false },
   queue: [],
   processing: false,
   step(n, state, detail) {
@@ -1752,6 +65,15 @@ const boot = {
     this.processing = false;
   },
   checkAll() {
+    if (this.steps[1] && this.steps[2] && this.steps[3] && this.steps[4] && !this.steps[5] && !this.simulating5) {
+      this.simulating5 = true;
+      this.step(5, 'active', 'Inicializando recursos premium...');
+      this.step(5, 'active', 'Cargando modelos acústicos...');
+      this.step(5, 'active', 'Afinando instrumentos del Tío Axolo...');
+      this.step(5, 'active', 'Renderizando texturas 4K...');
+      this.step(5, 'done', 'Motor gráfico y de audio listo');
+      return;
+    }
     const allDone = Object.values(this.steps).every(v => v);
     if (!allDone) return;
     const banner = document.getElementById('boot-done');
@@ -1763,6 +85,22 @@ const boot = {
       // ══════════════════════════════════════════════
       // JACKBOX-STYLE WIPE TRANSITION
       // ══════════════════════════════════════════════
+      if (bootMusic && !bootMusic.paused) {
+        const fadeSteps = 30;
+        const fadeInterval = 50;
+        const volStep = bootMusic.volume / fadeSteps;
+        let step = 0;
+        const fadeOut = setInterval(() => {
+          step++;
+          bootMusic.volume = Math.max(0, bootMusic.volume - volStep);
+          if (step >= fadeSteps) {
+            clearInterval(fadeOut);
+            bootMusic.pause();
+            bootMusic.volume = 0.4;
+          }
+        }, fadeInterval);
+      }
+
       const wipeContainer = document.createElement('div');
       wipeContainer.style.cssText = 'position:fixed;inset:0;z-index:999999;pointer-events:none;overflow:hidden;display:flex;';
       
@@ -1791,8 +129,9 @@ const boot = {
           try { if(typeof UISounds !== 'undefined') UISounds.stinger(); } catch(e){}
           anime({ targets: centerLogo, scale: [0, 1.2, 1], rotate: ['-5deg', '5deg', '0deg'], duration: 800, easing: 'easeOutElastic(1, .5)' });
           
+          const modeScreen = document.getElementById('mode-selection-screen');
           if (screen) { screen.style.display = 'none'; }
-          if (lobby) { lobby.classList.add('active'); }
+          if (modeScreen) { modeScreen.classList.add('active'); }
 
           setTimeout(() => {
             try { if(typeof UISounds !== 'undefined') UISounds.whoosh(); } catch(e){}
@@ -1800,18 +139,30 @@ const boot = {
             anime({ targets: rightWipe, right: '-100%', duration: 600, easing: 'easeInExpo' });
             anime({ targets: centerLogo, scale: 0, duration: 400, easing: 'easeInExpo' });
             
-            if (typeof animateLobbyWelcome === 'function') animateLobbyWelcome();
-            
-            setTimeout(() => { wipeContainer.remove(); }, 700);
+            setTimeout(() => {
+              wipeContainer.remove();
+              if (typeof axoloSay === 'function' && typeof MODES_WELCOME_PHRASES !== 'undefined') {
+                const mwChoice = MODES_WELCOME_PHRASES[Math.floor(Math.random() * MODES_WELCOME_PHRASES.length)];
+                setTimeout(() => {
+                  window.welcomePlaying = true;
+                  axoloSay(mwChoice.text, mwChoice.file);
+                  setTimeout(() => { window.welcomePlaying = false; }, 45000);
+                }, 800);
+              }
+            }, 700);
           }, 1400);
         }, 400);
       } else {
         if (screen) screen.style.display = 'none';
-        if (lobby) { lobby.classList.add('active'); }
-        if (typeof animateLobbyWelcome === 'function') animateLobbyWelcome();
+        const modeScreen = document.getElementById('mode-selection-screen');
+        if (modeScreen) { modeScreen.classList.add('active'); }
+        wipeContainer.remove();
       }
-
-    }, 1200);
+    }; // Fin onclick
+    
+    const bootContent = document.querySelector('.boot-content');
+    if (bootContent) bootContent.appendChild(startBtn);
+    }
   },
   fail(n, msg) {
     const el = document.getElementById('boot-step-' + n);
@@ -1826,6 +177,12 @@ const boot = {
   }
 };
 boot.step(1, 'active');
+
+const bootMusic = document.getElementById('boot-music');
+if (bootMusic) {
+  bootMusic.volume = 0.4;
+  bootMusic.play().catch(() => {});
+}
 
 async function loadCatalog(retries = 3) {
   console.log('[Bootloader] loadCatalog() called');
@@ -1927,14 +284,14 @@ function pickSongForPlayer(player) {
 //  GAME STATE
 // ════════════════════════════════════════════
 const AVATARS = [
-  { id:0, emoji:'🌮', label:'Taco Rockero',      color:'#f97316', border:'#ea580c', img:'/assets/avatars/avatar_0_taco_rockero.png' },
-  { id:1, emoji:'🌶️', label:'Chile Enmascarado', color:'#ef4444', border:'#dc2626', img:'/assets/avatars/avatar_1_chile_enmascarado.png' },
-  { id:2, emoji:'🍹', label:'Tequila Fiestero',  color:'#a855f7', border:'#9333ea', img:'/assets/avatars/avatar_2_tequila_fiestero.png' },
-  { id:3, emoji:'⭐', label:'Estrella de Rock',  color:'#facc15', border:'#eab308', img:'/assets/avatars/avatar_3_estrella_rock.png' },
-  { id:4, emoji:'🦜', label:'Loro Cumbiambero',  color:'#22c55e', border:'#16a34a', img:'/assets/avatars/avatar_4_loro_cumbiambero.png' },
-  { id:5, emoji:'🎸', label:'Guitarra Mágica',   color:'#3b82f6', border:'#2563eb', img:'/assets/avatars/avatar_5_guitarra_magica.png' },
-  { id:6, emoji:'👑', label:'Rey del Palenque',  color:'#ec4899', border:'#db2777', img:'/assets/avatars/avatar_6_rey_palenque.png' },
-  { id:7, emoji:'🐙', label:'Pulpo Salsero',     color:'#06b6d4', border:'#0891b2', img:'/assets/avatars/avatar_7_pulpo_salsero.png' },
+  { id:0, emoji:'🌮', label:'Taco Rockero',      color:'#f97316', border:'#ea580c', img:'./assets/avatars/avatar_0_taco_rockero.png' },
+  { id:1, emoji:'🌶️', label:'Chile Enmascarado', color:'#ef4444', border:'#dc2626', img:'./assets/avatars/avatar_1_chile_enmascarado.png' },
+  { id:2, emoji:'🍹', label:'Tequila Fiestero',  color:'#a855f7', border:'#9333ea', img:'./assets/avatars/avatar_2_tequila_fiestero.png' },
+  { id:3, emoji:'⭐', label:'Estrella de Rock',  color:'#facc15', border:'#eab308', img:'./assets/avatars/avatar_3_estrella_rock.png' },
+  { id:4, emoji:'🦜', label:'Loro Cumbiambero',  color:'#22c55e', border:'#16a34a', img:'./assets/avatars/avatar_4_loro_cumbiambero.png' },
+  { id:5, emoji:'🎸', label:'Guitarra Mágica',   color:'#3b82f6', border:'#2563eb', img:'./assets/avatars/avatar_5_guitarra_magica.png' },
+  { id:6, emoji:'👑', label:'Rey del Palenque',  color:'#ec4899', border:'#db2777', img:'./assets/avatars/avatar_6_rey_palenque.png' },
+  { id:7, emoji:'🐙', label:'Pulpo Salsero',     color:'#06b6d4', border:'#0891b2', img:'./assets/avatars/avatar_7_pulpo_salsero.png' },
 ];
 const getAvatar = id => AVATARS[id] || AVATARS[0];
 
@@ -1966,6 +323,16 @@ const GENRE_BARKS = {
     { text: '¡Flow de tianguis de domingo: barato pero con mucho estilo! 🛍️', file: 'genre_reggaeton_7.mp3' },
     { text: '¡Eso fue puro dembow de la vieja escuela... o de la prepa! 🎒', file: 'genre_reggaeton_8.mp3' },
     { text: '¡Nos pusiste a perrear hasta el subsuelo, carnal! 🕺', file: 'genre_reggaeton_9.mp3' },
+    { text: '¡Hasta Yandel se asustó con ese perreo! 😱', file: 'genre_reggaeton_10.mp3' },
+    { text: '¡Esa nota estuvo más abajo que el subsuelo, rey! ⬇️', file: 'genre_reggaeton_11.mp3' },
+    { text: '¡Le metiste más autotune que J Balvin en concierto! 🤖', file: 'genre_reggaeton_12.mp3' },
+    { text: '¡Con ese flow no pasas ni del casting de Venga la Alegría! 📺', file: 'genre_reggaeton_13.mp3' },
+    { text: '¡Te faltó calle, perro, pero sobró actitud! 🐶', file: 'genre_reggaeton_14.mp3' },
+    { text: '¡Traes el ritmo en la sangre, pero la sangre de horchata! 🥤', file: 'genre_reggaeton_15.mp3' },
+    { text: '¡Eso fue un perreo galáctico, nos mandaste a volar de lo feo! 🚀', file: 'genre_reggaeton_16.mp3' },
+    { text: '¡Mejor dedícate a otra cosa, el dembow no te quiere! 🛑', file: 'genre_reggaeton_17.mp3' },
+    { text: '¡Ese autotune pide a gritos la jubilación anticipada! 👴', file: 'genre_reggaeton_18.mp3' },
+    { text: '¡Ni Maluma baby se atrevería a soltar ese desastre! 👶', file: 'genre_reggaeton_19.mp3' }
   ],
   banda: [
     { text: '¡El Recodo te manda sus condolencias! 🎺😂', file: 'genre_banda_0.mp3' },
@@ -1978,6 +345,16 @@ const GENRE_BARKS = {
     { text: '¡Hasta a Chuy Lizárraga se le salieron las lágrimas de oírte! 😢', file: 'genre_banda_7.mp3' },
     { text: '¡Traes todo el sentimiento del rancho, lástima el afinador! 🌾', file: 'genre_banda_8.mp3' },
     { text: '¡Eso sonó a banda sinaloense, pero después de un terremoto! 🌋', file: 'genre_banda_9.mp3' },
+    { text: '¡Julión Álvarez te mandó bloquear de WhatsApp! 🚫', file: 'genre_banda_10.mp3' },
+    { text: '¡Parece que estabas arreando vacas en vez de cantar! 🐄', file: 'genre_banda_11.mp3' },
+    { text: '¡Esa trompeta sonó a elefante constipado! 🐘', file: 'genre_banda_12.mp3' },
+    { text: '¡Ni con seis caguamas te sale bien esa rola! 🍻', file: 'genre_banda_13.mp3' },
+    { text: '¡Si fueras del Recodo, ya te habrían regresado al rancho! 🚜', file: 'genre_banda_14.mp3' },
+    { text: '¡Con ese ritmo espantaste hasta a las moscas del establo! 🪰', file: 'genre_banda_15.mp3' },
+    { text: '¡Suena a banda del recodo... pero en un simulacro de sismo! 🚨', file: 'genre_banda_16.mp3' },
+    { text: '¡Te juro que la tambora lloró cuando empezaste a cantar! 🥁', file: 'genre_banda_17.mp3' },
+    { text: '¡Ay dolor! Ya me volviste a dar, pero en los tímpanos. 🤕', file: 'genre_banda_18.mp3' },
+    { text: '¡El sombrero te queda grande y la canción también, compa! 🤠', file: 'genre_banda_19.mp3' }
   ],
   ranchera: [
     { text: '¡Don Vicente te escuchó y pidió otro tequila! 🥃', file: 'genre_ranchera_0.mp3' },
@@ -1990,6 +367,16 @@ const GENRE_BARKS = {
     { text: '¡Con ese grito espantaste a los caballos del patrón! 🐴', file: 'genre_ranchera_7.mp3' },
     { text: '¡Le pusiste garra, pero nos quedamos sin gallinero de tanto gallo! 🐔', file: 'genre_ranchera_8.mp3' },
     { text: '¡Para cantar así se necesita tequila, mezcal y mucha anestesia! 💉', file: 'genre_ranchera_9.mp3' },
+    { text: '¡Ese mariachi ya pidió asilo político en otro lado! 🏃', file: 'genre_ranchera_10.mp3' },
+    { text: '¡Hasta los agaves se secaron con ese falsete! 🌵', file: 'genre_ranchera_11.mp3' },
+    { text: '¡Le echaste más crema que a los tacos, pero sin sabor! 🌮', file: 'genre_ranchera_12.mp3' },
+    { text: '¡Don Chente desde el cielo te está mandando un rayo! ⚡', file: 'genre_ranchera_13.mp3' },
+    { text: '¡Se me rompió el jarrito de barro de puro dolor auditivo! 🏺', file: 'genre_ranchera_14.mp3' },
+    { text: '¡Por tu culpa el mariachi loco quiere dejar de bailar! 💃', file: 'genre_ranchera_15.mp3' },
+    { text: '¡Traes dolor, traes despecho, pero te falta garganta! 🗣️', file: 'genre_ranchera_16.mp3' },
+    { text: '¡Pobre caballo blanco, de escucharte ya no quiso correr! 🐎', file: 'genre_ranchera_17.mp3' },
+    { text: '¡Ese grito de mariachi sonó a llanta frenando en seco! 🚗', file: 'genre_ranchera_18.mp3' },
+    { text: '¡Un tequilazo doble para el público, que esto duele! 🥃', file: 'genre_ranchera_19.mp3' }
   ],
   rock: [
     { text: '¡Maná te hubiera dado el micrófono... para callarte! 🎸', file: 'genre_rock_0.mp3' },
@@ -2002,6 +389,16 @@ const GENRE_BARKS = {
     { text: '¡Alex Lora te daría un abrazo por el puro valor! 🫂', file: 'genre_rock_7.mp3' },
     { text: '¡Sonó como solo de guitarra eléctrica sin afinar desde el 85! 📅', file: 'genre_rock_8.mp3' },
     { text: '¡Ese headbanging estuvo chido, el canto... dejémoslo en intento! 🫠', file: 'genre_rock_9.mp3' },
+    { text: '¡Ni Metallica en sus peores días sonaba tan destructivo! 💥', file: 'genre_rock_10.mp3' },
+    { text: '¡El único rock que haces es cuando te tropiezas con una piedra! 🪨', file: 'genre_rock_11.mp3' },
+    { text: '¡Rompiste la guitarra, el bajo, y mis tímpanos de paso! 🎸', file: 'genre_rock_12.mp3' },
+    { text: '¡Ese solo vocal sonó a frenazo de camión de basura! 🚛', file: 'genre_rock_13.mp3' },
+    { text: '¡Axl Rose te mandó saludos... y una orden de restricción! 📜', file: 'genre_rock_14.mp3' },
+    { text: '¡El espíritu del rock and roll está pidiendo auxilio! 🆘', file: 'genre_rock_15.mp3' },
+    { text: '¡Tanto ruido y tan poca música, parece microbús sin escape! 🚌', file: 'genre_rock_16.mp3' },
+    { text: '¡Eso fue heavy metal... pero pesado de aguantar! 🪨', file: 'genre_rock_17.mp3' },
+    { text: '¡Ni rompiendo la guitarra salvas esa presentación! 🎸', file: 'genre_rock_18.mp3' },
+    { text: '¡Los decibeles al máximo y la afinación en negativo! 📉', file: 'genre_rock_19.mp3' }
   ],
   pop: [
     { text: '¡Taylor Swift acaba de bloquear tu número! 📵', file: 'genre_pop_0.mp3' },
@@ -2014,6 +411,16 @@ const GENRE_BARKS = {
     { text: '¡Ese falsete estuvo más falso que billete de 300 pesos! 💵', file: 'genre_pop_7.mp3' },
     { text: '¡Parece que cantas pop en inglés pero con pronunciación de secundaria! 🏫', file: 'genre_pop_8.mp3' },
     { text: '¡Un autotune no te caería nada mal para la próxima, de veras! 🎚️', file: 'genre_pop_9.mp3' },
+    { text: '¡Más desafinado que corista de quinceañera! 👗', file: 'genre_pop_10.mp3' },
+    { text: '¡Esa coreografía estuvo chida, lástima que estamos calificando la voz! 💃', file: 'genre_pop_11.mp3' },
+    { text: '¡Hasta Timbiriche te hubiera sacado del grupo! 🎤', file: 'genre_pop_12.mp3' },
+    { text: '¡Cantaste tan fresa que me dio alergia musical! 🍓', file: 'genre_pop_13.mp3' },
+    { text: '¡Belinda ya se desmayó de escuchar eso, y no por el sapito! 🐸', file: 'genre_pop_14.mp3' },
+    { text: '¡Pop latino, de ese que te hace cambiar de estación! 📻', file: 'genre_pop_15.mp3' },
+    { text: '¡Súper fresa, lástima que la fresa venía pasada! 🍓', file: 'genre_pop_16.mp3' },
+    { text: '¡Ni todos los brillos del mundo tapan esos gallos! ✨', file: 'genre_pop_17.mp3' },
+    { text: '¡Qué bonito bailas, ojalá cantaras la mitad de bien! 💃', file: 'genre_pop_18.mp3' },
+    { text: '¡Ese agudo rompió tres copas y dos amistades! 🥂', file: 'genre_pop_19.mp3' }
   ],
   cumbia: [
     { text: '¡Los Ángeles Azules te piden que guardes el micrófono! 💃', file: 'genre_cumbia_0.mp3' },
@@ -2026,9 +433,19 @@ const GENRE_BARKS = {
     { text: '¡Hasta el microbús se detuvo a bailar con ese ritmo! 🚌', file: 'genre_cumbia_7.mp3' },
     { text: '¡Cumbia de la buena, ideal para barrer el piso con el compadre! 🧹', file: 'genre_cumbia_8.mp3' },
     { text: '¡Traes el güiro bien dominado, al menos eso se escuchó bien! 🥁', file: 'genre_cumbia_9.mp3' },
+    { text: '¡Ese pasito tun tun te salió más bien pasito pum pum! 💥', file: 'genre_cumbia_10.mp3' },
+    { text: '¡Si esto fuera un sonidero, ya te hubieran desconectado la bocina! 🔌', file: 'genre_cumbia_11.mp3' },
+    { text: '¡Traes la cumbia en las venas, pero la circulación tapada! 🩸', file: 'genre_cumbia_12.mp3' },
+    { text: '¡Celso Piña estaría tocando el acordeón... para no oírte! 🪗', file: 'genre_cumbia_13.mp3' },
+    { text: '¡Qué cumbión tan mareador, me dio vértigo de lo mal que sonó! 😵', file: 'genre_cumbia_14.mp3' },
+    { text: '¡Baila la cumbia... y mejor no cantes la cumbia! 💃', file: 'genre_cumbia_15.mp3' },
+    { text: '¡Ese güiro tiene más ritmo que tus cuerdas vocales! 🥁', file: 'genre_cumbia_16.mp3' },
+    { text: '¡Nos pusiste a sudar, pero de puro nervio al escucharte! 💦', file: 'genre_cumbia_17.mp3' },
+    { text: '¡La pista está llena, pero todos huyendo del sonido! 🏃', file: 'genre_cumbia_18.mp3' },
+    { text: '¡Sabor tropical que se quedó en el refrigerador! 🧊', file: 'genre_cumbia_19.mp3' }
   ],
   balada: [
-    { text: '¡Luis Miguel lloró... pero no de emotion! 😢', file: 'genre_balada_0.mp3' },
+    { text: '¡Luis Miguel lloró... pero no de emoción! 😢', file: 'genre_balada_0.mp3' },
     { text: '¡Eso fue más dramático que telenovela de Televisa! 📺', file: 'genre_balada_1.mp3' },
     { text: '¡El amor duele, pero esa nota duele más! 💔', file: 'genre_balada_2.mp3' },
     { text: '¡Alejandro Sanz se fue de tour por no escuchar eso! 🌍', file: 'genre_balada_3.mp3' },
@@ -2038,6 +455,16 @@ const GENRE_BARKS = {
     { text: '¡Esa nota alta fue un grito de auxilio, confiesa! 🚨', file: 'genre_balada_7.mp3' },
     { text: '¡Sonó triste, sobre todo para los que tenemos oídos! 🦻', file: 'genre_balada_8.mp3' },
     { text: '¡La dedicatoria estuvo chida, el canto amerita divorcio exprés! 💍', file: 'genre_balada_9.mp3' },
+    { text: '¡Lloré, pero porque me acordé que todavía faltan más por cantar! 😭', file: 'genre_balada_10.mp3' },
+    { text: '¡Ese drama no lo compra ni TV Azteca! 📺', file: 'genre_balada_11.mp3' },
+    { text: '¡Cristian Castro te manda sus alas para que vueles lejos del micro! 🕊️', file: 'genre_balada_12.mp3' },
+    { text: '¡Te dolió tanto la rola que hasta el aire te faltó, mijo! 😮‍💨', file: 'genre_balada_13.mp3' },
+    { text: '¡Pura cortavenas, pero de las que infectan! 🩹', file: 'genre_balada_14.mp3' },
+    { text: '¡Tanto drama que ya me siento en el capítulo final! 📺', file: 'genre_balada_15.mp3' },
+    { text: '¡Cantas al desamor, pero enamoras a la desgracia! 💔', file: 'genre_balada_16.mp3' },
+    { text: '¡Traigan los pañuelos, que mis oídos están sangrando! 🩸', file: 'genre_balada_17.mp3' },
+    { text: '¡Esa lágrima fue real, pero de dolor físico al oírte! 😭', file: 'genre_balada_18.mp3' },
+    { text: '¡Una balada que pasará a la historia como arma letal! 💣', file: 'genre_balada_19.mp3' }
   ],
   electronica: [
     { text: '¡Daft Punk se quitó el casco de vergüenza! 🤖', file: 'genre_electronica_0.mp3' },
@@ -2050,6 +477,16 @@ const GENRE_BARKS = {
     { text: '¡Hasta el DJ se puso audífonos para taparse las orejas! 🎚️', file: 'genre_electronica_7.mp3' },
     { text: '¡Mucha luces, mucho humo, pero poca melodía, mi buen! 🌫️', file: 'genre_electronica_8.mp3' },
     { text: '¡El sintetizador intentó salvarte, pero ni él pudo tanto! 🎹', file: 'genre_electronica_9.mp3' },
+    { text: '¡Ese sintetizador sonó como gato peleando en el techo! 🐈', file: 'genre_electronica_10.mp3' },
+    { text: '¡La rola era house pero nos dejaste a todos out! 🏠', file: 'genre_electronica_11.mp3' },
+    { text: '¡Ni Skrillex se atrevería a soltar ese ruido tan random! 🎛️', file: 'genre_electronica_12.mp3' },
+    { text: '¡Parecía que se te quedó trabado el teclado de la computadora! ⌨️', file: 'genre_electronica_13.mp3' },
+    { text: '¡Mucho punchis punchis, pero el talento andaba en el baño! 🚽', file: 'genre_electronica_14.mp3' },
+    { text: '¡Apaguen esa consola, que huele a cable quemado! 🔌', file: 'genre_electronica_15.mp3' },
+    { text: '¡Mucho láser, mucho humo, cero talento musical! 🕶️', file: 'genre_electronica_16.mp3' },
+    { text: '¡Ese beat estuvo tan raro que se me reinició el Windows! 💻', file: 'genre_electronica_17.mp3' },
+    { text: '¡Rave de pesadilla, de aquí al psicólogo todos! 🧠', file: 'genre_electronica_18.mp3' },
+    { text: '¡La máquina hace la mitad del trabajo y ni así pudiste! 🤖', file: 'genre_electronica_19.mp3' }
   ],
   default: [
     { text: '¡Eso fue... algo! ¡No sé si cantar o rezar! 🙏', file: 'genre_default_0.mp3' },
@@ -2062,9 +499,18 @@ const GENRE_BARKS = {
     { text: '¡Le faltó sal a ese taco de canción! 🧂', file: 'genre_default_7.mp3' },
     { text: '¡Traes el espíritu afinado, el resto... va en camino! 🚶', file: 'genre_default_8.mp3' },
     { text: '¡Eso fue cantar a capela... pero sin afinación alguna! 🔇', file: 'genre_default_9.mp3' },
-  ],
+    { text: '¡Ni Google Translate entiende lo que acabas de cantar! 🌐', file: 'genre_default_10.mp3' },
+    { text: '¡Qué valor, qué coraje, qué falta de talento! 👏', file: 'genre_default_11.mp3' },
+    { text: '¡Esto es un karaoke, no un concurso de gritos en el mercado! 🛒', file: 'genre_default_12.mp3' },
+    { text: '¡Me duelen los oídos, los ojos y la dignidad! 🙈', file: 'genre_default_13.mp3' },
+    { text: '¡Otra así y mejor desconecto el servidor! 🔌', file: 'genre_default_14.mp3' },
+    { text: '¡Un talento oculto... y mejor que siga bien escondido! 🥷', file: 'genre_default_15.mp3' },
+    { text: '¡El micrófono acaba de meter una demanda por abuso! 🎤', file: 'genre_default_16.mp3' },
+    { text: '¡Cantas con el alma, porque con la voz de plano no! 👻', file: 'genre_default_17.mp3' },
+    { text: '¡Una actuación inolvidable, aunque queramos olvidarla! 🧠', file: 'genre_default_18.mp3' },
+    { text: '¡Te mereces un aplauso, pero en la cara y con una silla! 🪑', file: 'genre_default_19.mp3' }
+  ]
 };
-
 const LOBBY_WELCOME_PHRASES = [
   { text: "¡Bienvenidos a Rítmika! Escaneen el código para empezar la fiesta 🪅", file: "lobby_welcome_0.mp3" },
   { text: "¡Qué onda banda! Bienvenidos a Rítmika. Acerquen sus celulares y conéctense al party. 🎉", file: "lobby_welcome_1.mp3" },
@@ -2134,6 +580,33 @@ const NEW_GAMES = [
   { text: '¡Reiniciamos la diversión! Esperando que se unan los cantantes. 🚀', file: 'new_game_2.mp3' }
 ];
 
+const AXOLO_MODE_INTROS = {
+  clasico: { text: "¡Modo Clásico! Rondas, ruleta y la carrilla de siempre. ¡A darle! 🎤", file: "mode_intro_clasico.mp3" },
+  ranchera: { text: "¡Noche de despecho! Puro dolor, mariachi y tequila. ¡Agárrense! 🥃", file: "mode_intro_ranchera.mp3" },
+  nostalgia: { text: "¡Modo Nostalgia 2000s! Saca tu discman y tu lado emo, que esto se va a poner intenso. 🖤", file: "mode_intro_nostalgia.mp3" },
+  anime: { text: "¡Otaku Fest! A cantar los mejores openings antes de que caiga el meteorito. 🌸", file: "mode_intro_anime.mp3" }
+};
+
+const AXOLO_MODE_SELECTED = {
+  clasico: { text: "¡Vámonos recio con lo Clásico! 🚀", file: "mode_selected_clasico.mp3" },
+  ranchera: { text: "¡A llorar se ha dicho, puro mariachi! 🎺", file: "mode_selected_ranchera.mp3" },
+  nostalgia: { text: "¡Sacando el fleco emo y el delineador! 🎸", file: "mode_selected_nostalgia.mp3" },
+  anime: { text: "¡Prepara tus jutsus que nos vamos a Japón! 🎌", file: "mode_selected_anime.mp3" }
+};
+
+const MODES_WELCOME_PHRASES = [
+  { text: "¡Bienvenidos a Rítmika, banda! Les tengo varios modos para que se la pasen increíble. El Clásico es la experiencia completa con ruleta, canciones variadas y mucha carrilla. Anime es puro opening para los otakus. Ranchera es para los despechados con mariachi incluido. Nostalgia te lleva a los 2000s con tu discman y tu lado emo. Y Emo... bueno, para los intensos. ¡Elijan su modo y vamos a arrancar esta fiesta!", file: "modes_welcome_0.mp3" },
+  { text: "¡Qué onda, banda! Bienvenidos a Rítmika, el karaoke más loco del palenque. Miren, les tengo el Modo Clásico que es la experiencia completa: ruleta, canciones de todos los géneros y mucha carrilla. Si son otakus, ahí está el modo Anime con puros openings. Si traen despecho, modo Ranchera con puro mariachi. Los nostálgicos tienen el modo Nostalgia pa\u0027 los 2000s, y los intensos su modo Emo. ¡Elijan el suyo y que empiece la fiesta!", file: "modes_welcome_1.mp3" },
+  { text: "¡Llegaron, llegaron! Bienvenidos a Rítmika, el show de karaoke más escandaloso de la cuadra. Antes de arrancar, elijan su modo de sufrimiento. El Clásico es para valientes, con ruleta y de todos los géneros. Anime es puro opening, Ranchera es puro despecho, Nostalgia es pa\u0027 los 2000s, y Emo... bueno, para los que traen el alma rota. ¡A elegir y a cantar!", file: "modes_welcome_2.mp3" },
+  { text: "¡Buenas noches, palenque! El Tío Axolo les trae la bienvenida más calurosa. Aquí tenemos varios modos pa\u0027 que cada quien sufra a su manera. El Clásico tiene de todo, Anime es pa\u0027 los otakus, Ranchera es pa\u0027 los despechados, Nostalgia te lleva a los 2000s, y Emo es pa\u0027 los intensos. ¡Eligan el suyo y que empiece el sufrimiento!", file: "modes_welcome_3.mp3" },
+  { text: "¡Arrancamos la noche, banda! Bienvenidos a Rítmika, donde cantar es opcional pero el ridículo es obligatorio. Miren, les tengo varios modos: el Clásico es la experiencia completa, Anime es puro opening, Ranchera es puro mariachi, Nostalgia te lleva a los 2000s, y Emo es para los que traen el fleco tapando un ojo. ¡Eligan su modo y a sufrir!", file: "modes_welcome_4.mp3" },
+  { text: "¡Bien, bien, bien! Bienvenidos a Rítmika, el karaoke donde la amistad se pone a prueba. Les tengo varios modos pa\u0027 que elijan cómo quieren pasarla. El Clásico es el clásico de siempre, Anime es pa\u0027 los que ven dibujos japoneses, Ranchera es pa\u0027 los despechados, Nostalgia te transporta a los 2000s, y Emo es pa\u0027 los dramáticos. ¡A elegir!", file: "modes_welcome_5.mp3" },
+  { text: "¡Qué tal, qué tal! Bienvenidos al palenque de Rítmika. Soy el Tío Axolo y les vengo a explicar los modos de juego. Tenemos el Clásico que es la experiencia completa con ruleta y todo. Anime para los otakus, Ranchera para los despechados, Nostalgia para los nostálgicos de los 2000s, y Emo para los que lloran con la lluvia. ¡Eligan y arrancamos!", file: "modes_welcome_6.mp3" },
+  { text: "¡Bienvenidos, bienvenidos! Rítmika está listo para la fiesta y el Tío Axolo tiene varios modos pa\u0027 que elijan. El Clásico es para los que quieren la experiencia completa, Anime es puro opening y neón, Ranchera es puro dolor y mariachi, Nostalgia te lleva a los 2000s con tu Discman, y Emo es para los intensos del alma. ¡Eligan su modo y que no empiece el llanto!", file: "modes_welcome_7.mp3" },
+  { text: "¡Aquí estamos otra vez, banda! Bienvenidos a Rítmika, donde la voz se premia y el ridículo se castiga... o al revés. Les tengo varios modos: el Clásico tiene ruleta y canciones de todos lados, Anime es pa\u0027 los que hablan en gallo japonés, Ranchera es pa\u0027 los que traen despecho, Nostalgia es pa\u0027 los del 2000s, y Emo es pa\u0027 los que se escuchan tristes en el espejo. ¡A elegir!", file: "modes_welcome_8.mp3" },
+  { text: "¡Wepa, wepa! Bienvenidos a Rítmika, el karaoke más loco de toda la colonia. El Tío Axolo les presenta los modos de juego. El Clásico es la experiencia completa con ruleta, Anime es puro opening, Ranchera es puro despecho, Nostalgia te lleva a los 2000s, y Emo es para los que traen el delineador puesto. ¡Eligan su modo y que arranque la fiesta!", file: "modes_welcome_9.mp3" }
+];
+
 const AXOLO_SINGER_INTROS = [
   { text: '¡Al micrófono! ¡Que el palenque tiemble! 🎤🔥', file: 'intro_0.mp3' },
   { text: '¡Tiene el turno! ¡O canta o paga las chelas! 🍺', file: 'intro_1.mp3' },
@@ -2145,6 +618,16 @@ const AXOLO_SINGER_INTROS = [
   { text: '¡Agárrense, que viene con todo el flow sonidero! 🔊', file: 'intro_7.mp3' },
   { text: '¡Que pase al frente! ¡Que empiece la magia o el sufrimiento! 🎩', file: 'intro_8.mp3' },
   { text: '¡La ruleta ha hablado y condena a nuestro cantante a deleitarnos! 🎭', file: 'intro_9.mp3' },
+  { text: '¡Pásale a lo barrido, que aquí no hay piedad! 🧹', file: 'intro_10.mp3' },
+  { text: '¡Agarra el micrófono como si fuera tu última caguama! 🍺', file: 'intro_11.mp3' },
+  { text: '¡Demuestra que esos años cantando en la regadera valieron la pena! 🚿', file: 'intro_12.mp3' },
+  { text: '¡El que sigue! Que no tiemblen las corvas. 🦵', file: 'intro_13.mp3' },
+  { text: '¡Prepárense para una obra maestra... o para el fin del mundo! 🌎', file: 'intro_14.mp3' },
+  { text: '¡Respira profundo, porque allá arriba no hay piedad! 😮‍💨', file: 'intro_15.mp3' },
+  { text: '¡El reflector te llama, a ver si no te quema! 💡', file: 'intro_16.mp3' },
+  { text: '¡Toma el micro y reza tus oraciones! 🙏', file: 'intro_17.mp3' },
+  { text: '¡Público exigente hoy, así que saca los pasos prohibidos! 🕺', file: 'intro_18.mp3' },
+  { text: '¡Si fallas, ya hay tomates listos en el refri! 🍅', file: 'intro_19.mp3' }
 ];
 
 const AXOLO_VOTE_REACTIONS = {
@@ -2156,6 +639,14 @@ const AXOLO_VOTE_REACTIONS = {
     { text: '¡Qué bárbaro, cantas mejor que el promedio nacional! 🇲🇽', file: 'vote_100_4.mp3' },
     { text: '¡Traes un vozarrón que hasta a mí me dio escalofríos! 🥶', file: 'vote_100_5.mp3' },
     { text: '¡Eso no fue cantar, fue dar cátedra musical! 🎓', file: 'vote_100_6.mp3' },
+    { text: '¡Pónganle una estatua a este compa en su barrio! 🗽', file: 'vote_100_7.mp3' },
+    { text: '¡Impecable! ¡Sublime! ¡Te quiero mucho! ❤️', file: 'vote_100_8.mp3' },
+    { text: '¡De aquí directo a llenar el Foro Sol! 🏟️', file: 'vote_100_9.mp3' },
+    { text: '¡Mis respetos, eso fue oro puro en el micrófono! 🥇', file: 'vote_100_10.mp3' },
+    { text: '¡Me puse de pie en la sala, qué nivel de presentación! 🧍‍♂️', file: 'vote_100_11.mp3' },
+    { text: '¡Firmame un autógrafo antes de que te vuelvas famoso! 📝', file: 'vote_100_12.mp3' },
+    { text: '¡Si hubiera boletos, yo pagaba primera fila! 🎟️', file: 'vote_100_13.mp3' },
+    { text: '¡Talento del bueno, sin exagerar ni un gramo! ✨', file: 'vote_100_14.mp3' }
   ],
   60: [
     { text: '¡Ni fu ni fa, pero al menos no sangran los oídos! 👍', file: 'vote_60_0.mp3' },
@@ -2165,6 +656,14 @@ const AXOLO_VOTE_REACTIONS = {
     { text: '¡Cumpliste como los buenos, a secas! 📝', file: 'vote_60_4.mp3' },
     { text: '¡Digamos que salvaste la noche por los pelos! 💈', file: 'vote_60_5.mp3' },
     { text: '¡Un desempeño decente, te ganaste media chela! 🍺', file: 'vote_60_6.mp3' },
+    { text: '¡Suficiente para aprobar la materia, pero sin honores! 🎓', file: 'vote_60_7.mp3' },
+    { text: '¡Cantaste como en martes: ni muy muy, ni tan tan! 🗓️', file: 'vote_60_8.mp3' },
+    { text: '¡Hubo fallas técnicas, pero la actitud te salvó de milagro! 🛠️', file: 'vote_60_9.mp3' },
+    { text: '¡No deslumbraste, pero al menos no apagaste la fiesta! 🕯️', file: 'vote_60_10.mp3' },
+    { text: '¡Palomita en la boleta, pero sin derecho a beca! ✅', file: 'vote_60_11.mp3' },
+    { text: '¡Estuvo regular, te faltó ensayar en la regadera! 🚿', file: 'vote_60_12.mp3' },
+    { text: '¡Aceptable, supongo que has tenido mejores días! 🤷', file: 'vote_60_13.mp3' },
+    { text: '¡Ni fu ni fa, quedaste empatado con el silencio! 😐', file: 'vote_60_14.mp3' }
   ],
   30: [
     { text: '¡Le echó ganas, que no es lo mismo que talento! 💪', file: 'vote_30_0.mp3' },
@@ -2174,6 +673,14 @@ const AXOLO_VOTE_REACTIONS = {
     { text: '¡La intención es lo que cuenta, dicen por ahí! 🤷', file: 'vote_30_4.mp3' },
     { text: '¡Uff, faltó aire y sobró confianza! 😮‍💨', file: 'vote_30_5.mp3' },
     { text: '¡Sonó como motor de vocho en subida, compa! 🚗', file: 'vote_30_6.mp3' },
+    { text: '¡De panzazo y rozando la tragedia, carnal! 🤕', file: 'vote_30_7.mp3' },
+    { text: '¡Traías el volumen al cien pero el talento en modo avión! ✈️', file: 'vote_30_8.mp3' },
+    { text: '¡Se agradece la participación, ahora siéntate por favor! 🪑', file: 'vote_30_9.mp3' },
+    { text: '¡Eso sonó a lamento boliviano, pero mal cantado! 😢', file: 'vote_30_10.mp3' },
+    { text: '¡Menos mal que no cobran entrada para escucharte! 💸', file: 'vote_30_11.mp3' },
+    { text: '¡Si cantaras como respiras, seríamos millonarios! 💰', file: 'vote_30_12.mp3' },
+    { text: '¡Faltó poquito para que fuera bueno... bueno, faltó mucho! 🤏', file: 'vote_30_13.mp3' },
+    { text: '¡Un aplauso por el valor, porque de voz andamos escasos! 👏', file: 'vote_30_14.mp3' }
   ],
   10: [
     { text: '¡GALLO SUPREMO DETECTADO! 🐓 ¡Los gallos de Sonora cantaron mejor!', file: 'vote_10_0.mp3' },
@@ -2183,7 +690,15 @@ const AXOLO_VOTE_REACTIONS = {
     { text: '¡Eso sonó como gato pisado en reversa! 🐱🚗', file: 'vote_10_4.mp3' },
     { text: '¡Una afinación tan ausente como mi ex! 💔', file: 'vote_10_5.mp3' },
     { text: '¡Te sugiero pedir perdón al micrófono de inmediato! 🎤🙇', file: 'vote_10_6.mp3' },
-  ],
+    { text: '¡Por favor, que alguien llame a control de animales! 🐕', file: 'vote_10_7.mp3' },
+    { text: '¡Mis respetos... por tener el valor de hacer el ridículo así! 🤡', file: 'vote_10_8.mp3' },
+    { text: '¡Ni con autotune divino se arregla ese desastre! 👼', file: 'vote_10_9.mp3' },
+    { text: '¡Cantas tan feo que hasta la cebolla lloró! 🧅', file: 'vote_10_10.mp3' },
+    { text: '¡Un minuto de silencio por mis tímpanos fallecidos! 🪦', file: 'vote_10_11.mp3' },
+    { text: '¡Eso fue un crimen de lesa humanidad musical! 🚓', file: 'vote_10_12.mp3' },
+    { text: '¡Ni el micrófono te quiere ya, devuélvelo por favor! 🎤', file: 'vote_10_13.mp3' },
+    { text: '¡Rompiste la barrera del sonido... y del buen gusto! 💥', file: 'vote_10_14.mp3' }
+  ]
 };
 
 function getGenreBark(player) {
@@ -2239,6 +754,8 @@ function loadSavedGame() {
 function clearSavedGame() {
   localStorage.removeItem(SAVE_KEY);
 }
+
+const TOMATAZO_COST = 30;
 
 const state = {
   roomCode:   null,
@@ -2347,6 +864,16 @@ function animateLobbyWelcome() {
       RitmikaStyleFX.dropIn(el, { delay: i * 120 });
     });
   }, 600);
+
+  setTimeout(() => {
+    if (window.pendingLobbyAudio) {
+      axoloSay(window.pendingLobbyAudio.text, window.pendingLobbyAudio.file);
+      window.pendingLobbyAudio = null;
+    } else {
+      const wChoice = LOBBY_WELCOME_PHRASES[Math.floor(Math.random() * LOBBY_WELCOME_PHRASES.length)];
+      axoloSay(wChoice.text, wChoice.file);
+    }
+  }, 1200);
 }
 
 // ════════════════════════════════════════════
@@ -2451,6 +978,9 @@ function showScreen(id, transitionType, onComplete) {
   if (!next || (current && current.id === id)) return;
 
   if (!current) {
+    next.style.display = '';
+    next.style.opacity = '';
+    next.style.transform = '';
     next.classList.add('active');
     if (onComplete) onComplete();
     return;
@@ -2529,7 +1059,6 @@ function showScreen(id, transitionType, onComplete) {
           anime({
             targets: next,
             scale: ['0.3', '1.05', '1'],
-            opacity: [0, 1],
             duration: 600,
             easing: 'easeOutElastic(1, .5)',
             complete: () => {
@@ -2583,9 +1112,9 @@ function showScreen(id, transitionType, onComplete) {
 const socket = io();
 
 socket.on('connect', () => {
-  console.log('[TV] Conectado. Creando sala...');
+  console.log('[TV] Conectado. Preparando sala...');
   boot.step(1, 'done');
-  socket.emit('tv:create_room');
+  boot.step(2, 'done', 'Esperando selección de modo');
   loadCatalog();
   // Check FFmpeg via health endpoint (step 4)
   fetch('/api/health', { signal: AbortSignal.timeout(5000) })
@@ -2608,7 +1137,6 @@ socket.on('tv:room_created', ({ roomCode, localIP, hotspotSSID, hotspotPassword 
   state.localIP = localIP || window.location.hostname;
   state.hotspotSSID = hotspotSSID || 'Ritmika';
   state.hotspotPassword = hotspotPassword || 'Ritmika2026';
-  boot.step(2, 'done', 'Sala ' + roomCode);
   renderRoomCode(roomCode);
   inicializarQRConexion();
   const st = document.getElementById('status-text');
@@ -2622,8 +1150,7 @@ socket.on('tv:room_created', ({ roomCode, localIP, hotspotSSID, hotspotPassword 
   } else {
     document.getElementById('restore-banner').classList.add('hidden');
     const rrChoice = ROOM_READY_PHRASES[Math.floor(Math.random() * ROOM_READY_PHRASES.length)];
-    lobbySoundPlayed = true;
-    axoloSay(rrChoice.text, rrChoice.file);
+    window.pendingLobbyAudio = rrChoice;
   }
   updateTicker(`Sala ${roomCode} creada. ¡Comparte el código!`);
 
@@ -2681,7 +1208,11 @@ socket.on('tv:player_joined', ({ player, players }) => {
   ];
   const choice = joinLines[Math.floor(Math.random() * joinLines.length)];
   updateTicker(`¡${player.name} se unió! Ya somos ${state.players.length} 🎉`);
-  axoloSay(choice.text, choice.file);
+  const now = Date.now();
+  if (!window.lastLobbyVoice || now - window.lastLobbyVoice > 3500) {
+    window.lastLobbyVoice = now;
+    axoloSay(choice.text, choice.file);
+  }
   if (state.players.length >= 1) {
     document.getElementById('start-btn').classList.remove('hidden');
     RitmikaStyleFX.popIn('#start-btn', { duration: 700 });
@@ -2730,9 +1261,29 @@ socket.on('tv:player_artists', ({ socketId, artists }) => {
   updateTicker(`${name} eligió artistas: ${artists.slice(0,3).join(', ')} 🎸`);
 });
 
-socket.on('tv:tomatazo', ({ attackerName, targetName }) => {
-  fireTomatazo(attackerName, targetName);
-  updateTicker(`🍅 ¡${attackerName} tomatazó a ${targetName}!`);
+socket.on('tv:tomatazo', ({ attackerName, targetName, attackerSocketId }) => {
+  const attacker = state.players.find(p => p.socketId === attackerSocketId);
+  const cost = TOMATAZO_COST;
+  if (attacker && attacker.score !== undefined) {
+    if ((attacker.score || 0) < cost) {
+      // Not enough points — send rejection to player
+      socket.emit('tv:send_to_player', {
+        targetSocketId: attackerSocketId,
+        event: 'TOMATAZO_REJECTED',
+        data: { reason: 'Puntos insuficientes', cost },
+      });
+      return;
+    }
+    attacker.score = Math.max(0, (attacker.score || 0) - cost);
+    updateAllPlayerCardScores();
+    socket.emit('tv:broadcast', {
+      roomCode: state.roomCode,
+      event: 'SCORE_UPDATE',
+      data: { players: state.players.map(p => ({ socketId: p.socketId, score: p.score || 0, name: p.name })) },
+    });
+  }
+  fireTomatazo(attackerName, targetName, cost);
+  updateTicker(`🍅 ¡${attackerName} tomatazó a ${targetName} (-${cost} pts)!`);
   const target = state.players.find(p => p.name === targetName);
   if (target) target.tomatazos = (target.tomatazos || 0) + 1;
 });
@@ -2799,18 +1350,18 @@ document.getElementById('start-btn').addEventListener('click', () => {
 // DEBUG: Add bot player
 // Toggle Debug Panel (Ctrl + B) or Click on JUGADORES
 document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+  if (e.key === 'F9') {
     e.preventDefault();
-    const debugPanel = document.getElementById('debug-panel-container');
-    if (debugPanel) debugPanel.style.display = debugPanel.style.display === 'none' ? 'flex' : 'none';
+    const debugPanel = document.getElementById('secret-debug-panel');
+    if (debugPanel) debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
   }
 });
 
 const secretTrigger = document.getElementById('secret-debug-trigger');
 if (secretTrigger) {
   secretTrigger.addEventListener('dblclick', () => {
-    const debugPanel = document.getElementById('debug-panel-container');
-    if (debugPanel) debugPanel.style.display = debugPanel.style.display === 'none' ? 'flex' : 'none';
+    const debugPanel = document.getElementById('secret-debug-panel');
+    if (debugPanel) debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
   });
 }
 
@@ -3066,7 +1617,6 @@ function buildRouletteWheel(playersToDraw) {
     nameText.setAttribute('paint-order','stroke fill');
     nameText.setAttribute('transform', `rotate(${deg},${lx},${ly})`);
     nameText.textContent = p.name.slice(0, 8);
-    wheel.appendChild(nameText);
   });
 }
 
@@ -3482,7 +2032,7 @@ function endSong(player) {
 
   const totalDelay = 300 + singerVotes.length * 250 + 300;
   setTimeout(() => {
-    playSfx('/assets/audio/sfx_magic_reveal.mp3');
+    playSfx('./assets/audio/sfx_magic_reveal.mp3');
     anime({
       targets: totalRow, opacity: [0, 1], scale: [0.8, 1.05, 1],
       duration: 600, easing: 'easeOutElastic(1, .5)',
@@ -3585,9 +2135,9 @@ function showPodium() {
     { icon:'&#128535;', title:'Vengador An&#243;nimo', subtitle:'Fuego Cruzado',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
   ].map(a => ({...a, carrilla: a.obj.text, file: a.obj.file}));
   const stepData = [
-    { place:3, player:sorted[2], rank:'&#129350;', label:'3er Lugar', color:'#f97316', glow:'#f9731640', pedColor:'linear-gradient(to top,#7c2d12,#f97316)', size:'5.5rem' },
-    { place:2, player:sorted[1], rank:'&#129349;', label:'2do Lugar', color:'#22d3ee', glow:'#22d3ee40', pedColor:'linear-gradient(to top,#164e63,#06b6d4)', size:'5.5rem' },
-    { place:1, player:sorted[0], rank:'&#129351;', label:'1er Lugar', color:'#facc15', glow:'#facc1560', pedColor:'linear-gradient(to top,#78350f,#eab308)', size:'7.5rem' },
+    { place:3, player:sorted[2], rank:'&#129350;', label:'3er Lugar', color:'#f97316', glow:'#f9731640', pedColor:'#f97316', size:'5.5rem' },
+    { place:2, player:sorted[1], rank:'&#129349;', label:'2do Lugar', color:'#22d3ee', glow:'#22d3ee40', pedColor:'#06b6d4', size:'5.5rem' },
+    { place:1, player:sorted[0], rank:'&#129351;', label:'1er Lugar', color:'#facc15', glow:'#facc1560', pedColor:'#facc15', size:'7.5rem' },
   ];
 
   const axoloOverlay = document.getElementById('axolo-cutin-overlay');
@@ -3646,12 +2196,20 @@ function showPodium() {
 
   function wait(ms) { return new Promise(r=>setTimeout(r,ms)); }
 
+  function waitForAxoloAudio(bufferMs) {
+    bufferMs = bufferMs || 800;
+    return new Promise(resolve => {
+      if (!currentAxoloAudio) { setTimeout(resolve, bufferMs); return; }
+      _axoloAudioDoneResolve = () => setTimeout(resolve, bufferMs);
+    });
+  }
+
   async function runCeremony() {
 
     // FASE 1: Titulo epico
     ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
     const bgImg=document.createElement('div');
-    bgImg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0;z-index:0;transition:opacity 1.2s ease;';
+    bgImg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0;z-index:0;transition:opacity 1.2s ease;';
     ceremonyRoot.appendChild(bgImg);
     const bgOvl=document.createElement('div');
     bgOvl.style.cssText='position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,26,0.5) 0%,rgba(10,10,26,0.88) 100%);z-index:1;';
@@ -3663,12 +2221,12 @@ function showPodium() {
     ceremonyRoot.appendChild(titleWrap);
 
     const trophyEl=document.createElement('img');
-    trophyEl.src='/assets/podium_trophy_glow.png';
+    trophyEl.src='./assets/podium_trophy_glow.png';
     trophyEl.style.cssText='width:150px;height:150px;object-fit:contain;opacity:0;transform:translateY(-60px) scale(0.5);filter:drop-shadow(0 0 30px #facc15) drop-shadow(0 0 60px #facc1588);';
     titleWrap.appendChild(trophyEl);
 
     const titleBlock=document.createElement('div');
-    titleBlock.style.cssText='display:inline-block;background:#ffe600;border:6px solid #111827;box-shadow:14px 14px 0 #111827;padding:28px 64px;border-radius:24px;text-align:center;opacity:0;transform:scale(0.5) rotate(-3deg);margin-top:18px;';
+    titleBlock.style.cssText='display:inline-block;background:#ffe600;border:6px solid #111827;box-shadow:16px 16px 0 #111827;padding:28px 64px;border-radius:0;text-align:center;opacity:0;transform:scale(0.5) rotate(-3deg);margin-top:18px;';
     titleBlock.innerHTML='<h1 style="font-family:\'Paytone One\',sans-serif;font-size:64px;color:#111827;margin:0;line-height:1;">LA GRAN</h1><h1 style="font-family:\'Paytone One\',sans-serif;font-size:64px;color:#111827;margin:0;line-height:1;">PREMIACI&#211;N</h1>';
     titleWrap.appendChild(titleBlock);
 
@@ -3684,7 +2242,7 @@ function showPodium() {
     anime({targets:subtitleEl,opacity:[0,1],translateY:[20,0],duration:600,easing:'easeOutQuad'});
     anime({targets:trophyEl,scale:[1,1.08,1],duration:1800,loop:true,easing:'easeInOutSine'});
     axoloSay('&#161;Bienvenidos, banda, a la Gran Premiaci&#243;n de R&#237;tmika! Lleg&#243; el momento de la verdad. Vamos a coronar al Rey del Palenque, pero tambi&#233;n vamos a dar carrilla. Premios especiales, podio de ganadores, y muchas sorpresas m&#225;s. &#161;Que empiece la ceremonia!','podium_intro_ceremony.mp3');
-    await wait(14000);
+    await waitForAxoloAudio(1500);
     anime({targets:[titleBlock,subtitleEl,trophyEl],opacity:[1,0],translateY:[0,-40],duration:500,easing:'easeInCubic'});
     await wait(600);
 
@@ -3695,7 +2253,7 @@ function showPodium() {
       const sideDir=award.icon==='&#128019;'?-1:award.icon==='&#127813;'?1:0;
       ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
       const aBg=document.createElement('div');
-      aBg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.22;z-index:0;';
+      aBg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.22;z-index:0;';
       ceremonyRoot.appendChild(aBg);
       const aOvl=document.createElement('div');
       aOvl.style.cssText='position:absolute;inset:0;background:rgba(10,10,26,0.72);z-index:1;';
@@ -3711,45 +2269,45 @@ function showPodium() {
       const aLabel=document.createElement('div');
       aLabel.style.cssText='font-family:\'Paytone One\',sans-serif;font-size:24px;text-transform:uppercase;letter-spacing:10px;margin-bottom:22px;opacity:0;';
       aLabel.style.color=award.color;
-      aLabel.style.textShadow='0 0 30px '+award.color+'88';
+      aLabel.style.textShadow='6px 6px 0 #111827, 0 0 30px '+award.color+'88';
       aLabel.innerHTML='&#10022; PREMIO ESPECIAL &#10022;';
       const aCard=document.createElement('div');
-      aCard.style.cssText='border-radius:28px;padding:32px 52px;text-align:center;max-width:520px;width:90%;opacity:0;';
-      aCard.style.background='linear-gradient(135deg,rgba(15,23,42,0.95),rgba(30,27,75,0.9))';
-      aCard.style.border='5px solid '+award.color;
-      aCard.style.boxShadow='0 0 80px '+award.color+'44,10px 10px 0 #111827';
+      aCard.style.cssText='border-radius:0;padding:32px 52px;text-align:center;max-width:520px;width:90%;opacity:0;';
+      aCard.style.background='#0f172a';
+      aCard.style.border='6px solid '+award.color;
+      aCard.style.boxShadow='16px 16px 0 #111827, 0 0 40px '+award.color+'88';
       aCard.style.transform='translateX('+(sideDir*130)+'%)';
       aCard.innerHTML='<div style="font-size:76px;margin-bottom:8px;filter:drop-shadow(0 0 18px '+award.color+');">'+award.icon+'</div>'
-        +'<h2 style="font-family:\'Paytone One\',sans-serif;font-size:42px;margin:6px 0;text-shadow:0 0 22px '+award.color+'66;color:'+award.color+';">'+award.title+'</h2>'
+        +'<h2 style="font-family:\'Paytone One\',sans-serif;font-size:42px;margin:6px 0;text-shadow:0 0 22px '+award.color+';color:'+award.color+';">'+award.title+'</h2>'
         +'<p style="font-family:Fredoka,sans-serif;font-size:15px;color:#94a3b8;font-weight:700;margin-bottom:16px;letter-spacing:2px;text-transform:uppercase;">'+award.subtitle+'</p>'
-        +'<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0;padding:12px 20px;border-radius:16px;background:'+award.color+'11;border:2px solid '+award.color+'33;">'
-        +'<div style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:'+av.color+'33;border:4px solid '+av.border+';display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px '+av.border+'66;">'
+        +'<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0;padding:12px 20px;border-radius:0;background:'+award.color+';border:6px solid #111827;box-shadow:8px 8px 0 #111827;">'
+        +'<div style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:'+av.color+';border:6px solid #111827;display:flex;align-items:center;justify-content:center;box-shadow:6px 6px 0 #111827, 0 0 20px '+av.border+'66;">'
         +'<img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
-        +'<span style="font-family:\'Paytone One\',sans-serif;font-size:28px;color:#f1f5f9;">'+escapeHtml(award.player.name)+'</span></div>'
-        +'<div style="background:#0a0a1a;border:2px solid '+award.color+'33;border-radius:14px;padding:14px 20px;margin-top:10px;">'
-        +'<p style="font-family:Fredoka,sans-serif;font-size:16px;color:#cbd5e1;font-style:italic;margin:0;line-height:1.5;">&ldquo;'+award.carrilla+'&rdquo;</p></div>';
+        +'<span style="font-family:\'Paytone One\',sans-serif;font-size:28px;color:#111827;">'+escapeHtml(award.player.name)+'</span></div>'
+        +'<div style="background:#1e293b;border:6px solid #111827;border-radius:0;padding:14px 20px;margin-top:10px;box-shadow:8px 8px 0 #111827;">'
+        +'<p style="font-family:Fredoka,sans-serif;font-size:16px;color:#f8fafc;font-weight:900;margin:0;line-height:1.5;">&ldquo;'+award.carrilla+'&rdquo;</p></div>';
       aPhase.appendChild(aLabel);
       aPhase.appendChild(aCard);
       anime({targets:aLabel,opacity:[0,1],translateY:[-20,0],duration:400,easing:'easeOutQuad'});
       await wait(200);
       anime({targets:aCard,opacity:[0,1],translateX:[sideDir*130+'%','0%'],duration:850,easing:'easeOutBack'});
       if(axoloOverlay) axoloOverlay.style.zIndex='10002';
-      if(award.icon==='&#128019;' || award.icon==='&#127813;'){ playSfx('/assets/audio/sfx_comedy_fail.mp3'); } else { playSfx('/assets/audio/sfx_magic_reveal.mp3'); }
+      if(award.icon==='&#128019;' || award.icon==='&#127813;'){ playSfx('./assets/audio/sfx_comedy_fail.mp3'); } else { playSfx('./assets/audio/sfx_magic_reveal.mp3'); }
       _stopCurrentAxolo();
       const awardCeremonyFile = award.icon==='&#128019;' ? 'podium_award_gallo.mp3' : (award.icon==='&#127813;' ? 'podium_award_tomate.mp3' : 'podium_award_vengador.mp3');
       const awardCeremonyText = award.icon==='&#128019;' ? '&#161;El primero de los premios especiales... Gallo Supremo! Para el m&#225;s valiente, el que se atrevi&#243; a cantar pareciendo gato en licuadora. Banda, el Gallo Supremo de la noche es...' : (award.icon==='&#127813;' ? '&#161;Y ahora el premio Salsa de Tomate! Para el que recibi&#243; m&#225;s tomatazos que la selecci&#243;n en el Azteca. El rey de los tomatazos de la noche es...' : '&#161;El premio al Vengador An&#243;nimo! Saboteador profesional con cara de inocente. Rob&#243; m&#225;s puntos que el SAT. El Vengador An&#243;nimo es...');
       axoloSay(awardCeremonyText, awardCeremonyFile);
-      await wait(13000);
+      await waitForAxoloAudio(1500);
       anime({targets:[aLabel,aCard],opacity:[1,0],translateY:[0,-40],duration:400,easing:'easeInCubic'});
       if(sp&&sp.parentNode) sp.parentNode.removeChild(sp);
       await wait(500);
     }
 
     // FASE 3: Revelacion 3ro y 2do
-    playSfx('/assets/audio/sfx_drumroll.mp3');
+    playSfx('./assets/audio/sfx_drumroll.mp3');
     ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
     const p3bg=document.createElement('div');
-    p3bg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.18;z-index:0;';
+    p3bg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.18;z-index:0;';
     ceremonyRoot.appendChild(p3bg);
     const p3ovl=document.createElement('div');
     p3ovl.style.cssText='position:absolute;inset:0;background:radial-gradient(circle at center,rgba(30,27,75,0.55) 0%,rgba(10,10,26,0.92) 100%);z-index:1;';
@@ -3758,7 +2316,7 @@ function showPodium() {
     p3wrap.style.cssText='position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;height:100%;gap:8px;';
     ceremonyRoot.appendChild(p3wrap);
     const p3title=document.createElement('div');
-    p3title.style.cssText='font-family:\'Paytone One\',sans-serif;font-size:30px;color:#facc15;text-shadow:0 0 30px #facc1566;opacity:0;padding-top:28px;letter-spacing:4px;';
+    p3title.style.cssText='font-family:\'Paytone One\',sans-serif;font-size:36px;color:#facc15;text-shadow:6px 6px 0 #111827, 0 0 30px #facc1566;opacity:0;padding-top:28px;letter-spacing:4px;border:6px solid #111827;background:#0f172a;padding:10px 30px;box-shadow:10px 10px 0 #111827;';
     p3title.innerHTML='&#127942; PODIO DE GANADORES &#127942;';
     p3wrap.appendChild(p3title);
     anime({targets:p3title,opacity:[0,1],scale:[0.7,1],duration:700,easing:'easeOutBack'});
@@ -3770,7 +2328,7 @@ function showPodium() {
     const centerSlot=document.createElement('div');
     centerSlot.style.cssText='width:260px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;';
     const centerHolder=document.createElement('div');
-    centerHolder.style.cssText='width:100%;border-radius:1.5rem 1.5rem 0 0;height:160px;background:rgba(250,204,21,0.05);border:3px dashed rgba(250,204,21,0.2);border-bottom:none;display:flex;align-items:center;justify-content:center;';
+    centerHolder.style.cssText='width:100%;border-radius:0;height:160px;background:#0f172a;border:6px dashed #111827;border-bottom:none;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 20px rgba(0,0,0,0.5);margin-bottom:-6px;';
     centerHolder.innerHTML='<span style="font-size:3rem;opacity:0.2;">?</span>';
     centerSlot.appendChild(centerHolder);
     const rightSlot=document.createElement('div'); rightSlot.style.cssText='width:220px;flex-shrink:0;';
@@ -3787,11 +2345,11 @@ function showPodium() {
       stepDiv.style.cssText='display:flex;flex-direction:column;align-items:center;width:'+(sd.place===2?'240px':'220px')+';opacity:0;transform:translateY(80px);';
       stepDiv.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px;">'
         +'<span style="font-family:Fredoka,sans-serif;font-size:15px;font-weight:900;background:#111827;color:'+sd.color+';padding:5px 16px;border-radius:20px;border:2px solid '+sd.color+';margin-bottom:10px;letter-spacing:1px;">'+sd.rank+' '+sd.label+'</span>'
-        +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+'22;border:5px solid '+av.border+';display:flex;align-items:center;justify-content:center;width:'+sd.size+';height:'+sd.size+';box-shadow:0 0 22px '+av.border+'66;">'
+        +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+';border:6px solid #111827;display:flex;align-items:center;justify-content:center;width:'+sd.size+';height:'+sd.size+';box-shadow:8px 8px 0 #111827;">'
         +'<img src="'+av.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
         +'<p style="font-family:Fredoka,sans-serif;font-size:19px;color:#f1f5f9;font-weight:700;margin:10px 0 2px;text-align:center;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(sd.player.name)+'</p>'
-        +'<p class="step-score-'+sd.place+'" style="font-family:\'Paytone One\',sans-serif;font-size:21px;color:'+sd.color+';margin:0;">0 pts</p></div>'
-        +'<div style="width:100%;border-radius:1.5rem 1.5rem 0 0;height:'+pedH+';background:'+sd.pedColor+';border:4px solid '+sd.color+';border-bottom:none;box-shadow:0 0 28px '+sd.glow+',0 -4px 16px '+sd.glow+';position:relative;overflow:hidden;">'
+        +'<p class="step-score-'+sd.place+'" style="font-family:\'Paytone One\',sans-serif;font-size:24px;color:'+sd.color+';margin:0;text-shadow:4px 4px 0 #111827;">0 pts</p></div>'
+        +'<div style="width:100%;border-radius:0;height:'+pedH+';background:'+sd.color+';border:6px solid #111827;border-bottom:none;box-shadow:8px 8px 0 #111827, inset 0 0 20px '+sd.glow+';position:relative;overflow:hidden;margin-bottom:-6px;">'
         +'<div style="position:absolute;inset:0;background:linear-gradient(to right,transparent,rgba(255,255,255,0.07),transparent);"></div>'
         +'<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:\'Paytone One\',sans-serif;font-size:3rem;font-weight:900;color:rgba(255,255,255,0.12);line-height:1;">'+sd.place+'</div></div>';
       if(sd.place===2) p3steps.replaceChild(stepDiv,leftSlot);
@@ -3806,7 +2364,7 @@ function showPodium() {
       anime({targets:stepDiv,opacity:[0,1],translateY:['80px','0px'],duration:800,easing:'easeOutBack'});
       const scoreEl=stepDiv.querySelector('.step-score-'+sd.place);
       if(scoreEl) animatePodiumCounter(scoreEl,sd.player.score||0,1000);
-      await wait(11000);
+      await waitForAxoloAudio(1200);
     }
     await wait(400);
 
@@ -3819,7 +2377,7 @@ function showPodium() {
       await wait(400);
       _stopCurrentAxolo();
       axoloSay('&#161;Lleg&#243; el momento que todos esperaban! Despu&#233;s de tres rondas, canciones, tomatazos, y mucha carrilla... ha llegado la hora de coronar al Rey del Palenque. El ganador de R&#237;tmika es...', 'podium_winner_buildup.mp3');
-      await wait(2000);
+      await waitForAxoloAudio(500);
       blackout.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;"><p id="susp-text" style="font-family:\'Paytone One\',sans-serif;font-size:28px;color:#94a3b8;letter-spacing:10px;text-transform:uppercase;opacity:0;">Y el ganador es...</p><div id="countdown-wrap" style="display:flex;gap:30px;margin-top:10px;"></div></div>';
       anime({targets:'#susp-text',opacity:[0,1],translateY:[20,0],duration:600,easing:'easeOutQuad'});
       await wait(4000);
@@ -3857,17 +2415,17 @@ function showPodium() {
       const winnerContent=document.createElement('div');
       winnerContent.id='winner-reveal-content';
       winnerContent.style.cssText='position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;opacity:0;transform:scale(0.6);';
-      winnerContent.innerHTML='<img src="/assets/podium_crown.png" id="winner-crown" style="width:140px;height:auto;object-fit:contain;filter:drop-shadow(0 0 28px #facc15) drop-shadow(0 0 56px #facc1588);margin-bottom:-22px;z-index:3;position:relative;"/>'
-        +'<div style="width:180px;height:180px;border-radius:50%;overflow:hidden;background:'+winnerAv.color+'33;border:8px solid '+winnerAv.border+';display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px '+winnerAv.border+',0 0 120px '+winnerAv.border+'88;position:relative;z-index:2;">'
+      winnerContent.innerHTML='<img src="./assets/podium_crown.png" id="winner-crown" style="width:140px;height:auto;object-fit:contain;filter:drop-shadow(0 0 28px #facc15) drop-shadow(0 0 56px #facc1588);margin-bottom:-22px;z-index:3;position:relative;"/>'
+        +'<div style="width:180px;height:180px;border-radius:50%;overflow:hidden;background:'+winnerAv.color+';border:8px solid #111827;display:flex;align-items:center;justify-content:center;box-shadow:14px 14px 0 #111827;position:relative;z-index:2;">'
         +'<img src="'+winnerAv.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
-        +'<div style="margin-top:24px;background:#ffe600;border:6px solid #111827;box-shadow:10px 10px 0 #111827;padding:18px 50px;border-radius:20px;text-align:center;">'
+        +'<div style="margin-top:24px;background:#ffe600;border:6px solid #111827;box-shadow:16px 16px 0 #111827;padding:18px 50px;border-radius:0;text-align:center;">'
         +'<div style="font-family:\'Paytone One\',sans-serif;font-size:24px;color:#111827;letter-spacing:6px;text-transform:uppercase;">&#129351; GANADOR &#129351;</div>'
         +'<div style="font-family:\'Paytone One\',sans-serif;font-size:52px;color:#111827;line-height:1.1;margin-top:4px;">'+escapeHtml(sorted[0].name)+'</div></div>'
-        +'<div id="winner-score-display" style="font-family:\'Paytone One\',sans-serif;font-size:34px;color:#facc15;margin-top:18px;text-shadow:0 0 20px #facc15;opacity:0;">0 pts</div>';
+        +'<div id="winner-score-display" style="font-family:\'Paytone One\',sans-serif;font-size:42px;color:#facc15;margin-top:18px;text-shadow:6px 6px 0 #111827, 0 0 20px #facc15;opacity:0;background:#0f172a;border:6px solid #111827;padding:4px 30px;box-shadow:10px 10px 0 #111827;">0 pts</div>';
       winnerScreen.appendChild(winnerContent);
       anime({targets:'#winner-reveal-content',opacity:[0,1],scale:[0.6,1.05,1],duration:900,easing:'easeOutBack'});
-      playSfx('/assets/audio/sfx_tada.mp3');
-      setTimeout(()=>{playSfx('/assets/audio/sfx_applause.mp3');}, 500);
+      playSfx('./assets/audio/sfx_tada.mp3');
+      setTimeout(()=>{playSfx('./assets/audio/sfx_applause.mp3');}, 500);
       await wait(400);
       anime({targets:'#winner-crown',translateY:[0,-18,0],duration:1200,loop:true,easing:'easeInOutSine'});
       anime({targets:'#winner-score-display',opacity:[0,1],translateY:[20,0],duration:500,easing:'easeOutQuad',delay:600});
@@ -3878,7 +2436,7 @@ function showPodium() {
       [800,1200,1600,2000].forEach(delay=>{
         setTimeout(()=>fireworkBurst(window.innerWidth*(0.2+Math.random()*0.6),window.innerHeight*(0.1+Math.random()*0.4)),delay);
       });
-      await wait(15000);
+      await waitForAxoloAudio(1500);
       anime({targets:'#winner-reveal-content',opacity:[1,0],scale:[1,0.8],duration:500,easing:'easeInCubic'});
       await wait(600);
       if(winnerScreen.parentNode) winnerScreen.parentNode.removeChild(winnerScreen);
@@ -3887,7 +2445,7 @@ function showPodium() {
     // FASE 5: Podio final completo premium
     ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
     const finalBg=document.createElement('div');
-    finalBg.style.cssText='position:absolute;inset:0;background:url(/assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.16;z-index:0;';
+    finalBg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.png) center/cover no-repeat;opacity:0.16;z-index:0;';
     ceremonyRoot.appendChild(finalBg);
     const finalOvl=document.createElement('div');
     finalOvl.style.cssText='position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(30,27,75,0.5) 0%,rgba(10,10,26,0.95) 100%);z-index:1;';
@@ -3901,7 +2459,7 @@ function showPodium() {
     ceremonyRoot.appendChild(finalWrap);
     const fTitle=document.createElement('div');
     fTitle.style.cssText='text-align:center;flex-shrink:0;';
-    fTitle.innerHTML='<h2 style="font-family:\'Paytone One\',sans-serif;font-size:34px;color:#facc15;margin:0;text-shadow:0 0 20px #facc15,0 0 60px #facc1566;letter-spacing:3px;">&#127942; PODIO DE GANADORES &#127942;</h2><p style="font-family:Fredoka,sans-serif;font-size:13px;color:#475569;margin:4px 0 0;letter-spacing:2px;text-transform:uppercase;">&#161;El T&#237;o Axolo presenta el podio final de la noche!</p>';
+    fTitle.innerHTML='<div style="background:#0f172a;border:6px solid #111827;padding:10px 40px;box-shadow:10px 10px 0 #111827;display:inline-block;"><h2 style="font-family:\'Paytone One\',sans-serif;font-size:34px;color:#facc15;margin:0;text-shadow:6px 6px 0 #111827,0 0 20px #facc1566;letter-spacing:3px;">&#127942; PODIO DE GANADORES &#127942;</h2><p style="font-family:Fredoka,sans-serif;font-size:16px;font-weight:900;color:#f8fafc;margin:4px 0 0;letter-spacing:2px;text-transform:uppercase;text-shadow:4px 4px 0 #111827;">&#161;El T&#237;o Axolo presenta el podio final de la noche!</p></div>';
     finalWrap.appendChild(fTitle);
     const finalPodiumContainer=document.createElement('div');
     finalPodiumContainer.style.cssText='display:flex;align-items:flex-end;justify-content:center;gap:2rem;width:100%;max-width:960px;flex:1;min-height:0;';
@@ -3920,13 +2478,13 @@ function showPodium() {
       const stepEl=document.createElement('div');
       stepEl.style.cssText='display:flex;flex-direction:column;align-items:center;width:'+(isWinner?'260px':'210px')+';flex-shrink:0;';
       stepEl.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px;position:relative;">'
-        +(isWinner?'<img src="/assets/podium_crown.png" style="width:68px;height:auto;object-fit:contain;filter:drop-shadow(0 0 14px #facc15);margin-bottom:-14px;z-index:3;position:relative;"/>':'')
+        +(isWinner?'<img src="./assets/podium_crown.png" style="width:68px;height:auto;object-fit:contain;filter:drop-shadow(0 0 14px #facc15);margin-bottom:-14px;z-index:3;position:relative;"/>':'')
         +'<span style="font-family:Fredoka,sans-serif;font-size:'+(isWinner?'16px':'14px')+';font-weight:900;background:#111827;color:'+sd.color+';padding:5px 16px;border-radius:20px;border:2px solid '+sd.color+';margin-bottom:'+(isWinner?'12px':'8px')+';letter-spacing:1px;">'+sd.rank+' '+sd.label+'</span>'
-        +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+'22;border:'+(isWinner?'6px':'4px')+' solid '+av.border+';display:flex;align-items:center;justify-content:center;width:'+(avSizes[sd.place]||'5.5rem')+';height:'+(avSizes[sd.place]||'5.5rem')+';box-shadow:0 0 '+(isWinner?'40px':'20px')+' '+av.border+'66;">'
+        +'<div style="border-radius:50%;overflow:hidden;background:'+av.color+';border:6px solid #111827;display:flex;align-items:center;justify-content:center;width:'+(avSizes[sd.place]||'5.5rem')+';height:'+(avSizes[sd.place]||'5.5rem')+';box-shadow:8px 8px 0 #111827;">'
         +'<img src="'+av.img+'" style="width:100%;height:100%;object-fit:contain;"/></div>'
         +'<p style="font-family:Fredoka,sans-serif;font-size:'+(isWinner?'19px':'16px')+';color:#f1f5f9;font-weight:700;margin:10px 0 2px;text-align:center;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(sd.player.name)+'</p>'
-        +'<p class="final-score-'+sd.place+'" style="font-family:\'Paytone One\',sans-serif;font-size:'+(isWinner?'24px':'20px')+';color:'+sd.color+';margin:0;text-shadow:0 0 12px '+sd.color+'66;">0 pts</p></div>'
-        +'<div style="width:100%;border-radius:1.5rem 1.5rem 0 0;height:'+(pedHeights[sd.place]||'80px')+';background:'+sd.pedColor+';border:4px solid '+sd.color+';border-bottom:none;box-shadow:0 0 40px '+sd.glow+',inset 0 1px 0 rgba(255,255,255,0.2);position:relative;overflow:hidden;">'
+        +'<p class="final-score-'+sd.place+'" style="font-family:\'Paytone One\',sans-serif;font-size:'+(isWinner?'28px':'22px')+';color:'+sd.color+';margin:0;text-shadow:4px 4px 0 #111827,0 0 12px '+sd.color+'66;">0 pts</p></div>'
+        +'<div style="width:100%;border-radius:0;height:'+(pedHeights[sd.place]||'80px')+';background:'+sd.color+';border:6px solid #111827;border-bottom:none;box-shadow:12px 12px 0 #111827,inset 0 0 20px rgba(255,255,255,0.3);position:relative;overflow:hidden;margin-bottom:-6px;">'
         +'<div style="position:absolute;top:0;left:0;right:0;height:28px;background:linear-gradient(to bottom,rgba(255,255,255,0.14),transparent);border-radius:1.5rem 1.5rem 0 0;"></div>'
         +'<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:\'Paytone One\',sans-serif;font-size:'+(isWinner?'4.5rem':'3rem')+';font-weight:900;color:rgba(255,255,255,0.12);line-height:1;">'+sd.place+'</div></div>';
       finalPodiumContainer.appendChild(stepEl);
@@ -3935,7 +2493,7 @@ function showPodium() {
     bottomSection.style.cssText='display:flex;gap:1.2rem;width:100%;max-width:1040px;align-items:stretch;flex-shrink:0;height:138px;';
     finalWrap.appendChild(bottomSection);
     const awardsPanel=document.createElement('div');
-    awardsPanel.style.cssText='flex:1;background:rgba(15,23,42,0.6);backdrop-filter:blur(12px);border:2px solid rgba(51,65,85,0.6);border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;';
+    awardsPanel.style.cssText='flex:1;background:#1e293b;border:6px solid #111827;border-radius:0;padding:10px 14px;display:flex;flex-direction:column;box-shadow:10px 10px 0 #111827;';
     awardsPanel.innerHTML='<p style="font-size:9px;font-weight:900;letter-spacing:3px;color:#475569;text-transform:uppercase;margin:0 0 8px;">&#127885; Premios Especiales</p>';
     const awardsInner=document.createElement('div');
     awardsInner.style.cssText='display:flex;gap:8px;flex:1;align-items:center;justify-content:space-around;';
@@ -3947,13 +2505,13 @@ function showPodium() {
       aEl.style.cssText='display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;max-width:140px;gap:2px;';
       aEl.innerHTML='<div style="font-size:26px;filter:drop-shadow(0 0 8px '+a.color+');">'+a.icon+'</div>'
         +'<p style="font-size:10px;font-weight:900;text-transform:uppercase;color:'+a.color+';margin:0;letter-spacing:1px;">'+a.title+'</p>'
-        +'<div style="width:28px;height:28px;border-radius:50%;overflow:hidden;background:#0f172a;border:2px solid '+av.border+';display:flex;align-items:center;justify-content:center;margin:2px 0;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
+        +'<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;background:'+av.color+';border:4px solid #111827;display:flex;align-items:center;justify-content:center;margin:2px 0;box-shadow:4px 4px 0 #111827;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
         +'<p style="font-size:12px;font-weight:800;color:#e2e8f0;margin:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(a.player.name)+'</p>';
       awardsInner.appendChild(aEl);
     });
     bottomSection.appendChild(awardsPanel);
     const sbPanel=document.createElement('div');
-    sbPanel.style.cssText='width:290px;background:rgba(15,23,42,0.6);backdrop-filter:blur(12px);border:2px solid rgba(51,65,85,0.6);border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;flex-shrink:0;';
+    sbPanel.style.cssText='width:290px;background:#1e293b;border:6px solid #111827;border-radius:0;padding:10px 14px;display:flex;flex-direction:column;flex-shrink:0;box-shadow:10px 10px 0 #111827;';
     sbPanel.innerHTML='<p style="font-size:9px;font-weight:900;letter-spacing:3px;color:#475569;text-transform:uppercase;margin:0 0 8px;">&#128202; Posiciones Finales</p>';
     const sbInner=document.createElement('div');
     sbInner.style.cssText='flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px;';
@@ -3963,25 +2521,25 @@ function showPodium() {
       const isTop=i===0;
       const scoreColor=i===0?'#facc15':i===sorted.length-1?'#6b7280':'#94a3b8';
       const row=document.createElement('div');
-      row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:10px;background:'+(isTop?'rgba(250,204,21,0.1)':'rgba(30,41,59,0.4)')+';border:1px solid '+(isTop?'rgba(250,204,21,0.3)':'rgba(51,65,85,0.4)')+';';
-      row.innerHTML='<span style="font-size:12px;width:18px;text-align:center;">'+(medals[i]||'#'+(i+1))+'</span>'
-        +'<div style="width:22px;height:22px;border-radius:5px;overflow:hidden;background:#0f172a;border:1px solid '+av.border+';display:flex;align-items:center;justify-content:center;flex-shrink:0;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
-        +'<span style="font-weight:700;flex:1;color:#e2e8f0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(p.name)+'</span>'
-        +'<span style="font-weight:900;font-size:12px;color:'+scoreColor+';">'+(p.score||0)+'</span>'
-        +'<span style="font-size:9px;color:#64748b;">pts</span>';
+      row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:0;background:'+(isTop?'#facc15':'#334155')+';border:4px solid #111827;box-shadow:4px 4px 0 #111827;';
+      row.innerHTML='<span style="font-size:12px;width:18px;text-align:center;font-weight:900;color:'+(isTop?'#111827':'#f1f5f9')+';">'+(medals[i]||'#'+(i+1))+'</span>'
+        +'<div style="width:24px;height:24px;border-radius:50%;overflow:hidden;background:'+av.color+';border:2px solid #111827;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
+        +'<span style="font-weight:900;flex:1;color:'+(isTop?'#111827':'#e2e8f0')+';font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(p.name)+'</span>'
+        +'<span style="font-weight:900;font-size:12px;color:'+(isTop?'#111827':scoreColor)+';">'+(p.score||0)+'</span>'
+        +'<span style="font-size:9px;color:'+(isTop?'#111827':'#64748b')+';font-weight:900;">pts</span>';
       sbInner.appendChild(row);
     });
     sbPanel.appendChild(sbInner);
     bottomSection.appendChild(sbPanel);
     const restartBtn=document.createElement('button');
     restartBtn.id='restart-btn-final';
-    restartBtn.style.cssText='background:linear-gradient(135deg,#ec4899,#a855f7);color:white;border:4px solid #111827;cursor:pointer;box-shadow:6px 6px 0 #111827;padding:13px 42px;border-radius:16px;font-family:\'Paytone One\',sans-serif;font-size:18px;letter-spacing:1px;margin-top:4px;flex-shrink:0;transition:transform 0.15s,box-shadow 0.15s;';
+    restartBtn.style.cssText='background:#ffe600;color:#111827;border:6px solid #111827;cursor:pointer;box-shadow:10px 10px 0 #111827;padding:13px 42px;border-radius:0;font-family:\'Paytone One\',sans-serif;font-size:22px;letter-spacing:1px;margin-top:4px;flex-shrink:0;transition:transform 0.15s,box-shadow 0.15s;text-transform:uppercase;';
     restartBtn.innerHTML='&#127918; Nueva Partida';
-    restartBtn.onmouseover=()=>{restartBtn.style.transform='translateY(-3px)';restartBtn.style.boxShadow='6px 9px 0 #111827';};
-    restartBtn.onmouseout=()=>{restartBtn.style.transform='';restartBtn.style.boxShadow='6px 6px 0 #111827';};
+    restartBtn.onmouseover=()=>{restartBtn.style.transform='translateY(4px) translateX(4px)';restartBtn.style.boxShadow='6px 6px 0 #111827';};
+    restartBtn.onmouseout=()=>{restartBtn.style.transform='';restartBtn.style.boxShadow='10px 10px 0 #111827';};
     finalWrap.appendChild(restartBtn);
     anime({targets:'#final-podium',opacity:[0,1],duration:700,easing:'easeOutQuad'});
-    playSfx('/assets/audio/sfx_applause.mp3');
+    playSfx('./assets/audio/sfx_applause.mp3');
     orderedFinal.forEach(sd=>{
       if(!sd.player) return;
       const el=finalWrap.querySelector('.final-score-'+sd.place);
@@ -4058,7 +2616,7 @@ function renderRoomCode(code) {
     });
   }
 
-  const joinUrl = `http://${state.localIP || window.location.hostname}:3000/join`;
+  const joinUrl = `${window.location.origin}/join?code=${state.roomCode || ''}`;
   const textoInstruccion = document.getElementById('texto-instruccion-unirse');
   if (textoInstruccion) {
     textoInstruccion.innerHTML = `Escanea el código QR o ingresa a:<br/><span style="color:#22d3ee; font-weight:900; letter-spacing:1px; text-shadow:0 0 8px rgba(34,211,238,0.5);">${joinUrl}</span>`;
@@ -4082,23 +2640,42 @@ function renderRoomCode(code) {
 }
 
 function renderPlayerList() {
-  const container = document.getElementById('players-list');
-  const emptyState = document.getElementById('empty-state');
-  if (state.players.length === 0) { emptyState.style.display='flex'; container.querySelectorAll('.player-card').forEach(c=>c.remove()); return; }
-  emptyState.style.display = 'none';
-  const existingIds = new Set([...container.querySelectorAll('.player-card')].map(el=>el.dataset.socketId));
-  state.players.forEach(player => {
-    if (!existingIds.has(player.socketId)) {
-      const card = buildPlayerCard(player);
-      container.appendChild(card);
-      anime({ targets: card, translateX:[60,0], opacity:[0,1], duration:500, easing:'easeOutBack' });
+  const lobbyContainer = document.getElementById('players-list');
+  const modeContainer = document.getElementById('mode-players-list');
+  
+  // Sync the player count badges
+  const modeCountStr = `${state.players.length} / 8`;
+  const mBadge = document.getElementById('mode-player-badge');
+  if (mBadge) mBadge.textContent = modeCountStr;
+  const mCount = document.getElementById('mode-player-count');
+  if (mCount) mCount.textContent = state.players.length;
+
+  const renderToContainer = (container, emptyStateId) => {
+    if (!container) return;
+    const emptyState = document.getElementById(emptyStateId);
+    if (state.players.length === 0) { 
+      if(emptyState) emptyState.style.display='flex'; 
+      container.querySelectorAll('.player-card').forEach(c=>c.remove()); 
+      return; 
     }
-  });
-  container.querySelectorAll('.player-card').forEach(card => {
-    if (!state.players.find(p => p.socketId === card.dataset.socketId)) {
-      anime({ targets:card, translateX:[0,60], opacity:[1,0], duration:300, easing:'easeInCubic', complete:()=>card.remove() });
-    }
-  });
+    if(emptyState) emptyState.style.display = 'none';
+    const existingIds = new Set([...container.querySelectorAll('.player-card')].map(el=>el.dataset.socketId));
+    state.players.forEach(player => {
+      if (!existingIds.has(player.socketId)) {
+        const card = buildPlayerCard(player);
+        container.appendChild(card);
+        anime({ targets: card, translateX:[60,0], opacity:[0,1], duration:500, easing:'easeOutBack' });
+      }
+    });
+    container.querySelectorAll('.player-card').forEach(card => {
+      if (!state.players.find(p => p.socketId === card.dataset.socketId)) {
+        anime({ targets:card, translateX:[0,60], opacity:[1,0], duration:300, easing:'easeInCubic', complete:()=>card.remove() });
+      }
+    });
+  };
+
+  renderToContainer(lobbyContainer, 'empty-state');
+  renderToContainer(modeContainer, 'mode-empty-state');
 }
 
 function buildPlayerCard(player) {
@@ -4118,6 +2695,21 @@ function buildPlayerCard(player) {
     <div class="text-xs font-bold" style="color:#22d3ee;">${player.score||0} pts</div>
   `;
   return card;
+}
+
+function updateAllPlayerCardScores() {
+  document.querySelectorAll('.player-card').forEach(card => {
+    const p = state.players.find(pl => pl.socketId === card.dataset.socketId);
+    const scoreEl = card.querySelector('div.text-xs.font-bold');
+    if (p && scoreEl) {
+      scoreEl.textContent = (p.score || 0) + ' pts';
+      if (p.score < TOMATAZO_COST) {
+        scoreEl.style.color = '#ef4444';
+      } else {
+        scoreEl.style.color = '#22d3ee';
+      }
+    }
+  });
 }
 
 function updatePlayerCount(joiningPlayer) {
@@ -4148,20 +2740,93 @@ function updateTicker(msg) {
 // ════════════════════════════════════════════
 //  FX: TOMATAZO, EMOJI, SABOTAJE
 // ════════════════════════════════════════════
-function fireTomatazo(attackerName, targetName) {
+function fireTomatazo(attackerName, targetName, cost) {
+  // 1. Lanzamiento premium del tomate volador
   const tomato = document.createElement('div');
-  tomato.className = 'tomato-projectile'; tomato.textContent = '🍅';
+  tomato.className = 'tomato-projectile';
+  tomato.innerHTML = '<img src="./assets/tomato_projectile.png" alt="🍅" />';
   document.body.appendChild(tomato);
-  const sx = Math.random() * window.innerWidth * 0.3, sy = window.innerHeight * 0.8;
-  const ex = window.innerWidth * 0.4 + Math.random() * window.innerWidth * 0.3, ey = window.innerHeight * 0.3 + Math.random() * window.innerHeight * 0.3;
-  tomato.style.left = sx+'px'; tomato.style.top = sy+'px';
-  anime({ targets:tomato, left:[sx,ex], top:[sy,ey], rotate:[0,720], scale:[1,2,0.1], opacity:[1,1,0], duration:900, easing:'easeOutQuad', complete:()=>tomato.remove() });
+
+  const startSide = Math.random() > 0.5 ? 1 : -1;
+  const sx = startSide === 1 ? -100 : window.innerWidth + 100;
+  const sy = window.innerHeight * 0.5 + (Math.random() - 0.5) * window.innerHeight * 0.3;
+  const ex = window.innerWidth * 0.3 + Math.random() * window.innerWidth * 0.4;
+  const ey = window.innerHeight * 0.25 + Math.random() * window.innerHeight * 0.25;
+
+  tomato.style.left = sx + 'px';
+  tomato.style.top = sy + 'px';
+
+  // Swoosh sound
+  try {
+    UISounds.playToneSweep(80, 1400, 0.25, 0.08);
+  } catch (e) {}
+
+  anime({
+    targets: tomato,
+    left: [sx, ex],
+    top: [sy, ey],
+    rotate: [0, startSide * 1080],
+    scale: [0.5, 1.8, 3],
+    duration: 650,
+    easing: 'easeInQuad',
+    complete: () => {
+      tomato.remove();
+    },
+  });
+
+  // 2. IMPACTO — splat premium que tapa la visión
   setTimeout(() => {
-    const splat = document.createElement('div');
-    splat.style.cssText = `position:fixed; left:${ex-40}px; top:${ey-40}px; font-size:5rem; pointer-events:none; z-index:900; filter:drop-shadow(0 0 15px #ef4444);`;
-    splat.textContent = '💥'; document.body.appendChild(splat);
-    anime({ targets:splat, scale:[0,1.5,1], opacity:[1,1,0], duration:1000, easing:'easeOutBack', complete:()=>splat.remove() });
-  }, 850);
+    const splatOverlay = document.getElementById('tomato-splat-overlay');
+    if (!splatOverlay) return;
+
+    // Screen shake violenta
+    try {
+      RitmikaStyleFX.screenShake(18, 600);
+      RitmikaStyleFX.flashBang('#ef4444', 200);
+    } catch (e) {}
+
+    // Impact sound
+    try {
+      UISounds.playTone(60, 0.4, 'sawtooth', 0.15);
+      UISounds.playToneSweep(200, 40, 0.3, 0.1);
+    } catch (e) {}
+
+    // Mostrar splat
+    splatOverlay.classList.add('visible');
+
+    // Posicionar las drip-lines aleatoriamente
+    const dripLines = splatOverlay.querySelectorAll('.splat-drip-line');
+    dripLines.forEach((line, i) => {
+      line.style.left = (15 + Math.random() * 70) + '%';
+      line.style.height = (50 + Math.random() * 100) + 'px';
+      line.style.transitionDelay = (0.1 + i * 0.08) + 's';
+    });
+
+    // 3. El splat siempre tapa la pantalla (z-index alto)
+    splatOverlay.style.zIndex = '100';
+
+    // Mostrar indicador de penalización
+    if (cost > 0) {
+      const penaltyEl = document.createElement('div');
+      penaltyEl.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); font-family:\'Paytone One\',sans-serif; font-size:4rem; font-weight:900; color:#ef4444; pointer-events:none; z-index:200; text-shadow:0 0 30px rgba(220,38,38,0.8), 6px 6px 0 #111827; opacity:0;';
+      penaltyEl.textContent = '-\u2009' + cost + ' pts';
+      document.body.appendChild(penaltyEl);
+      anime({
+        targets: penaltyEl,
+        opacity: [0, 1, 1, 0],
+        scale: [2, 1, 0.8],
+        translateY: ['-50%', '-50%', '-80%'],
+        duration: 2200,
+        easing: 'easeOutCubic',
+        complete: () => penaltyEl.remove(),
+      });
+    }
+
+    // 4. Dripping — el splat se desvanece lentamente con goteo
+    setTimeout(() => {
+      splatOverlay.classList.remove('visible');
+    }, 4000);
+  }, 550);
 }
 
 function floatEmoji(emoji) {
@@ -4203,7 +2868,9 @@ function animatePlayerJoin(player) {
 // ════════════════════════════════════════════
 let currentAxoloAudio = null;
 let axoloQueue = [];
+let _axoloAudioDoneResolve = null;
 let cutinTimeout = null;
+let _queueDrainTimeout = null;
 
 // Programmatic Web Audio Synthesizer — singleton AudioContext to avoid leaks
 let _swooshCtx = null;
@@ -4284,14 +2951,11 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
   }
   
   // 2. Load the vignette asset and change style
-  portrait.src = `/assets/tio_axolo_vignette_${assetName}.png`;
+  portrait.src = `./assets/tio_axolo_vignette_${assetName}.png`;
   bar.style.backgroundColor = bgColor;
   textBox.textContent = texto;
   
-  // 3. Play entry sound effect
-  playSwooshSound();
-  
-  // 4. Slide in (add active class, remove exit classes)
+  // 3. Slide in (add active class, remove exit classes)
   bar.classList.remove('slide-out');
   bar.classList.add('active');
   
@@ -4313,9 +2977,6 @@ function hideTioAxolCutin() {
     cutinTimeout = null;
   }
   
-  // Play exit swoosh sound
-  playSwooshSound();
-  
   // Slide out to the right off-screen
   bar.classList.remove('active');
   bar.classList.add('slide-out');
@@ -4324,6 +2985,14 @@ function hideTioAxolCutin() {
   setTimeout(() => {
     bar.classList.remove('slide-out');
   }, 450);
+}
+
+function inicializarQRConexion(canvas) {
+  if (!canvas) return;
+
+  const joinUrl = `${window.location.origin}/join?code=${state.roomCode || ''}`;
+
+  QRCode.toCanvas(canvas, joinUrl, { width: 200, color: { dark: '#0f172a', light: '#ffffff' } });
 }
 
 const AXOLO_PRESET_MAP = {
@@ -4424,22 +3093,32 @@ function setAxoloPreset() {}
 
 function _playAxoloAudio(texto, audioFileOrMood) {
   const cleanName = audioFileOrMood.replace(/\.(wav|mp3)$/i, '') + '.mp3';
-  const audioUrl = `/assets/audio/${cleanName}`;
+  const audioUrl = `./assets/audio/${cleanName}`;
   currentAxoloAudio = new Audio(audioUrl);
+
+  const emotion = AXOLO_PRESET_MAP[audioFileOrMood] || 'talking';
+  triggerTioAxolCutin(texto, 'manual', emotion);
+  duckSfx();
 
   currentAxoloAudio.addEventListener('play', () => {
     duckSfx();
-    const emotion = AXOLO_PRESET_MAP[audioFileOrMood] || 'talking';
-    triggerTioAxolCutin(texto, 'manual', emotion);
   }, { once: true });
 
-  currentAxoloAudio.addEventListener('ended', () => {
+  currentAxoloAudio.addEventListener('ended', function() {
+    const self = this;
+    window.welcomePlaying = false;
     hideTioAxolCutin();
-    currentAxoloAudio = null;
     unduckSfx();
+    if (_axoloAudioDoneResolve) {
+      const cb = _axoloAudioDoneResolve;
+      _axoloAudioDoneResolve = null;
+      cb();
+    }
     if (axoloQueue.length > 0) {
       const next = axoloQueue.shift();
-      setTimeout(() => _playAxoloAudio(next.text, next.audioFile), 400);
+      _queueDrainTimeout = setTimeout(() => { _queueDrainTimeout = null; _playAxoloAudio(next.text, next.audioFile); }, 400);
+    } else {
+      if (currentAxoloAudio === self) currentAxoloAudio = null;
     }
   }, { once: true });
 
@@ -4448,21 +3127,44 @@ function _playAxoloAudio(texto, audioFileOrMood) {
     unduckSfx();
   }, { once: true });
 
+  currentAxoloAudio.addEventListener('error', function() {
+    const self = this;
+    window.welcomePlaying = false;
+    console.warn('[Voice] Audio not found:', audioUrl);
+    setTimeout(() => {
+      if (currentAxoloAudio !== self) return;
+      hideTioAxolCutin();
+      unduckSfx();
+      if (axoloQueue.length > 0) {
+        const next = axoloQueue.shift();
+        _queueDrainTimeout = setTimeout(() => { _queueDrainTimeout = null; _playAxoloAudio(next.text, next.audioFile); }, 400);
+      } else {
+        currentAxoloAudio = null;
+      }
+    }, 3000);
+  }, { once: true });
+
   currentAxoloAudio.play().catch(e => {
     console.warn('[Voice] Autoplay blocked:', e);
+    window.welcomePlaying = false;
     currentAxoloAudio = null;
   });
 }
 
 function _stopCurrentAxolo() {
+  if (window.welcomePlaying) return;
+  if (_queueDrainTimeout) { clearTimeout(_queueDrainTimeout); _queueDrainTimeout = null; }
   if (currentAxoloAudio) {
     currentAxoloAudio.pause();
-    currentAxoloAudio.src = '';
-    currentAxoloAudio.load();
     currentAxoloAudio = null;
   }
   unduckSfx();
   axoloQueue = [];
+  if (_axoloAudioDoneResolve) {
+    const cb = _axoloAudioDoneResolve;
+    _axoloAudioDoneResolve = null;
+    cb();
+  }
 }
 
 async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt = false) {
@@ -4476,17 +3178,20 @@ async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt 
 
   try {
     if (interrupt) {
+      if (window.welcomePlaying) return false;
       _stopCurrentAxolo();
       _playAxoloAudio(texto, audioFileOrMood);
       return true;
     }
 
     if (currentAxoloAudio) {
+      if (window.welcomePlaying) return false;
       axoloQueue.length = 0;
       axoloQueue.push({ text: texto, audioFile: audioFileOrMood });
       return true;
     }
 
+    if (window.welcomePlaying) return false;
     _playAxoloAudio(texto, audioFileOrMood);
     return true;
   } catch (err) {
@@ -4528,6 +3233,8 @@ const idlePhrases = [
 let phraseIdx = 0;
 let idleInterval = setInterval(() => {
   if (state.round === 0) {
+    const lobbyScreen = document.getElementById('lobby-screen');
+    if (!lobbyScreen || !lobbyScreen.classList.contains('active')) return;
     const choice = idlePhrases[phraseIdx++ % idlePhrases.length];
     axoloSay(choice.text, choice.file);
   }
@@ -4551,7 +3258,7 @@ async function inicializarQRConexion() {
 
     const textoInstruccion = document.getElementById('texto-instruccion-unirse');
     if (textoInstruccion) {
-      textoInstruccion.innerHTML = `Conéctate al mismo WiFi y escanea el código QR o ingresa desde tu móvil a: <br/><span class="text-cyan-400 font-bold text-lg">${joinUrl}</span>`;
+      textoInstruccion.innerHTML = `Escanea el código QR o ingresa desde tu móvil a: <br/><span class="text-cyan-400 font-bold text-lg">${joinUrl}</span>`;
     }
     console.log('[QR] Canvas renderizado para:', joinUrl);
   } catch (err) {
@@ -4559,13 +3266,7 @@ async function inicializarQRConexion() {
   }
 }
 
-let lobbySoundPlayed = false;
-setTimeout(() => {
-  if (lobbySoundPlayed) return;
-  lobbySoundPlayed = true;
-  const wChoice = LOBBY_WELCOME_PHRASES[Math.floor(Math.random() * LOBBY_WELCOME_PHRASES.length)];
-  axoloSay(wChoice.text, wChoice.file);
-}, 1200);
+
 
 // ════════════════════════════════════════════
 //  PARTICLES BACKGROUND
@@ -4648,105 +3349,3 @@ document.getElementById('btn-debug-skip-song').addEventListener('click', () => {
   const currentPlayer = state.singerQueue[state.currentSingerIdx % state.players.length] || state.players[0];
   if (currentPlayer) endSong(currentPlayer);
 });
-</script>
-
-<!-- D-Pad Navigation & Jackbox Button Events -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const initButtons = () => {
-    const buttons = document.querySelectorAll('.jackbox-button-sticker, .jackbox-button-arcade');
-    
-    buttons.forEach(btn => {
-      if(btn.dataset.jackboxInit) return; // Prevent double binding
-      btn.dataset.jackboxInit = 'true';
-      
-      btn.addEventListener('mouseenter', () => RitmikaStyleFX.popOutOnHover(btn));
-      btn.addEventListener('mouseleave', () => RitmikaStyleFX.popInOnLeave(btn));
-      btn.addEventListener('focus', () => RitmikaStyleFX.popOutOnHover(btn));
-      btn.addEventListener('blur', () => RitmikaStyleFX.popInOnLeave(btn));
-      
-      btn.addEventListener('mousedown', () => { RitmikaStyleFX.punchOnPress(btn); if(window.UISounds) UISounds.playTone(600, 0.1); });
-      btn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          RitmikaStyleFX.punchOnPress(btn);
-          if(window.UISounds) UISounds.playTone(600, 0.1);
-        }
-      });
-    });
-  };
-
-  // Run once and on any DOM updates (if dynamic)
-  initButtons();
-  setTimeout(initButtons, 1000);
-
-  // D-Pad Logic
-  let currentFocus = -1;
-  document.addEventListener('keydown', (e) => {
-    // Only intercept if we are not typing in an input (though TV has no inputs)
-    const navItems = Array.from(document.querySelectorAll('.jackbox-button-sticker, .jackbox-button-arcade'));
-    if (navItems.length === 0) return;
-    
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      currentFocus = (currentFocus + 1) % navItems.length;
-      navItems[currentFocus].focus();
-      e.preventDefault();
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      currentFocus = (currentFocus - 1 + navItems.length) % navItems.length;
-      navItems[currentFocus].focus();
-      e.preventDefault();
-    }
-  });
-});
-// ── Debug Panel (Ctrl+Shift+D) ─────────────────────────────
-(function() {
-  let debugVisible = false;
-  const panel = document.createElement('div');
-  panel.id = 'ritmika-debug';
-  panel.style.cssText = 'position:fixed;top:0;left:0;width:100%;z-index:99999;background:rgba(0,0,0,0.92);color:#0f0;font-family:monospace;font-size:12px;padding:8px;display:none;max-height:40vh;overflow-y:auto;border-bottom:2px solid #facc15';
-  panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>🎤 RÍTMIKA DEBUG</b><span><button id="debug-reload-cat" style="background:#facc15;color:#111;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;margin-right:8px">⟳ Recargar catálogo</button><span id="debug-close" style="cursor:pointer;color:#facc15">✕</span></span></div><div id="debug-content"></div>';
-  document.body.appendChild(panel);
-  document.getElementById('debug-close').onclick = () => { debugVisible = false; panel.style.display = 'none'; };
-  document.getElementById('debug-reload-cat').onclick = () => { if (window.reloadCatalog) window.reloadCatalog(); };
-
-  function updateDebug() {
-    if (!debugVisible) return;
-    const v = document.getElementById('karaoke-video');
-    const ci = document.getElementById('catalog-info');
-    const content = document.getElementById('debug-content');
-    const lines = [
-      'Catalog: ' + (window.catalogoKaraoke ? window.catalogoKaraoke.length + ' songs' : 'NOT LOADED'),
-      'Catalog status: ' + (ci ? ci.textContent : '?'),
-      'Current song: ' + (state.currentSong ? state.currentSong.title + ' — ' + state.currentSong.artist : 'none'),
-      'Song URL: ' + (state.currentSong ? (state.currentSong.url || 'none') : 'none'),
-      'Video src: ' + (v ? (v.src || 'empty') : 'no element'),
-      'Video readyState: ' + (v ? v.readyState : 'N/A'),
-      'Video error: ' + (v && v.error ? v.error.code + ': ' + v.error.message : 'none'),
-      'Video paused: ' + (v ? v.paused : 'N/A'),
-      'Video muted: ' + (v ? v.muted : 'N/A'),
-      'Room code: ' + (state.roomCode || '?'),
-      'Players: ' + (state.players ? state.players.length : 0),
-      'Round: ' + (state.round || 0),
-      'Timer interval: ' + (timerInterval ? 'running' : 'stopped'),
-      'FFmpeg (server): ' + (window.ffmpegAvailable !== undefined ? window.ffmpegAvailable : 'unknown'),
-    ];
-    content.innerHTML = lines.map(l => '<div>' + l + '</div>').join('');
-    setTimeout(updateDebug, 500);
-  }
-
-  // Using toLowerCase() so CapsLock doesn't break it
-  document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
-      e.preventDefault();
-      debugVisible = !debugVisible;
-      panel.style.display = debugVisible ? 'block' : 'none';
-      if (debugVisible) updateDebug();
-    }
-  });
-  // Expose debug
-  window.showDebug = () => { debugVisible = true; panel.style.display = 'block'; updateDebug(); };
-  window.hideDebug = () => { debugVisible = false; panel.style.display = 'none'; };
-})();
-</script>
-</body>
-</html>
-

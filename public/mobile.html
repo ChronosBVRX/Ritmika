@@ -11,7 +11,32 @@
 
   <!-- Google Fonts Local -->
   <link rel="stylesheet" href="/assets/fonts/fonts.css" />
-  <link rel="stylesheet" href="/libs/tailwind.css" />
+  <script src="/libs/tailwind.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'neon-pink':   '#ec4899',
+            'neon-cyan':   '#22d3ee',
+            'neon-purple': '#a855f7',
+            'neon-yellow': '#facc15',
+            'antro-bg':    '#0f172a',
+            'antro-card':  '#1e293b',
+            'jb-magenta':  '#f0047f',
+            'jb-cyan':     '#00e5ff',
+            'jb-yellow':   '#ffe600',
+            'jb-lime':     '#b8ff57',
+          },
+          fontFamily: {
+            outfit:  ['Outfit', 'sans-serif'],
+            fredoka: ['Fredoka', 'sans-serif'],
+            paytone: ['Paytone One', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
 
   <!-- Anime.js (local) -->
   <script src="/libs/anime.min.js" defer></script>

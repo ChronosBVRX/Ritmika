@@ -10,7 +10,29 @@
   <link rel="apple-touch-icon" href="./assets/favicon-64.png" />
 
   <link rel="stylesheet" href="/assets/fonts/fonts.css" />
-  <link rel="stylesheet" href="/libs/tailwind.css" />
+  <script src="/libs/tailwind.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'neon-pink':   '#ec4899', 'neon-cyan': '#22d3ee',
+            'neon-purple': '#a855f7', 'neon-yellow': '#facc15',
+            'antro-bg':    '#0f172a', 'antro-card': '#1e293b',
+            'jb-magenta':  '#f0047f', 'jb-cyan':    '#00e5ff',
+            'jb-yellow':   '#ffe600', 'jb-lime':    '#b8ff57',
+            'jb-orange':   '#ff6b00', 'jb-purple':  '#9b00ff',
+          },
+          fontFamily: {
+            outfit:  ['Outfit','sans-serif'],
+            fredoka: ['Fredoka','sans-serif'],
+            paytone: ['Paytone One','sans-serif'],
+          },
+          rotate: { '1.5': '1.5deg', '-1.5': '-1.5deg', '2.5': '2.5deg', '-2.5': '-2.5deg' },
+        },
+      },
+    };
+  </script>
 
   <script src="/libs/anime.min.js" defer></script>
   <script src="/js/styles.js" defer></script>
@@ -4876,7 +4898,7 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
   }
   
   // 2. Load the vignette asset and change style
-  portrait.src = `./assets/tio_axolo_vignette_${assetName}.png`;
+  portrait.src = `./assets/tio_axolo_vignette_${assetName}.webp`;
   bar.style.backgroundColor = bgColor;
   textBox.textContent = texto;
   
