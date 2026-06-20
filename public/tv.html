@@ -2112,8 +2112,8 @@ const boot = {
                 if (typeof axoloSay === 'function' && typeof MODES_WELCOME_PHRASES !== 'undefined') {
                   const mwChoice = MODES_WELCOME_PHRASES[Math.floor(Math.random() * MODES_WELCOME_PHRASES.length)];
                   setTimeout(() => {
-                    window.welcomePlaying = true;
                     axoloSay(mwChoice.text, mwChoice.file);
+                    window.welcomePlaying = true;
                     setTimeout(() => { window.welcomePlaying = false; }, 45000);
                   }, 800);
                 }
