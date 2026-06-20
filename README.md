@@ -1,68 +1,143 @@
 # Rítmika
 
-Plataforma de entretenimiento interactivo local (Party Game) del género de karaoke, diseñada bajo una arquitectura Dual-Display. El sistema ejecuta un servidor central local y una interfaz de visualización en la pantalla principal (TV), mientras que los participantes interactúan en tiempo real utilizando el navegador web de sus dispositivos móviles como controladores, sin necesidad de instalar aplicaciones dedicadas y con soporte para funcionamiento completamente offline.
+> Karaoke party game al estilo Jackbox. Una PC sirve como servidor y pantalla de TV, los invitados usan sus celulares como controles. Sin internet necesario.
 
-## Características Principales
+[![Version](https://img.shields.io/badge/version-1.0.1-blue)](package.json)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D16-brightgreen)](https://nodejs.org)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%2B-lightgrey)]()
 
-*   **Esquema Dual-Display:** Pantalla principal de juego (TV) sincronizada en tiempo real con las pantallas táctiles de los controladores móviles.
-*   **Conectividad Local Directa:** Soporte para modo 100% offline mediante la inicialización de redes locales del sistema anfitrión, permitiendo jugar sin conexión a internet activa.
-*   **Experiencia sin Fricción:** Acceso rápido para jugadores mediante el escaneo de códigos QR dinámicos generados en tiempo real por el servidor.
-*   **Sistema de Presentador Animado:** Motor de interrupciones visuales en pantalla con múltiples estados de ánimo sincronizados con locuciones dinámicas.
-*   **Diseño Neo-Brutalista:** Interfaz gráfica responsiva de alto contraste, bordes definidos y animaciones fluidas a nivel de cliente.
-*   **Streaming Optimizado:** Proxy de transmisión de video local que resuelve la comunicación CORS y optimiza el almacenamiento dinámico (buffering) mediante peticiones por rangos HTTP.
+---
 
-## Arquitectura del Proyecto
+## Qué es
 
-El sistema se divide en tres componentes independientes:
+Rítmika es un juego de karaoke para fiestas donde un grupo de jugadores se conecta desde sus celulares a una PC que hace de servidor y pantalla grande. Un anfitrión virtual — el **Tío Axolo** — guía la partida con bromas, reacciones y premiaciones al estilo Persona 5 / Jackbox.
 
-1.  **Servidor Local (Node.js + Express + Socket.io):** Gestiona la entrega de recursos estáticos, la resolución de red local para códigos QR y la canalización de eventos mediante sockets bidireccionales de baja latencia.
-2.  **Cliente Gráfico (HTML5 / Vanilla JS / CSS):**
-    *   **Pantalla TV (`public/tv.html`):** Contiene la lógica central del estado del juego, renderizado de ruleta interactiva y flujo de reproducción.
-    *   **Controlador Táctil (`public/mobile.html`):** Expone las interfaces dinámicas de selección de avatar, votación, reacciones y asignación de pistas.
-3.  **Lanzador Nativo (C# WinForms / WebView2):** Controla el inicio del servidor en segundo plano, la reproducción inicial de audio de bajo nivel mediante APIs del sistema operativo (`winmm.dll`) y la apertura del cliente en modo pantalla completa dedicado.
+**No necesitas internet.** Solo una PC con Windows y un hotspot WiFi.
 
-## Estructura de Directorios
+## Características
+
+- **Dual-Display** — Pantalla TV + controles móviles sincronizados en tiempo real
+- **Sin internet** — WiFi hotspot local, conexión directa por QR
+- **Tío Axolo** — Presentador virtual con 170+ frases por género, cut-ins estilo RPG y 6 expresiones animadas
+- **3 rondas** — Tu elección → Fuego Cruzado → Apagón Mental
+- **8 avatares** — Personajes temáticos con PNGs transparentes
+- **Ruleta animada** — SVG con avatares reales y giro determinista
+- **Votación en vivo** — 10, 30, 60 o 100 puntos por canción
+- **Premiación épica** — Ceremonia tipo pasarela con premios especiales
+- **Neo-brutalismo** — Estética Jackbox/Persona 5 con sombras sólidas y colores vibrantes
+
+## Quick Start
+
+### Requisitos
+
+- Windows 10/11
+- [Node.js](https://nodejs.org) v16+
+- .NET Framework 4.6.2+ (para compilar el launcher)
+
+### Instalar y ejecutar
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/ChronosBVRX/Ritmika.git
+cd Ritmika
+
+# 2. Instalar dependencias de Node.js
+npm install
+
+# 3. Configurar variables de entorno
+copy .env.example .env
+# Editar .env con tu IP y configuración
+
+# 4. Compilar el launcher (opcional, solo Windows)
+build.bat
+
+# 5. Ejecutar
+Ritmika.exe
+# O directamente:
+npm start
+```
+
+### Archivo `.env`
+
+```env
+PORT=3000
+HOTSPOT_SSID=Ritmika
+HOTSPOT_PASSWORD=Ritmika2026
+```
+
+## Cómo jugar
+
+1. **Activar hotspot WiFi** en la PC (Configuración → Red → Mobile Hotspot)
+2. **Abrir Ritmika.exe** — la pantalla de TV aparece con un QR
+3. **Los jugadores escanean el QR** desde sus celulares → se unen a la sala
+4. **El host inicia el juego** → 3 rondas de karaoke
+5. **Votar y cantar** — cada jugador puntúa a los demás desde su celular
+6. **Premiación** — el Tío Axolo revela al ganador con ceremonia épica
+
+## Arquitectura
 
 ```
-├── public/                 # Recursos web estáticos
-│   ├── assets/             # Assets gráficos y de audio procesados
-│   ├── js/                 # Lógica de animaciones y síntesis de sonido local
-│   ├── libs/               # Dependencias de librerías locales para modo offline
-│   ├── tv.html             # Interfaz de la pantalla principal (TV)
-│   └── mobile.html         # Interfaz de controles móviles
-├── server/                 # Lógica del servidor local
-│   └── index.js            # Servidor Express, enrutador de Sockets y proxy HTTP
-├── src/                    # Código fuente del lanzador nativo
-│   ├── Launcher.cs         # Inicializador del sistema y reproductor de audio nativo
-│   └── GameWindow.cs       # Ventana contenedora WebView2 para modo pantalla completa
-├── scripts/                # Herramientas de automatización y compilación
-├── build.bat               # Compilador en un paso de la aplicación ejecutable
-└── package.json            # Configuración de dependencias de Node.js
+PC (servidor + TV)
+  ├── Node.js :3000
+  ├── Ritmika.exe (C# → WebView2)
+  └── Hotspot WiFi "Ritmika"
+        └── Celulares → http://<IP>:3000/join
 ```
 
-## Requisitos del Sistema
+| Componente | Tecnología | Archivo |
+|-----------|-----------|---------|
+| Servidor | Node.js + Express + Socket.io | `server/index.js` |
+| TV | HTML5 + Vanilla JS + Anime.js | `public/tv.html` |
+| Móvil | HTML5 + Vanilla JS | `public/mobile.html` |
+| Launcher | C# WinForms + WebView2 | `src/Launcher.cs` |
 
-*   **Sistema Operativo:** Windows 10 o superior (con Microsoft Edge WebView2 Runtime instalado).
-*   **Entorno de Ejecución:** Node.js v16+ y gestor de paquetes npm.
-*   **Compilador:** Herramienta csc.exe (.NET Framework 4.6.2+) disponible en la ruta del sistema para compilación del lanzador.
+> Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) para detalles completos.
 
-## Instrucciones de Construcción y Ejecución
+## Estructura del proyecto
 
-1.  Instalar las dependencias de Node.js en el directorio raíz:
-    ```bash
-    npm install
-    ```
-2.  Configurar las variables de entorno creando un archivo `.env` en la raíz del proyecto con el siguiente formato:
-    ```env
-    PORT=3000
-    HOTSPOT_SSID=NombreDeTuRed
-    HOTSPOT_PASSWORD=ContraseñaDeTuRed
-    ```
-3.  Ejecutar el script de construcción local para descargar las bibliotecas nativas de WebView2, generar los iconos de la aplicación y compilar el binario ejecutable de Windows:
-    ```cmd
-    build.bat
-    ```
-4.  Iniciar la aplicación ejecutando el archivo compilado generado:
-    ```cmd
-    Ritmika.exe
-    ```
+```
+Ritmika/
+├── server/
+│   └── index.js              # Servidor Express + Socket.io
+├── public/
+│   ├── tv.html               # Pantalla de TV (4000+ líneas)
+│   ├── mobile.html           # Controlador móvil
+│   ├── assets/               # Audio, avatares, imágenes Axolo
+│   ├── js/                   # Animaciones y síntesis de sonido
+│   └── libs/                 # Tailwind, Anime.js, QRCode (offline)
+├── src/
+│   ├── Launcher.cs           # Launcher C# WinForms
+│   └── GameWindow.cs         # Ventana WebView2 fullscreen
+├── scripts/                  # Build, hotspot, generación de audio
+├── docs/                     # Documentación detallada
+├── build.bat                 # Compilador en un paso
+└── package.json
+```
+
+## Documentación
+
+| Documento | Descripción |
+|-----------|------------|
+| [API Reference](docs/API.md) | Endpoints REST y eventos Socket.io |
+| [Architecture](docs/ARCHITECTURE.md) | Diagrama de componentes y flujo de datos |
+| [Gameplay](docs/GAMEPLAY.md) | Reglas, rondas, votación y mecánicas |
+| [Development](docs/DEVELOPMENT.md) | Setup de desarrollo, convenciones, build |
+| [Deployment](docs/DEPLOYMENT.md) | Cómo deployar y configurar la red |
+| [Changelog](CHANGELOG.md) | Historial de versiones |
+
+## Stack
+
+| Capa | Tecnología |
+|------|-----------|
+| Servidor | Node.js + Express + Socket.io + qrcode |
+| TV | HTML/JS vanilla + Anime.js + Tailwind CSS |
+| Móvil | HTML/JS vanilla |
+| Launcher | C# WinForms (.NET 4.x) |
+| WebView2 | Edge runtime (incluido en Windows 10/11) |
+| Audio | Web Audio API (sintetizado) + ElevenLabs (grabado) |
+| Build | `build.bat` — csc.exe + descarga WebView2 |
+
+## License
+
+[MIT](LICENSE) — Axel Rosete
