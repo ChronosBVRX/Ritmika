@@ -2034,6 +2034,10 @@ const boot = {
     if (this.processing) return;
     this.processing = true;
     while(this.queue.length > 0) {
+      while (!window.bootloaderVisible) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+
       const item = this.queue.shift();
       const n = item.n;
       const state = item.state;
@@ -2302,6 +2306,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch(e) {}
       
       preBootScreen.style.display = 'none';
+      window.bootloaderVisible = true;
       if (bootMusic) {
         bootMusic.volume = 0.4;
         bootMusic.play().catch(()=>{});
@@ -2316,6 +2321,7 @@ document.addEventListener('DOMContentLoaded', () => {
       bootMusic.volume = 0.4;
       bootMusic.play().catch(()=>{});
     }
+    window.bootloaderVisible = true;
     _setupFirstInteraction();
   }
 });

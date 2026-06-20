@@ -42,61 +42,68 @@ El servidor **no tiene lógica de juego**. Solo enruta eventos JSON entre la TV 
 
 ### 1. Servidor (`server/index.js`)
 
-**Stack**: Node.js + Express + Socket.io + compression + qrcode
+**Stack**: Node.js + Express + Socket.io + compression + qrcode + AWS SDK (R2)
 
 **Responsabilidades**:
-- Servir archivos estáticos de `public/`
+- Servir archivos estáticos de `public/` con caching agresivo (1 año assets, no-cache HTML)
 - Generar QR codes (WiFi y juego)
-- Detectar IP local para QR
+- Detectar IP local vía `internal-ip`
 - Relay de eventos Socket.io entre TV y celulares
 - Rate limiting por socket
-- Proxy de video a Cloudflare R2 (presigned URLs)
+- Generar presigned URLs de Cloudflare R2 para video
 - Gestión de salas (crear, unir, cerrar)
+- Compresión gzip en todas las respuestas
 
 **No hace**:
 - No valida reglas de juego
 - No guarda puntajes
 - No controla el flujo de rondas
-- No tiene base de datos persistente
+- No tiene base de datos persistente (salas en memoria)
 
-**Endpoints REST**: Ver [API.md](API.md)
+**Endpoints REST (9)**: Ver [API.md](API.md)
 
 ### 2. TV Frontend (`public/tv.html`)
 
-**Stack**: HTML5 + Vanilla JS + Anime.js + Tailwind CSS + SVG
+**Stack**: HTML5 + Vanilla JS + Anime.js + GSAP + Tailwind CSS + SVG
 
-**Toda la lógica del juego**:
-- Estado del juego (jugadores, rondas, puntajes, turno actual)
-- Ruleta SVG con avatares PNG
-- Video player de karaoke
-- Sistema de votación y scoring
-- Cut-ins del Tío Axolo (6 emociones)
-- Premiación con ceremonia de 5 fases
-- Persistencia localStorage (TTL 4h)
+**~5600 líneas** que contienen toda la lógica del juego:
 
-**Tamaño**: ~4000+ líneas, monolito autocontenido.
+- **Pantalla Pre-boot**: Splash con Axolo, desbloquea AudioContext
+- **Bootloader**: 5 pasos (conectar, crear sala, cargar catálogo, FFmpeg, optimizar)
+- **Selección de modo**: 5 modos (solo Clásico funciona)
+- **Lobby**: QR, lista de jugadores, botón iniciar
+- **Ruleta SVG**: Avatares PNG, giro determinista, auto-spin
+- **Karaoke**: Video player, timer, mecánicas por ronda
+- **Votación**: Promedio de votos → puntaje acumulado
+- **Podio**: Ceremonia de 5 fases con premios especiales
+- **Persistencia**: localStorage con TTL 4h, restore banner
+- **Axolo**: Cut-ins estilo Persona, 180+ barks, 6 emociones, SFX ducking
+- **Debug panel**: Ctrl+Shift+D
 
 ### 3. Mobile Frontend (`public/mobile.html`)
 
-**Stack**: HTML5 + Vanilla JS
+**Stack**: HTML5 + Vanilla JS + Tailwind CSS
 
-**8 pantallas**:
-1. Join (ingresar código de sala)
-2. Panel de control
-3. Selección de géneros
-4. Selección de artistas
-5. Reacciones (emoji, tomatazo)
-6. Asignación de canciones (Ronda 2)
-7. Votación
-8. Podio
+**~1960 líneas**, 8 pantallas:
+
+1. **Join** — Ingreso de código de sala (deep-linking con `?code=`)
+2. **Avatar** — Selección de personaje (8 opciones con PNG)
+3. **Géneros** — Selección de hasta 3 géneros musicales
+4. **Artistas** — Selección de artistas filtrados por género
+5. **Sala de espera** — Lista de jugadores conectados, VIP badge
+6. **Panel de control** — Reacciones, sabotaje, info del cantante
+7. **Asignación** — Selección de canción para rival (Ronda 2)
+8. **Podio** — Resultado final y "Jugar otra vez"
+
+**Features**: Service Worker PWA, haptic feedback, fullscreen automático, UISounds.
 
 ### 4. Launcher Nativo (`src/`)
 
 **Stack**: C# WinForms (.NET Framework 4.x)
 
-- `Launcher.cs`: Inicia el servidor Node.js, reproduce audio de inicio, abre GameWindow
-- `GameWindow.cs`: Ventana WebView2 fullscreen con animación de carga
-- Audio via P/Invoke a `winmm.dll` (MCI API)
+- `Launcher.cs` (281 líneas): Inicia Node.js, abre GameWindow. Audio de inicio comentado.
+- `GameWindow.cs` (132 líneas): WebView2 fullscreen, sin animación de carga. Flags de GPU.
+- Audio via P/Invoke a `winmm.dll` (MCI API, alias `ritmika_bgm`).
 
 ---
 
@@ -104,27 +111,30 @@ El servidor **no tiene lógica de juego**. Solo enruta eventos JSON entre la TV 
 
 ```
 1. Ritmika.exe se abre
-   └─► Launcher.cs inicia Node.js (server/index.js)
+   └─► Launcher.cs mata proceso previo en puerto 3000
+   └─► Inicia Node.js (server/index.js)
    └─► Abre GameWindow (WebView2) → carga http://localhost:3000
 
-2. TV crea sala
+2. TV muestra pre-boot → bootloader de 5 pasos → selección de modo
+
+3. TV crea sala
    └─► Socket: tv:create_room
    └─► Server genera código de 4 chars
    └─► Responde con: roomCode, localIP, hotspotSSID, hotspotPassword
    └─► TV muestra QR de WiFi + QR de juego + código
 
-3. Jugador escanea QR WiFi → se conecta a la red
+4. Jugador escanea QR WiFi → se conecta a la red
 
-4. Jugador escanea QR juego → abre http://<IP>:3000/join
+5. Jugador escanea QR juego → abre http://<IP>:3000/join
 
-5. Jugador entra código + nombre + avatar
+6. Jugador entra código + nombre + avatar
    └─► Socket: player:join
    └─► Server agrega a la sala, notifica a la TV
    └─► TV muestra al jugador en el lobby
 
-6. Repetir 3-5 para cada jugador
+7. Repetir 3-5 para cada jugador
 
-7. Host inicia juego
+8. Host inicia juego
    └─► Socket: tv:start_game → game:started a todos
 ```
 
@@ -138,15 +148,11 @@ El servidor **no tiene lógica de juego**. Solo enruta eventos JSON entre la TV 
 TV ──tv:broadcast──► Server ──game:update──► Todos los jugadores
 ```
 
-La TV envía actualizaciones de estado (nueva ronda, resultado de ruleta, etc.) que el server reenvía a todos los celulares.
-
 ### Mensaje privado
 
 ```
 TV ──tv:send_to_player(targetSocketId)──► Server ──game:private──► Jugador específico
 ```
-
-Usado para enviar la canción asignada al cantante de turno.
 
 ### Evento de jugador → TV
 
@@ -154,33 +160,22 @@ Usado para enviar la canción asignada al cantante de turno.
 Celular ──player:vote──► Server ──tv:vote──► TV
 ```
 
-Cada acción del celular (voto, tomatazo, emoji) pasa por el server y llega a la TV.
+Cada acción del celular (voto, tomatazo, emoji, sabotaje) pasa por el server y llega a la TV.
 
 ---
 
-## Protocolo de comunicación
+## Base de datos de canciones
 
-Todos los eventos son objetos JSON. El servidor funciona como un bus de eventos:
+### DB principal: `r2_db.json`
 
-```javascript
-// TV emite
-socket.emit('tv:broadcast', {
-  roomCode: 'ABCD',
-  event: 'SINGER_SELECTED',
-  data: { player: {...}, song: {...} }
-});
+- **3,845 canciones** con URLs de Cloudflare R2 (`media.pixelhub.party`)
+- Distribución: pop domina (2,205), balada (453), banda (327), rock (250), ranchera (219), reggaeton (201), cumbia (187), electrónica (3)
+- Cargada en memoria al inicio del servidor
 
-// Server reenvía a todos en la sala
-io.to(roomCode).emit('game:update', {
-  event: 'SINGER_SELECTED',
-  data: { player: {...}, song: {...} }
-});
+### DB fallback: `karaoke_db.json`
 
-// Celular recibe
-socket.on('game:update', (payload) => {
-  if (payload.event === 'SINGER_SELECTED') { ... }
-});
-```
+- **2,820 canciones**, 7 géneros (sin electrónica)
+- Solo se usa si `r2_db.json` falla
 
 ---
 
@@ -189,16 +184,15 @@ socket.on('game:update', (payload) => {
 ### En memoria (server)
 
 - `rooms`: Map de salas activas (se pierde al reiniciar)
-- `songDatabase`: Array de canciones cargado de `server/r2_db.json`
-- `lastEventTime`: Map para rate limiting
-- `urlReqCount`: Map para rate limiting de video URLs
+- `songDatabase`: Array de canciones de `r2_db.json`
+- `lastEventTime`: Map para rate limiting de sockets
+- `urlReqCount`: Map para rate limiting de video URLs (30/min/IP)
 
 ### En el cliente (TV)
 
 - `localStorage.ritmika_game_state`: Estado del juego con TTL de 4 horas
   - Jugadores (nombre, avatar, puntaje, géneros, artistas, tomatazos)
-  - Ronda actual, índice del cantante, cola de canciones
-  - Canciones asignadas (Ronda 2)
+  - Ronda actual, índice del cantante, cola de canciones, canciones asignadas
 
 ### En el cliente (Móvil)
 
@@ -208,11 +202,21 @@ socket.on('game:update', (payload) => {
 
 ## Seguridad
 
-- **CORS**: Solo orígenes locales (localhost, IPs privadas, *.local, *.onrender.com)
-- **Rate limiting**: Cooldowns por evento en sockets, límite de requests en video URLs
-- **Sanitización**: Nombres truncados, sin HTML, avatar clamp, scores válidos
+- **CORS**: Solo orígenes locales (localhost, IPs privadas, `*.local`, `*.onrender.com`)
+- **Rate limiting**: Cooldowns por evento en sockets (2s/500ms/3s), 30 req/min en video URLs
+- **Sanitización**: Nombres truncados (15 chars), sin HTML, avatar clamp (0-7), scores válidos (10/30/60/100)
 - **Sin auth**: No hay login/contraseña. La sala es la única barrera.
-- **Sin secrets en frontend**: Variables sensibles (R2 keys) solo en el server
+- **Sin secrets en frontend**: Variables sensibles (R2 keys, ElevenLabs) solo en el server o `.env`
+
+---
+
+## Render.com (deploy en la nube)
+
+- El servidor soporta deploy en Render.com
+- Detección automática via `RENDER_EXTERNAL_URL`
+- Origin whitelist incluye `*.onrender.com`
+- Sin hotspot WiFi (jugadores necesitan internet)
+- Sin pantalla nativa (TV se ve desde navegador)
 
 ---
 
@@ -226,3 +230,5 @@ socket.on('game:update', (payload) => {
 | Frontend monolítico (tv.html) | SPA con bundler | Sin build step, fácil de editar, offline total |
 | Tailwind local (no CDN) | CDN de Tailwind | Modo offline, sin dependencia de internet |
 | ElevenLabs para voces | TTS local | Calidad mucho superior, frases naturales |
+| Cloudflare R2 para video | Google Drive directo | Mejor rendimiento, presigned URLs, sin CORS |
+| WebP para assets | PNG | Menor tamaño, transparencia RGBA, mejor para web |

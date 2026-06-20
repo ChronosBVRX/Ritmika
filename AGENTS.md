@@ -8,51 +8,72 @@ Karaoke party game estilo Jackbox. Una PC sirve como servidor + pantalla de TV, 
 
 | Capa | Tecnología |
 |------|-----------|
-| Servidor | Node.js + Express + Socket.io + qrcode (puerto 3000) |
-| TV (pantalla grande) | HTML/JS vanilla, 3287 líneas en `public/tv.html` |
-| Control móvil | HTML/JS vanilla, 1838 líneas en `public/mobile.html` |
+| Servidor | Node.js + Express + Socket.io + qrcode + compression (puerto 3000) |
+| TV (pantalla grande) | HTML/JS vanilla + Tailwind + Anime.js + GSAP + SVG, ~5600 líneas en `public/tv.html` |
+| Control móvil | HTML/JS vanilla + Tailwind, ~1960 líneas en `public/mobile.html` |
 | Launcher nativo | C# WinForms (.NET Framework 4.x), compilado con csc.exe (sin dependencias externas) |
 | Ventana de juego | WebView2 (Edge runtime incluido en Windows 10/11) |
 | Build | `build.bat` — genera icono, descarga WebView2, compila C#, copia DLLs |
-| Audio | winmm.dll (MCI) via P/Invoke — MP3 con alias `mpegvideo` |
+| Audio | winmm.dll (MCI) via P/Invoke — MP3 con alias `ritmika_bgm` |
+| Video storage | Cloudflare R2 (presigned URLs via AWS SDK) |
+| Assets | WebP (avatares, vignettes Axolo), MP3 (392 archivos de audio) |
 
 ---
 
 ## Archivos clave
 
 ### Servidor
-- `server/index.js` — 540 líneas. Express + Socket.io. Servidor "pasoarela pura" — solo enruta eventos JSON entre TV y celulares, cero lógica de juego. Maneja salas, votación, rate limiting. IP detectada con `os.networkInterfaces()`. QR locales con `qrcode` (npm). Proxy de video para Google Drive con soporte Range.
+- `server/index.js` — ~600 líneas. Express + Socket.io. Servidor "pasoarela pura" — solo enruta eventos JSON entre TV y celulares, cero lógica de juego. Maneja salas, votación, rate limiting. Compresión gzip activa. QR locales con `qrcode` (npm). Genera presigned URLs de Cloudflare R2 para video. Endpoints: `/`, `/join`, `/qr-game`, `/qr-wifi`, `/api/network-config`, `/api/songs`, `/api/audio-files`, `/api/health`, `/api/video-url`.
+- `server/r2_db.json` — ~30,700 líneas. Base de datos principal de canciones (3,845 canciones con URLs de Cloudflare R2 en `media.pixelhub.party`).
+- `server/karaoke_db.json` — ~3,000 líneas. Base de datos legacy/fallback (2,820 canciones, 7 géneros sin electrónica).
+- `server/build_summary.json` — Estadísticas de build: 3,845 canciones totales, desglose por género y fuente.
+- `server/game_modes_config.json` — Configuración de 7 modos de juego estructurados con filtros de género.
+- `server/deezer_audit.json` — Auditoría de la API de Deezer para resolución de géneros de artistas.
 
 ### Frontend
-- `public/tv.html` — 3287 líneas. Pantalla grande. Toda la lógica del juego: ruleta SVG, karaoke con video player, votación, podio, QR dinámico, persistencia localStorage, sistema de voces Axolo con cut-in (estilo Persona/RFG). 8 géneros de barks (reggaeton, banda, ranchera, rock, pop, cumbia, balada, electronica) + default.
-- `public/mobile.html` — 1838 líneas. Control táctil. 8 pantallas: join, panel control, selección géneros, selección artistas, reacciones, asignación (R2), votación, podio.
-- `public/js/animations.js` — 275 líneas. UISounds (Web Audio API synthesizer) + RitmikaStyleFX (confetti, screen-shake, pop-in, stagger, glowPulse, axoloNod, bigReveal).
-- `public/assets/audio/` — 172 archivos MP3. Voces Axolo por género (10×8 géneros + 10 default = 90), intros, votos, premios, eventos, idle.
-- `public/assets/avatars/` — 8 PNGs de avatares con transparencia alfa real (generados con IA + floodfill).
-- `public/assets/tio_axolo_vignette_<emocion>.png` — Assets de la mascota en modo RGBA con transparencia real. 6 emociones: `neutral`, `laughing`, `mischievous`, `sad`, `angry`, `singing`. + `tio_axolo_body.png` para pantalla de carga.
-- `public/libs/` — Tailwind.js local + Anime.js local + QRCode.min.js (evita CDN para offline).
+- `public/tv.html` — ~5600 líneas. Pantalla grande. Toda la lógica del juego: pantalla pre-boot, bootloader de 5 pasos, selección de modo, ruleta SVG, karaoke con video player, votación, podio de 5 fases, QR dinámico, persistencia localStorage, sistema de voces Axolo con cut-in (estilo Persona/RFG). Debug panel (Ctrl+Shift+D). Audio preloader. SFX ducking.
+- `public/mobile.html` — ~1960 líneas. Control táctil. 8 pantallas: join, avatar, géneros, artistas, sala de espera, panel de control, asignación R2, podio. Service Worker PWA. Haptic feedback. Fullscreen automático. Deep-linking con `?code=`.
+- `public/js/animations.js` — 314 líneas. UISounds (Web Audio API synthesizer: click, tick, chime, whoosh, reveal, stinger) + RitmikaStyleFX (confetti, screen-shake, pop-in, stagger, glowPulse, axoloNod, bigReveal, flashBang, counter).
+- `public/assets/audio/` — 392 archivos MP3. Voces Axolo por género (20×9 géneros = 180 barks), reacciones de voto (15×4 tiers = 60), intros (20), premios (16), eventos (lobby, round, blackout, roulette, sabotage, idle, podium, modes, SFX).
+- `public/assets/avatars/` — 8 WebP de avatares con transparencia alfa real (generados con IA + floodfill, convertidos de PNG a WebP).
+- `public/assets/tio_axolo_vignette_<emocion>.webp` — Assets de la mascota en modo RGBA con transparencia real. 6 emociones: `neutral`, `laughing`, `mischievous`, `sad`, `angry`, `singing`. + `tio_axolo_body.webp` para pantalla de carga. + Variantes por modo: `axolo_anime.webp`, `axolo_emo.webp`, `axolo_ranchera.webp`, `axolo_nostalgia.webp`.
+- `public/assets/` — También incluye: `logo_ritmika.webp`, fondos (`bg_neon_club.webp`, `bg_neon_y2k.webp`), decoraciones de lobby, assets de podio (`podium_bg_stadium.webp`, `podium_crown.webp`), assets de ruleta, `loading_bg.mp4`, iconos de modo, favicon, tomato assets (SVG + WebP), fuentes woff2 (Fredoka, Paytone One).
+- `public/libs/` — Tailwind.js local + Anime.js local + GSAP local + QRCode.min.js (evita CDN para offline).
 
 ### Launcher Nativo (C#)
-- `src/Launcher.cs` — 241 líneas. Arranca servidor Node.js, reproduce `new_game.mp3` al abrir, abre GameWindow directo (sin formulario previo). Limpia puerto 3000 antes de iniciar. Incluye `RButton` y `RPanel` custom controls (sin uso actual).
-- `src/GameWindow.cs` — 282 líneas. Ventana WebView2 fullscreen con pantalla de carga animada (Axolo con glow, dots, pulso). F11 toggle fullscreen. Polling al servidor cada 500ms.
-
-### Launcher PowerShell (legacy)
-- `Ritmika.ps1` — 486 líneas. Launcher GUI alternativo con PowerShell WinForms. Tiene selector de modo WiFi/Túnel, QR con Google Charts, hotspot toggle, Chrome kiosk. **Este launcher NO es el activo** — `Ritmika.exe` usa el launcher C# directo a GameWindow.
-- `Ritmika.bat` — Wrapper que ejecuta `Ritmika.ps1`.
-- `jugar.bat` — 60 líneas. Script batch legacy que activa hotspot, inicia servidor, y abre Chrome kiosk. Alternativa sin GUI.
+- `src/Launcher.cs` — 281 líneas. Arranca servidor Node.js, abre GameWindow directo (sin formulario previo). Limpia puerto 3000 antes de iniciar. Incluye `RButton` y `RPanel` custom controls (sin uso actual). Audio de inicio comentado (no reproduce nada al abrir).
+- `src/GameWindow.cs` — 132 líneas. Ventana WebView2 fullscreen sin animación de carga (va directo al servidor). F11 toggle fullscreen. Polling al servidor cada 500ms. Flags de GPU y video acelerado.
 
 ### Build
 - `build.bat` — 62 líneas. Un solo paso: icono → dependencias → compilar → copiar DLLs.
-- `scripts/generate_icon.ps1` — Crea `ritmika.ico` desde `tio_axolo_body.png`.
+- `scripts/generate_icon.ps1` — Crea `ritmika.ico` desde `tio_axolo_body.webp`.
 - `scripts/download_deps.ps1` — Descarga WebView2 SDK de NuGet, extrae DLLs.
-- `scripts/hotspot.ps1` — 66 líneas. Activa el hotspot WiFi de Windows usando WinRT API (`NetworkOperatorTetheringManager`). Muestra instrucciones manuales si falla. **No es llamado automáticamente por Launcher.cs** — se usa desde `jugar.bat` o manualmente.
-- `scripts/generate_all_audio.js` — 332 líneas. Genera voces con ElevenLabs API. Lee API key de `.env`. 172 frases definidas. Soporta skip si el MP3 ya existe.
+- `scripts/hotspot.ps1` — 66 líneas. Activa el hotspot WiFi de Windows usando WinRT API (`NetworkOperatorTetheringManager`). **No es llamado automáticamente por Launcher.cs**.
+- `scripts/generate_all_audio.js` — Genera voces con ElevenLabs API. Lee API key de `.env`. 172+ frases definidas. Soporta skip si el MP3 ya existe.
+- `scripts/generate_podium_audio.js` — Genera audio de ceremonia de podio con ElevenLabs.
+- `scripts/generate_podium_extra.js` — Audio extra de podio.
 - `scripts/fix_conexion.ps1` — Agrega regla de firewall para puerto 3000.
-- `fix_conexion.cmd` — Wrapper batch para fix de conexión.
+- `scripts/build_r2_db.py` — Construye la base de datos de Cloudflare R2.
+- `scripts/crawl_drive.py` —爬虫 de carpetas de Google Drive para archivos de karaoke.
+- `scripts/convert_assets.py` — Convierte assets de imagen (PNG → WebP).
+- `scripts/process_green.py` — Procesa assets de fondo verde con floodfill para transparencia.
+- `scripts/fix_axolo_transparency.py` — Corrige transparencia de vignettes Axolo.
+- `scripts/fix_stars_transparency.py` — Corrige transparencia de assets de estrellas.
+- `scripts/gen_lobby_deco.py` — Genera decoraciones de lobby.
+- `scripts/generate_tomato_asset.py` — Genera assets de tomate (proyectil + salpicadura).
+- `scripts/optimize_logo.py` — Optimiza/comprime imágenes de logo.
+- `scripts/download_fonts.py` — Descarga/customiza fuentes web.
+- `scripts/check_api.py` — Verifica conectividad/configuración de API.
+- `scripts/add_audio.py` — Script para agregar assets de audio.
+
+### Scripts de fix en raíz (15+ archivos)
+- `fix_checkall.js`, `fix_conexion.cmd`, `fix_deleted_code.py`, `fix_dupes.js`, `fix_final.js`, `fix_leftover.py`, `fix_leftover_final.py`, `fix_mangled.py`, `fix_paths.js`, `fix_podium_css.py`, `fix_podium_html.py`, `fix_transition_and_keys.py`, `fix_transition_and_keys2.py`, `fix_tv.py`, `fix_video_visibility.py`
+- `apply_brutalism.py`, `apply_brutalism2.py` — Aplican estilo neo-brutalismo al TV HTML.
+- `check_audio.js`, `fix2.js`, `fix3.js`, `patch_tv.js`, `replace.js` — Scripts de mantenimiento varios.
 
 ### Config
-- `.env` — `PORT=3000`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `HOTSPOT_SSID=Ritmika`, `HOTSPOT_PASSWORD=Ritmika2026`
-- `.gitignore` — Excluye `.env`, EXEs, DLLs de WebView2, `libs/webview2/`
+- `.env` — `PORT=3000`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `HOTSPOT_SSID=Ritmika`, `HOTSPOT_PASSWORD=Ritmika2026`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`
+- `.gitignore` — Excluye `.env`, EXEs, DLLs de WebView2, `libs/webview2/`, `*.log`
 
 ---
 
@@ -61,9 +82,8 @@ Karaoke party game estilo Jackbox. Una PC sirve como servidor + pantalla de TV, 
 ```
 PC (servidor + TV)
   ├── Node.js :3000
-  ├── Launcher.exe (C# WinForms → GameWindow WebView2)
+  ├── Ritmika.exe (C# WinForms → GameWindow WebView2)
   │     ├── Abre GameWindow directo (sin formulario previo)
-  │     ├── Audio: new_game.mp3 (una vez al abrir)
   │     └── Inicia servidor Node.js, mata proceso previo en puerto 3000
   └── Hotspot WiFi "Ritmika" (activado manual o por jugar.bat)
         └── Celulares → http://<IP>:3000/join
@@ -71,21 +91,30 @@ PC (servidor + TV)
 
 ### Flujo
 1. `Ritmika.exe` se abre → servidor Node.js arranca, GameWindow abre fullscreen
-2. GameWindow (WebView2) carga `http://localhost:3000` con animación de carga (Axolo con glow pulsante)
-3. La TV muestra QR grandes del juego + instrucciones de conexión para que celulares escaneen
-4. Celulares escanean QR WiFi → se conectan a la red → escanean QR juego → `http://<IP>:3000/join`
-5. Tío Axolo (host) guía el juego: 3 rondas → podio final
+2. GameWindow (WebView2) carga `http://localhost:3000` directo (sin pantalla de carga)
+3. La TV muestra pantalla pre-boot → bootloader de 5 pasos → selección de modo
+4. Se crea la sala → QR grandes del juego + instrucciones de conexión
+5. Celulares escanean QR WiFi → se conectan a la red → escanean QR juego → `http://<IP>:3000/join`
+6. Tío Axolo (host) guía el juego: 3 rondas → podio de 5 fases
+
+### Modos de juego (5, solo Clásico funciona)
+- **Clásico** — Modo estándar con todos los géneros
+- **Fiesta Anime** — PRÓXIMAMENTE
+- **Fiesta Emo** — PRÓXIMAMENTE
+- **Dolidas & Rancheras** — PRÓXIMAMENTE
+- **Nostalgia Pop** — PRÓXIMAMENTE
 
 ### Rondas
-- **Ronda 1** — Ruleta de géneros, cada quien canta una canción conocida
-- **Ronda 2 (Fuego Cruzado)** — Canciones asignadas por el servidor, cantan las de otros
-- **Ronda 3** — Mix / final
-- **Podio** — Top 3 con animación
+- **Ronda 1 — "Tu Elección, Tu Condena"** — Ruleta, cada quien canta una canción de su preferencia + reto al 50%
+- **Ronda 2 — "Fuego Cruzado"** — Los jugadores asignan canciones a otros, la asignada reemplaza la preferencia
+- **Ronda 3 — "Apagón Mental"** — Igual que R1 pero con blackout de video/letras al 40%
+- **Podio** — Ceremonia de 5 fases: título → premios especiales → 3ro/2do → ganador épico → podio final
 
-### Géneros musicales (8 en frontend, 7 en DB)
+### Géneros musicales (8 en frontend, 7 en DB legacy)
 - Frontend (tv.html + mobile.html): reggaeton, banda, ranchera, rock, pop, cumbia, balada, **electronica**
-- `karaoke_db.json`: reggaeton, banda, ranchera, rock, pop, cumbia, balada (**sin electronica** — 2820 canciones, 287 artistas)
-- Si un jugador selecciona "electronica", el juego usa canciones de otros géneros o fallback
+- `r2_db.json`: Todos los géneros (3,845 canciones, distribución: pop domina con 2,205)
+- `karaoke_db.json` (legacy/fallback): 7 géneros sin electrónica (2,820 canciones)
+- Si un jugador selecciona "electronica", el backend puede no tener canciones de ese género en R2
 
 ---
 
@@ -102,43 +131,40 @@ PC (servidor + TV)
 - **UI**: La versión del `package.json` se emite a los clientes vía `socket.emit('server_version', ...)`. `tv.html` y `mobile.html` la muestran en `div#version-display`.
 
 ### Sin tunnel / online mode
-- `localtunnel` instalado originalmente, se eliminó por completo.
-- `jugar_online.bat` borrado.
-- Código de tunnel purgado de server, TV y launcher C#.
-- **Nota**: `Ritmika.ps1` (legacy) aún tiene código de tunnel (`$script:UseTunnel`, card "Por Internet"). No tiene efecto en el launcher activo.
+- `localtunnel` eliminado por completo. Código purgado de server, TV y launcher C#.
 - Conectividad vía WiFi hotspot de Windows.
 
 ### Sin launcher panel — directo a GameWindow
 - `Ritmika.exe` abre directo GameWindow (WebView2), sin formulario previo.
-- El launcher C# solo inicia servidor, reproduce audio y abre la ventana.
-- `RButton` y `RPanel` aún existen en `Launcher.cs` pero sin uso. Mantenidos por si se reintroduce panel.
+- El launcher C# solo inicia servidor y abre la ventana. Audio de inicio comentado.
+- `RButton` y `RPanel` aún existen en `Launcher.cs` pero sin uso.
 
 ### WebView2 en vez de Chrome kiosk
 - WebView2 es parte de Windows 10/11 (Edge runtime).
-- Elimina dependencia de Chrome, ventana nativa.
-- F11 toggle fullscreen.
+- F11 toggle fullscreen. Flags de GPU y video acelerado.
 - Requiere DLLs: `WebView2Loader.dll`, `Microsoft.Web.WebView2.Core.dll`, `Microsoft.Web.WebView2.WinForms.dll` (auto-download por build.bat).
 
 ### QR codes locales con qrcode (npm)
-- Endpoints en el servidor: `GET /qr-game` y `GET /qr-wifi` generan QR con `qrcode` (npm).
-- TV los carga directo como `<img src="/qr-game">`, sin Google Charts.
+- Endpoints: `GET /qr-game` y `GET /qr-wifi` generan QR con `qrcode` (npm).
 - 400×400px, visibles desde lejos.
-- **Nota**: `Ritmika.ps1` (legacy) usa Google Charts API para QR — no aplica al launcher activo.
 
 ### Hotspot WiFi
 - **No es activado automáticamente por el launcher C#**.
-- Opciones para activarlo:
-  1. `jugar.bat` → ejecuta `scripts/hotspot.ps1` antes de iniciar servidor
-  2. Manual: Configuración → Red → Mobile Hotspot → SSID: Ritmika, Password: Ritmika2026
-  3. `scripts/hotspot.ps1` directamente (requiere permisos Admin)
-- `hotspot.ps1` usa WinRT API (`NetworkOperatorTetheringManager`) para activar el hotspot. Si falla, muestra instrucciones manuales.
+- Opciones: `jugar.bat` → `hotspot.ps1`, o manual (Configuración → Red → Mobile Hotspot).
+- `hotspot.ps1` usa WinRT API. Requiere permisos Admin.
 - `fix_conexion.cmd` agrega regla de firewall para puerto 3000.
+
+### Cloudflare R2 (Video Storage)
+- Videos alojados en Cloudflare R2 (bucket `ritmika`, endpoint `media.pixelhub.party`).
+- El servidor genera presigned URLs con expiración de 30 minutos vía AWS SDK.
+- TV llama a `GET /api/video-url?id=<songId>` para obtener URL firmada.
+- Fallback a URL pública si R2 no está configurado.
+- Base de datos de canciones: `server/r2_db.json` (3,845 canciones).
 
 ### Controles custom (RButton, RPanel) — sin uso actual
 - `RButton` hereda `Control`, dibuja rectángulo redondeado con `GraphicsPath`.
-- Efecto hover: suma 20 a cada componente RGB con `Math.Min(255, ...)` para evitar desborde.
-- `RPanel` hereda `Panel`, dibuja fondo redondeado.
-- **IMPORTANTE**: RPanel no llama `base.OnPaint(e)` — los controles hijos se pintan solos vía mensajes separados de WinForms, pero si algún control hijo no se pinta, revisar esto.
+- Efecto hover: suma 20 a cada componente RGB con `Math.Min(255, ...)`.
+- `RPanel` hereda `Panel`, dibuja fondo redondeado. No llama `base.OnPaint(e)`.
 
 ### Persistencia en TV
 - `localStorage` guarda: `ritmika_game_state` (players, scores, round, songs, currentSingerIdx, songQueue, assignedSongs).
@@ -149,30 +175,35 @@ PC (servidor + TV)
 - Tomatazo: 2s por socket
 - Emoji: 500ms
 - Sabotaje: 3s
+- Video URLs: 30 requests/IP/minuto
 - Cleanup en disconnect.
 
 ### Scores por voto
 - Solo 10, 30, 60, 100. Valores inválidos → clamped a 10.
 
+### Compresión y caching
+- Compresión gzip activa en todas las respuestas HTTP (`compression` npm).
+- HTML: `no-store, no-cache, must-revalidate, private`.
+- Assets estáticos: `public, max-age=31536000, immutable` (1 año).
+
 ### Audio
-- `AudioPlayer` clase estática en Launcher.cs: P/Invoke a `winmm.dll` (`mciSendString`).
+- `AudioPlayer` clase estática en Launcher.cs: P/Invoke a `winmm.dll` (`mciSendString`). Alias: `ritmika_bgm`.
 - `PlayOnce()` abre y reproduce una vez. `PlayLoop()` añade "repeat". `Stop()` detiene y cierra.
-- MP3 requiere alias `mpegvideo` en MCI.
-- Solo `new_game.mp3` se reproduce al launcher. **`menu_music.mp3` no existe** — feature no implementada.
+- **Audio de inicio desactivado**: `new_game.mp3` está comentado en el código.
+- **`menu_music.mp3` SÍ existe** en `public/assets/audio/`.
 
 ### Sistema de voces Axolo (tv.html)
 - `axoloSay(text, moodOrDuration)` → función principal. Reproduce audio MP3 y muestra cut-in.
-- `hacerHablarAlAxolo(texto, audioFile)` → normaliza `.wav` a `.mp3` en runtime (línea 3126: `.replace(/\.(wav|mp3)$/i, '') + '.mp3'`). Todos los archivos reales son MP3.
-- `AXOLO_PRESET_MAP` → mapea archivo de audio a emoción del retrato (neutral, laughing, mischievous, sad, angry, singing).
-- `GENRE_BARKS` → 8 géneros × 10 frases cada uno. Referencian `.wav` pero se resuelven a `.mp3`.
-- **Riesgo**: Si se modifica la línea 3126 de normalización, TODOS los audios Axolo romperían (404 en `.wav`).
+- `hacerHablarAlAxolo(texto, audioFile)` → normaliza `.wav` a `.mp3` en runtime. Todos los archivos reales son MP3.
+- `AXOLO_PRESET_MAP` → mapea archivo de audio a emoción del retrato (talking, mischievous, laughing, angry). Sad y singing manejados en el cut-in handler.
+- `GENRE_BARKS` → 9 géneros × 20 frases cada uno = 180 barks totales.
+- SFX ducking: el volumen de todos los SFX baja cuando Axolo habla (`duckSfx()`/`unduckSfx()`).
 
 ### Avatares de jugadores (`public/assets/avatars/`)
-- 8 PNGs con transparencia alfa real generados con IA (estilo 3D cartoon/mascota de fiesta).
-- Procesados con floodfill desde las 4 esquinas (Pillow Python) para eliminar el fondo.
-- Nombres: `avatar_0_taco_rockero.png` … `avatar_7_pulpo_salsero.png`.
-- Los catálogos `AVATARS` en `tv.html` y `mobile.html` están vinculados a estas imágenes PNG transparentes mediante la propiedad `img`. Se utilizan de forma directa en la selección de avatar del móvil, tarjetas de jugadores, pips de la sala de espera y en las rebanadas de la ruleta en la pantalla de TV.
-- Catálogo de avatares (id → emoji, label, color, border):
+- 8 WebP con transparencia alfa real generados con IA (estilo 3D cartoon/mascota de fiesta).
+- Procesados con floodfill desde las 4 esquinas (Pillow Python), luego convertidos de PNG a WebP.
+- Nombres: `avatar_0_taco_rockero.webp` … `avatar_7_pulpo_salsero.webp`.
+- Catálogo de avatares (id → emoji, label, color):
   - 0: 🌮 Taco Rockero — `#f97316`
   - 1: 🌶️ Chile Enmascarado — `#ef4444`
   - 2: 🍹 Tequila Fiestero — `#a855f7`
@@ -184,14 +215,15 @@ PC (servidor + TV)
 
 ### Tío Axolo — Character Cut-in System (Estilo Persona / RPG)
 - **Modo Oculto por Defecto**: Tío Axolo no se visualiza de forma permanente. Su retrato y cuadro de diálogo se disparan dinámicamente al hablar.
-- **Activos de Expresión RGBA**: Posee archivos de imagen transparente independientes por contexto (`tio_axolo_vignette_<mood>.png`): `neutral`, `laughing` (risas), `mischievous` (pícaro), `sad` (triste/fallo), `angry` (enojo/sabotaje), `singing` (canto).
+- **Activos de Expresión WebP**: Archivos de imagen transparente por contexto (`tio_axolo_vignette_<mood>.webp`): `neutral`, `laughing`, `mischievous`, `sad`, `angry`, `singing`. + Variantes por modo de juego.
+- **6 emociones** con colores: talking (yellow `#ffe600`), mischievous (purple `#9b00ff`), laughing (magenta `#f0047f`), angry (red `#ef4444`), sad (slate `#1e293b`), singing (cyan `#22d3ee`).
 
 #### Estructura HTML del Cut-in:
 ```html
 <div id="axolo-cutin-overlay" class="pointer-events-none">
   <div id="axolo-cutin-bar">
     <div id="axolo-cutin-portrait-wrap">
-      <img id="axolo-cutin-portrait" src="/assets/tio_axolo_vignette_neutral.png" />
+      <img id="axolo-cutin-portrait" src="/assets/tio_axolo_vignette_neutral.webp" />
     </div>
     <div id="axolo-cutin-textbox">
       <div id="axolo-cutin-text">...</div>
@@ -202,34 +234,34 @@ PC (servidor + TV)
 
 #### CSS clave de la franja inclinada (Skewed & Un-skewed):
 - La franja diagonal `#axolo-cutin-bar` aplica una inclinación de `-12deg` (`transform: skewX(-12deg)`).
-- El retrato (`#axolo-cutin-portrait-wrap`) y la caja de texto (`#axolo-cutin-textbox`) aplican una inclinación inversa de `12deg` (`transform: skewX(12deg)`) para contrarrestar la deformación y mostrar el contenido perfectamente vertical y legible.
-- Entrada elástica y desenfoque de velocidad: Se desliza velozmente mediante transiciones y aplica un desenfoque temporal (`filter: blur(10px)` a `blur(0)`) para simular movimiento rápido.
+- El retrato y la caja de texto aplican `skewX(12deg)` para contrarrestar.
+- Entrada elástica con `filter: blur(10px)` a `blur(0)`.
 
 #### Efecto de Sonido Sintetizado ("Swoosh"):
-- Implementado a través de la API de **Web Audio** del navegador en `playSwooshSound()`. Sintetiza de forma local un efecto "swoosh" limpio de barrido de frecuencia de sierra (de 80Hz a 1400Hz) modulado con un filtro de paso bajo, evitando descargas de assets adicionales. Sincronizado en la entrada y salida de la franja.
+- Web Audio API en `playSwooshSound()`. Barrido de sierra de 80Hz a 1400Hz con filtro paso bajo.
 
 ### Estilo visual — Neo-Brutalismo (Jackbox-style)
-El lobby de TV usa un sistema visual de "sticker/Jackbox" consistente:
-- Paneles con `border: 4px solid #111827; box-shadow: N px N px 0px #111827` (sombra sólida desplazada).
-- Tipografía: `Paytone One` (títulos) y `Fredoka` (instrucciones). Importadas desde Google Fonts.
-- Colores principales: fondo `#0f172a` (azul muy oscuro), acento `#ffe600` (amarillo), `#00e5ff` (cian), `#f0047f` (magenta), `#ec4899` (rosa Axolo).
-- Textos de instrucciones: `font-weight:900`, `color:#111827` (negro), `font-family: Fredoka`.
-- Elementos estilo sticker aplicados a:
-  - Panel cian de conexión: `border:4px solid #111827; box-shadow:7px 7px 0px #111827`
-  - Modal de restauración: `border:4px solid #111827; box-shadow:5px 5px 0px #111827`
-  - Código de sala (letras): ya tenían este estilo.
-  - Botón "¡Que empiece la fiesta!": ya tenía este estilo.
+- Paneles con `border: 4px solid #111827; box-shadow: N px N px 0px #111827`.
+- Tipografía: `Paytone One` (títulos) y `Fredoka` (instrucciones).
+- Colores: fondo `#0f172a`, acento `#ffe600` (amarillo), `#00e5ff` (cian), `#f0047f` (magenta), `#ec4899` (rosa).
 
-### Proxy de Video para Google Drive
-- El servidor Node.js actúa como proxy de streaming (`/api/video-proxy?id=...`) para videos alojados en Google Drive.
-- Bypassa las restricciones CORS y CORP (`cross-origin-resource-policy: same-site`) que el motor de WebView2/Chromium aplica de forma estricta para solicitudes de recursos externos de otros orígenes.
-- Soporta peticiones parciales HTTP `Range`, canalizando las respuestas `206 Partial Content` y cabeceras de tamaño/rango desde Google Drive hacia el reproductor web para permitir buffering y rebobinado nativos.
-- La TV traduce de forma transparente cualquier enlace de Google Drive detectado en la URL de las canciones al endpoint del proxy local.
+### Pantalla Pre-boot y Bootloader (tv.html)
+- **Pre-boot**: Splash con imagen de Axolo y botón "Entrar a Ritmika" que desbloquea el AudioContext del navegador.
+- **Bootloader**: Secuencia de 5 pasos: 1) Conectar al servidor, 2) Crear sala, 3) Cargar catálogo, 4) Verificar FFmpeg, 5) Optimizar motor de juego. Incluye retry button y done banner.
 
-### Ajustes y Estilo de la Ruleta (TV)
-- **Modo 1 Jugador**: SVG no dibuja arcos de longitud cero cuando hay una sola porción en la rueda (la ruleta se renderizaba invisible/negra). Se solucionó forzando un elemento `<circle>` completo para la rueda, posicionando la imagen y texto de etiqueta, y limitando el giro final a múltiplos exactos de 360° para que termine derecho.
-- **Avatares PNG en Rebanadas**: Las rebanadas de la ruleta usan etiquetas `<image>` SVG con los archivos de avatar transparentes locales (`av.img`) en lugar de emojis de texto.
-- **Fondo de Rueda Negro**: Se incluyó un círculo de fondo opaco (`circle fill="#111827"`) directamente debajo del grupo para tapar filtraciones de transparencia y sostener los bordes gruesos de la rueda.
+### Audio Preloader (tv.html)
+- Durante el boot, pre-descarga todos los MP3s de `public/assets/audio/` vía `/api/audio-files`.
+- Max 6 descargas concurrentes. Evita buffers durante el juego.
+
+### Debug Panel (tv.html)
+- Ctrl+Shift+D activa un overlay con info de debug: catálogo, estado de video, código de sala, etc.
+
+### Service Worker (mobile.html)
+- Registra `/service-worker.js` para soporte PWA/offline.
+- Deep-linking: `?code=ABCD` pre-llena el código de sala.
+
+### Haptic Feedback (mobile.html)
+- `navigator.vibrate()` en: tomatazo (`[50,30,80,30,50]`), tomatazo rechazado (`[100,50,100]`), voto (`40ms`), sabotaje (`[30,20,80]`).
 
 ---
 
@@ -248,7 +280,7 @@ build.bat
 ```
 Pasos:
 1. Verifica dependencias
-2. Genera `ritmika.ico` desde `public/assets/tio_axolo_body.png`
+2. Genera `ritmika.ico` desde `tio_axolo_body.webp`
 3. Busca csc.exe
 4. Compila `src/Launcher.cs` + `src/GameWindow.cs` → `Ritmika.exe`
 5. Copia `WebView2Loader.dll` y `Microsoft.Web.WebView2.*.dll` junto al EXE
@@ -261,43 +293,46 @@ Pasos:
 
 ## Bugs conocidos / Gotchas
 
-1. **RButton hover crash (fixed)** — `Color.FromArgb(bg.R + 20, ...)` se desborda si el color base tiene componentes > 235. Usar `Math.Min(255, ...)`. Bug ya corregido en `Launcher.cs:168-171`. `err.txt` es artefacto stale.
+1. **RButton hover crash (fixed)** — `Color.FromArgb(bg.R + 20, ...)` se desborda si el color base tiene componentes > 235. Usar `Math.Min(255, ...)`. Bug ya corregido en `Launcher.cs:168-171`.
 2. **Rounded panel children painting** — `RPanel.OnPaint` no llama `base.OnPaint(e)`. Si algún control hijo no se renderiza, agregar `base.OnPaint(e)`.
 3. **MP3 decoding** — MCI puede fallar con ciertos MP3. Si no suena, probar con WAV o instalar codec.
 4. **WebView2 no disponible** — En Windows 10 sin Edge/WebView2 runtime, GameWindow falla. Windows Update lo instala.
-5. **Hotspot sin activación automática** — El launcher C# NO activa el hotspot. Hay que hacerlo manual o con `jugar.bat`/`hotspot.ps1`. Requiere permisos Admin.
+5. **Hotspot sin activación automática** — El launcher C# NO activa el hotspot. Hay que hacerlo manual o con `hotspot.ps1`.
 6. **Hotspot sin DHCP/IPS** — Si los dispositivos no obtienen IP, puede ser driver del adaptador virtual.
 7. **Multi-monitor** — `Screen.PrimaryScreen.Bounds` puede no ser el monitor deseado.
-8. **Inclinación de Franjas (Skew & Un-skew)** — Al sesgar un contenedor en CSS (ej: `skewX(-12deg)`), todo su contenido también se deforma. Para mantener retratos y textos legibles y rectos dentro de la barra diagonal, se debe aplicar un sesgo inverso idéntico (`skewX(12deg)`) en las capas de envoltura internas.
-9. **Sintetizador Web Audio API** — Para emitir efectos de sonido rápidos de interfaz (como swooshes o destellos) sin depender de archivos de audio adicionales y asegurar soporte offline robusto, se programan osciladores nativos con rampas de ganancia y frecuencia exponenciales (Web Audio Context).
-10. **tio_axolo_vignette_*.png deben ser RGBA** — Todas las expresiones del presentador se generan con IA sobre verde plano y se convierten a transparencia RGBA mediante Pillow floodfill en local.
-11. **Origen de rotación SVG (transform-origin)** — Por defecto, en gráficos vectoriales SVG, los grupos `<g>` rotan tomando como pivote la coordenada `(0,0)` (esquina superior izquierda del lienzo). Esto causaba que la ruleta orbitara de forma excéntrica perdiéndose fuera de la pantalla. Para rotar concéntricamente, debe especificarse `transform-origin` con valores absolutos en px (ej: `210px 210px`) en el CSS o inline en el tag `<g>`, evitando palabras clave relativas como `center` (que calculan la caja límite de forma impredecible según la geometría asimétrica de los elementos).
-12. **Colapso de altura en video por Tailwind Preflight** — Tailwind reinicia el alto de las etiquetas `<video>` a `auto`. Si no hay metadata o el reproductor está vacío, esto colapsa la altura del reproductor a un tamaño mínimo (barra de controles). Se solucionó forzando dimensiones de `100vw`/`100vh` en el contenedor `.tv-screen` de la TV y aplicando `position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1` sobre el elemento `<video>`.
-13. **Referencias `.wav` en GENRE_BARKS pero archivos `.mp3`** — Todas las frases de `GENRE_BARKS` en tv.html referencian archivos `.wav`, pero los archivos reales en disco son `.mp3`. Funciona gracias a la normalización en runtime (`hacerHablarAlAxolo()` línea 3126), pero es frágil. Las frases de `AXOLO_SINGER_INTROS` y otras ya usan `.mp3` directamente.
-14. **Electrónica sin canciones en DB** — El frontend soporta 8 géneros (incluyendo electronica), pero `karaoke_db.json` solo tiene 7 (sin electronica). Si un jugador elige electronica, el backend no tiene canciones de ese género para asignar en Ronda 2.
-15. **Podio no se veía al final del juego** — El problema era que `showPodium()` modificaba el elemento `#podium-screen` existente en el DOM (cambiaba innerHTML, cssText, clases), pero el navegador no renderizaba los cambios aunque el computed style mostrara `display:flex; z-index:10001; opacity:1`. Solución: eliminar el `#podium-screen` antiguo del DOM (`parentNode.removeChild`) y crear un elemento `<div>` completamente nuevo con `id="podium-screen"`, sin la clase `tv-screen`, con todo el CSS inline. De esta forma se evitan conflictos de clases CSS y el navegador renderiza correctamente. Ubicación: `showPodium()` en tv.html (~línea 3210).
-
-16. **Entidades HTML (`textContent` vs `innerHTML`)** — Se corrigieron varios errores donde entidades como `&#127942;` se mostraban como texto plano en lugar del emoji. Siempre usar `.innerHTML` al inyectar estas entidades dinámicamente.
-17. **Assets de Premiación Premium** — Los PNGs de corona y trofeo se procesaron con floodfill en Python para lograr una transparencia perfecta (sin rastro de compresión o "halos" verdes).
-18. **Flujo de karaoke atascado** — Actualmente el juego se rompe después de la ruleta; el botón de "a cantar" no avanza al reproductor de video. **(BUG PENDIENTE)**
+8. **Inclinación de Franjas (Skew & Un-skew)** — Aplicar sesgo inverso (`skewX(12deg)`) en capas internas.
+9. **Sintetizador Web Audio API** — Osciladores nativos con rampas de ganancia y frecuencia exponenciales para efectos offline.
+10. **tio_axolo_vignette_*.webp deben ser RGBA** — Generadas con IA sobre verde plano, procesadas con Pillow floodfill.
+11. **Origen de rotación SVG (transform-origin)** — Usar valores absolutos en px (ej: `250px 250px`), nunca `center`.
+12. **Colapso de altura en video por Tailwind Preflight** — Forzar dimensiones en contenedor `.tv-screen` y `position: absolute` en `<video>`.
+13. **Electrónica sin canciones en DB** — `r2_db.json` tiene muy pocas canciones de electrónica (3 de 3,845). Fallback a otros géneros.
+14. **Podio no se veía (fixed)** — Eliminar `#podium-screen` antiguo del DOM y recrear elemento nuevo con CSS inline.
+15. **Entidades HTML (`textContent` vs `innerHTML`)** — Usar `.innerHTML` al inyectar entidades como `&#127942;`.
+16. **Assets de Premiación Premium** — Procesados con floodfill para transparencia perfecta.
+17. **Audio de inicio desactivado** — `new_game.mp3` está comentado en Launcher.cs. No suena nada al abrir.
+18. **Formato de assets: PNG → WebP** — Todos los avatares y vignettes Axolo fueron convertidos de PNG a WebP.
+19. **DB principal: r2_db.json** — El servidor carga `r2_db.json` (no `karaoke_db.json`). URLs apuntan a `media.pixelhub.party` (Cloudflare R2).
+20. **Referencias `.wav` en GENRE_BARKS pero archivos `.mp3`** — Funciona gracias a normalización en runtime, pero es frágil.
 
 ---
 
 ## Próximos pasos sugeridos
 
-- [x] Integrar los PNGs de `public/assets/avatars/` como imágenes reales en las player cards, rebanadas de la ruleta y vistas del móvil
-- [x] Launcher detecta si Node.js está instalado y muestra MessageBox con instrucciones de descarga
-- [x] **`menu_music.mp3`** — Decidido no implementar. Solo `new_game.mp3` se reproduce en el launcher. La música de fondo se maneja desde la TV vía Web Audio API si se desea.
-- [ ] **Flujo del juego roto** — Investigar por qué después de la ruleta no empiezan los videos y el botón de 'a cantar' se atasca o no avanza en el flujo.
-- [ ] **Activar hotspot automáticamente desde Launcher.cs** — Actualmente el launcher C# no llama `hotspot.ps1`. Opción: integrar la llamada con elevación UAC desde C#.
-- [x] **Premiación Premium inmersiva** — Se agregaron SFX reales (ElevenLabs) y se corrigieron los tiempos de animación y placeholders de audio (`lobby_welcome_0.mp3`) para que el Tío Axolo mencione específicamente cada premio y evento de la ceremonia final.
-- [x] **Limpiar scripts legacy** — `Ritmika.ps1`, `Ritmika.bat`, `jugar.bat` eliminados.
-- [x] **Eliminar `err.txt`** — Artefacto stale eliminado.
+- [x] Integrar avatares como imágenes reales en player cards, ruleta y móvil
+- [x] Launcher detecta si Node.js está instalado
+- [x] `menu_music.mp3` — Ahora SÍ existe
+- [x] Premiación Premium inmersiva
+- [x] Limpiar scripts legacy
+- [x] Filtro dinámico en Ronda 2 (Fuego Cruzado)
+- [x] Convertir assets de PNG a WebP
+- [x] Integrar Cloudflare R2 para video
+- [ ] **Flujo del juego roto** — Investigar por qué después de la ruleta no empiezan los videos
+- [ ] **Activar hotspot automáticamente desde Launcher.cs**
+- [ ] **Activar audio de inicio** — `new_game.mp3` está comentado, decidir si reactivar
 - [ ] **Probar restore banner en TV** (recargar en medio del juego)
-- [x] **Filtro dinámico en Ronda 2 (Fuego Cruzado)** implementado (la lista de canciones en el celular ahora se filtra inteligentemente por las preferencias de géneros y artistas de la víctima seleccionada).
 - [ ] **Probar Ronda 2 (Fuego Cruzado)** completa
 - [ ] **Probar con 4+ jugadores simultáneos**
-- [ ] Opcional: splash screen con logo antes del launcher
+- [ ] Implementar modos de juego (Anime, Emo, Ranchera, Nostalgia)
 
 ---
 
@@ -305,26 +340,25 @@ Pasos:
 
 | Componente | Estado | Notas |
 |-----------|--------|-------|
-| Server | **COMPLETO** | 540 líneas, todos los eventos, rate limiting, video proxy |
-| TV Frontend | **COMPLETO** | 4031 líneas, todas las pantallas, Axolo cut-in, ruleta, karaoke, votación, podio premium con ceremonia tipo pasarela |
-| Mobile Frontend | **COMPLETO** | 1838 líneas, 8 pantallas, toda la interactividad |
-| Launcher C# | **COMPLETO** | 241 líneas, bug de RButton corregido, audio reproduce |
-| GameWindow | **COMPLETO** | 282 líneas, WebView2, animación de carga |
+| Server | **COMPLETO** | ~600 líneas, todos los eventos, rate limiting, R2 presigned URLs, compresión |
+| TV Frontend | **COMPLETO** | ~5600 líneas, pre-boot, bootloader, modos, ruleta, karaoke, votación, podio 5 fases, Axolo, debug panel |
+| Mobile Frontend | **COMPLETO** | ~1960 líneas, 8 pantallas, PWA, haptic, deep-linking |
+| Launcher C# | **COMPLETO** | 281 líneas, bug de RButton corregido, audio desactivado |
+| GameWindow | **COMPLETO** | 132 líneas, WebView2, sin animación de carga |
 | Build System | **COMPLETO** | EXE compilado y funcional, DLLs presentes |
-| Audio Assets | **COMPLETO** | 172 MP3s + SFX Inmersivos (ElevenLabs), cobertura total de géneros y ceremonias |
-| Avatar Assets | **COMPLETO** | 8 PNGs presentes |
-| Axolo Assets | **COMPLETO** | 6 vignettes + body PNG |
-| Karaoke DB | **COMPLETO** | 2820 canciones, 287 artistas, 7 géneros |
-| menu_music.mp3 | **NO EXISTE** | Feature no implementada |
-| Hotspot automático | **NO IMPLEMENTADO** en launcher C# | Solo funciona con jugar.bat o manual (legacy eliminado) |
-| Referencias .wav | **RESUELTA** | 109 refs normalizadas a .mp3 |
-| Electronica en DB | **FALTANTE** | Frontend lo soporta, DB no tiene canciones. Fallback a otros géneros. |
+| Audio Assets | **COMPLETO** | 392 MP3s (180 genre barks + 60 vote reactions + 152 outros) |
+| Avatar Assets | **COMPLETO** | 8 WebP presentes |
+| Axolo Assets | **COMPLETO** | 6 vignettes WebP + body + variantes por modo |
+| Karaoke DB | **COMPLETO** | 3,845 canciones en r2_db.json (Cloudflare R2), 2,820 en karaoke_db.json (fallback) |
+| menu_music.mp3 | **EXISTE** | Archivo presente en public/assets/audio/ |
+| Hotspot automático | **NO IMPLEMENTADO** en launcher C# | Solo manual o con hotspot.ps1 |
+| Audio de inicio | **DESACTIVADO** | new_game.mp3 comentado en Launcher.cs |
 
 ---
 
 ## Convenciones de código
 - Server: `server/index.js` — CommonJS (require), sin TypeScript
-- TV/Mobile: HTML vanilla, sin frameworks. Anime.js para animaciones.
+- TV/Mobile: HTML vanilla, sin frameworks. Tailwind + Anime.js + GSAP para animaciones.
 - C#: .NET Framework 4.x, WinForms, sin librerías externas.
 - Sin comentarios en código a menos que sea necesario.
 - `camelCase` en JS, `PascalCase` en C#.
@@ -333,41 +367,30 @@ Pasos:
 
 ## Guía de Estética, Diseño y Animaciones (Estándar: Persona 5)
 
-Para mantener la coherencia visual en Rítmika, todos los agentes que generen o modifiquen UI/UX deben adherirse estrictamente a las siguientes pautas, utilizando la estética de **Persona 5** como nuestro estándar principal para la presentación visual, menús y diálogos.
-
 ### 1. Sistema de Diálogos y Cut-ins
-- **Dinámica Visual**: Los diálogos y notificaciones no deben ser cajas rectangulares estáticas. Deben utilizar un sistema de "cut-in" dinámico.
-- **Estilo Inclinado (Skew)**: Usar contenedores con ángulos agresivos (ej. `transform: skewX(-12deg)`). Los contenidos internos (textos y retratos) deben aplicar el sesgo inverso (`skewX(12deg)`) para evitar deformación.
-- **Movimiento y Velocidad**: Las entradas/salidas deben ser extremadamente rápidas ("snappy"). Usar desenfoque temporal (`filter: blur(10px)` a `blur(0)`) durante las transiciones para simular motion blur por velocidad.
-- **Sonido Sincronizado**: Las apariciones de la interfaz deben estar acompañadas de efectos de sonido ("swoosh") sintetizados mediante Web Audio API para mayor inmediatez e impacto.
+- **Estilo Inclinado (Skew)**: Usar `skewX(-12deg)` en contenedores, `skewX(12deg)` en contenido interno.
+- **Movimiento y Velocidad**: Entradas/salidas rápidas con `filter: blur(10px)` a `blur(0)`.
+- **Sonido Sincronizado**: Swoosh sintetizado con Web Audio API.
 
-### 2. Estilo Visual General: Jackbox + Persona 5
-- **Paleta de Colores**: Fondo principal oscuro (`#0f172a` o negro sólido) combinado con bloques de colores muy vibrantes, altamente saturados y contrastantes: amarillo chillón (`#ffe600`), cian (`#00e5ff`), magenta (`#f0047f`) y rosa (`#ec4899`). Evitar gradientes suaves; usar bloques sólidos.
-- **Tipografía**:
-  - **Títulos/Encabezados**: `Paytone One` para gran impacto.
-  - **Textos e Instrucciones**: `Fredoka` en peso grueso (`font-weight: 900`).
-- **Efecto Sticker / Neo-Brutalismo**: Todos los paneles, botones y tarjetas deben tener un borde sólido y oscuro (`border: 4px solid #111827`) junto con una sombra sólida desplazada y sin difuminar (`box-shadow: 7px 7px 0px #111827`).
+### 2. Estilo Visual: Jackbox + Persona 5
+- **Paleta**: Fondo oscuro (`#0f172a`) + bloques vibrantes: `#ffe600`, `#00e5ff`, `#f0047f`, `#ec4899`.
+- **Tipografía**: `Paytone One` (títulos), `Fredoka` (instrucciones).
+- **Neo-Brutalismo**: `border: 4px solid #111827; box-shadow: 7px 7px 0px #111827`.
 
-### 3. Microinteracciones y Efectos (Anime.js)
-- **Aparición (Pop-ins)**: Los elementos de UI deben aparecer con rebotes elásticos (`elasticity`) en la escala. Si hay múltiples elementos (como la lista de jugadores), usar la función de `stagger` de Anime.js para apariciones en cadena.
-- **Eventos Destacados**: Para acciones de gran impacto (votación, penalizaciones, sabotajes), utilizar el efecto de vibración de pantalla (`screen-shake`), pulsos de brillo (`glowPulse`) y destellos en los bordes.
-- **Feedback Interactivo**: Los botones en la interfaz móvil (`mobile.html`) deben dar respuesta inmediata de presión. Al hacer "tap", el contenedor debe trasladarse para nivelarse con su `box-shadow` simulando el hundimiento de un botón mecánico físico.
+### 3. Microinteracciones (Anime.js + GSAP)
+- **Pop-ins**: Rebotes elásticos con `elasticity`. `stagger` para apariciones en cadena.
+- **Eventos**: `screen-shake`, `glowPulse`, confetti bursts.
+- **Feedback**: Botones móviles con translate al hacer tap.
 
-### 4. Manejo de Assets (Tío Axolo y Avatares)
-- **Transparencia RGBA Total**: No rodear a los personajes con fondos cuadrados; conservar la transparencia generada por floodfill en todas las viñetas (`tio_axolo_vignette_*.png`) y avatares.
-- **Gestión SVG**: Al insertar estas imágenes en gráficos dinámicos (como la ruleta de géneros), usar etiquetas `<image>` dentro del SVG para asegurar que rotan correctamente en conjunción con un `transform-origin` definido en coordenadas absolutas de píxeles, nunca relativas (`center`).
+### 4. Manejo de Assets
+- **Transparencia RGBA**: Floodfill desde esquinas, formato WebP final.
+- **SVG**: Usar `<image>` con `transform-origin` en px absolutos.
 
 ### 5. Pipeline de Generación de Imágenes (IA + Transparencia)
-Cuando un agente necesite generar nuevos assets visuales (nuevas expresiones, avatares o props) usando sus herramientas de generación de imágenes, debe seguir este flujo estricto:
-- **Prompting para Recorte**: Al generar la imagen, SIEMPRE incluye en el prompt la instrucción de colocar al sujeto "sobre un fondo verde plano y sólido (solid flat green background)". Evita sombras proyectadas sobre el piso que dificulten el recorte.
-- **Estilo Artístico**: Mantener el estilo 3D cartoon / mascota de fiesta, con iluminación limpia y colores vibrantes.
-- **Procesamiento de Transparencia (Floodfill)**: La imagen generada cruda NO debe usarse directamente. Debe procesarse mediante un script de Python (`Pillow`) aplicando `floodfill` desde las esquinas para reemplazar el color verde por transparencia total (Alpha = 0).
-- **Formato Final**: Guardar siempre como `.png` (RGBA). Esto garantiza bordes limpios sin halos verdes ni artefactos de compresión, manteniendo la estética pulcra tipo "sticker" sobre nuestros fondos oscuros.
+- Prompt: "sobre un fondo verde plano y sólido"
+- Estilo: 3D cartoon / mascota de fiesta
+- Procesamiento: Pillow floodfill desde esquinas
+- Formato final: `.webp` (convertido desde PNG RGBA)
 
- 
- # # #   R E G L A   E S T R I C T A   D E   E D I C I � N   E N   t v . h t m l 
- * * N U N C A   u s e s   h e r r a m i e n t a s   d e   r e e m p l a z o   d i f u s o   ( f u z z y   r e p l a c e )   c o m o   \ m u l t i _ r e p l a c e _ f i l e _ c o n t e n t \   o   \  e p l a c e _ f i l e _ c o n t e n t \   e n   \ p u b l i c / t v . h t m l \   p a r a   b l o q u e s   d e   c � d i g o   q u e   c o n t e n g a n   l l a v e s   r e p e t i t i v a s   ( \ } \ ) ,   a r r a y s   o   l i s t e n e r s   g e n � r i c o s . * * 
- E l   a r c h i v o   \ 	 v . h t m l \   e s   u n   m o n o l i t o   g i g a n t e   d e   m � s   d e   5 0 0 0   l � n e a s .   L o s   r e e m p l a z o s   d i f u s o s   s u e l e n   c a u s a r   d u p l i c a c i o n e s   m a s i v a s ,   c o r r o m p i e n d o   l a s   e t i q u e t a s   \ < s c r i p t > \   y   r o m p i e n d o   l a   c a r g a   i n i c i a l   p o r   c o m p l e t o   c o n   \ S y n t a x E r r o r :   U n e x p e c t e d   t o k e n \ . 
- * * S O L U C I � N   O B L I G A T O R I A : * *   P a r a   e d i t a r   l � g i c a   e n   \ 	 v . h t m l \ ,   d e b e s   e x t r a e r   e l   c o n t e n i d o ,   p r o c e s a r l o   o   h a c e r   r e e m p l a z o s   e x a c t o s   u s a n d o   u n   s c r i p t   d e   N o d e . j s   ( \ 
- o d e   - e \ )   c o n   e x p r e s i o n e s   r e g u l a r e s   s e g u r a s   o   \ i n d e x O f \ / \ s p l i c e \   b a s a d o   e n   l � n e a s   p r e c i s a s .   D e s p u � s   d e   c a d a   e d i c i � n   e s t r u c t u r a l ,   D E B E S   v e r i f i c a r   l a   s i n t a x i s   d e   l o s   s c r i p t s   e m b e b i d o s .  
- 
+### REGLA ESTRICTA DE EDICIÓN EN tv.html
+**NUNCA** usar herramientas de reemplazo difuso (fuzzy replace) en `public/tv.html` para bloques de código que contengan llaves repetitivas, arrays o listeners genéricos. **SOLUCIÓN OBLIGATORIA**: Usar scripts de Node.js (`node -e`) con expresiones regulares seguras o `indexOf`/`splice` basado en líneas precisas. Verificar sintaxis después de cada edición.

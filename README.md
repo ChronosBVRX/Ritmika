@@ -19,12 +19,13 @@ Rítmika es un juego de karaoke para fiestas donde un grupo de jugadores se cone
 
 - **Dual-Display** — Pantalla TV + controles móviles sincronizados en tiempo real
 - **Sin internet** — WiFi hotspot local, conexión directa por QR
-- **Tío Axolo** — Presentador virtual con 170+ frases por género, cut-ins estilo RPG y 6 expresiones animadas
+- **Tío Axolo** — Presentador virtual con 180+ frases por género, cut-ins estilo RPG y 6 expresiones animadas
 - **3 rondas** — Tu elección → Fuego Cruzado → Apagón Mental
 - **8 avatares** — Personajes temáticos con PNGs transparentes
 - **Ruleta animada** — SVG con avatares reales y giro determinista
 - **Votación en vivo** — 10, 30, 60 o 100 puntos por canción
 - **Premiación épica** — Ceremonia tipo pasarela con premios especiales
+- **5 modos de juego** — Clásico (funcional), Anime, Emo, Ranchera, Nostalgia (próximamente)
 - **Neo-brutalismo** — Estética Jackbox/Persona 5 con sombras sólidas y colores vibrantes
 
 ## Quick Start
@@ -88,8 +89,8 @@ PC (servidor + TV)
 | Componente | Tecnología | Archivo |
 |-----------|-----------|---------|
 | Servidor | Node.js + Express + Socket.io | `server/index.js` |
-| TV | HTML5 + Vanilla JS + Anime.js | `public/tv.html` |
-| Móvil | HTML5 + Vanilla JS | `public/mobile.html` |
+| TV | HTML5 + Vanilla JS + Anime.js + GSAP | `public/tv.html` |
+| Móvil | HTML5 + Vanilla JS + Tailwind | `public/mobile.html` |
 | Launcher | C# WinForms + WebView2 | `src/Launcher.cs` |
 
 > Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) para detalles completos.
@@ -99,17 +100,19 @@ PC (servidor + TV)
 ```
 Ritmika/
 ├── server/
-│   └── index.js              # Servidor Express + Socket.io
+│   ├── index.js              # Servidor Express + Socket.io (~600 líneas)
+│   ├── r2_db.json            # DB principal: 3,845 canciones (Cloudflare R2)
+│   └── karaoke_db.json       # DB fallback: 2,820 canciones
 ├── public/
-│   ├── tv.html               # Pantalla de TV (4000+ líneas)
-│   ├── mobile.html           # Controlador móvil
-│   ├── assets/               # Audio, avatares, imágenes Axolo
+│   ├── tv.html               # Pantalla de TV (~5600 líneas)
+│   ├── mobile.html           # Controlador móvil (~1960 líneas)
+│   ├── assets/               # Audio (392 MP3s), avatares (8 WebP), Axolo (6 WebP)
 │   ├── js/                   # Animaciones y síntesis de sonido
-│   └── libs/                 # Tailwind, Anime.js, QRCode (offline)
+│   └── libs/                 # Tailwind, Anime.js, GSAP, QRCode (offline)
 ├── src/
-│   ├── Launcher.cs           # Launcher C# WinForms
-│   └── GameWindow.cs         # Ventana WebView2 fullscreen
-├── scripts/                  # Build, hotspot, generación de audio
+│   ├── Launcher.cs           # Launcher C# WinForms (281 líneas)
+│   └── GameWindow.cs         # Ventana WebView2 fullscreen (132 líneas)
+├── scripts/                  # Build, hotspot, generación de audio, procesado de assets
 ├── docs/                     # Documentación detallada
 ├── build.bat                 # Compilador en un paso
 └── package.json
@@ -119,7 +122,7 @@ Ritmika/
 
 | Documento | Descripción |
 |-----------|------------|
-| [API Reference](docs/API.md) | Endpoints REST y eventos Socket.io |
+| [API Reference](docs/API.md) | Endpoints REST (9) y eventos Socket.io (30+) |
 | [Architecture](docs/ARCHITECTURE.md) | Diagrama de componentes y flujo de datos |
 | [Gameplay](docs/GAMEPLAY.md) | Reglas, rondas, votación y mecánicas |
 | [Development](docs/DEVELOPMENT.md) | Setup de desarrollo, convenciones, build |
@@ -130,11 +133,12 @@ Ritmika/
 
 | Capa | Tecnología |
 |------|-----------|
-| Servidor | Node.js + Express + Socket.io + qrcode |
-| TV | HTML/JS vanilla + Anime.js + Tailwind CSS |
-| Móvil | HTML/JS vanilla |
+| Servidor | Node.js + Express + Socket.io + compression + qrcode |
+| TV | HTML/JS vanilla + Anime.js + GSAP + Tailwind CSS + SVG |
+| Móvil | HTML/JS vanilla + Tailwind CSS |
 | Launcher | C# WinForms (.NET 4.x) |
 | WebView2 | Edge runtime (incluido en Windows 10/11) |
+| Video | Cloudflare R2 (presigned URLs via AWS SDK) |
 | Audio | Web Audio API (sintetizado) + ElevenLabs (grabado) |
 | Build | `build.bat` — csc.exe + descarga WebView2 |
 

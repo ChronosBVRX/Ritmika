@@ -9,7 +9,7 @@ Guía completa de las mecánicas de juego, rondas, votación y reglas de Rítmik
 - **Jugadores**: 2-8+ (recomendado 3-6)
 - **Rondas**: 3
 - **Duración por canción**: ~2-3 minutos (según duración del video)
-- **Duración total**: ~20-40 minutos dependinge del número de jugadores
+- **Duración total**: ~20-40 minutos dependiendo del número de jugadores
 - **Anfitrión virtual**: Tío Axolo (guía la partida con bromas y reacciones)
 
 ---
@@ -17,64 +17,96 @@ Guía completa de las mecánicas de juego, rondas, votación y reglas de Rítmik
 ## Flujo del juego
 
 ```
-┌─────────────┐
-│   LOBBY     │ ← Jugadores se unen, el host espera
-└──────┬──────┘
+┌──────────────┐
+│  PRE-BOOT    │ ← Splash con Axolo, click para desbloquear audio
+└──────┬───────┘
        ▼
-┌─────────────┐
-│  RONDA 1    │ ← "Tu Elección, Tu Condena"
-│  Ruleta →   │    Cada quien canta una canción de su preferencia
-│  Karaoke →  │    + reto aleatorio al 50% de la canción
-│  Votación   │
-└──────┬──────┘
+┌──────────────┐
+│  BOOTLOADER  │ ← 5 pasos: conectar, sala, catálogo, FFmpeg, optimizar
+└──────┬───────┘
        ▼
-┌─────────────┐
-│  RONDA 2    │ ← "Fuego Cruzado"
-│  Asignar →  │    Los jugadores asignan canciones a otros
-│  Ruleta →   │    La canción asignada reemplaza la preferencia
-│  Karaoke →  │
-│  Votación   │
-└──────┬──────┘
+┌──────────────┐
+│  MODO        │ ← Elegir modo de juego (solo Clásico funciona)
+└──────┬───────┘
        ▼
-┌─────────────┐
-│  RONDA 3    │ ← "Apagón Mental"
-│  Ruleta →   │    Igual que Ronda 1 pero con blackout
-│  Karaoke →  │    Se oscurece el video y las letras al 40%
-│  Votación   │
-└──────┬──────┘
+┌──────────────┐
+│   LOBBY      │ ← Jugadores se unen, QR, código de sala
+└──────┬───────┘
        ▼
-┌─────────────┐
-│   PODIO     │ ← Ceremonia de premiación épica
-└─────────────┘
+┌──────────────┐
+│  RONDA 1     │ ← "Tu Elección, Tu Condena"
+│  Ruleta →    │    Cada quien canta una canción de su preferencia
+│  Karaoke →   │    + reto aleatorio al 50%
+│  Votación    │
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│  RONDA 2     │ ← "Fuego Cruzado"
+│  Asignar →   │    Los jugadores asignan canciones a otros
+│  Ruleta →    │    La canción asignada reemplaza la preferencia
+│  Karaoke →   │
+│  Votación    │
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│  RONDA 3     │ ← "Apagón Mental"
+│  Ruleta →    │    Igual que R1 pero con blackout
+│  Karaoke →   │    Se oscurece el video y las letras al 40%
+│  Votación    │
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│   PODIO      │ ← Ceremonia de 5 fases con premios especiales
+└──────────────┘
 ```
+
+---
+
+## Pre-boot y Bootloader
+
+### Pre-boot
+- Splash con imagen del Tío Axolo y botón "¡Entrar a Ritmika!"
+- **Propósito**: Desbloquear el AudioContext del navegador (requiere interacción del usuario)
+
+### Bootloader (5 pasos)
+1. Conectando al servidor
+2. Creando sala
+3. Cargando catálogo de canciones
+4. Verificando FFmpeg
+5. Optimizando motor de juego
+- Incluye retry button si falla algún paso
+- Done banner al completar
+
+---
+
+## Modos de juego
+
+| Modo | Estado | Descripción |
+|------|--------|------------|
+| Clásico | **Funcional** | Modo estándar con todos los géneros |
+| Fiesta Anime | PRÓXIMAMENTE | Enfocado en anime/J-pop |
+| Fiesta Emo | PRÓXIMAMENTE | Rock emo/alternative |
+| Dolidas & Rancheras | PRÓXIMAMENTE | Regional mexicano |
+| Nostalgia Pop | PRÓXIMAMENTE | Pop de los 2000s-2010s |
+
+Si se selecciona un modo bloqueado, Axolo muestra: "Aguanta compa! Los changos del codigo siguen armando este modo."
 
 ---
 
 ## Lobby
 
 ### Conexión
-
 1. La TV muestra dos QR codes:
-   - **QR WiFi**: Credenciales de la red hotspot (`WIFI:T:WPA;S:Ritmika;P:Ritmika2026;;`)
+   - **QR WiFi**: Credenciales de la red hotspot
    - **QR Juego**: URL de conexión (`http://<IP>:3000/join`)
 2. Los jugadores escanean primero el WiFi, luego el de juego
 3. Entran un código de sala de 4 caracteres + nombre (máx 15 chars) + avatar (8 opciones)
 
 ### Pantalla de espera
-
 - Muestra la lista de jugadores conectados con sus avatares
 - El host ve un botón "¡Que empiece la fiesta!" cuando hay al menos 2 jugadores
 - El Tío Axolo da la bienvenida y comenta frases idle cada 8 segundos
-
-### Modos de juego
-
-| Modo | Descripción |
-|------|------------|
-| Clásico | Modo estándar con todos los géneros |
-| Fiesta Anime | Enfocado en anime/J-pop |
-| Fiesta Emo | Rock emo/alternative |
-| Dolidas & Rancheras | Regional mexicano |
-| Nostalgia Pop | Pop de los 2000s-2010s |
+- Audio preloader descarga todos los MP3s en background
 
 ---
 
@@ -82,7 +114,7 @@ Guía completa de las mecánicas de juego, rondas, votación y reglas de Rítmik
 
 ### Preparación
 - Cada jugador selecciona sus **géneros preferidos** y **artistas favoritos** desde el celular
-- El sistema usa estas preferencias para elegir la canción de cada jugador
+- El sistema usa estas preferencias para elegir la canción
 
 ### Desarrollo
 1. La ruleta gira y selecciona al siguiente cantante
@@ -92,11 +124,12 @@ Guía completa de las mecánicas de juego, rondas, votación y reglas de Rítmik
 
 ### Reto (Challenge)
 - Al **50%** de duración de la canción, aparece un reto aleatorio
-- 10 retos posibles, como:
+- 10 retos posibles:
   - "¡Canta llorando con mocos!"
   - "¡Canta como T-Rex con brazos cortos!"
   - "¡Canta solo vocales, sin consonantes!"
   - "¡Canta con tu mejor voz de telenovela!"
+  - (y 6 más)
 - Dura 8 segundos en pantalla
 - El Tío Axolo comenta el reto
 
@@ -108,16 +141,16 @@ Guía completa de las mecánicas de juego, rondas, votación y reglas de Rítmik
 - Todos los jugadores son enviados a la pantalla de **asignación** en sus celulares
 - Cada jugador elige una canción del catálogo y se la **asigna a un rival**
 - La asignación es secreta (el rival no sabe qué le tocó)
-- Tiempo de asignación: ~30 segundos
+- **Filtro inteligente**: Las canciones se filtran por los géneros y artistas de la víctima
+- Tiempo de asignación: ~30 segundos (auto-spin en la TV)
 
 ### Desarrollo
 1. La ruleta selecciona al cantante
 2. **Si el cantante tiene una canción asignada por otro jugador**: canta esa (no la suya)
-3. **Si no tiene asignación**: canta una basada en sus preferencias (igual que Ronda 1)
+3. **Si no tiene asignación**: canta una basada en sus preferencias (igual que R1)
 4. No hay reto ni blackout en esta ronda
 
 ### Lógica de selección de canción
-
 ```
 1. ¿Tiene canción asignada por otro jugador? → Usar esa
 2. ¿Hay canciones que coincidan con sus artistas? → Elegir una al azar
@@ -169,15 +202,19 @@ Ejemplo:
 - Los puntos se acumulan entre rondas
 - El puntaje total al final del juego determina al ganador
 
+### Reacciones de voto (TV)
+- 60 frases de Axolo organizadas por tier (15 por nivel: 100, 60, 30, 10)
+- Iconos: trofeo (80+), thumbs up (50+), skull (<50)
+
 ---
 
 ## Ruleta
 
 ### Comportamiento
-- **Determinista**: El ganador ya se sabe antes de girar (es el siguiente en la cola)
+- **Determinista**: El ganador ya se sabe antes de girar (siguiente en la cola)
 - **Animación**: Gira 5 vueltas completas + ángulo necesario para caer en el ganador
 - **Duración**: 2800ms con easing custom
-- **Sonido**: Tick por cada borde de rebanada que cruza
+- **Sonido**: Tick por cada borde de rebanada que cruza (sintetizado con Web Audio)
 
 ### Auto-giro
 - **Rondas 1 y 3**: Auto-gira después de **4 segundos**
@@ -188,6 +225,8 @@ Ejemplo:
 - Cada rebanada muestra el avatar PNG del jugador + nombre
 - Colores: `['#ec4899','#22d3ee','#a855f7','#facc15','#f97316','#22c55e','#3b82f6','#06b6d4']`
 - Si hay 1 solo jugador: círculo completo sin arcos
+- Fondo opaco negro para tapar filtraciones de transparencia
+- Flecha `▼` en la parte superior con rebote en cada tick
 
 ---
 
@@ -213,11 +252,9 @@ Se activa por:
 ### Al terminar
 1. Se detiene el video
 2. Se calcula el promedio de votos
-3. Se muestra el scoreboard con:
-   - Votos individuales con iconos (trofeo 80+, thumbs up 50+, skull <50)
-   - Puntos totales ganados con animación de contador
-   - Comentario del Tío Axolo según el puntaje
-   - Bark del género del cantante
+3. Se muestra el scoreboard con votos individuales y puntos totales
+4. Comentario del Tío Axolo según el puntaje + bark del género del cantante
+5. Auto-avanza al siguiente turno después de un timeout
 
 ---
 
@@ -227,7 +264,7 @@ Se activa por:
 - **Costo**: 30 puntos del puntaje del atacante
 - **Requisito**: Tener al menos 30 puntos
 - **Efecto**: Proyectil de tomate cruza la pantalla, salpicadura, screen shake, indicador "-30 pts"
-- **Contador**: Cada tomatazo recibe incrementa `target.tomatazos` (usado para el premio "Salsa de Tomate")
+- **Contador**: Cada tomatazo incrementa `target.tomatazos` (usado para el premio "Salsa de Tomate")
 
 ### Sabotaje de audio 🔊
 - Los jugadores pueden enviar sabotajes desde sus celulares
@@ -241,32 +278,33 @@ Se activa por:
 
 ---
 
-## Premiación (Podio)
+## Premiación (Podio) — 5 Fases
 
 ### Fase 1 — Título revelado
 - Animación épica de "LA GRAN PREMIACIÓN" con trofeo animado
+- Fondo de estadio, canvas de estrellas
 
 ### Fase 2 — Premios especiales
-| Premio | Criterio | Descripción |
-|--------|----------|------------|
-| Gallo Supremo | Menor puntaje promedio | El que peor cantó |
-| Salsa de Tomate | Más tomatazos recibidos | El más bombardeado |
-| Vengador Anónimo | 2do lugar con más puntos | Casi gana pero le faltó |
+
+| Premio | Criterio | Emoji |
+|--------|----------|-------|
+| Gallo Supremo | Menor puntaje promedio | 🐓 |
+| Salsa de Tomate | Más tomatazos recibidos | 🍅 |
+| Vengador Anónimo | 2do lugar con más puntos | 💗 |
 
 ### Fase 3 — Tercer y segundo lugar
-- Reveles individuales con animaciones
-- Podio visual con posiciones
+- Reveles individuales con drumroll y animaciones
+- Podio visual parcial con centro vacío
 
 ### Fase 4 — Reveles del ganador
-- Pantalla en negro
-- Cuenta regresiva 3-2-1
-- Flash bang + fuegos artificiales
-- Corona animada sobre el avatar del ganador
+- Pantalla en negro completa
+- Cuenta regresiva 3-2-1 con flash
+- Firework bursts y corona animada sobre el avatar
 
 ### Fase 5 — Podio final
-- Todos los jugadores rankeados
+- Todos los jugadores rankeados en podio visual
 - Panel de premios especiales
-- Scoreboard completo
+- Scoreboard completo con puntos
 - Confeti
 - Botón "Nueva Partida"
 
