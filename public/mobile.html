@@ -2042,19 +2042,31 @@ function renderPodium(data) {
     document.getElementById('podium-my-award').textContent = myResult.award || '🎤 Participante';
     document.getElementById('podium-my-score').textContent = myResult.score || 0;
   }
-}
 
-document.getElementById('btn-play-again').addEventListener('click', () => {
-  // Reset local state
-  me.genres = [];
-  me.artists = [];
-  me.avatarId = null;
-  me.tomatazosLeft = 3;
-  me.hasVoted = false;
-  digits.forEach(d => d.value = '');
-  document.getElementById('player-name-input').value = '';
-  goToScreen('screen-join');
-});
+  const btnPlayAgain = document.getElementById('btn-play-again');
+  if (btnPlayAgain) {
+    if (isVip()) {
+      btnPlayAgain.innerHTML = '🎮 Nueva Partida (Anfitrión)';
+      btnPlayAgain.onclick = () => {
+        socket.emit('player:new_game', { roomCode: me.roomCode });
+      };
+    } else {
+      btnPlayAgain.innerHTML = '🎮 Jugar otra vez';
+      btnPlayAgain.onclick = () => {
+        // Reset local state
+        me.genres = [];
+        me.artists = [];
+        me.avatarId = null;
+        me.tomatazosLeft = 3;
+        me.hasVoted = false;
+        if (typeof digits !== 'undefined') digits.forEach(d => d.value = '');
+        const inputName = document.getElementById('player-name-input');
+        if (inputName) inputName.value = '';
+        goToScreen('screen-join');
+      };
+    }
+  }
+}
 
 // ── TOAST SYSTEM ─────────────────────────────────────────
 let toastTimeout = null;

@@ -3249,14 +3249,50 @@ socket.on('tv:sabotage_audio', () => {
   }
 });
 
-socket.on('tv:vote', ({ voterName, performerSocketId, score }) => {
+socket.on('tv:vote', ({ voterName, performerSocketId, score, voterSocketId }) => {
   state.votes.push({ voterName, performerSocketId, score });
   updateTicker(`${voterName} votó: ${score} pts 🗳️`);
+  
+  state.votedBy = state.votedBy || new Set();
+  if (voterSocketId) state.votedBy.add(voterSocketId);
+  
+  // Check if all votes are in
+  checkAllVotesSubmitted(performerSocketId);
 });
+
+function checkAllVotesSubmitted(performerSocketId) {
+  const expectedVoters = state.players.filter(p => p.socketId !== performerSocketId);
+  const expectedCount = expectedVoters.length;
+  state.votedBy = state.votedBy || new Set();
+  
+  if (state.votedBy.size >= expectedCount) {
+    console.log("[AUTO-FLOW] ¡Todos los votos recibidos! Finalizando canción...");
+    // Clear any active timeouts and end song in 1.5 seconds so they can see the final votes
+    setTimeout(() => {
+      const karaokeScreen = document.getElementById('karaoke-screen');
+      if (karaokeScreen && karaokeScreen.classList.contains('active')) {
+        const performer = state.players.find(p => p.socketId === performerSocketId) || state.players[0];
+        endSong(performer);
+      }
+    }, 1500);
+  }
+}
 
 socket.on('tv:song_assigned', ({ attackerName, attackerSocketId, targetSocketId, songId }) => {
   state.assignedSongs[targetSocketId] = { attackerName, attackerSocketId, songId };
   updateTicker(`⚔️ ${attackerName} asignó una canción a su rival`);
+  
+  if (state.round === 2) {
+    state.assignedBy = state.assignedBy || new Set();
+    state.assignedBy.add(attackerSocketId);
+    
+    // Check if everyone has submitted
+    if (state.assignedBy.size >= state.players.length) {
+      console.log("[AUTO-FLOW] ¡Todos los jugadores asignaron canción! Girando ruleta...");
+      if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+      spinRoulette();
+    }
+  }
 });
 
 socket.on('tv:start_game_trigger', () => {
@@ -3275,6 +3311,13 @@ socket.on('tv:start_song_trigger', () => {
 
 socket.on('tv:next_turn_trigger', () => {
   const btn = document.getElementById('continue-btn');
+  if (btn) {
+    btn.click();
+  }
+});
+
+socket.on('tv:new_game_trigger', () => {
+  const btn = document.getElementById('restart-btn-final');
   if (btn) {
     btn.click();
   }
@@ -3410,14 +3453,49 @@ function startRoulette() {
 
   // Ronda 2: pedir a los jugadores que asignen canciones (Fuego Cruzado)
   if (state.round === 2) {
+    state.assignedBy = new Set();
+    
     socket.emit('tv:broadcast', {
       roomCode: state.roomCode,
       event: 'ROUND_2_ASSIGN',
       data: {
-        players: state.players,
-        songs: window.catalogoKaraoke || [],
+        players: state.players.map(p => ({ socketId: p.socketId, name: p.name, avatarId: p.avatarId })),
+        songs: window.catalogoKaraoke ? window.catalogoKaraoke.slice(0, 5) : [] // Send first 5 songs for choice
       },
     });
+
+    // Automate assignments for bot players
+    state.players.forEach(p => {
+      if (p.socketId.startsWith('bot_')) {
+        const botDelay = 1500 + Math.random() * 2500; // 1.5 - 4 seconds delay
+        setTimeout(() => {
+          const lobbyScreen = document.getElementById('roulette-screen');
+          if (state.round === 2 && lobbyScreen && lobbyScreen.classList.contains('active') && !state.assignedBy.has(p.socketId)) {
+            // Pick a random target (not the bot itself)
+            const targets = state.players.filter(t => t.socketId !== p.socketId);
+            const target = targets[Math.floor(Math.random() * targets.length)] || state.players[0];
+            
+            // Pick a random song from catalog
+            const songs = window.catalogoKaraoke || [];
+            const song = songs[Math.floor(Math.random() * Math.min(5, songs.length))] || { id: 'default' };
+            
+            // Simulate the assignment locally
+            state.assignedSongs[target.socketId] = { attackerName: p.name, attackerSocketId: p.socketId, songId: song.id };
+            updateTicker(`⚔️ ${p.name} asignó una canción a su rival`);
+            
+            state.assignedBy.add(p.socketId);
+            
+            // Check if everyone has submitted
+            if (state.assignedBy.size >= state.players.length) {
+              console.log("[AUTO-FLOW] ¡Todos los jugadores asignaron canción (con bots)! Girando ruleta...");
+              if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+              spinRoulette();
+            }
+          }
+        }, botDelay);
+      }
+    });
+
     const r2Idx = Math.floor(Math.random() * 2);
     const r2Text = r2Idx === 0 ? "¡Fuego cruzado activado! Asignen canciones a sus rivales 🔥" : "¡Ronda 2: Fuego Cruzado! Es hora de vengarse y darles la peor canción posible. 😈";
     axoloSay(r2Text, `round_2_start_${r2Idx}.mp3`);
@@ -3589,9 +3667,15 @@ function spinRoulette() {
   const sliceDeg   = 360 / n;
   const targetSlice = remaining.findIndex(p => p.socketId === winner.socketId);
   // Arrow is at top (270° in SVG terms); we want that slice under arrow
-  let targetAngle = 360 * 6 + (360 - targetSlice * sliceDeg - sliceDeg / 2);
+  const thetaDest = 360 - targetSlice * sliceDeg - sliceDeg / 2;
+  const currentNormalized = rouletteAngle % 360;
+  let diff = thetaDest - currentNormalized;
+  if (diff <= 0) {
+    diff += 360; // ensure we spin forward
+  }
+  let targetAngle = 360 * 5 + diff; // 5 full spins + diff
   if (n === 1) {
-    targetAngle = 360 * 6; // Spin exactly 6 times so it lands right-side up at the top
+    targetAngle = 360 * 5;
   }
 
   let lastTickSlice = -1;
@@ -3599,8 +3683,8 @@ function spinRoulette() {
   anime({
     targets: '#roulette-wheel',
     rotate:  [rouletteAngle, rouletteAngle + targetAngle],
-    duration: 4500,
-    easing: 'cubicBezier(0.17, 0.67, 0.12, 0.99)',
+    duration: 2800,
+    easing: 'cubicBezier(0.15, 0.85, 0.15, 1)',
     update: (anim) => {
       const currentRot = rouletteAngle + (anim.progress / 100) * targetAngle;
       const tickAngle = currentRot + 90;
@@ -3725,6 +3809,29 @@ function startKaraoke(player, song) {
   karaokeGeneration++;
   const myGeneration = karaokeGeneration;
   showScreen('karaoke-screen', 'flash');
+
+  state.votedBy = new Set();
+  
+  // Automate voting for bot players
+  state.players.forEach(p => {
+    if (p.socketId.startsWith('bot_') && p.socketId !== player.socketId) {
+      const botDelay = 4000 + Math.random() * 8000; // 4 - 12 seconds delay
+      setTimeout(() => {
+        const karaokeScreen = document.getElementById('karaoke-screen');
+        // Ensure we are still playing this song and the bot hasn't voted yet
+        if (karaokeScreen && karaokeScreen.classList.contains('active') && !state.votedBy.has(p.socketId)) {
+          const scores = [30, 60, 100];
+          const botScore = scores[Math.floor(Math.random() * scores.length)];
+          
+          state.votes.push({ voterName: p.name, performerSocketId: player.socketId, score: botScore });
+          updateTicker(`${p.name} votó: ${botScore} pts 🗳️`);
+          
+          state.votedBy.add(p.socketId);
+          checkAllVotesSubmitted(player.socketId);
+        }
+      }, botDelay);
+    }
+  });
 
   const av = getAvatar(player.avatarId);
   document.getElementById('hud-singer-avatar-img').src = av.img;
@@ -5700,8 +5807,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mode-selection-screen').classList.add('active');
         wipeContainer.remove();
       }
-    });
-  }
+  // Auto-create room after 2 seconds to make the game completely hands-off on the PC
+  setTimeout(() => {
+    const btnCrear = document.getElementById('btn-crear-sala-modo');
+    if (btnCrear && document.getElementById('mode-selection-screen').classList.contains('active')) {
+      console.log("[AUTO-BOOT] Creando sala automáticamente...");
+      btnCrear.click();
+    }
+  }, 2000);
 });
 // ── Debug Panel (Ctrl+Shift+D) ─────────────────────────────
 (function() {

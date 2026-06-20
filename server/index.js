@@ -779,6 +779,12 @@ io.on('connection', (socket) => {
     io.to(room.tvSocketId).emit('tv:next_turn_trigger');
   });
 
+  socket.on('player:new_game', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room) return;
+    io.to(room.tvSocketId).emit('tv:new_game_trigger');
+  });
+
   // ──────────────────────────────────────────────────────────
   // DESCONEXIÓN
   // ──────────────────────────────────────────────────────────
