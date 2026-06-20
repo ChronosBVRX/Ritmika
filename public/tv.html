@@ -3666,12 +3666,33 @@ function startRoulette() {
   if (state.round === 2) {
     state.assignedBy = new Set();
     
+    // Gather all genres selected by players for relevance filtering
+    const allPlayerGenres = new Set();
+    state.players.forEach(p => { if (p.genres) p.genres.forEach(g => allPlayerGenres.add(g)); });
+    let round2Songs = [];
+    if (window.catalogoKaraoke) {
+      // Prefer songs matching any player's selected genres
+      const matched = window.catalogoKaraoke.filter(s => s.genre && allPlayerGenres.has(s.genre.toLowerCase()));
+      if (matched.length >= 10) {
+        round2Songs = matched.sort(() => 0.5 - Math.random()).slice(0, 60);
+      } else {
+        // Mix: half matched, half random
+        const random = window.catalogoKaraoke.filter(s => !matched.includes(s));
+        round2Songs = [...matched, ...random.sort(() => 0.5 - Math.random()).slice(0, 60 - matched.length)];
+      }
+    }
     socket.emit('tv:broadcast', {
       roomCode: state.roomCode,
       event: 'ROUND_2_ASSIGN',
       data: {
-        players: state.players.map(p => ({ socketId: p.socketId, name: p.name, avatarId: p.avatarId })),
-        songs: window.catalogoKaraoke ? window.catalogoKaraoke.slice(0, 5) : [] // Send first 5 songs for choice
+        players: state.players.map(p => ({
+          socketId: p.socketId,
+          name: p.name,
+          avatarId: p.avatarId,
+          genres: p.genres || [],
+          artists: p.artists || [],
+        })),
+        songs: round2Songs,
       },
     });
 
@@ -3686,9 +3707,9 @@ function startRoulette() {
             const targets = state.players.filter(t => t.socketId !== p.socketId);
             const target = targets[Math.floor(Math.random() * targets.length)] || state.players[0];
             
-            // Pick a random song from catalog
+            // Pick a random song from catalog (use larger pool)
             const songs = window.catalogoKaraoke || [];
-            const song = songs[Math.floor(Math.random() * Math.min(5, songs.length))] || { id: 'default' };
+            const song = songs[Math.floor(Math.random() * Math.min(100, songs.length))] || { id: 'default' };
             
             // Simulate the assignment locally
             state.assignedSongs[target.socketId] = { attackerName: p.name, attackerSocketId: p.socketId, songId: song.id };

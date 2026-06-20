@@ -261,17 +261,20 @@
       gap: 0.5rem;
     }
     .artist-chip {
-      padding: 0.75rem 0.75rem;
-      border-radius: 0.875rem;
+      padding: 0.6rem 0.5rem;
+      border-radius: 0.75rem;
       border: 2px solid #334155;
       background: #1e293b;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 700;
       color: #94a3b8;
       cursor: pointer;
       text-align: center;
       transition: all 0.12s;
       -webkit-appearance: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .artist-chip.selected {
       border-color: #22d3ee;
@@ -426,7 +429,7 @@
     .live-dot { animation: live-pulse 1.2s ease-in-out infinite; }
 
     /* ── Scrollable regions ─────────────────────────────────── */
-    .scroll-area { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .scroll-area { overflow-y: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
     .scroll-area::-webkit-scrollbar { display: none; }
 
     /* ── Divider ────────────────────────────────────────────── */
@@ -711,11 +714,16 @@
   </div>
 
   <!-- Artist grid -->
-  <div class="artist-grid scroll-area flex-1 mb-4" id="artist-grid" role="group" aria-label="Selecciona tus artistas">
+  <div class="artist-grid scroll-area flex-1 mb-4 pb-16" id="artist-grid" role="group" aria-label="Selecciona tus artistas" style="scroll-behavior:smooth; -webkit-overflow-scrolling:touch;">
     <!-- Populated by JS -->
   </div>
 
   <button id="btn-join-game" class="btn-primary" disabled>
+    🎤 ¡Entrar a la fiesta!
+  </button>
+
+  <!-- Floating continue button (appears when 3+ artists selected) -->
+  <button id="btn-floating-continue" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-8 py-4 rounded-2xl font-paytone text-lg" style="background:linear-gradient(135deg,#ffe600,#f59e0b); color:#111827; border:3px solid #111827; box-shadow:4px 4px 0px #111827, 0 8px 25px rgba(245,158,11,0.4); text-transform:uppercase; letter-spacing:1px; transition:transform 0.15s, box-shadow 0.15s;">
     🎤 ¡Entrar a la fiesta!
   </button>
 </section>
@@ -1706,11 +1714,22 @@ function updateArtistsUI() {
   const n = me.artists.length;
   document.getElementById('artists-count-badge').textContent = n;
   document.getElementById('btn-join-game').disabled = n === 0;
+  // Show floating continue button when 3+ artists selected
+  const floatingBtn = document.getElementById('btn-floating-continue');
+  if (floatingBtn) {
+    if (n >= 3 && floatingBtn.classList.contains('hidden')) {
+      floatingBtn.classList.remove('hidden');
+      floatingBtn.style.animation = 'fadeSlideIn 0.35s ease forwards';
+    } else if (n < 3 && !floatingBtn.classList.contains('hidden')) {
+      floatingBtn.classList.add('hidden');
+    }
+  }
 }
 
 document.getElementById('back-to-genres').addEventListener('click', () => goToScreen('screen-genres'));
 
 document.getElementById('btn-join-game').addEventListener('click', joinGame);
+document.getElementById('btn-floating-continue').addEventListener('click', joinGame);
 
 function joinGame() {
   if (!me.name || me.avatarId === null || !me.roomCode) return;
@@ -2007,13 +2026,13 @@ function renderAssignScreen(players, songs) {
     songList.innerHTML = '';
     selectedSong = null;
     
-    const targetGenres = targetPlayer.genres || [];
-    const targetArtists = targetPlayer.artists || [];
+    const targetGenres = (targetPlayer.genres || []).map(g => g.toLowerCase());
+    const targetArtists = (targetPlayer.artists || []).map(a => a.toLowerCase());
     
-    // Filter the full songs array by genre or artist
+    // Filter the full songs array by genre or artist (case-insensitive)
     let filteredSongs = (songs || []).filter(song => {
-      const matchGenre = targetGenres.includes(song.genre);
-      const matchArtist = targetArtists.includes(song.artist);
+      const matchGenre = song.genre && targetGenres.includes(song.genre.toLowerCase());
+      const matchArtist = song.artist && targetArtists.some(a => song.artist.toLowerCase().includes(a));
       return matchGenre || matchArtist;
     });
     
