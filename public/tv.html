@@ -35,6 +35,8 @@
   </script>
 
   <script src="/libs/anime.min.js" defer></script>
+  <script src="/libs/gsap.min.js" defer></script>
+  <script src="/js/bootloader.js" defer></script>
   <script src="/js/styles.js" defer></script>
   <script src="/js/animations.js" defer></script>
   <script src="/socket.io/socket.io.js" defer></script>
@@ -1146,10 +1148,10 @@
     }
     #bootloader-screen.fade-out { opacity:0; pointer-events:none; }
 
-    #boot-video-bg {
+    #boot-canvas-bg {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      object-fit: cover; z-index: 0;
+      z-index: 0;
     }
     #boot-overlay {
       position: absolute;
@@ -1170,6 +1172,13 @@
       align-items: center;
       height: 140px;
       width: 100%;
+      /* Glassmorphism Premium */
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
     }
 
     .boot-check {
@@ -1282,9 +1291,7 @@
   <audio id="boot-music" loop preload="auto">
     <source src="./assets/audio/menu_music.mp3" type="audio/mpeg">
   </audio>
-  <video id="boot-video-bg" loop muted playsinline preload="none">
-    <source src="./assets/loading_bg.mp4" type="video/mp4">
-  </video>
+  <canvas id="boot-canvas-bg"></canvas>
   <div id="boot-overlay"></div>
 
   <div class="boot-content">
@@ -2074,7 +2081,10 @@ const boot = {
             anime({ targets: centerLogo, scale: [0, 1.2, 1], rotate: ['-5deg', '5deg', '0deg'], duration: 800, easing: 'easeOutElastic(1, .5)' });
             
             const modeScreen = document.getElementById('mode-selection-screen');
-            if (screen) { screen.style.display = 'none'; }
+            if (screen) { 
+              screen.style.display = 'none'; 
+              if (typeof destroyBootloader === 'function') destroyBootloader();
+            }
             if (modeScreen) { modeScreen.classList.add('active'); }
 
             setTimeout(() => {
@@ -2097,7 +2107,10 @@ const boot = {
             }, 1400);
           }, 400);
         } else {
-          if (screen) screen.style.display = 'none';
+          if (screen) {
+            screen.style.display = 'none';
+            if (typeof destroyBootloader === 'function') destroyBootloader();
+          }
           const modeScreen = document.getElementById('mode-selection-screen');
           if (modeScreen) { modeScreen.classList.add('active'); }
           wipeContainer.remove();
@@ -2205,10 +2218,8 @@ function _setupFirstInteraction() {
 document.addEventListener('DOMContentLoaded', () => {
   bootMusic = document.getElementById('boot-music');
   if (bootMusic) bootMusic.volume = 0.4;
-  const bootVideo = document.getElementById('boot-video-bg');
-  if (bootVideo) {
-    bootVideo.play().catch(() => {});
-  }
+  const bootVideo = document.getElementById('boot-canvas-bg');
+  // El Canvas y GSAP se inician solos desde bootloader.js
   _setupFirstInteraction();
 });
 
