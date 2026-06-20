@@ -200,6 +200,18 @@ app.get('/api/songs', (req, res) => {
   res.json([]);
 });
 
+// ── Game modes config ──
+app.get('/api/game-modes', (req, res) => {
+  const modesPath = path.join(__dirname, 'game_modes_config.json');
+  if (!fs.existsSync(modesPath)) return res.json({ modes: {} });
+  try {
+    const raw = fs.readFileSync(modesPath, 'utf8').replace(/^\uFEFF/, '');
+    return res.json(JSON.parse(raw));
+  } catch (_) {
+    return res.json({ modes: {} });
+  }
+});
+
 // ── Audio files listing (for preloader) ──
 app.get('/api/audio-files', (req, res) => {
   const audioDir = path.join(__dirname, '../public/assets/audio');

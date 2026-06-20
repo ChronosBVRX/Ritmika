@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rítmika — Catálogo por Modo</title>
+  <link rel="stylesheet" href="/assets/fonts/fonts.css">
+  <script src="/libs/tailwind.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'neon-pink':'#ec4899','neon-cyan':'#22d3ee','neon-purple':'#a855f7',
+            'neon-yellow':'#facc15','antro-bg':'#0f172a','antro-card':'#1e293b',
+            'jb-magenta':'#f0047f','jb-cyan':'#00e5ff','jb-yellow':'#ffe600',
+            'jb-lime':'#b8ff57','jb-orange':'#ff6b00','jb-purple':'#9b00ff',
+          },
+          fontFamily: { fredoka:['Fredoka','sans-serif'], paytone:['Paytone One','sans-serif'] },
+        }
+      }
+    };
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; width:100%; min-height:100vh; background:#0f172a; font-family:'Fredoka',sans-serif; color:#f1f5f9; }
+    input, select, button { font-family: inherit; }
+    .sidebar { width:280px; min-width:280px; background:#1e293b; border-right:4px solid #111827; overflow-y:auto; }
+    .mode-btn { cursor:pointer; border:3px solid #111827; box-shadow:4px 4px 0px #111827; transition:all 0.15s; }
+    .mode-btn:hover { transform:translate(-1px,-1px); box-shadow:6px 6px 0px #111827; }
+    .mode-btn.active { border-color:#ffe600; box-shadow:4px 4px 0px rgba(255,230,0,0.5); }
+    .song-card { background:#1e293b; border:3px solid #111827; box-shadow:4px 4px 0px #111827; border-radius:16px; padding:12px; transition:all 0.15s; }
+    .song-card:hover { transform:translate(-2px,-2px); box-shadow:7px 7px 0px #111827; }
+    .genre-tag { display:inline-block; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+    .scroll-area { overflow-y:auto; scrollbar-width:thin; scrollbar-color:#334155 #0f172a; }
+    .scroll-area::-webkit-scrollbar { width:6px; }
+    .scroll-area::-webkit-scrollbar-track { background:#0f172a; }
+    .scroll-area::-webkit-scrollbar-thumb { background:#334155; border-radius:3px; }
+    .stat-box { background:#1e293b; border:3px solid #111827; box-shadow:3px 3px 0px #111827; border-radius:12px; padding:8px 16px; text-align:center; }
+    #toast { position:fixed; bottom:24px; right:24px; z-index:999; padding:12px 24px; border-radius:12px; background:#1e293b; border:3px solid #111827; box-shadow:6px 6px 0px #111827; transform:translateY(120px); opacity:0; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); font-weight:600; pointer-events:none; }
+    #toast.show { transform:translateY(0); opacity:1; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .song-card { animation:fadeIn 0.3s ease both; }
+  </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar flex flex-col p-4 gap-3">
+    <div class="flex items-center gap-2 mb-2">
+      <img src="/assets/logo_ritmika.webp" alt="Rítmika" style="height:36px;">
+      <span class="font-paytone text-lg" style="color:#ffe600;">Catálogo</span>
+    </div>
+
+    <div class="relative">
+      <input id="search-input" type="text" placeholder="Buscar canción o artista..."
+        class="w-full px-4 py-2.5 rounded-xl text-sm font-fredoka outline-none"
+        style="background:#0f172a; border:2px solid #334155; color:#f1f5f9; padding-left:36px;">
+      <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#64748b; font-size:16px;">🔍</span>
+    </div>
+
+    <div class="flex flex-wrap gap-1.5 mb-1" id="genre-filters"></div>
+
+    <div class="text-xs font-semibold uppercase tracking-wider mt-1" style="color:#64748b;">Modos de juego</div>
+
+    <div class="flex flex-col gap-2 flex-1 scroll-area pr-1" id="mode-list">
+      <!-- populated by JS -->
+    </div>
+
+    <div id="total-stats" class="stat-box mt-2 text-xs" style="color:#94a3b8;">
+      Cargando...
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Header bar -->
+    <div class="flex items-center justify-between px-6 py-3 flex-shrink-0" style="background:#1e293b; border-bottom:4px solid #111827;">
+      <h1 id="mode-title" class="font-paytone text-2xl" style="color:#ffe600;">Selecciona un modo</h1>
+      <div class="flex items-center gap-4 text-sm">
+        <span id="song-count-display" class="font-bold" style="color:#94a3b8;">0 canciones</span>
+        <select id="sort-select" class="px-3 py-1.5 rounded-lg text-sm font-fredoka outline-none cursor-pointer"
+          style="background:#0f172a; border:2px solid #334155; color:#f1f5f9;">
+          <option value="title">Título A-Z</option>
+          <option value="artist">Artista A-Z</option>
+          <option value="genre">Género</option>
+        </select>
+        <button id="btn-export" class="px-3 py-1.5 rounded-lg text-sm font-bold"
+          style="background:#22d3ee; border:2px solid #111827; box-shadow:2px 2px 0px #111827; color:#0f172a;">
+          📋 Copiar
+        </button>
+      </div>
+    </div>
+
+    <!-- Song grid -->
+    <div class="flex-1 p-6 scroll-area" id="song-grid">
+      <div class="flex items-center justify-center h-full text-center" style="color:#475569;">
+        <div>
+          <div class="text-5xl mb-4">🎤</div>
+          <p class="text-lg font-semibold">Selecciona un modo de juego del menú</p>
+          <p class="text-sm mt-1">para ver las canciones disponibles</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  const GENRE_COLORS = {
+    reggaeton: '#f97316', pop: '#22d3ee', cumbia: '#22c55e',
+    banda: '#ef4444', balada: '#a855f7', rock: '#f0047f',
+    ranchera: '#facc15', electronica: '#00e5ff', unknown: '#64748b'
+  };
+  const GENRE_EMOJIS = {
+    reggaeton: '🔥', pop: '⭐', cumbia: '🕺', banda: '🎺',
+    balada: '💔', rock: '🤘', ranchera: '🌮', electronica: '⚡', unknown: '❓'
+  };
+
+  let allSongs = [];
+  let gameModes = {};
+  let activeMode = null;
+
+  const $ = id => document.getElementById(id);
+  const grid = $('song-grid');
+  const modeList = $('mode-list');
+  const genreFilters = $('genre-filters');
+  const searchInput = $('search-input');
+  const modeTitle = $('mode-title');
+  const songCountDisplay = $('song-count-display');
+  const totalStats = $('total-stats');
+  const sortSelect = $('sort-select');
+  const toast = $('toast');
+
+  let selectedGenres = new Set();
+
+  function showToast(msg, color = '#22d3ee') {
+    toast.textContent = msg;
+    toast.style.borderColor = color;
+    toast.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  async function init() {
+    try {
+      const [songsRes, modesRes] = await Promise.all([
+        fetch('/api/songs'),
+        fetch('/api/game-modes')
+      ]);
+      allSongs = await songsRes.json();
+      const modesData = await modesRes.json();
+      gameModes = modesData.modes || {};
+
+      renderGenreFilters();
+      renderModeList();
+      updateTotalStats();
+
+      if (Object.keys(gameModes).length > 0) {
+        selectMode(Object.keys(gameModes)[0]);
+      }
+
+      searchInput.addEventListener('input', () => renderSongs());
+      sortSelect.addEventListener('change', () => renderSongs());
+
+      $('btn-export').addEventListener('click', exportList);
+
+      showToast(`Catálogo cargado: ${allSongs.length} canciones`);
+    } catch (err) {
+      grid.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-red-400">Error al cargar: ${err.message}</p></div>`;
+    }
+  }
+
+  function renderGenreFilters() {
+    const genres = [...new Set(allSongs.filter(s => s.genre).map(s => s.genre))].sort();
+    const allBtn = document.createElement('button');
+    allBtn.className = 'genre-tag cursor-pointer';
+    allBtn.textContent = 'Todos';
+    allBtn.style.background = selectedGenres.size === 0 ? '#ffe600' : '#334155';
+    allBtn.style.color = selectedGenres.size === 0 ? '#0f172a' : '#94a3b8';
+    allBtn.addEventListener('click', () => { selectedGenres.clear(); renderGenreFilters(); renderSongs(); });
+    genreFilters.appendChild(allBtn);
+
+    genres.forEach(g => {
+      const btn = document.createElement('button');
+      btn.className = 'genre-tag cursor-pointer';
+      btn.textContent = `${GENRE_EMOJIS[g] || ''} ${g}`;
+      const active = selectedGenres.has(g);
+      btn.style.background = active ? (GENRE_COLORS[g] || '#ffe600') : '#334155';
+      btn.style.color = active ? '#fff' : '#94a3b8';
+      btn.addEventListener('click', () => {
+        if (selectedGenres.has(g)) selectedGenres.delete(g);
+        else selectedGenres.add(g);
+        renderGenreFilters();
+        renderSongs();
+      });
+      genreFilters.appendChild(btn);
+    });
+  }
+
+  function renderModeList() {
+    modeList.innerHTML = '';
+    Object.entries(gameModes).forEach(([key, mode]) => {
+      const filtered = getModeSongs(key);
+      const btn = document.createElement('button');
+      btn.className = 'mode-btn w-full text-left px-4 py-3 rounded-xl text-sm font-semibold flex items-center justify-between';
+      btn.dataset.mode = key;
+      btn.innerHTML = `<span style="color:#f1f5f9;">${mode.label || key}</span><span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:#0f172a; color:#94a3b8;">${filtered.length}</span>`;
+      if (activeMode === key) btn.classList.add('active');
+      btn.addEventListener('click', () => selectMode(key));
+      modeList.appendChild(btn);
+    });
+  }
+
+  function getModeSongs(modeKey) {
+    const mode = gameModes[modeKey];
+    if (!mode) return [];
+    if (mode.filter === 'all') return allSongs;
+    if (mode.filter === 'has_genre') return allSongs.filter(s => s.genre && s.genre !== 'unknown');
+    if (mode.filter === 'genre' && mode.genres) {
+      const genreSet = new Set(mode.genres.map(g => g.toLowerCase()));
+      return allSongs.filter(s => s.genre && genreSet.has(s.genre.toLowerCase()));
+    }
+    return [];
+  }
+
+  function selectMode(key) {
+    activeMode = key;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector(`.mode-btn[data-mode="${key}"]`);
+    if (btn) btn.classList.add('active');
+    const mode = gameModes[key];
+    modeTitle.textContent = mode ? mode.label : key;
+    renderSongs();
+  }
+
+  function renderSongs() {
+    if (!activeMode) return;
+    const songs = getModeSongs(activeMode);
+    const search = searchInput.value.toLowerCase().trim();
+
+    let filtered = songs;
+    if (search) {
+      filtered = filtered.filter(s =>
+        (s.title && s.title.toLowerCase().includes(search)) ||
+        (s.artist && s.artist.toLowerCase().includes(search))
+      );
+    }
+    if (selectedGenres.size > 0) {
+      filtered = filtered.filter(s => s.genre && selectedGenres.has(s.genre));
+    }
+
+    // Sort
+    const sort = sortSelect.value;
+    filtered.sort((a, b) => {
+      if (sort === 'title') return (a.title || '').localeCompare(b.title || '');
+      if (sort === 'artist') return (a.artist || '').localeCompare(b.artist || '');
+      if (sort === 'genre') {
+        const ga = a.genre || 'zzz', gb = b.genre || 'zzz';
+        return ga.localeCompare(gb) || (a.title || '').localeCompare(b.title || '');
+      }
+      return 0;
+    });
+
+    songCountDisplay.textContent = `${filtered.length} de ${songs.length} canciones`;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-lg" style="color:#475569;">${songs.length === 0 ? 'Este modo no tiene canciones asignadas' : 'Sin resultados para tu búsqueda'}</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = `<div class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr));"></div>`;
+    const container = grid.firstElementChild;
+
+    filtered.forEach((song, i) => {
+      const g = song.genre || 'unknown';
+      const color = GENRE_COLORS[g] || '#64748b';
+      const emoji = GENRE_EMOJIS[g] || '❓';
+      const card = document.createElement('div');
+      card.className = 'song-card';
+      card.style.animationDelay = `${(i % 40) * 25}ms`;
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-2 mb-1.5">
+          <span class="genre-tag" style="background:${color}22; color:${color}; border:1px solid ${color}55;">
+            ${emoji} ${g}
+          </span>
+          <span class="text-xs" style="color:#475569;">${song.duration || '?'}s</span>
+        </div>
+        <div class="font-paytone text-base leading-tight mb-0.5" style="color:#f1f5f9;">${song.title || 'Sin título'}</div>
+        <div class="text-sm" style="color:#94a3b8;">${song.artist || 'Artista desconocido'}</div>
+        <div class="text-xs mt-1.5" style="color:#334155; word-break:break-all;">${song.id || ''}</div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function updateTotalStats() {
+    const total = allSongs.length;
+    const genres = {};
+    allSongs.forEach(s => { const g = s.genre || 'unknown'; genres[g] = (genres[g] || 0) + 1; });
+    const genreStr = Object.entries(genres).sort((a,b) => b[1]-a[1])
+      .map(([g,c]) => `${GENRE_EMOJIS[g]||''} ${g}: ${c}`).join(' &#8226; ');
+    totalStats.innerHTML = `<strong>${total}</strong> canciones totales<br><span style="font-size:10px;">${genreStr}</span>`;
+  }
+
+  function exportList() {
+    if (!activeMode) { showToast('Selecciona un modo primero', '#ef4444'); return; }
+    const songs = getModeSongs(activeMode);
+    const mode = gameModes[activeMode];
+    let text = `📋 Catálogo: ${mode ? mode.label : activeMode}\n`;
+    text += `Total: ${songs.length} canciones\n`;
+    text += `─${'─'.repeat(50)}\n`;
+    songs.sort((a,b) => (a.title||'').localeCompare(b.title||''));
+    songs.forEach(s => {
+      text += `${s.title || '?'} — ${s.artist || '?'} [${s.genre || '?'}]\n`;
+    });
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(`¡${songs.length} canciones copiadas al portapapeles!`, '#22d3ee');
+    }).catch(() => {
+      showToast('Error al copiar', '#ef4444');
+    });
+  }
+
+  init();
+  </script>
+</body>
+</html>
