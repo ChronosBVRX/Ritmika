@@ -9,12 +9,11 @@
 const express = require('express');
 const compression = require('compression');
 const http = require('http');
-const https = require('https');
 const os = require('os');
 const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
-const { spawn } = require('child_process');
+
 const internalIp = require('internal-ip');
 require('dotenv').config();
 
@@ -62,36 +61,7 @@ function getLocalIP() {
   return '127.0.0.1';
 }
 
-// ── Video configuration ───────────────────────────────────────
-const NATIVE_VIDEO_FORMATS = ['video/mp4', 'video/webm', 'video/ogg'];
-const STREAMABLE_TYPES = ['application/octet-stream', 'binary/octet-stream', 'application/binary'];
-let ffmpegAvailable = false;
 
-// Check if FFmpeg is available at startup
-function checkFFmpeg() {
-  const test = spawn('ffmpeg', ['-version'], { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
-  const timer = setTimeout(() => { test.kill(); ffmpegAvailable = false; }, 5000);
-  test.on('error', () => { clearTimeout(timer); ffmpegAvailable = false; });
-  test.on('exit', (code) => {
-    clearTimeout(timer);
-    ffmpegAvailable = code === 0;
-    console.log(`[Video Proxy] FFmpeg ${ffmpegAvailable ? 'disponible' : 'NO disponible'} — transcodificación ${ffmpegAvailable ? 'activada' : 'desactivada'}`);
-  });
-}
-checkFFmpeg();
-
-function isNativeFormat(contentType, contentDisposition = '') {
-  const ct = (contentType || '').toLowerCase();
-  const cd = (contentDisposition || '').toLowerCase();
-
-  // Forzar transcodificación para formatos que sabemos que no son nativos,
-  // incluso si Google Drive los manda como application/octet-stream.
-  if (cd.includes('.avi') || cd.includes('.mkv') || cd.includes('.flv') || cd.includes('.wmv')) {
-    return false;
-  }
-
-  return NATIVE_VIDEO_FORMATS.some(f => ct.includes(f)) || STREAMABLE_TYPES.some(t => ct.includes(t));
-}
 
 const app = express();
 app.use(compression());
@@ -134,63 +104,7 @@ app.get('/join', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/mobile.html'));
 });
 
-// ── Diagnóstico de video ────────────────────────────────────
-app.get('/test-video', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rítmika — Test de Video</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0f172a;color:#e2e8f0;font-family:system-ui,sans-serif;padding:1rem}h1{color:#facc15;margin-bottom:1rem}
-.video-box{background:#1e293b;border:2px solid #334155;border-radius:12px;padding:1rem;margin-bottom:1rem}
-video{width:100%;max-height:400px;background:#000;border-radius:8px}
-.info{font-size:0.85rem;color:#94a3b8;margin-top:0.5rem}
-.error{color:#ef4444;font-weight:bold}
-.ok{color:#22c55e;font-weight:bold}
-.btn{background:#facc15;color:#111827;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;cursor:pointer;margin:0.25rem}
-.btn:hover{background:#e6b800}
-.btn-sm{padding:0.25rem 0.5rem;font-size:0.8rem}
-select{width:100%;padding:0.5rem;border-radius:8px;margin-bottom:0.5rem;background:#334155;color:#e2e8f0;border:1px solid #475569}
-.log{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:0.5rem;font-family:monospace;font-size:0.75rem;max-height:200px;overflow-y:auto;margin-top:0.5rem}
-</style></head><body>
-<h1>🎤 Test de Video Proxy</h1>
-<div class="video-box">
-  <select id="songSelect"><option value="">— Selecciona una canción —</option></select>
-  <div><button class="btn" id="loadBtn">🎬 Cargar video</button>
-  <button class="btn btn-sm" id="simpleBtn">🔗 Probar URL directa</button></div>
-  <video id="testVideo" controls playsinline></video>
-  <div id="status" class="info">Esperando...</div>
-  <div id="log" class="log"></div>
-</div>
-<script>
-const v=document.getElementById('testVideo'),s=document.getElementById('songSelect'),st=document.getElementById('status'),lg=document.getElementById('log');
-function log(t){const d=document.createElement('div');d.textContent='['+new Date().toLocaleTimeString()+'] '+t;lg.appendChild(d);lg.scrollTop=lg.scrollHeight}
-function setStatus(t,c){st.innerHTML=t;st.style.color=c||'#94a3b8'}
-async function loadSongs(){try{
-const r=await fetch('/api/songs',{signal:AbortSignal.timeout(10000)});const d=await r.json();
-if(Array.isArray(d)&&d.length>0){d.forEach(song=>{const o=document.createElement('option');o.value=song.url||song.id;o.textContent=song.title+' — '+song.artist;s.appendChild(o)});log('Catálogo: '+d.length+' canciones cargadas');setStatus(d.length+' canciones disponibles','#22c55e')}
-else{setStatus('Catálogo vacío','#ef4444')}
-}catch(e){setStatus('Error cargando catálogo: '+e.message,'#ef4444');log('Error: '+e.message)}}
-loadSongs();
-document.getElementById('loadBtn').onclick=()=>{
-const url=s.value;if(!url){setStatus('Selecciona una canción','#ef4444');return}
-const gdriveMatch=url.match(/[?&]id=([^&]+)/)||url.match(/\\/file\\/d\\/([^\\/]+)/);
-let proxyUrl=url;let fileId='none';
-if(gdriveMatch&&gdriveMatch[1]){fileId=gdriveMatch[1];proxyUrl='/api/video-proxy?id='+fileId}
-log('URL original: '+url);log('File ID: '+fileId);log('Proxy URL: '+proxyUrl);
-setStatus('Cargando: '+proxyUrl,'#facc15');
-v.src=proxyUrl;v.muted=true;v.play().catch(()=>{});
-v.onerror=()=>{setStatus('❌ Error cargando video','#ef4444');log('ERROR: video.onerror disparado')};
-v.onplaying=()=>{setStatus('✅ Reproduciendo','#22c55e');v.muted=false;log('Reproduciendo OK')};
-v.onwaiting=()=>{setStatus('⏳ Buffering...','#facc15')};
-};
-document.getElementById('simpleBtn').onclick=()=>{
-const url=s.value;if(!url){setStatus('Selecciona una canción','#ef4444');return}
-const gdriveMatch=url.match(/[?&]id=([^&]+)/)||url.match(/\\/file\\/d\\/([^\\/]+)/);
-if(gdriveMatch&&gdriveMatch[1]){const pu='/api/video-proxy?id='+gdriveMatch[1];
-log('Probando con fetch HEAD...');
-fetch(pu,{method:'HEAD'}).then(r=>{log('Status: '+r.status+' '+r.statusText);log('Content-Type: '+(r.headers.get('content-type')||'?'));setStatus('HEAD OK: '+r.status,'#22c55e')}).catch(e=>{log('HEAD error: '+e.message);setStatus('HEAD falló: '+e.message,'#ef4444')})}
-};
-</script></body></html>`);
-});
+
 
 // ── QR codes locales (offline, sin Google Charts) ─────────────
 const QRCode = require('qrcode');
@@ -230,13 +144,16 @@ app.get('/api/network-config', async (req, res) => {
 
 // ── Local Karaoke Catalog Database ───────────────────────────
 let songDatabase = [];
-const dbPath = path.join(__dirname, 'karaoke_db.json');
+const dbPath = path.join(__dirname, 'r2_db.json');
 try {
   if (fs.existsSync(dbPath)) {
     songDatabase = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+    console.log(`[Server] Loaded ${songDatabase.length} songs from r2_db.json`);
+  } else {
+    console.warn('[Server] r2_db.json not found. Some features may be limited.');
   }
 } catch (err) {
-  console.error('[Server] Could not load karaoke_db.json for bot preferences:', err);
+  console.error('[Server] Could not load r2_db.json:', err);
 }
 
 app.get('/api/songs', (req, res) => {
@@ -279,161 +196,11 @@ app.get('/api/health', (req, res) => {
     server: true,
     catalog: songDatabase.length > 0,
     catalogCount: songDatabase.length,
-    ffmpeg: ffmpegAvailable,
+    videoSource: 'cloudflare-r2',
   });
 });
 
-// ── Google Drive Video Proxy (Bypasses CORS/CORP + transcodifica formatos no-nativos) ──
-app.get('/api/video-proxy', (req, res) => {
-  const fileId = req.query.id;
-  if (!fileId || typeof fileId !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(fileId)) {
-    return res.status(400).json({ error: 'Invalid or missing id parameter' });
-  }
 
-  const PROXY_TIMEOUT = 30000;
-  const MAX_REDIRECTS = 5;
-  let redirectCount = 0;
-  let usedConfirm = false;
-
-  let transcodeJob = null; // reference to ffmpeg process
-
-  const cleanup = () => {
-    if (transcodeJob) { try { transcodeJob.kill(); } catch {} transcodeJob = null; }
-  };
-
-  req.on('close', cleanup);
-  res.on('close', cleanup);
-
-  const requestHeaders = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-  };
-  if (req.headers.range) {
-    requestHeaders['Range'] = req.headers.range;
-  }
-
-  function streamFromDrive(urlToStream) {
-    const clientReq = https.get(urlToStream, { headers: requestHeaders, timeout: PROXY_TIMEOUT }, (clientRes) => {
-      const { statusCode, headers: respHeaders } = clientRes;
-      const contentType = (respHeaders['content-type'] || '').toLowerCase();
-
-      // Drain response body on redirect or retry
-      const drain = () => { clientRes.resume(); };
-
-      // ─── Redirect handling ─────────────────────────────
-      if (statusCode >= 300 && statusCode < 400 && respHeaders.location) {
-        drain();
-        if (redirectCount++ >= MAX_REDIRECTS) {
-          return res.status(502).json({ error: 'Too many redirects from Google Drive' });
-        }
-        streamFromDrive(respHeaders.location);
-        return;
-      }
-
-      // ─── Virus scan warning (HTML) ────────────────────
-      if (contentType.includes('text/html')) {
-        drain();
-        if (!usedConfirm) {
-          usedConfirm = true;
-          redirectCount = 0;
-          const sep = urlToStream.includes('?') ? '&' : '?';
-          console.log(`[Video Proxy] HTML for ${fileId}, retrying with confirm=t`);
-          streamFromDrive(urlToStream + sep + 'confirm=t');
-        } else {
-          console.error(`[Video Proxy] File ${fileId} still HTML after confirm=t`);
-          return res.status(502).json({ error: 'Google Drive requires manual confirmation. File too large or blocked.' });
-        }
-        return;
-      }
-
-      // ─── Decide: native stream or FFmpeg transcode ────
-      if (isNativeFormat(contentType, respHeaders['content-disposition'])) {
-        // Native browser format → stream directly
-        console.log(`[Video Proxy] Nativo → streaming ${fileId} (${contentType})`);
-        res.status(statusCode);
-        ['content-type', 'content-length', 'content-range', 'accept-ranges', 'cache-control'].forEach(h => {
-          if (respHeaders[h]) res.setHeader(h, respHeaders[h]);
-        });
-        clientRes.pipe(res);
-      } else if (ffmpegAvailable) {
-        // Unsupported format + FFmpeg disponible → transcodificar a MP4 fragmentado
-        console.log(`[Video Proxy] Transcodificando ${fileId} (${contentType}) → MP4`);
-        cleanup();
-
-        res.status(200);
-        res.setHeader('Content-Type', 'video/mp4');
-        res.setHeader('Accept-Ranges', 'none');
-        res.setHeader('Cache-Control', 'no-cache');
-
-        transcodeJob = spawn('ffmpeg', [
-          '-i', 'pipe:0',
-          '-c:v', 'libx264',
-          '-preset', 'ultrafast',
-          '-crf', '28',
-          '-pix_fmt', 'yuv420p',
-          '-c:a', 'aac',
-          '-b:a', '128k',
-          '-movflags', 'frag_keyframe+empty_moov',
-          '-f', 'mp4',
-          '-nostdin',
-          '-loglevel', 'error',
-          'pipe:1'
-        ], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
-
-        clientRes.pipe(transcodeJob.stdin);
-        transcodeJob.stdout.pipe(res);
-
-        transcodeJob.stderr.on('data', (d) => {
-          console.log(`[FFmpeg:${fileId.slice(0,8)}] ${d.toString().trim()}`);
-        });
-
-        transcodeJob.on('error', (err) => {
-          console.error(`[FFmpeg] spawn error for ${fileId}:`, err.message);
-          if (!res.headersSent) res.status(500).json({ error: 'Error al iniciar FFmpeg para transcodificación.' });
-        });
-
-        transcodeJob.on('exit', (code) => {
-          if (code !== 0 && code !== null) {
-            console.warn(`[FFmpeg] ${fileId} exit code ${code}`);
-          }
-          transcodeJob = null;
-          cleanup();
-        });
-      } else {
-        // Formato no nativo y FFmpeg no disponible
-        drain();
-        console.error(`[Video Proxy] Formato no soportado y FFmpeg no disponible: ${fileId} (${contentType})`);
-        return res.status(415).json({
-          error: `Formato de video no compatible: ${contentType}. Instala FFmpeg o reconvierte a MP4.`,
-          format: contentType
-        });
-      }
-    });
-
-    clientReq.on('error', (err) => {
-      console.error(`[Video Proxy] Network error for ${fileId}:`, err.message);
-      cleanup();
-      if (!res.headersSent) {
-        if (err.code === 'ECONNRESET') {
-          res.status(502).json({ error: 'Connection reset by Google Drive. File may not be publicly accessible.' });
-        } else {
-          res.status(500).json({ error: 'Error loading video from Google Drive: ' + err.message });
-        }
-      }
-    });
-
-    clientReq.on('timeout', () => {
-      clientReq.destroy();
-      cleanup();
-      console.error(`[Video Proxy] Timeout for ${fileId} after ${PROXY_TIMEOUT}ms`);
-      if (!res.headersSent) {
-        res.status(504).json({ error: 'Timeout connecting to Google Drive. Check that the file is publicly accessible.' });
-      }
-    });
-  }
-
-  const driveUrl = `https://drive.usercontent.google.com/download?id=${fileId}&export=download`;
-  streamFromDrive(driveUrl);
-});
 
 // ── Estado mínimo del servidor (solo metadatos de sala) ──────
 /**

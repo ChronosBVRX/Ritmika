@@ -3993,12 +3993,7 @@ function startKaraoke(player, song) {
       };
 
       if (song && song.url) {
-        let videoUrl = song.url;
-        const gdriveMatch = song.url.match(/[?&]id=([^&]+)/) || song.url.match(/\/file\/d\/([^/]+)/);
-        if (gdriveMatch && gdriveMatch[1]) {
-          videoUrl = `/api/video-proxy?id=${gdriveMatch[1]}`;
-        }
-        video.src = videoUrl;
+        video.src = song.url;
         video.muted = true;
         
         video.play().then(() => {
@@ -5930,7 +5925,6 @@ document.addEventListener('DOMContentLoaded', () => {
       'Players: ' + (state.players ? state.players.length : 0),
       'Round: ' + (state.round || 0),
       'Timer interval: ' + (timerInterval ? 'running' : 'stopped'),
-      'FFmpeg (server): ' + (window.ffmpegAvailable !== undefined ? window.ffmpegAvailable : 'unknown'),
     ];
     content.innerHTML = lines.map(l => '<div>' + l + '</div>').join('');
     setTimeout(updateDebug, 500);

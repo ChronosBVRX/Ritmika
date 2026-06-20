@@ -1,0 +1,25 @@
+{
+  "total_songs": 3845,
+  "r2_files": 3845,
+  "matched_exact": 2683,
+  "matched_artist": 605,
+  "deezer_artists": 329,
+  "defaulted_pop": 28,
+  "genres": {
+    "reggaeton": 201,
+    "pop": 2205,
+    "cumbia": 187,
+    "banda": 327,
+    "balada": 453,
+    "rock": 250,
+    "ranchera": 219,
+    "electronica": 3
+  },
+  "sources": {
+    "artist_match": 605,
+    "exact_match": 1773,
+    "partial_match": 910,
+    "deezer": 529,
+    "default_pop": 28
+  }
+}

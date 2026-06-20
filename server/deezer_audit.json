@@ -1,0 +1,2550 @@
+{
+  "6ix9ine anuel aa": {
+    "artist": "6ix9ine & Anuel AA",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "DUMMY BOY (Revised)"
+    }
+  },
+  "6ix9ine ft anuel aa": {
+    "artist": "6ix9ine ft. Anuel AA",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "DUMMY BOY (Revised)"
+    }
+  },
+  "a 5": {
+    "artist": "A.5",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 75,
+      "album": "Ao Vivo no Auditório Ibirapuera (Faixas Extras)"
+    }
+  },
+  "alaska y dinarama": {
+    "artist": "Alaska Y Dinarama",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Deseo Carnal (Deluxe Edition)"
+    }
+  },
+  "alberto cortez": {
+    "artist": "Alberto Cortez",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "En Un Rincon Del Alma"
+    }
+  },
+  "alegres de la sierra": {
+    "artist": "Alegres De La Sierra",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Juegos Del Amor"
+    }
+  },
+  "alejandro jaen": {
+    "artist": "Alejandro Jaen",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Vas a Acordarte de Mi"
+    }
+  },
+  "alejandro sanz shakira": {
+    "artist": "Alejandro Sanz & Shakira",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Sanz: Lo que fui es lo que soy (Banda Sonora Original)"
+    }
+  },
+  "alex ubago david bustamante": {
+    "artist": "Alex Ubago & David Bustamante",
+    "found_genre": "pop",
+    "source": null
+  },
+  "alexandre pires": {
+    "artist": "Alexandre Pires",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 75,
+      "album": "É Por Amor"
+    }
+  },
+  "alicia villarreal pedro fernandez": {
+    "artist": "Alicia Villarreal & Pedro Fernandez",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Lo Más Escuchado De"
+    }
+  },
+  "alicia villarreal": {
+    "artist": "Alicia Villarreal",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Lo Más Romántico De"
+    }
+  },
+  "alvaro torres": {
+    "artist": "Alvaro Torres",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Amor de Los Dos"
+    }
+  },
+  "amaral beto cuevas": {
+    "artist": "Amaral & Beto Cuevas (La Ley)",
+    "found_genre": "pop",
+    "source": null
+  },
+  "ana barbara": {
+    "artist": "Ana Barbara",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "El Ultimo Adiós"
+    }
+  },
+  "ana belen": {
+    "artist": "Ana Belen",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Esencial Ana y Victor"
+    }
+  },
+  "ana torroja aleks syntek": {
+    "artist": "Ana Torroja & Aleks Syntek",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Mundo Lite"
+    }
+  },
+  "anais": {
+    "artist": "Anais",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 173,
+      "album": "Wait for Me (\"Hey, the big artiste...\") [Intro]"
+    }
+  },
+  "andrea bocelli christina aguilera": {
+    "artist": "Andrea Bocelli & Christina Aguilera",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Amor (Edición Especial En Español)"
+    }
+  },
+  "andrea bocelli": {
+    "artist": "Andrea Bocelli",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "DNA (More Than A Game) [FIFA World Cup 2026™]"
+    }
+  },
+  "annual aa karol g": {
+    "artist": "Annual Aa & KAROL G",
+    "found_genre": "pop",
+    "source": null
+  },
+  "ariel camacho y los plebes del rancho": {
+    "artist": "Ariel Camacho Y Los Plebes Del Rancho",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "El Karma (Deluxe Version)"
+    }
+  },
+  "aterciopelados": {
+    "artist": "Aterciopelados",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "El Dorado"
+    }
+  },
+  "aventura akon wisin y yandel": {
+    "artist": "Aventura, Akon, Wisin Y Yandel",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "The Last"
+    }
+  },
+  "azul azul": {
+    "artist": "Azul Azul",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 85,
+      "album": "Las Crónicas del Viento"
+    }
+  },
+  "bacilos": {
+    "artist": "Bacilos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Grandes Exitos"
+    }
+  },
+  "bad bunny jhay cortez": {
+    "artist": "Bad Bunny & Jhay Cortez",
+    "found_genre": "pop",
+    "source": null
+  },
+  "bad bunny tainy": {
+    "artist": "Bad Bunny & Tainy",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "DATA"
+    }
+  },
+  "bad bunny": {
+    "artist": "Bad Bunny",
+    "found_genre": "reggaeton",
+    "source": {
+      "deezer_genre_id": 122,
+      "album": "Mami no se Bad bunny Me Rolie"
+    }
+  },
+  "banda los sebastianes": {
+    "artist": "Banda Los Sebastianes",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Lo Más Romántico De"
+    }
+  },
+  "banda machos": {
+    "artist": "Banda Machos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Clasicas para el Taconeo"
+    }
+  },
+  "bandana": {
+    "artist": "Bandana",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Go Bananas"
+    }
+  },
+  "basilio": {
+    "artist": "Basilio",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "La Música Es Mi Vida - 30 Grandes Canciones"
+    }
+  },
+  "becky g ft bad bunny": {
+    "artist": "Becky G ft. Bad Bunny",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "MALA SANTA"
+    }
+  },
+  "beny more": {
+    "artist": "Beny More",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "La Música de La Bodeguita: Vol. 1 De Cuba con Sabor"
+    }
+  },
+  "beto cuevas": {
+    "artist": "Beto Cuevas",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Color Esperanza / Sólo le Pido a Dios (Versión México)"
+    }
+  },
+  "bienvenido granda": {
+    "artist": "Bienvenido Granda",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Duelo de los Mejores: la Sonora Matancera Vs. los Corraleros de Majagual. 100 Años de Joyas Musicales (Vol. 12)"
+    }
+  },
+  "blanca iris villafane": {
+    "artist": "Blanca Iris Villafane",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "Sus Grandes Exitos, Vol. 5"
+    }
+  },
+  "blanca rosa gil": {
+    "artist": "Blanca Rosa Gil",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Boleros"
+    }
+  },
+  "bolero": {
+    "artist": "Bolero",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 173,
+      "album": "The Barefoot Contessa (La Contessa Scalza) (Original Motion Picture Soundtrack)"
+    }
+  },
+  "c tangana niño de elche la hungara": {
+    "artist": "C. Tangana, Niño De Elche & La Hungara",
+    "found_genre": "pop",
+    "source": null
+  },
+  "cnco": {
+    "artist": "CNCO",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Broken Hearts and Fairy Tales"
+    }
+  },
+  "caballo dorado": {
+    "artist": "Caballo Dorado",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Payaso de rodeo"
+    }
+  },
+  "camilo pedro capo": {
+    "artist": "Camilo & Pedro Capo",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Tutu"
+    }
+  },
+  "camilo": {
+    "artist": "Camilo",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "100% Tropical"
+    }
+  },
+  "camilo sesto lani hall": {
+    "artist": "Camilo Sesto & Lani Hall",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Aquarela"
+    }
+  },
+  "carin leon grupo frontera": {
+    "artist": "Carin Leon & Grupo Frontera",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 58,
+      "album": "Que Vuelvas"
+    }
+  },
+  "carlos baute marta sanchez": {
+    "artist": "Carlos Baute & Marta Sanchez",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Colgando en tus manos (con Marta Sánchez)"
+    }
+  },
+  "carlos gardel": {
+    "artist": "Carlos Gardel",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 73,
+      "album": "Las Canciones de Carlos Gardel"
+    }
+  },
+  "carlos vives marc anthony": {
+    "artist": "Carlos Vives & Marc Anthony",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Más + Corazón Profundo"
+    }
+  },
+  "carlos vives sebastian yatra": {
+    "artist": "Carlos Vives & Sebastian Yatra",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "VIVES"
+    }
+  },
+  "carlos vives encanto": {
+    "artist": "Carlos Vives 'Encanto'",
+    "found_genre": "pop",
+    "source": null
+  },
+  "casper magico nio garcia darell nicky jam ozuna bad bunny": {
+    "artist": "Casper Magico, Nio Garcia, Darell, Nicky Jam, Ozuna & Bad Bunny",
+    "found_genre": "pop",
+    "source": null
+  },
+  "chalino sanchez": {
+    "artist": "Chalino Sanchez",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Nieves de Enero"
+    }
+  },
+  "charlie zaa": {
+    "artist": "Charlie Zaa",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Sentimientos 15 Aniversario"
+    }
+  },
+  "charly garcia": {
+    "artist": "Charly Garcia",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "García, el Más Grande"
+    }
+  },
+  "chino nacho farruko": {
+    "artist": "Chino & Nacho, Farruko",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Me Voy Enamorando (Remix)"
+    }
+  },
+  "chino nacho sanluis": {
+    "artist": "Chino & Nacho, Sanluis",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "El Plan"
+    }
+  },
+  "chocolate 2000": {
+    "artist": "Chocolate 2000",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 75,
+      "album": "30 Anos Nacional: O Melhor do Rap"
+    }
+  },
+  "christian castro": {
+    "artist": "Christian Castro",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Hoy Quiero Soñar"
+    }
+  },
+  "christian nodal": {
+    "artist": "Christian Nodal",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 512,
+      "album": "Forajido EP 1"
+    }
+  },
+  "christina aguilera luis fonsi": {
+    "artist": "Christina Aguilera & Luis Fonsi",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Mi Reflejo"
+    }
+  },
+  "claudia": {
+    "artist": "Claudia",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 75,
+      "album": "Não Sufoque o Artista"
+    }
+  },
+  "control": {
+    "artist": "Control",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 113,
+      "album": "Deezer Sessions"
+    }
+  },
+  "cornelio reyna": {
+    "artist": "Cornelio Reyna",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Me Cai De La Nube"
+    }
+  },
+  "cosculluela nicky jam": {
+    "artist": "Cosculluela & Nicky Jam",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Te Busco"
+    }
+  },
+  "cox": {
+    "artist": "Cox",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "Goddess ... The Power of Woman"
+    }
+  },
+  "cristian": {
+    "artist": "Cristian",
+    "found_genre": "balada",
+    "source": {
+      "deezer_genre_id": 129,
+      "album": "Psalms Hymns and Spiritual Songs"
+    }
+  },
+  "cuco sanchez": {
+    "artist": "Cuco Sanchez",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "Corridos, Rancheras, Huapangos y más"
+    }
+  },
+  "dj snake ft selena gomez ozuna cardi b": {
+    "artist": "DJ Snake ft. Selena Gomez, Ozuna & Cardi B.",
+    "found_genre": "pop",
+    "source": null
+  },
+  "daddy yankee bad bunny": {
+    "artist": "Daddy Yankee & Bad Bunny",
+    "found_genre": "reggaeton",
+    "source": {
+      "deezer_genre_id": 122,
+      "album": "YHLQMDLG"
+    }
+  },
+  "daddy yankee friends": {
+    "artist": "Daddy Yankee & Friends",
+    "found_genre": "pop",
+    "source": null
+  },
+  "daddy yankee marc anthony": {
+    "artist": "Daddy Yankee & Marc Anthony",
+    "found_genre": "cumbia",
+    "source": {
+      "deezer_genre_id": 67,
+      "album": "De Vuelta Pa' La Vuelta"
+    }
+  },
+  "daddy yankee omega": {
+    "artist": "Daddy Yankee & Omega",
+    "found_genre": "cumbia",
+    "source": {
+      "deezer_genre_id": 67,
+      "album": "Planeta Urbano"
+    }
+  },
+  "daniel santos": {
+    "artist": "Daniel Santos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "¿Y Linda?"
+    }
+  },
+  "daniela romo": {
+    "artist": "Daniela Romo",
+    "found_genre": "balada",
+    "source": {
+      "deezer_genre_id": 98,
+      "album": "Enigma"
+    }
+  },
+  "danny berrios": {
+    "artist": "Danny Berrios",
+    "found_genre": "balada",
+    "source": {
+      "deezer_genre_id": 186,
+      "album": "Dios Cuida De Mí"
+    }
+  },
+  "david bisbal sebastian yatra": {
+    "artist": "David Bisbal & Sebastian Yatra",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "A Partir De Hoy"
+    }
+  },
+  "david demaria": {
+    "artist": "David Demaria",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Barcos de papel"
+    }
+  },
+  "diego torres vicentico": {
+    "artist": "Diego Torres & Vicentico",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "MTV Unplugged"
+    }
+  },
+  "diego torres": {
+    "artist": "Diego Torres",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Un Mundo Diferente"
+    }
+  },
+  "divididos": {
+    "artist": "Divididos",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Acariciando Lo Aspero"
+    }
+  },
+  "domenico modugno": {
+    "artist": "Domenico Modugno",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "1861-2011 Viva l'Italia - La musica della nostra storia"
+    }
+  },
+  "don omar lucenzo": {
+    "artist": "Don Omar & Lucenzo",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Meet The Orphans"
+    }
+  },
+  "don omar natti natasha": {
+    "artist": "Don Omar & Natti Natasha",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Don Omar Presents MTO2: New Generation"
+    }
+  },
+  "donald": {
+    "artist": "Donald",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 173,
+      "album": "Hadestown: Live From London"
+    }
+  },
+  "donato poveda": {
+    "artist": "Donato Poveda",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "Bolero Jazz: Detalles - Tributo a Roberto Carlos"
+    }
+  },
+  "dyango": {
+    "artist": "Dyango",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 85,
+      "album": "Ambush EP"
+    }
+  },
+  "ednita nazario beto cuevas": {
+    "artist": "Ednita Nazario & Beto Cuevas (La Ley)",
+    "found_genre": "pop",
+    "source": null
+  },
+  "ednita nazario natalia jimenez": {
+    "artist": "Ednita Nazario & Natalia Jimenez (La 5ta Estacion)",
+    "found_genre": "pop",
+    "source": null
+  },
+  "ednita nazario": {
+    "artist": "Ednita Nazario",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Solo Lo Mejor"
+    }
+  },
+  "el binomio de oro": {
+    "artist": "El Binomio De Oro",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "40 Vallenatos Poderosos"
+    }
+  },
+  "el cholo berrocal": {
+    "artist": "El Cholo Berrocal",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Payaso"
+    }
+  },
+  "el poder del norte": {
+    "artist": "El Poder Del Norte",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Lo Más Escuchado De"
+    }
+  },
+  "el simbolo": {
+    "artist": "El Simbolo",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Éxitos"
+    }
+  },
+  "ella baila sola": {
+    "artist": "Ella Baila Sola",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 36,
+      "album": "Ella Baila Sola"
+    }
+  },
+  "embajadores criollos": {
+    "artist": "Embajadores Criollos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Los Secretos de Felix Pasache"
+    }
+  },
+  "enrique iglesias bad bunny": {
+    "artist": "Enrique Iglesias & Bad Bunny",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "EL BAÑO (feat. Bad Bunny)"
+    }
+  },
+  "enrique iglesias juan luis guerra": {
+    "artist": "Enrique Iglesias & Juan Luis Guerra",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Euphoria (Intl 14 track version)"
+    }
+  },
+  "enrique iglesias descemer bueno gente de zona": {
+    "artist": "Enrique Iglesias, Descemer Bueno & Gente De Zona",
+    "found_genre": "pop",
+    "source": null
+  },
+  "estopa": {
+    "artist": "Estopa",
+    "found_genre": "electronica",
+    "source": {
+      "deezer_genre_id": 106,
+      "album": "The Dawn: Chapter 1"
+    }
+  },
+  "eva ayllon": {
+    "artist": "Eva Ayllon",
+    "found_genre": "cumbia",
+    "source": {
+      "deezer_genre_id": 67,
+      "album": "Ódiame"
+    }
+  },
+  "feid": {
+    "artist": "Feid",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Eu Venci o Mundo"
+    }
+  },
+  "felipe pirela": {
+    "artist": "Felipe Pirela",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "El Bolerista De América"
+    }
+  },
+  "fito paez": {
+    "artist": "Fito Paez",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Abre"
+    }
+  },
+  "flans": {
+    "artist": "Flans",
+    "found_genre": "balada",
+    "source": {
+      "deezer_genre_id": 129,
+      "album": "Zirkusmusik"
+    }
+  },
+  "flex": {
+    "artist": "Flex",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "FLEXXXXXY"
+    }
+  },
+  "floricienta": {
+    "artist": "Floricienta",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Grandes Éxitos"
+    }
+  },
+  "fobia": {
+    "artist": "Fobia",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "El Rumor de los Tiempos"
+    }
+  },
+  "fonseca": {
+    "artist": "Fonseca",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Enamorarte Mil Veces"
+    }
+  },
+  "francisco cespedes": {
+    "artist": "Francisco Cespedes",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Vida Loca"
+    }
+  },
+  "franco de vita sin bandera": {
+    "artist": "Franco De Vita & Sin Bandera",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Stop"
+    }
+  },
+  "fuerza regida grupo frontera": {
+    "artist": "Fuerza Regida & Grupo Frontera",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "MALA MÍA"
+    }
+  },
+  "fulanito": {
+    "artist": "Fulanito",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "El Hombre Mas Famoso De La Tierra"
+    }
+  },
+  "garibaldi": {
+    "artist": "Garibaldi",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Caribe"
+    }
+  },
+  "gente de zona marc anthony": {
+    "artist": "Gente De Zona & Marc Anthony",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Visualízate"
+    }
+  },
+  "gente de zona ft marc anthony": {
+    "artist": "Gente De Zona ft. Marc Anthony",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Visualízate"
+    }
+  },
+  "gerardo reyes": {
+    "artist": "Gerardo Reyes",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Gerardo Reyes"
+    }
+  },
+  "gian marco": {
+    "artist": "Gian Marco",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "El Ultimo Adiós"
+    }
+  },
+  "gigliola cinquetti": {
+    "artist": "Gigliola Cinquetti",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 524,
+      "album": "Historia De Un Amor"
+    }
+  },
+  "gloria gaynor": {
+    "artist": "Gloria Gaynor",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "DISCO ! DISCO! DISCO ! VARIOUS ARTISTS"
+    }
+  },
+  "greeicy mike bahia": {
+    "artist": "Greeicy & Mike Bahia",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Amantes"
+    }
+  },
+  "greeicy": {
+    "artist": "Greeicy",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 113,
+      "album": "YAPAQUE"
+    }
+  },
+  "grupo limite": {
+    "artist": "Grupo Limite",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Lo Más Romántico De"
+    }
+  },
+  "guarana": {
+    "artist": "Guarana",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Adicto A Ti"
+    }
+  },
+  "gustavo cerati": {
+    "artist": "Gustavo Cerati",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Ahí Vamos"
+    }
+  },
+  "hector el father wisin y yandel": {
+    "artist": "Hector El Father, Wisin Y Yandel",
+    "found_genre": "reggaeton",
+    "source": {
+      "deezer_genre_id": 122,
+      "album": "The Bad Boy"
+    }
+  },
+  "hector el torito acosta wisin y yandel": {
+    "artist": "Hector El Torito Acosta, Wisin Y Yandel",
+    "found_genre": "pop",
+    "source": null
+  },
+  "heleno": {
+    "artist": "Heleno",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 173,
+      "album": "The Essential Disney Collection"
+    }
+  },
+  "hugo del carril": {
+    "artist": "Hugo Del Carril",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 73,
+      "album": "Alma de tango"
+    }
+  },
+  "ilegales": {
+    "artist": "Ilegales",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Yo Fui El Elegante"
+    }
+  },
+  "inspector": {
+    "artist": "Inspector",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Midnight, Moonlight & Magic: The Very Best of Henry Mancini"
+    }
+  },
+  "ismael miranda": {
+    "artist": "Ismael Miranda",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Por el Buen Camino"
+    }
+  },
+  "ivan cornejo": {
+    "artist": "Ivan Cornejo",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "ÉXODO"
+    }
+  },
+  "ivy queen": {
+    "artist": "Ivy Queen",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Diva (Platinum Edition)"
+    }
+  },
+  "j balvin bad bunny": {
+    "artist": "J Balvin & Bad Bunny",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "OASIS"
+    }
+  },
+  "j balvin willy william": {
+    "artist": "J Balvin & Willy William",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Mi Gente"
+    }
+  },
+  "j balvin zion lennox": {
+    "artist": "J Balvin & Zion & Lennox",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Otra Vez (feat. J Balvin)"
+    }
+  },
+  "j balvin farruko": {
+    "artist": "J. Balvin & Farruko",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "La Familia"
+    }
+  },
+  "j balvin": {
+    "artist": "J. Balvin",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "OASIS"
+    }
+  },
+  "jaci velasquez": {
+    "artist": "Jaci Velasquez",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "El Ultimo Adiós"
+    }
+  },
+  "jennifer peña": {
+    "artist": "Jennifer Peña",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Hasta el fin del mundo (Edición especial)"
+    }
+  },
+  "jerry rivera": {
+    "artist": "Jerry Rivera",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Leyendas: Salsa Romántica"
+    }
+  },
+  "jesse joy mario domm": {
+    "artist": "Jesse & Joy, Mario Domm",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "¿Con Quién Se Queda El Perro? (Deluxe)"
+    }
+  },
+  "jhay cortez j balvin bad bunny": {
+    "artist": "Jhay Cortez, J Balvin & Bad Bunny",
+    "found_genre": "pop",
+    "source": null
+  },
+  "joan manuel serrat": {
+    "artist": "Joan Manuel Serrat",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Serrat En Directo"
+    }
+  },
+  "johnny rivera": {
+    "artist": "Johnny Rivera",
+    "found_genre": "cumbia",
+    "source": {
+      "deezer_genre_id": 67,
+      "album": "Salsa Mix"
+    }
+  },
+  "jon secada": {
+    "artist": "Jon Secada",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "El Ultimo Adiós"
+    }
+  },
+  "jorge luis cabrera": {
+    "artist": "Jorge Luis Cabrera",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Música Romántica"
+    }
+  },
+  "jorge negrete": {
+    "artist": "Jorge Negrete",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Jorge Negrete. Sus 40 Grandes Canciones (1911-1953)"
+    }
+  },
+  "josh groban": {
+    "artist": "Josh Groban",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "The Polar Express (Original Motion Picture Soundtrack) (Special Edition)"
+    }
+  },
+  "juan bau": {
+    "artist": "Juan Bau",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Serrat En Directo"
+    }
+  },
+  "juan luis guerra diego torres": {
+    "artist": "Juan Luis Guerra & Diego Torres",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Todos Exitos"
+    }
+  },
+  "juan magan belinda": {
+    "artist": "Juan Magan & Belinda",
+    "found_genre": "electronica",
+    "source": {
+      "deezer_genre_id": 106,
+      "album": "Te Voy A Esperar (feat. Belinda)"
+    }
+  },
+  "juan valentin": {
+    "artist": "Juan Valentin",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "VALENTINO MERLO / Enganchado En Vivo en LA JUNTADA DE LOS ARTISTAS"
+    }
+  },
+  "juanes nelly furtado": {
+    "artist": "Juanes & Nelly Furtado",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Un Día Normal"
+    }
+  },
+  "julieta venegas coti paulina rubio": {
+    "artist": "Julieta Venegas, Coti & Paulina Rubio",
+    "found_genre": "pop",
+    "source": null
+  },
+  "julio miranda": {
+    "artist": "Julio Miranda",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "20 Éxitos De Julio Miranda"
+    }
+  },
+  "julio preciado": {
+    "artist": "Julio Preciado",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 58,
+      "album": "Como Este Loco"
+    }
+  },
+  "jyve v": {
+    "artist": "Jyve V",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "15 De Coleccion"
+    }
+  },
+  "karol g bad bunny": {
+    "artist": "KAROL G & Bad Bunny",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Ahora Me Llama"
+    }
+  },
+  "karol g mariah angeliq": {
+    "artist": "KAROL G & Mariah Angeliq",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "KG0516"
+    }
+  },
+  "karol g nicky minaj": {
+    "artist": "KAROL G & Nicky Minaj",
+    "found_genre": "pop",
+    "source": null
+  },
+  "karol g": {
+    "artist": "KAROL G",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Si Antes Te Hubiera Conocido"
+    }
+  },
+  "kany garcia": {
+    "artist": "Kany Garcia",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Te Lo Agradezco"
+    }
+  },
+  "karol g ovy on the drums": {
+    "artist": "Karol G & Ovy on the Drums",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "MAÑANA SERÁ BONITO"
+    }
+  },
+  "king clave": {
+    "artist": "King Clave",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Canciones Cristianas Vol.1"
+    }
+  },
+  "la 5 estacion": {
+    "artist": "La 5ª Estacion",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Flores De Alquiler"
+    }
+  },
+  "la arrolladora banda el limon de rene camacho": {
+    "artist": "La Arrolladora Banda El Limon De Rene Camacho",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Gracias Por Creer"
+    }
+  },
+  "la bella y la bestia": {
+    "artist": "La Bella Y La Bestia (Pelicula)",
+    "found_genre": "pop",
+    "source": null
+  },
+  "la factoria": {
+    "artist": "La Factoria",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Nuevas Metas"
+    }
+  },
+  "la ley": {
+    "artist": "La Ley",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 85,
+      "album": "Deezer Sessions"
+    }
+  },
+  "la lupe": {
+    "artist": "La Lupe",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "La Vida del Artista"
+    }
+  },
+  "la mafia": {
+    "artist": "La Mafia",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Vida De Artista"
+    }
+  },
+  "la mosca tse tse": {
+    "artist": "La Mosca Tse-Tse",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "Thryloi Tou Dimotikou Tragoudiou"
+    }
+  },
+  "la nueva banda timbiriche": {
+    "artist": "La Nueva Banda Timbiriche",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "La Nueva Banda Timbiriche"
+    }
+  },
+  "la secta all star": {
+    "artist": "La Secta All Star",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Lo Mejor Del '95 Boom, Vol. 3"
+    }
+  },
+  "lara fabian": {
+    "artist": "Lara Fabian",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Je suis là"
+    }
+  },
+  "lele pons": {
+    "artist": "Lele Pons",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Se Te Nota"
+    }
+  },
+  "leo marini": {
+    "artist": "Leo Marini",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Reminiscencias"
+    }
+  },
+  "libido": {
+    "artist": "Libido",
+    "found_genre": "electronica",
+    "source": {
+      "deezer_genre_id": 106,
+      "album": "Ruszaj się maleńka"
+    }
+  },
+  "lola": {
+    "artist": "Lola",
+    "found_genre": "balada",
+    "source": {
+      "deezer_genre_id": 129,
+      "album": "Artist Block: Reprise"
+    }
+  },
+  "los abuelos de la nada": {
+    "artist": "Los Abuelos De La Nada",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Oro (Grandes Éxitos)"
+    }
+  },
+  "los angeles azules ft natalia lacourcade": {
+    "artist": "Los Angeles Azules ft. Natalia Lacourcade",
+    "found_genre": "pop",
+    "source": null
+  },
+  "los astros": {
+    "artist": "Los Astros",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Tributo a Selena y Kumbia KIngs"
+    }
+  },
+  "los autenticos decadentes": {
+    "artist": "Los Autenticos Decadentes",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Los Reyes de la Canción"
+    }
+  },
+  "los cadetes de linares": {
+    "artist": "Los Cadetes De Linares",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "4 Decadas de Exitos"
+    }
+  },
+  "los chicanos": {
+    "artist": "Los Chicanos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 58,
+      "album": "Tesoros De Coleccion - Los Chicanos"
+    }
+  },
+  "los doltons": {
+    "artist": "Los Doltons",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Siempre...Los Doltons"
+    }
+  },
+  "los fabulosos cadillacs": {
+    "artist": "Los Fabulosos Cadillacs",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "La Reina Y Sus Amigos"
+    }
+  },
+  "los fantasmas del caribe": {
+    "artist": "Los Fantasmas Del Caribe",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Lo Mejor de Los Fantasmas del caribe"
+    }
+  },
+  "los felinos": {
+    "artist": "Los Felinos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Los Felinos"
+    }
+  },
+  "los galos": {
+    "artist": "Los Galos",
+    "found_genre": "cumbia",
+    "source": {
+      "deezer_genre_id": 71,
+      "album": "30 y Pico: Una Lagrima y un Recuerdo / Quizás Quizás / Hipocresía / Puerto Montt / Mi Corazón Te Extraña / Una Noche Como Esta"
+    }
+  },
+  "los humildes": {
+    "artist": "Los Humildes",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Mis Favoritas"
+    }
+  },
+  "los huracanes del norte": {
+    "artist": "Los Huracanes Del Norte",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "15 Super Exitos"
+    }
+  },
+  "los iracundos": {
+    "artist": "Los Iracundos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Serie Platino"
+    }
+  },
+  "los modulos": {
+    "artist": "Los Modulos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Módulos & Los Iberos 30 Años Después"
+    }
+  },
+  "los morochucos": {
+    "artist": "Los Morochucos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Los Morochucos"
+    }
+  },
+  "los pasteles verdes": {
+    "artist": "Los Pasteles Verdes",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Recuerdos de una Noche"
+    }
+  },
+  "los pericos": {
+    "artist": "Los Pericos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Coleccion Suprema"
+    }
+  },
+  "los prisioneros": {
+    "artist": "Los Prisioneros",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Corazones"
+    }
+  },
+  "los rebeldes del rock": {
+    "artist": "Los Rebeldes Del Rock",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "La Hiedra Venenosa"
+    }
+  },
+  "los solitarios": {
+    "artist": "Los Solitarios",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "25 Exitos"
+    }
+  },
+  "los teen tops": {
+    "artist": "Los Teen Tops",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Serie De Colección 16 Autenticos Exitos"
+    }
+  },
+  "lucero": {
+    "artist": "Lucero",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 75,
+      "album": "Escafandristas Cantam Buarque"
+    }
+  },
+  "lucha reyes": {
+    "artist": "Lucha Reyes",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "Lucha Reyes Le Canta a Augusto Polo Campos"
+    }
+  },
+  "luis fonsi ft daddy yankee": {
+    "artist": "Luis Fonsi ft. Daddy Yankee",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "VIDA"
+    }
+  },
+  "luis fonsi david bisbal amigos": {
+    "artist": "Luis Fonsi, David Bisbal & Amigos",
+    "found_genre": "pop",
+    "source": null
+  },
+  "luis santiago": {
+    "artist": "Luis Santiago",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "40... y Contando (En Vivo Desde Puerto Rico)"
+    }
+  },
+  "lunay daddy yankee bad bunny": {
+    "artist": "Lunay, Daddy Yankee & Bad Bunny",
+    "found_genre": "pop",
+    "source": null
+  },
+  "lupita d alessio": {
+    "artist": "Lupita D'alessio",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Colección de Oro"
+    }
+  },
+  "mdo": {
+    "artist": "MDO",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 75,
+      "album": "Festinha de Artista"
+    }
+  },
+  "mach daddy": {
+    "artist": "Mach & Daddy",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Desde Abajo"
+    }
+  },
+  "magneto": {
+    "artist": "Magneto",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Vuela Vuela"
+    }
+  },
+  "maldita vecindad": {
+    "artist": "Maldita Vecindad",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "El Circo"
+    }
+  },
+  "maluma nego do borel": {
+    "artist": "Maluma & Nego Do Borel",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "F.A.M.E."
+    }
+  },
+  "maluma": {
+    "artist": "Maluma",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Sentimiento de un Artista"
+    }
+  },
+  "mambru": {
+    "artist": "Mambru",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "EL REGIDOR QUE RESUELVE"
+    }
+  },
+  "mana prince royce": {
+    "artist": "Mana & Prince Royce",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Drama Y Luz Edición Deluxe"
+    }
+  },
+  "mana ruben blades": {
+    "artist": "Mana & Ruben Blades",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Revolución De Amor"
+    }
+  },
+  "mana shakira": {
+    "artist": "Mana & Shakira",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Mi Verdad (feat. Shakira)"
+    }
+  },
+  "mana zucchero": {
+    "artist": "Mana & Zucchero",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "ZU & Co."
+    }
+  },
+  "manolo galvan": {
+    "artist": "Manolo Galvan",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "20 Secretos de Amor - Manolo Galván"
+    }
+  },
+  "manolo muñoz": {
+    "artist": "Manolo Muñoz",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Rock, Balada y Sentimiento, Vol. I"
+    }
+  },
+  "manuel mijares": {
+    "artist": "Manuel Mijares",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Uno Entre Mil"
+    }
+  },
+  "manuel turizo ozuna": {
+    "artist": "Manuel Turizo & Ozuna",
+    "found_genre": "cumbia",
+    "source": {
+      "deezer_genre_id": 71,
+      "album": "Puñaladas (Remix)"
+    }
+  },
+  "manuela torres": {
+    "artist": "Manuela Torres",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Los Mejores Covers: Hasta que te conocí vi la vida con dolor"
+    }
+  },
+  "marc anthony jennifer lopez": {
+    "artist": "Marc Anthony & Jennifer Lopez",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Almost Like Praying (feat. Artists for Puerto Rico) (Salsa Remix)"
+    }
+  },
+  "marc anthony la india": {
+    "artist": "Marc Anthony & La India",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Ese Hombre (Baile Total)"
+    }
+  },
+  "marc anthony pitbull": {
+    "artist": "Marc Anthony & Pitbull",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Planet Pit"
+    }
+  },
+  "marco antonio muñiz": {
+    "artist": "Marco Antonio Muñiz",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 524,
+      "album": "El Príncipe de la Canción"
+    }
+  },
+  "marcos witt funky": {
+    "artist": "Marcos Witt & Funky",
+    "found_genre": "balada",
+    "source": {
+      "deezer_genre_id": 186,
+      "album": "Dios es Bueno (En Vivo)"
+    }
+  },
+  "marcos witt": {
+    "artist": "Marcos Witt",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Sobrenatural"
+    }
+  },
+  "mariachi vargas": {
+    "artist": "Mariachi Vargas",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "De Corazón Mexicano"
+    }
+  },
+  "mario quintero": {
+    "artist": "Mario Quintero",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Baladas para Enamorados"
+    }
+  },
+  "massimo ranieri": {
+    "artist": "Massimo Ranieri",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Rose Rosse"
+    }
+  },
+  "mau y ricky manuel turizo camilo": {
+    "artist": "Mau Y Ricky, Manuel Turizo & Camilo",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Desconocidos"
+    }
+  },
+  "mayte montenegro": {
+    "artist": "Mayte Montenegro",
+    "found_genre": "pop",
+    "source": null
+  },
+  "mazz": {
+    "artist": "Mazz",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "Le canzoni che hanno fatto l'Italia"
+    }
+  },
+  "mecano": {
+    "artist": "Mecano",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Autiste"
+    }
+  },
+  "menudo": {
+    "artist": "Menudo",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 464,
+      "album": "Analhu Akbar"
+    }
+  },
+  "miguel mateos": {
+    "artist": "Miguel Mateos",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Solos en América"
+    }
+  },
+  "miguel rios": {
+    "artist": "Miguel Rios",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Rocanrol Bumerang"
+    }
+  },
+  "mijares lucero": {
+    "artist": "Mijares & Lucero",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "El Privilegio De Amar"
+    }
+  },
+  "millie": {
+    "artist": "Millie",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "G+Jus"
+    }
+  },
+  "monsieur perine": {
+    "artist": "Monsieur Perine",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Encanto Tropical (UA Apollo Artist Session)"
+    }
+  },
+  "myke towers": {
+    "artist": "Myke Towers",
+    "found_genre": "reggaeton",
+    "source": {
+      "deezer_genre_id": 122,
+      "album": "La Forma en Que Me Miras"
+    }
+  },
+  "myriam hernandez": {
+    "artist": "Myriam Hernandez",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Los Romanticos- Myriam Hernandez"
+    }
+  },
+  "nsync": {
+    "artist": "NSYNC",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "No Strings Attached"
+    }
+  },
+  "napoleon": {
+    "artist": "Napoleon",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Vive"
+    }
+  },
+  "natalia jimenez": {
+    "artist": "Natalia Jimenez",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Creo en Mi"
+    }
+  },
+  "natusha": {
+    "artist": "Natusha",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Grandes Éxitos"
+    }
+  },
+  "nelson ned": {
+    "artist": "Nelson Ned",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Antologia (Volumen 2)"
+    }
+  },
+  "nelson pinedo": {
+    "artist": "Nelson Pinedo",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "¿Quién Será?"
+    }
+  },
+  "nicky jam enrique iglesias": {
+    "artist": "Nicky Jam & Enrique Iglesias",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Fénix"
+    }
+  },
+  "nicola di bari": {
+    "artist": "Nicola Di Bari",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Canta En Español (Remastered)"
+    }
+  },
+  "nilton cesar": {
+    "artist": "Nilton Cesar",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 75,
+      "album": "Nilton César en Castellano"
+    }
+  },
+  "nino bravo": {
+    "artist": "Nino Bravo",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Super 20"
+    }
+  },
+  "noelia": {
+    "artist": "Noelia",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Noelia"
+    }
+  },
+  "orlando contreras": {
+    "artist": "Orlando Contreras",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Dolor De Hombre"
+    }
+  },
+  "ozuna cardi b": {
+    "artist": "Ozuna & Cardi B",
+    "found_genre": "reggaeton",
+    "source": {
+      "deezer_genre_id": 122,
+      "album": "Aura"
+    }
+  },
+  "ozuna romeo santos": {
+    "artist": "Ozuna & Romeo Santos",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Golden"
+    }
+  },
+  "ozuna": {
+    "artist": "Ozuna",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Diles"
+    }
+  },
+  "pablo montero": {
+    "artist": "Pablo Montero",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Pídemelo Todo"
+    }
+  },
+  "palito ortega": {
+    "artist": "Palito Ortega",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Prometimos No Llorar Vestida de Novia"
+    }
+  },
+  "paloma san basilio": {
+    "artist": "Paloma San Basilio",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "La Música Es Mi Vida - 30 Grandes Canciones"
+    }
+  },
+  "palomo": {
+    "artist": "Palomo",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 85,
+      "album": "Deezer Sessions"
+    }
+  },
+  "party tyme": {
+    "artist": "Party Tyme Karaoke",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "Party Tyme 220 (Spanish Karaoke Versions)"
+    }
+  },
+  "pedro capo farruko": {
+    "artist": "Pedro Capo & Farruko",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Calma (Remix)"
+    }
+  },
+  "pedro infante": {
+    "artist": "Pedro Infante",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Cien años... pensando en ti (Deluxe)"
+    }
+  },
+  "piero": {
+    "artist": "Piero",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "L'essentiel"
+    }
+  },
+  "pilar montenegro": {
+    "artist": "Pilar Montenegro",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Reinas Mexicanas"
+    }
+  },
+  "proyecto uno": {
+    "artist": "Proyecto Uno",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "El Poder de la Música"
+    }
+  },
+  "rafaga": {
+    "artist": "Rafaga",
+    "found_genre": "cumbia",
+    "source": {
+      "deezer_genre_id": 71,
+      "album": "Latin Cumbia Fever"
+    }
+  },
+  "rakim ken y don omar": {
+    "artist": "Rakim & Ken Y, Don Omar",
+    "found_genre": "pop",
+    "source": null
+  },
+  "ramon ayala": {
+    "artist": "Ramon Ayala",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Rinconcito En El Cielo"
+    }
+  },
+  "raphael": {
+    "artist": "Raphael",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Nocturne"
+    }
+  },
+  "rata blanca": {
+    "artist": "Rata Blanca",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Magos, Espadas Y Rosas"
+    }
+  },
+  "rauw alejandro camilo": {
+    "artist": "Rauw Alejandro & Camilo",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Tattoo Remix with Camilo"
+    }
+  },
+  "raymix": {
+    "artist": "Raymix",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Oye Mujer"
+    }
+  },
+  "reik maluma": {
+    "artist": "Reik & Maluma",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Ahora"
+    }
+  },
+  "rene gonzalez": {
+    "artist": "Rene Gonzalez",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 85,
+      "album": "Colaxe"
+    }
+  },
+  "ricardo montaner alessandra": {
+    "artist": "Ricardo Montaner & Alessandra",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Álter Ego"
+    }
+  },
+  "ricardo montaner michelle": {
+    "artist": "Ricardo Montaner & Michelle",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 173,
+      "album": "Aladdín (Edición Especial/Banda Sonora Original en Español)"
+    }
+  },
+  "ricky martin yotuel": {
+    "artist": "Ricky Martin & Yotuel",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "A Quien Quiera Escuchar Deluxe Edition"
+    }
+  },
+  "ricky martin ft maluma": {
+    "artist": "Ricky Martin ft. Maluma",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Vente Pa' Ca (feat. Maluma)"
+    }
+  },
+  "rocio jurado": {
+    "artist": "Rocio Jurado",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Los Grandes Exitos"
+    }
+  },
+  "rolando laserie": {
+    "artist": "Rolando Laserie",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Todo el Tiempo... (Remasterizado Digitalmente Digital Remaster 2000)"
+    }
+  },
+  "rosana": {
+    "artist": "Rosana",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Lunas rotas"
+    }
+  },
+  "rosario": {
+    "artist": "Rosario",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Mi Princesa"
+    }
+  },
+  "rudy la scala": {
+    "artist": "Rudy La Scala",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Por Que Sera"
+    }
+  },
+  "sabu": {
+    "artist": "Sabu",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Mi Viejo"
+    }
+  },
+  "samuel hernandez": {
+    "artist": "Samuel Hernandez",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Samuel Hernández: 20 Años Éxitos"
+    }
+  },
+  "sandro": {
+    "artist": "Sandro",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Essencia - Musique Brésilienne"
+    }
+  },
+  "santana mana": {
+    "artist": "Santana & Mana",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Ultimate Santana"
+    }
+  },
+  "sebastian yatra encanto": {
+    "artist": "Sebastian Yatra 'Encanto'",
+    "found_genre": "pop",
+    "source": null
+  },
+  "sebastian yatra": {
+    "artist": "Sebastian Yatra",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Tacones Rojos"
+    }
+  },
+  "sech ft darrell": {
+    "artist": "Sech ft. Darrell",
+    "found_genre": "pop",
+    "source": null
+  },
+  "selena barrio boyzz": {
+    "artist": "Selena & Barrio Boyzz",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Lo Mejor De…"
+    }
+  },
+  "sie7e": {
+    "artist": "Sie7e",
+    "found_genre": "cumbia",
+    "source": {
+      "deezer_genre_id": 71,
+      "album": "Session #25"
+    }
+  },
+  "silvana di lorenzo": {
+    "artist": "Silvana Di Lorenzo",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Souvenirs"
+    }
+  },
+  "soraya": {
+    "artist": "Soraya",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Gold"
+    }
+  },
+  "spanish": {
+    "artist": "Spanish",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Spreading Wings: Music for Massage, Meditation, Relaxation, Healing, Spa"
+    }
+  },
+  "sui generis": {
+    "artist": "Sui Generis",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Vida"
+    }
+  },
+  "tainy anuel aa ozuna": {
+    "artist": "Tainy, Anuel AA & Ozuna",
+    "found_genre": "pop",
+    "source": null
+  },
+  "tango": {
+    "artist": "Tango",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Latin House"
+    }
+  },
+  "teen angels": {
+    "artist": "Teen Angels (Casi Angeles)",
+    "found_genre": "pop",
+    "source": null
+  },
+  "thalia ft maluma": {
+    "artist": "Thalia ft. Maluma",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Latina"
+    }
+  },
+  "the sacados": {
+    "artist": "The Sacados",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Asunto Chino"
+    }
+  },
+  "tito rodriguez": {
+    "artist": "Tito Rodriguez",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Homenaje A Beny Moré"
+    }
+  },
+  "toy story": {
+    "artist": "Toy Story (Pelicula)",
+    "found_genre": "pop",
+    "source": null
+  },
+  "tradicional": {
+    "artist": "Tradicional",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Thailande - Danses"
+    }
+  },
+  "trio los condes": {
+    "artist": "Trio Los Condes",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Canciones Yucatecas"
+    }
+  },
+  "ulices chaidez y sus pueblos": {
+    "artist": "Ulices Chaidez Y Sus Pueblos",
+    "found_genre": "pop",
+    "source": null
+  },
+  "vagon chicano": {
+    "artist": "Vagon Chicano",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "20 Reales Super Exitos"
+    }
+  },
+  "victor manuelle sin bandera": {
+    "artist": "Victor Manuelle & Sin Bandera",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 197,
+      "album": "Live At Madison Square Garden"
+    }
+  },
+  "victor yturbe el piruli": {
+    "artist": "Victor Yturbe 'El Piruli'",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Serie 32"
+    }
+  },
+  "vikki carr": {
+    "artist": "Vikki Carr",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Doo Wop Heaven"
+    }
+  },
+  "violetta": {
+    "artist": "Violetta",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": -1,
+      "album": "Intelligence Artisanale"
+    }
+  },
+  "virus": {
+    "artist": "Virus",
+    "found_genre": "rock",
+    "source": {
+      "deezer_genre_id": 152,
+      "album": "Locura"
+    }
+  },
+  "wisin ozuna": {
+    "artist": "Wisin & Ozuna",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Victory"
+    }
+  },
+  "wisin prince royce": {
+    "artist": "Wisin & Prince Royce",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Tu Libertad (feat. Prince Royce)"
+    }
+  },
+  "wisin yandel rosalia": {
+    "artist": "Wisin & Yandel, Rosalia",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "La Última Misión"
+    }
+  },
+  "wisin y yandel": {
+    "artist": "Wisin Y Yandel",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 116,
+      "album": "Pa'l Mundo"
+    }
+  },
+  "wisin y yandel don omar": {
+    "artist": "Wisin Y Yandel, Don Omar",
+    "found_genre": "reggaeton",
+    "source": {
+      "deezer_genre_id": 122,
+      "album": "Los Bandoleros Reloaded"
+    }
+  },
+  "wisin y yandel franco de vita": {
+    "artist": "Wisin Y Yandel, Franco De Vita",
+    "found_genre": "reggaeton",
+    "source": {
+      "deezer_genre_id": 122,
+      "album": "Los Extraterrestres - Otra Dimension"
+    }
+  },
+  "yolanda be cool dcup": {
+    "artist": "Yolanda Be Cool & Dcup",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 132,
+      "album": "Whisky & Soda & Rock 'N' Roll"
+    }
+  },
+  "yolanda del rio": {
+    "artist": "Yolanda Del Rio",
+    "found_genre": "pop",
+    "source": {
+      "deezer_genre_id": 512,
+      "album": "La Hija De Nadie"
+    }
+  },
+  "yonic s": {
+    "artist": "Yonic's",
+    "found_genre": "banda",
+    "source": {
+      "deezer_genre_id": 65,
+      "album": "Íconos 25 Éxitos"
+    }
+  }
+}
