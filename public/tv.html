@@ -4042,23 +4042,27 @@ function startKaraoke(player, song) {
       };
 
       if (song && song.url) {
-        video.src = song.url;
-        video.muted = true;
-        
         if (typeof bootMusic !== 'undefined' && bootMusic) bootMusic.pause();
         
-        video.play().then(() => {
-          if (myGeneration !== karaokeGeneration) return;
-          const unmuteWhenReady = setInterval(() => {
-            if (myGeneration !== karaokeGeneration || !currentAxoloAudio) {
-              clearInterval(unmuteWhenReady);
-              video.muted = false;
-            }
-          }, 200);
-        }).catch(e => {
-          console.warn("Autoplay block or explicit play failed:", e);
-          if (!timerInterval) startKaraokeTimer(null, song);
-        });
+        video.muted = true;
+        
+        fetch('/api/video-url?id=' + encodeURIComponent(song.id))
+          .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(data => { video.src = data.url || song.url; return video.play(); })
+          .catch(() => { video.src = song.url; return video.play(); })
+          .then(() => {
+            if (myGeneration !== karaokeGeneration) return;
+            const unmuteWhenReady = setInterval(() => {
+              if (myGeneration !== karaokeGeneration || !currentAxoloAudio) {
+                clearInterval(unmuteWhenReady);
+                video.muted = false;
+              }
+            }, 200);
+          })
+          .catch(e => {
+            console.warn("Autoplay block or explicit play failed:", e);
+            if (!timerInterval) startKaraokeTimer(null, song);
+          });
       } else {
         startKaraokeTimer(null, song || { duration: 120 });
       }

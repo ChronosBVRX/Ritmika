@@ -17,6 +17,25 @@ const fs = require('fs');
 const internalIp = require('internal-ip');
 require('dotenv').config();
 
+// ── Cloudflare R2 client (presigned URLs) ─────────────────────
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+let r2Client = null;
+function getR2Client() {
+  if (!r2Client && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY) {
+    r2Client = new S3Client({
+      region: 'auto',
+      endpoint: process.env.R2_ENDPOINT || 'https://3bb6544fbc15f95620470c922b1a0dfe.r2.cloudflarestorage.com',
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+      },
+    });
+    console.log('[R2] Client initialized for presigned URLs');
+  }
+  return r2Client;
+}
+
 let renderHostname = '';
 if (process.env.RENDER_EXTERNAL_URL) {
   try {
@@ -200,7 +219,54 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ── Presigned URL for R2 video (proxy alternativo sin estrés) ──
+const urlReqCount = new Map();
+app.get('/api/video-url', async (req, res) => {
+  const origin = req.headers.origin;
+  if (!isLocalOrigin(origin)) return res.status(403).json({ error: 'CORS not allowed' });
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
 
+  const songId = req.query.id;
+  if (!songId || typeof songId !== 'string') {
+    return res.status(400).json({ error: 'Missing or invalid song id' });
+  }
+
+  // Rate limiting: 30 requests/min por IP
+  const ip = req.ip || req.connection?.remoteAddress || '?';
+  const count = (urlReqCount.get(ip) || 0) + 1;
+  urlReqCount.set(ip, count);
+  setTimeout(() => { const c = urlReqCount.get(ip); if (c && c > 0) urlReqCount.set(ip, c - 1); }, 60000);
+  if (count > 30) return res.status(429).json({ error: 'Too many requests. Slow down.' });
+
+  // Find song in database
+  const song = songDatabase.find(s => s.id === songId);
+  if (!song) return res.status(404).json({ error: 'Song not found' });
+
+  // Extract filename from the R2 URL
+  // URL format: "https://media.pixelhub.party/Artist - Title.mp4"
+  try {
+    const urlPath = new URL(song.url).pathname; // "/Artist - Title.mp4"
+    const filename = decodeURIComponent(urlPath.slice(1)); // remove leading "/"
+
+    const client = getR2Client();
+    if (!client) {
+      // Fallback: serve public URL (bucket is public)
+      return res.json({ url: song.url, expiresIn: 0, note: 'public' });
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: 'ritmika',
+      Key: filename,
+    });
+
+    const presignedUrl = await getSignedUrl(client, command, { expiresIn: 1800 });
+    res.json({ url: presignedUrl, expiresIn: 1800 });
+  } catch (err) {
+    console.error('[R2] Error generating presigned URL:', err.message);
+    // Fallback to public URL if bucket is still public
+    res.json({ url: song.url, expiresIn: 0, note: 'fallback-public' });
+  }
+});
 
 // ── Estado mínimo del servidor (solo metadatos de sala) ──────
 /**
