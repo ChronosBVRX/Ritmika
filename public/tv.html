@@ -2029,6 +2029,13 @@ const boot = {
       startBtn.remove();
       if (banner) banner.classList.remove('show');
       _resumeAudioContext();
+      
+      // Unlock HTML5 Audio globally using a silent 1ms WAV file
+      try {
+        const unlockAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+        unlockAudio.play().catch(()=>{});
+      } catch(e) {}
+
       if (typeof bootMusic !== 'undefined' && bootMusic) bootMusic.play().catch(()=>{});
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(()=>{});
