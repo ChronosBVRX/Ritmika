@@ -2000,12 +2000,16 @@ const boot = {
     }
     const allDone = Object.values(this.steps).every(v => v);
     if (!allDone) return;
-    const banner = document.getElementById('boot-done');
     const screen = document.getElementById('bootloader-screen');
+    if (screen && screen.style.display === 'none') return;
+    if (document.getElementById('start-show-btn')) return;
+
+    const banner = document.getElementById('boot-done');
     const lobby = document.getElementById('lobby-screen');
     if (banner) banner.classList.add('show');
     
     const startBtn = document.createElement('button');
+    startBtn.id = 'start-show-btn';
     startBtn.className = 'jb-yellow font-paytone text-3xl px-12 py-4 mt-8 mx-auto block jb-card';
     startBtn.style.cursor = 'pointer';
     startBtn.style.position = 'relative';
