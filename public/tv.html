@@ -1283,6 +1283,11 @@
 </head>
 
 <body class="scanlines party-bg">
+<div id="pre-boot-screen" style="position:fixed; inset:0; z-index:9999999; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#0f172a;">
+  <img src="./assets/tio_axolo_body.png" style="width:250px; margin-bottom:40px; filter: drop-shadow(0 0 20px rgba(0,229,255,0.5));" />
+  <button id="enter-ritmika-btn" class="jb-yellow font-paytone text-4xl px-12 py-6 jb-card" style="cursor:pointer; position:relative; z-index:10; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">ENTRAR A RITMIKA</button>
+</div>
+
 <canvas id="particles-canvas"></canvas>
 <div id="catalog-status">📀 Cargando catálogo...</div>
 
@@ -2226,10 +2231,34 @@ function _setupFirstInteraction() {
 
 document.addEventListener('DOMContentLoaded', () => {
   bootMusic = document.getElementById('boot-music');
-  if (bootMusic) bootMusic.volume = 0.4;
-  const bootVideo = document.getElementById('boot-canvas-bg');
-  // El Canvas y GSAP se inician solos desde bootloader.js
-  _setupFirstInteraction();
+  const preBootScreen = document.getElementById('pre-boot-screen');
+  const enterBtn = document.getElementById('enter-ritmika-btn');
+
+  if (preBootScreen && enterBtn) {
+    enterBtn.onclick = () => {
+      _resumeAudioContext();
+      try {
+        const unlockAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+        unlockAudio.play().catch(()=>{});
+      } catch(e) {}
+      
+      preBootScreen.style.display = 'none';
+      if (bootMusic) {
+        bootMusic.volume = 0.4;
+        bootMusic.play().catch(()=>{});
+      }
+      _setupFirstInteraction();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(()=>{});
+      }
+    };
+  } else {
+    if (bootMusic) {
+      bootMusic.volume = 0.4;
+      bootMusic.play().catch(()=>{});
+    }
+    _setupFirstInteraction();
+  }
 });
 
 async function loadCatalog(retries = 3) {
