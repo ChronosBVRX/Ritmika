@@ -18,11 +18,29 @@ const { spawn } = require('child_process');
 const internalIp = require('internal-ip');
 require('dotenv').config();
 
+let renderHostname = '';
+if (process.env.RENDER_EXTERNAL_URL) {
+  try {
+    renderHostname = new URL(process.env.RENDER_EXTERNAL_URL).hostname;
+  } catch (e) {}
+}
+
 function isLocalOrigin(origin) {
   if (!origin) return true;
   try {
     const url = new URL(origin);
     const hostname = url.hostname;
+    
+    // Allow Render external URL
+    if (renderHostname && hostname === renderHostname) {
+      return true;
+    }
+    
+    // Allow any .onrender.com subdomain
+    if (hostname.endsWith('.onrender.com')) {
+      return true;
+    }
+
     return hostname === 'localhost' || 
            hostname === '127.0.0.1' || 
            hostname.startsWith('192.168.') || 
