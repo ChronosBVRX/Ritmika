@@ -1298,7 +1298,7 @@
   <div style="position:relative; z-index:10; display:flex; flex-direction:column; align-items:center; animation: popIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);">
     <img src="./assets/logo_ritmika_hd.webp" style="width:450px; margin-bottom:50px; filter: drop-shadow(0 10px 25px rgba(0,229,255,0.6)); animation: floatAxolo 4s ease-in-out infinite;" />
     
-    <button id="enter-ritmika-btn" class="font-paytone" style="
+    <button id="enter-ritmika-btn" class="font-paytone" tabindex="0" style="
       background-color: #ffe600;
       color: #111827;
       font-size: 2.5rem;
@@ -1392,7 +1392,7 @@
     </div>
     
     <div class="boot-done-banner" id="boot-done">¡TODO LISTO!</div>
-    <button class="boot-retry-btn" id="boot-retry" onclick="location.reload()">🔄 Reintentar</button>
+    <button class="boot-retry-btn" id="boot-retry" tabindex="0" onclick="location.reload()">🔄 Reintentar</button>
   </div>
 </div>
 <!-- ══════════════════════════════════════════════════════════
@@ -1656,18 +1656,18 @@
           <p class="text-sm font-bold uppercase tracking-widest" style="color:#e9d5ff; text-shadow:0 0 10px rgba(168,85,247,0.6);">Partida guardada detectada</p>
           <p id="restore-players-count" class="text-xs font-semibold" style="color:#c084fc;"></p>
         </div>
-        <button id="btn-restore" class="px-4 py-2 rounded-xl font-black text-sm transition-all" style="background:#ffe600; color:#111827; border:none; cursor:pointer; box-shadow:0 0 20px rgba(255,230,0,0.4);"
+        <button id="btn-restore" tabindex="0" class="px-4 py-2 rounded-xl font-black text-sm transition-all" style="background:#ffe600; color:#111827; border:none; cursor:pointer; box-shadow:0 0 20px rgba(255,230,0,0.4);"
           onmouseover="this.style.transform='scale(1.05)';"
           onmouseout="this.style.transform='none';">
           RESTAURAR
         </button>
-        <button id="btn-dismiss-restore" class="px-3 py-2 rounded-xl font-bold text-xs transition-all" style="background:rgba(15,23,42,0.6); color:#cbd5e1; border:1px solid #475569; cursor:pointer;"
+        <button id="btn-dismiss-restore" tabindex="0" class="px-3 py-2 rounded-xl font-bold text-xs transition-all" style="background:rgba(15,23,42,0.6); color:#cbd5e1; border:1px solid #475569; cursor:pointer;"
           onmouseover="this.style.background='rgba(15,23,42,0.9)';"
           onmouseout="this.style.background='rgba(15,23,42,0.6)';">
           ✕
         </button>
       </div>
-      <button id="start-btn" class="hidden px-14 py-5 rounded-2xl text-2xl" style="font-family:'Paytone One',sans-serif; font-weight:900; letter-spacing:0.05em; background:linear-gradient(135deg, #ffe600, #f59e0b); color:#111827; border:4px solid #111827; cursor:pointer; box-shadow:0 0 40px rgba(255,230,0,0.5), 8px 8px 0px #111827; transition:transform 0.15s,box-shadow 0.15s,filter 0.3s; transform:rotate(1.2deg);"
+      <button id="start-btn" class="hidden px-14 py-5 rounded-2xl text-2xl" tabindex="0" style="font-family:'Paytone One',sans-serif; font-weight:900; letter-spacing:0.05em; background:linear-gradient(135deg, #ffe600, #f59e0b); color:#111827; border:4px solid #111827; cursor:pointer; box-shadow:0 0 40px rgba(255,230,0,0.5), 8px 8px 0px #111827; transition:transform 0.15s,box-shadow 0.15s,filter 0.3s; transform:rotate(1.2deg);"
         onmouseover="this.style.transform='scale(1.08) rotate(1.2deg)'; this.style.boxShadow='12px 12px 0px #111827, 0 0 60px rgba(255,230,0,0.6)';"
         onmouseout="this.style.transform='rotate(1.2deg)'; this.style.boxShadow='8px 8px 0px #111827, 0 0 40px rgba(255,230,0,0.5)';"
         onmousedown="this.style.transform='translate(4px,4px) rotate(1.2deg)'; this.style.boxShadow='2px 2px 0px #111827';">
@@ -1771,7 +1771,7 @@
             <text x="250" y="257" text-anchor="middle" dominant-baseline="middle" fill="#111827" font-size="28" font-weight="900">🎰</text>
           </svg>
         </div>
-        <button id="spin-btn">🎰 ¡Girar la Ruleta!</button>
+        <button id="spin-btn" tabindex="0">🎰 ¡Girar la Ruleta!</button>
       </div>
 
       <!-- RIGHT: Players list -->
@@ -1792,7 +1792,7 @@
           <p id="selected-song-info" class="text-sm font-bold" style="color:#1e293b;"></p>
         </div>
       </div>
-      <button id="go-karaoke-btn">🎤 ¡A cantar!</button>
+      <button id="go-karaoke-btn" tabindex="0">🎤 ¡A cantar!</button>
     </div>
 
   </div><!-- /roulette-inner -->
@@ -1862,7 +1862,7 @@
       <div class="p-8 rounded-3xl" style="background:#1e293b; border:2px solid #facc1566; min-width:500px; max-width:700px;">
         <h3 class="text-2xl font-black text-center mb-4" style="color:#facc15;">🗳️ Resultado de la votación</h3>
         <div id="score-results-list"></div>
-        <button id="continue-btn" class="mt-6 w-full py-3 rounded-xl font-black text-lg"
+        <button id="continue-btn" class="mt-6 w-full py-3 rounded-xl font-black text-lg" tabindex="0"
           style="background:linear-gradient(135deg,#ec4899,#a855f7); color:white; border:none; cursor:pointer;">
           Siguiente →
         </button>
@@ -1968,7 +1968,7 @@
     </div>
 
     <!-- Restart Button -->
-    <button id="restart-btn" class="px-10 py-3 rounded-xl font-black text-lg mt-2"
+    <button id="restart-btn" class="px-10 py-3 rounded-xl font-black text-lg mt-2" tabindex="0"
       style="background:linear-gradient(135deg,#ec4899,#a855f7); color:white; border:none; cursor:pointer; box-shadow:0 0 30px #ec489966; z-index:20;">
       🎮 Nueva Partida
     </button>
@@ -5684,14 +5684,17 @@ document.getElementById('btn-debug-skip-song').addEventListener('click', () => {
 });
 </script>
 
-<!-- D-Pad Navigation & Jackbox Button Events -->
+<!-- Unified Keyboard + Gamepad Controller System -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const initButtons = () => {
-    const buttons = document.querySelectorAll('.jackbox-button-sticker, .jackbox-button-arcade');
+    const sel = '.jackbox-button-sticker, .jackbox-button-arcade, ' +
+                '#spin-btn, #go-karaoke-btn, #continue-btn, #restart-btn, ' +
+                '#start-btn, #btn-restore, #btn-dismiss-restore';
+    const buttons = document.querySelectorAll(sel);
     
     buttons.forEach(btn => {
-      if(btn.dataset.jackboxInit) return; // Prevent double binding
+      if(btn.dataset.jackboxInit) return;
       btn.dataset.jackboxInit = 'true';
       
       btn.addEventListener('mouseenter', () => RitmikaStyleFX.popOutOnHover(btn));
@@ -5700,79 +5703,129 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('blur', () => RitmikaStyleFX.popInOnLeave(btn));
       
       btn.addEventListener('mousedown', () => { RitmikaStyleFX.punchOnPress(btn); if(window.UISounds) UISounds.playTone(600, 0.1); });
-      btn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          RitmikaStyleFX.punchOnPress(btn);
-          if(window.UISounds) UISounds.playTone(600, 0.1);
-        }
-      });
     });
   };
 
-  // Run once and on any DOM updates (if dynamic)
   initButtons();
   setTimeout(initButtons, 1000);
 
-  // D-Pad Logic
+  // ── Keyboard Navigation ────────────────────────────
+  function getFocusableElements(screen) {
+    return Array.from(screen.querySelectorAll(
+      'button:not([tabindex^="-"]), [tabindex="0"], a[href], input, select, textarea'
+    )).filter(el => {
+      if (el.classList.contains('hidden')) return false;
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && style.visibility !== 'hidden';
+    });
+  }
+
   document.addEventListener('keydown', (e) => {
     const activeScreen = document.querySelector('.tv-screen.active');
     if (!activeScreen) return;
 
+    const el = document.activeElement;
+
+    // Enter or Space on focused button → click it
+    if ((e.key === 'Enter' || e.key === ' ') && el && el !== document.body && el.tagName === 'BUTTON') {
+      e.preventDefault();
+      RitmikaStyleFX.punchOnPress(el);
+      if(window.UISounds) UISounds.playTone(600, 0.1);
+      el.click();
+      return;
+    }
+
+    // Escape → back from lobby
+    if (e.key === 'Escape' && activeScreen.id === 'lobby-screen') {
+      const backBtn = document.getElementById('btn-back-to-modes');
+      if (backBtn) { backBtn.click(); e.preventDefault(); }
+      return;
+    }
+
+    // Mode selection: special 2D layout
     if (activeScreen.id === 'mode-selection-screen') {
       const modeCards = Array.from(activeScreen.querySelectorAll('.mode-card'));
       const btnCrear = document.getElementById('btn-crear-sala-modo');
-      const activeEl = document.activeElement;
-      
-      const isCard = modeCards.includes(activeEl);
-      const isBtn = activeEl === btnCrear;
+      const isCard = modeCards.includes(el);
+      const isBtn = el === btnCrear;
 
-      // Handle uninitialized focus
-      if (!isCard && !isBtn && (e.key.startsWith('Arrow') || e.key === 'Enter')) {
-        const selected = activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`);
-        if (selected) selected.focus();
+      if (!isCard && !isBtn && e.key.startsWith('Arrow')) {
+        const sel = activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`);
+        (sel || modeCards[0]).focus();
         e.preventDefault();
         return;
       }
 
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-         if (isCard) {
-            let idx = modeCards.indexOf(activeEl);
-            idx = (idx + 1) % modeCards.length;
-            modeCards[idx].focus();
-            e.preventDefault();
-         }
+        if (isCard) {
+          let idx = modeCards.indexOf(el);
+          modeCards[(idx + 1) % modeCards.length].focus();
+          e.preventDefault();
+        }
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-         if (isBtn) {
-            const selected = activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`);
-            if (selected) selected.focus();
-            else modeCards[0].focus();
-            e.preventDefault();
-         } else if (isCard) {
-            let idx = modeCards.indexOf(activeEl);
-            idx = (idx - 1 + modeCards.length) % modeCards.length;
-            modeCards[idx].focus();
-            e.preventDefault();
-         }
+        if (isBtn) {
+          (activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`) || modeCards[0]).focus();
+          e.preventDefault();
+        } else if (isCard) {
+          let idx = modeCards.indexOf(el);
+          modeCards[(idx - 1 + modeCards.length) % modeCards.length].focus();
+          e.preventDefault();
+        }
       }
-      return; // Handled specially for this screen
+      return;
     }
 
-    // Default global fallback for other screens
-    const navItems = Array.from(activeScreen.querySelectorAll('.jackbox-button-sticker, .jackbox-button-arcade'));
-    if (navItems.length === 0) return;
-    
-    let currentFocus = navItems.indexOf(document.activeElement);
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      currentFocus = (currentFocus + 1) % navItems.length;
-      navItems[currentFocus].focus();
+    // Generic arrow navigation for all other screens
+    if (e.key.startsWith('Arrow')) {
       e.preventDefault();
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      if (currentFocus === -1) currentFocus = 0;
-      else currentFocus = (currentFocus - 1 + navItems.length) % navItems.length;
-      navItems[currentFocus].focus();
-      e.preventDefault();
+      const items = getFocusableElements(activeScreen);
+      if (items.length === 0) return;
+      let idx = items.indexOf(el);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        idx = (idx + 1) % items.length;
+      } else {
+        idx = (idx <= 0) ? items.length - 1 : idx - 1;
+      }
+      items[Math.max(0, idx)].focus();
     }
   });
+
+  // ── Gamepad Support ────────────────────────────────
+  const GAMEPAD_THROTTLE = 250;
+  let lastGamepadInput = 0;
+
+  window.addEventListener('gamepadconnected', () => { if (!window._gamepadPolling) { window._gamepadPolling = true; pollGamepad(); } });
+
+  function pollGamepad() {
+    const gamepads = navigator.getGamepads && navigator.getGamepads();
+    if (!gamepads) { window._gamepadPolling = false; return; }
+    const now = Date.now();
+    if (now - lastGamepadInput < GAMEPAD_THROTTLE) { requestAnimationFrame(pollGamepad); return; }
+
+    for (const gp of gamepads) {
+      if (!gp) continue;
+      const bA = gp.buttons[0], bB = gp.buttons[1], bStart = gp.buttons[9];
+      const du = gp.buttons[12], dd = gp.buttons[13], dl = gp.buttons[14], dr = gp.buttons[15];
+      const sx = gp.axes[0], sy = gp.axes[1];
+      const axisThresh = 0.5;
+      let key = null;
+
+      if (du && du.pressed) key = 'ArrowUp';
+      else if (dd && dd.pressed) key = 'ArrowDown';
+      else if (dl && dl.pressed) key = 'ArrowLeft';
+      else if (dr && dr.pressed) key = 'ArrowRight';
+      else if (sy < -axisThresh) key = 'ArrowUp';
+      else if (sy > axisThresh) key = 'ArrowDown';
+      else if (sx < -axisThresh) key = 'ArrowLeft';
+      else if (sx > axisThresh) key = 'ArrowRight';
+
+      if (key) { lastGamepadInput = now; document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true })); requestAnimationFrame(pollGamepad); return; }
+      if ((bA && bA.pressed) || (bStart && bStart.pressed)) { lastGamepadInput = now; document.dispatchEvent(new KeyboardEvent('keydown', { key:'Enter', bubbles: true })); requestAnimationFrame(pollGamepad); return; }
+      if (bB && bB.pressed) { lastGamepadInput = now; document.dispatchEvent(new KeyboardEvent('keydown', { key:'Escape', bubbles: true })); requestAnimationFrame(pollGamepad); return; }
+    }
+    requestAnimationFrame(pollGamepad);
+  }
+});
 
   // ── Mode Selection Logic ─────────────────────────────
   const modesConfig = {
@@ -6058,7 +6111,6 @@ document.addEventListener('DOMContentLoaded', () => {
       btnCrear.click();
     }
   }, 2000);
-});
 // ── Debug Panel (Ctrl+Shift+D) ─────────────────────────────
 (function() {
   let debugVisible = false;
