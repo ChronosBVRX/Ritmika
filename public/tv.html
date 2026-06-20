@@ -2824,6 +2824,14 @@ const AXOLO_SINGER_INTROS = [
   { text: '¡Si fallas, ya hay tomates listos en el refri! 🍅', file: 'intro_19.mp3' }
 ];
 
+const AXOLO_VOTE_PROMPTS = [
+  { text: '¡La actuación terminó! Ahora a votar, ¿se rifó o se chingó? 🗳️', file: 'vote_prompt_0.mp3' },
+  { text: '¡Ya terminó el tormento! Saquen puntuación, sin lástima. 🎯', file: 'vote_prompt_1.mp3' },
+  { text: '¡Tiempo de juzgar! ¿Le entra al karaoke o mejor se dedica a otra cosa? 😈', file: 'vote_prompt_2.mp3' },
+  { text: '¡Voten, voten! Que la justicia divina caiga sobre el escenario. ⚖️', file: 'vote_prompt_3.mp3' },
+  { text: '¡Boletas de calificación! Del 10 al 100, ¿qué tanto sufrieron? 📊', file: 'vote_prompt_4.mp3' },
+];
+
 const AXOLO_VOTE_REACTIONS = {
   100: [
     { text: '¡GRAMMY! ¡GRAMMY! ¡Le lloran los micrófonos! 🏆', file: 'vote_100_0.mp3' },
@@ -3548,16 +3556,12 @@ function checkAllVotesSubmitted(performerSocketId) {
   const expectedCount = expectedVoters.length;
   state.votedBy = state.votedBy || new Set();
   
-  if (state.votedBy.size >= expectedCount) {
-    console.log("[AUTO-FLOW] ¡Todos los votos recibidos! Finalizando canción...");
-    // Clear any active timeouts and end song in 1.5 seconds so they can see the final votes
-    setTimeout(() => {
-      const karaokeScreen = document.getElementById('karaoke-screen');
-      if (karaokeScreen && karaokeScreen.classList.contains('active')) {
-        const performer = state.players.find(p => p.socketId === performerSocketId) || state.players[0];
-        endSong(performer);
-      }
-    }, 1500);
+  if (votePhaseActive && state.votedBy.size >= expectedCount) {
+    if (votePhaseTimeout) clearTimeout(votePhaseTimeout);
+    votePhaseActive = false;
+    songEnded = false;
+    const performer = state.players.find(p => p.socketId === performerSocketId) || state.players[0];
+    endSong(performer);
   }
 }
 
@@ -4093,6 +4097,9 @@ let blackoutTimeout = null;
 let karaokeGeneration = 0;
 let songEnded = false;
 let currentSongPerformer = null;
+let votePhaseActive = false;
+let votePhaseTimeout = null;
+const VOTE_PHASE_DURATION = 10000;
 const activeSfx = [];
 const SFX_VOLUME = 0.35;
 const SFX_DUCKED = 0.10;
@@ -4226,7 +4233,7 @@ function startKaraoke(player, song) {
       
       video.onended = () => {
         if (myGeneration !== karaokeGeneration) return;
-        endSong(player);
+        startVotePhase(player, song);
       };
 
       if (song && song.url) {
@@ -4258,6 +4265,49 @@ function startKaraoke(player, song) {
   });
 }
 
+function startVotePhase(player, song) {
+  if (songEnded) return;
+  songEnded = true;
+  votePhaseActive = true;
+
+  clearInterval(timerInterval);
+  timerInterval = null;
+  if (blackoutTimeout) { clearTimeout(blackoutTimeout); blackoutTimeout = null; }
+  _stopCurrentAxolo();
+  stopAllSfx();
+  const mouthCss = document.getElementById('axolo-mouth-css');
+  if (mouthCss) mouthCss.classList.remove('open');
+  document.getElementById('lyrics-text').classList.remove('blackout');
+  document.getElementById('np-artist').classList.remove('blackout');
+
+  const video = document.getElementById('karaoke-video');
+  video.onplaying = null;
+  video.onerror   = null;
+  video.onended   = null;
+  const aph = document.getElementById('audio-only-placeholder');
+  if (aph) aph.classList.remove('visible');
+  video.style.filter = '';
+  video.pause();
+  video.removeAttribute('src');
+
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'VOTE_PHASE_START',
+    data: { performerSocketId: player.socketId, performerName: player.name },
+  });
+
+  const votePrompt = AXOLO_VOTE_PROMPTS[Math.floor(Math.random() * AXOLO_VOTE_PROMPTS.length)];
+  axoloSay(votePrompt.text, votePrompt.file);
+
+  if (votePhaseTimeout) clearTimeout(votePhaseTimeout);
+  votePhaseTimeout = setTimeout(() => {
+    if (!votePhaseActive) return;
+    votePhaseActive = false;
+    songEnded = false;
+    endSong(player);
+  }, VOTE_PHASE_DURATION);
+}
+
 function showAudioOnlyPlaceholder(song) {
   const el = document.getElementById('audio-only-placeholder');
   if (!el) return;
@@ -4270,7 +4320,7 @@ function showAudioOnlyPlaceholder(song) {
 
 function startKaraokeTimer(video, song) {
   if (timerInterval) clearInterval(timerInterval);
-  const duration = song?.duration || (video?.duration) || 120;
+  const duration = (video && video.duration) || song?.duration || 120;
   let elapsed = 0;
   let timerBcastTick = 0;
 
@@ -4305,7 +4355,7 @@ function startKaraokeTimer(video, song) {
     if (remaining <= 0) {
       clearInterval(timerInterval);
       const fallbackSinger = currentSongPerformer || state.singerQueue[state.currentSingerIdx % state.singerQueue.length] || state.players.find(p => !p.disconnected);
-      endSong(fallbackSinger);
+      startVotePhase(fallbackSinger, song);
     }
   }, 1000);
 }
@@ -5792,7 +5842,7 @@ document.addEventListener('keydown', e => {
     if (document.getElementById('karaoke-screen').classList.contains('active')) {
       const sq = state.singerQueue.length ? state.singerQueue : state.players.filter(p => !p.disconnected);
       const currentPlayer = sq[state.currentSingerIdx % sq.length] || sq[0];
-      if (currentPlayer) endSong(currentPlayer);
+      if (currentPlayer) startVotePhase(currentPlayer, state.currentSong);
     }
   }
   // Ctrl+Shift+P → Podium test (quick jump to end game)
@@ -5812,7 +5862,7 @@ document.addEventListener('keydown', e => {
 document.getElementById('btn-debug-skip-song').addEventListener('click', () => {
   const sq = state.singerQueue.length ? state.singerQueue : state.players.filter(p => !p.disconnected);
   const currentPlayer = sq[state.currentSingerIdx % sq.length] || sq[0];
-  if (currentPlayer) endSong(currentPlayer);
+  if (currentPlayer) startVotePhase(currentPlayer, state.currentSong);
 });
 </script>
 

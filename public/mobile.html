@@ -1125,7 +1125,7 @@ function handleGameEvent(event, data) {
       document.getElementById('current-singer-name').textContent = data.name;
       me.hasVoted = false;
       document.getElementById('vote-status').classList.add('hidden');
-      document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '1'; b.disabled = false; });
+      document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '0.3'; b.disabled = true; });
       document.getElementById('vote-count-indicator')?.classList.add('hidden');
       document.getElementById('mobile-timer-text')?.classList.add('hidden');
       document.getElementById('mobile-timer-bar')?.classList.add('hidden');
@@ -1142,18 +1142,28 @@ function handleGameEvent(event, data) {
       me.currentSingerSocketId = data.socketId;
       me.hasVoted = false;
       document.getElementById('vote-status').classList.add('hidden');
-      document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '1'; b.disabled = false; });
+      document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '0.3'; b.disabled = true; });
       document.getElementById('vote-count-indicator')?.classList.add('hidden');
       document.getElementById('mobile-timer-fill').style.width = '0%';
       updateContextCard('SINGER_SELECTED', data);
       goToScreen('screen-controls');
       break;
 
+    case 'VOTE_PHASE_START':
+      me.currentSingerSocketId = data.performerSocketId;
+      me.hasVoted = false;
+      document.getElementById('vote-status').classList.add('hidden');
+      document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '1'; b.disabled = false; });
+      document.getElementById('vote-count-indicator')?.classList.add('hidden');
+      updateContextCard('VOTE_PHASE_START', data);
+      showToast('🗳️ ¡Vota ahora!');
+      break;
+
     case 'KARAOKE_START':
       me.currentSingerSocketId = data.socketId;
       me.hasVoted = false;
       document.getElementById('vote-status').classList.add('hidden');
-      document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '1'; b.disabled = false; });
+      document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '0.3'; b.disabled = true; });
       updateContextCard('KARAOKE_START', data);
       goToScreen('screen-controls');
       break;
@@ -1347,6 +1357,23 @@ function updateContextCard(event, data) {
         document.getElementById('mobile-timer-bar')?.classList.remove('hidden');
         card.classList.add('hidden');
       }
+      break;
+
+    case 'VOTE_PHASE_START':
+      document.getElementById('current-singer-name').textContent = data.performerName || '?';
+      if (emojiBar) emojiBar.classList.remove('hidden');
+      if (sabotageSec) sabotageSec.classList.add('hidden');
+      if (voteSec) voteSec.classList.remove('hidden');
+      document.getElementById('vote-count-indicator')?.classList.remove('hidden');
+      document.getElementById('mobile-timer-text')?.classList.add('hidden');
+      document.getElementById('mobile-timer-bar')?.classList.add('hidden');
+
+      card.innerHTML = `
+        <div class="text-center py-2">
+          <p class="text-lg font-black text-yellow-500">🗳️ ¡VOTA AHORA!</p>
+          <p class="text-xs text-slate-400 mt-1">¿Cómo le fue a ${data.performerName || 'el cantante'}?</p>
+        </div>
+      `;
       break;
 
     case 'SHOW_SCOREBOARD':
