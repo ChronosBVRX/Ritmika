@@ -7,45 +7,18 @@
   <meta name="description" content="Únete a la fiesta de karaoke Rítmika desde tu celular." />
   <link rel="icon" type="image/png" href="./assets/favicon.png" />
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Fredoka:wght@300;400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="manifest" href="/manifest.json" />
 
-  <!-- Tailwind CSS (local) -->
-  <script src="/libs/tailwind.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'neon-pink':   '#ec4899',
-            'neon-cyan':   '#22d3ee',
-            'neon-purple': '#a855f7',
-            'neon-yellow': '#facc15',
-            'antro-bg':    '#0f172a',
-            'antro-card':  '#1e293b',
-            'jb-magenta':  '#f0047f',
-            'jb-cyan':     '#00e5ff',
-            'jb-yellow':   '#ffe600',
-            'jb-lime':     '#b8ff57',
-          },
-          fontFamily: {
-            outfit:  ['Outfit', 'sans-serif'],
-            fredoka: ['Fredoka', 'sans-serif'],
-            paytone: ['Paytone One', 'sans-serif'],
-          },
-        },
-      },
-    };
-  </script>
+  <!-- Google Fonts Local -->
+  <link rel="stylesheet" href="/assets/fonts/fonts.css" />
+  <link rel="stylesheet" href="/libs/tailwind.css" />
 
   <!-- Anime.js (local) -->
-  <script src="/libs/anime.min.js"></script>
-  <script src="/js/animations.js"></script>
+  <script src="/libs/anime.min.js" defer></script>
+  <script src="/js/animations.js" defer></script>
 
   <!-- Socket.io Client -->
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="/socket.io/socket.io.js" defer></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -558,14 +531,14 @@
 <section id="screen-join" class="screen active" style="background:#0a0a1a; position:relative; overflow:hidden;">
   
   <!-- Premium Background -->
-  <div style="position:absolute;inset:0;background:url(./assets/lobby_bg_premium.png) center/cover no-repeat;opacity:0.3;z-index:0;"></div>
+  <div style="position:absolute;inset:0;background:url(./assets/lobby_bg_premium.webp) center/cover no-repeat;opacity:0.3;z-index:0;"></div>
   <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(15,23,42,0.6) 0%, rgba(10,10,26,0.95) 100%);z-index:1;"></div>
 
   <div style="position:relative; z-index:2; display:flex; flex-direction:column; height:100%; width:100%;">
     <!-- Logo -->
     <div class="flex flex-col items-center pt-8 pb-8 relative">
       <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px;background:#22d3ee;filter:blur(50px);opacity:0.2;border-radius:50%;"></div>
-      <img src="./assets/logo_ritmika.png" alt="Rítmika" style="width:200px; height:auto; filter:drop-shadow(0 0 20px rgba(0,229,255,0.8)); image-rendering:auto; position:relative; z-index:2;" />
+      <img src="./assets/logo_ritmika.webp" alt="Rítmika" style="width:200px; height:auto; filter:drop-shadow(0 0 20px rgba(0,229,255,0.8)); image-rendering:auto; position:relative; z-index:2;" />
     </div>
 
     <div class="flex flex-col gap-6 flex-1 px-2">
@@ -949,14 +922,14 @@
 
 // ── DATA CATALOGS ─────────────────────────────────────────
 const AVATARS = [
-  { id: 0, emoji: '🌮', label: 'Taco Rockero',      color: '#f97316', border: '#ea580c', img: './assets/avatars/avatar_0_taco_rockero.png' },
-  { id: 1, emoji: '🌶️', label: 'Chile Enmascarado', color: '#ef4444', border: '#dc2626', img: './assets/avatars/avatar_1_chile_enmascarado.png' },
-  { id: 2, emoji: '🍹', label: 'Tequila Fiestero',  color: '#a855f7', border: '#9333ea', img: './assets/avatars/avatar_2_tequila_fiestero.png' },
-  { id: 3, emoji: '⭐', label: 'Estrella de Rock',  color: '#facc15', border: '#eab308', img: './assets/avatars/avatar_3_estrella_rock.png' },
-  { id: 4, emoji: '🦜', label: 'Loro Cumbiambero',  color: '#22c55e', border: '#16a34a', img: './assets/avatars/avatar_4_loro_cumbiambero.png' },
-  { id: 5, emoji: '🎸', label: 'Guitarra Mágica',   color: '#3b82f6', border: '#2563eb', img: './assets/avatars/avatar_5_guitarra_magica.png' },
-  { id: 6, emoji: '👑', label: 'Rey del Palenque',  color: '#ec4899', border: '#db2777', img: './assets/avatars/avatar_6_rey_palenque.png' },
-  { id: 7, emoji: '🐙', label: 'Pulpo Salsero',     color: '#06b6d4', border: '#0891b2', img: './assets/avatars/avatar_7_pulpo_salsero.png' },
+  { id: 0, emoji: '🌮', label: 'Taco Rockero',      color: '#f97316', border: '#ea580c', img: './assets/avatars/avatar_0_taco_rockero.webp' },
+  { id: 1, emoji: '🌶️', label: 'Chile Enmascarado', color: '#ef4444', border: '#dc2626', img: './assets/avatars/avatar_1_chile_enmascarado.webp' },
+  { id: 2, emoji: '🍹', label: 'Tequila Fiestero',  color: '#a855f7', border: '#9333ea', img: './assets/avatars/avatar_2_tequila_fiestero.webp' },
+  { id: 3, emoji: '⭐', label: 'Estrella de Rock',  color: '#facc15', border: '#eab308', img: './assets/avatars/avatar_3_estrella_rock.webp' },
+  { id: 4, emoji: '🦜', label: 'Loro Cumbiambero',  color: '#22c55e', border: '#16a34a', img: './assets/avatars/avatar_4_loro_cumbiambero.webp' },
+  { id: 5, emoji: '🎸', label: 'Guitarra Mágica',   color: '#3b82f6', border: '#2563eb', img: './assets/avatars/avatar_5_guitarra_magica.webp' },
+  { id: 6, emoji: '👑', label: 'Rey del Palenque',  color: '#ec4899', border: '#db2777', img: './assets/avatars/avatar_6_rey_palenque.webp' },
+  { id: 7, emoji: '🐙', label: 'Pulpo Salsero',     color: '#06b6d4', border: '#0891b2', img: './assets/avatars/avatar_7_pulpo_salsero.webp' },
 ];
 
 const GENRES = [
@@ -1035,9 +1008,11 @@ function isVip() {
 }
 
 // ── SOCKET.IO ─────────────────────────────────────────────
-const socket = io();
+let socket;
+document.addEventListener('DOMContentLoaded', () => {
+  socket = io();
 
-socket.on('server_version', (v) => {
+  socket.on('server_version', (v) => {
   const vd = document.getElementById('version-display');
   if (vd) vd.textContent = 'v' + v;
 });
@@ -1093,6 +1068,7 @@ socket.on('game:tv_disconnected', () => {
 
 socket.on('disconnect', () => {
   showToast('⚠️ Conexión perdida. Reconectando...');
+});
 });
 
 // ── GAME EVENTS FROM TV ───────────────────────────────────
@@ -2083,12 +2059,14 @@ function shakeElement(id) {
 }
 
 function escapeHtml(str = '') {
+  if (typeof str !== 'string') str = String(str);
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
 }
 
 // ── PRE-FILL CODE FROM URL PARAM ─────────────────────────
@@ -2142,6 +2120,15 @@ function escapeHtml(str = '') {
     }
     document.removeEventListener('touchstart', _fullscreenRequestTouch);
   }, { once: true });
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
+        .catch(err => console.error('Error al registrar Service Worker:', err));
+    });
+  }
 </script>
 </body>
 </html>

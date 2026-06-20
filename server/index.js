@@ -7,6 +7,7 @@
  */
 
 const express = require('express');
+const compression = require('compression');
 const http = require('http');
 const https = require('https');
 const os = require('os');
@@ -16,6 +17,22 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const internalIp = require('internal-ip');
 require('dotenv').config();
+
+function isLocalOrigin(origin) {
+  if (!origin) return true;
+  try {
+    const url = new URL(origin);
+    const hostname = url.hostname;
+    return hostname === 'localhost' || 
+           hostname === '127.0.0.1' || 
+           hostname.startsWith('192.168.') || 
+           hostname.startsWith('10.') || 
+           /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname) ||
+           hostname.endsWith('.local');
+  } catch (e) {
+    return false;
+  }
+}
 
 function getLocalIP() {
   const nets = os.networkInterfaces();
@@ -59,18 +76,35 @@ function isNativeFormat(contentType, contentDisposition = '') {
 }
 
 const app = express();
+app.use(compression());
 const httpServer = http.createServer(app);
 
-// ── Socket.io con CORS permisivo (LAN party) ─────────────────
+// ── Socket.io con CORS permisivo local (LAN party) ────────────
 const io = new Server(httpServer, {
   cors: {
-    origin: '*',
+    origin: (origin, callback) => {
+      if (isLocalOrigin(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Origin not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST'],
   },
 });
 
 // ── Servir archivos estáticos del cliente ────────────────────
-app.use(express.static(path.join(__dirname, '../public')));
+const oneYear = 31536000000;
+app.use(express.static(path.join(__dirname, '../public'), {
+  maxAge: oneYear,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+  }
+}));
 
 // ── Ruta raíz → TV principal ─────────────────────────────────
 app.get('/', (req, res) => {
@@ -188,7 +222,12 @@ try {
 }
 
 app.get('/api/songs', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (isLocalOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  } else {
+    return res.status(403).json({ error: 'CORS not allowed' });
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -220,8 +259,8 @@ app.get('/api/health', (req, res) => {
 // ── Google Drive Video Proxy (Bypasses CORS/CORP + transcodifica formatos no-nativos) ──
 app.get('/api/video-proxy', (req, res) => {
   const fileId = req.query.id;
-  if (!fileId) {
-    return res.status(400).json({ error: 'Missing id parameter' });
+  if (!fileId || typeof fileId !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(fileId)) {
+    return res.status(400).json({ error: 'Invalid or missing id parameter' });
   }
 
   const PROXY_TIMEOUT = 30000;
@@ -485,7 +524,21 @@ io.on('connection', (socket) => {
       return;
     }
 
-    const playerInfo = { name, avatarId, socketId: socket.id };
+    let cleanName = typeof name === 'string' ? name.trim() : 'Jugador';
+    if (cleanName.length > 15) {
+      cleanName = cleanName.substring(0, 15);
+    }
+    if (!cleanName) {
+      cleanName = 'Jugador ' + Math.floor(Math.random() * 100);
+    }
+    cleanName = cleanName.replace(/<[^>]*>/g, '');
+
+    let cleanAvatarId = parseInt(avatarId, 10);
+    if (isNaN(cleanAvatarId) || cleanAvatarId < 0 || cleanAvatarId > 7) {
+      cleanAvatarId = 0;
+    }
+
+    const playerInfo = { name: cleanName, avatarId: cleanAvatarId, socketId: socket.id };
     room.players.set(socket.id, playerInfo);
     socket.join(code);
 
@@ -552,12 +605,13 @@ io.on('connection', (socket) => {
     const room = rooms.get(roomCode);
     if (!room) return;
     const attacker = room.players.get(socket.id);
+    let cleanTargetName = typeof targetName === 'string' ? targetName.trim().substring(0, 15).replace(/<[^>]*>/g, '') : 'Alguien';
     io.to(room.tvSocketId).emit('tv:tomatazo', {
       attackerName: attacker?.name || 'Desconocido',
       attackerSocketId: socket.id,
-      targetName,
+      targetName: cleanTargetName,
     });
-    console.log(`[🍅 TOMATAZO] ${attacker?.name} → ${targetName} en sala ${roomCode}`);
+    console.log(`[🍅 TOMATAZO] ${attacker?.name} → ${cleanTargetName} en sala ${roomCode}`);
   });
 
   // ──────────────────────────────────────────────────────────
@@ -599,13 +653,17 @@ io.on('connection', (socket) => {
     if (!voter) return;
     const VALID_SCORES = [10, 30, 60, 100];
     const clampedScore = VALID_SCORES.includes(score) ? score : 10;
+    let cleanPerformerSocketId = typeof performerSocketId === 'string' ? performerSocketId.trim() : '';
+    if (!room.players.has(cleanPerformerSocketId) && room.tvSocketId !== cleanPerformerSocketId) {
+      return;
+    }
     io.to(room.tvSocketId).emit('tv:vote', {
       voterName: voter.name,
       voterSocketId: socket.id,
-      performerSocketId,
+      performerSocketId: cleanPerformerSocketId,
       score: clampedScore,
     });
-    console.log(`[VOTO] ${voter.name} → ${clampedScore} pts para ${performerSocketId}`);
+    console.log(`[VOTO] ${voter.name} → ${clampedScore} pts para ${cleanPerformerSocketId}`);
   });
 
   // ──────────────────────────────────────────────────────────
