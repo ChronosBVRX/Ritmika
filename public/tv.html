@@ -5581,13 +5581,7 @@ function hideTioAxolCutin() {
   }, 450);
 }
 
-function inicializarQRConexion(canvas) {
-  if (!canvas) return;
-
-  const joinUrl = `${window.location.origin}/join?code=${state.roomCode || ''}`;
-
-  QRCode.toCanvas(canvas, joinUrl, { width: 200, color: { dark: '#0f172a', light: '#ffffff' } });
-}
+// NOTA: inicializarQRConexion se define como async abajo (sección CONEXIÓN QR DINÁMICA)
 
 const AXOLO_PRESET_MAP = {
   // Talking (Yellow background)
@@ -5837,58 +5831,62 @@ let idleInterval = setInterval(() => {
 //  CONEXIÓN QR DINÁMICA
 // ════════════════════════════════════════════
 async function inicializarQRConexion() {
+  const canvas = document.getElementById('qr-conexion-sala');
+  if (!canvas) { console.warn('[QR] Canvas no encontrado en DOM'); return; }
+
+  const port = window.location.port || '3000';
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+
+  const isLocal = hostname === 'localhost' || 
+                  hostname === '127.0.0.1' || 
+                  hostname.startsWith('192.168.') || 
+                  hostname.startsWith('10.') || 
+                  hostname.startsWith('172.16.') || 
+                  hostname.startsWith('172.17.') || 
+                  hostname.startsWith('172.18.') || 
+                  hostname.startsWith('172.19.') || 
+                  hostname.startsWith('172.20.') || 
+                  hostname.startsWith('172.21.') || 
+                  hostname.startsWith('172.22.') || 
+                  hostname.startsWith('172.23.') || 
+                  hostname.startsWith('172.24.') || 
+                  hostname.startsWith('172.25.') || 
+                  hostname.startsWith('172.26.') || 
+                  hostname.startsWith('172.27.') || 
+                  hostname.startsWith('172.28.') || 
+                  hostname.startsWith('172.29.') || 
+                  hostname.startsWith('172.30.') || 
+                  hostname.startsWith('172.31.') || 
+                  hostname.endsWith('.local') ||
+                  protocol === 'file:';
+
+  let joinUrl;
+  if (!isLocal && protocol !== 'file:') {
+    joinUrl = `${window.location.origin}/join?code=${state.roomCode || ''}`;
+  } else {
+    joinUrl = `http://${state.localIP || hostname}:${port}/join?code=${state.roomCode || ''}`;
+  }
+
+  // Mostrar texto del URL inmediatamente como fallback
+  const textoInstruccion = document.getElementById('texto-instruccion-unirse');
+  if (textoInstruccion) {
+    textoInstruccion.innerHTML = `Escanea el código QR o ingresa desde tu móvil a: <br/><span class="text-cyan-400 font-bold text-lg">${joinUrl}</span>`;
+  }
+
   try {
-    const canvas = document.getElementById('qr-conexion-sala');
-    if (!canvas) return;
-
-    const port = window.location.port || '3000';
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    
-    // Check if it's a local hostname/IP or file protocol
-    const isLocal = hostname === 'localhost' || 
-                    hostname === '127.0.0.1' || 
-                    hostname.startsWith('192.168.') || 
-                    hostname.startsWith('10.') || 
-                    hostname.startsWith('172.16.') || 
-                    hostname.startsWith('172.17.') || 
-                    hostname.startsWith('172.18.') || 
-                    hostname.startsWith('172.19.') || 
-                    hostname.startsWith('172.20.') || 
-                    hostname.startsWith('172.21.') || 
-                    hostname.startsWith('172.22.') || 
-                    hostname.startsWith('172.23.') || 
-                    hostname.startsWith('172.24.') || 
-                    hostname.startsWith('172.25.') || 
-                    hostname.startsWith('172.26.') || 
-                    hostname.startsWith('172.27.') || 
-                    hostname.startsWith('172.28.') || 
-                    hostname.startsWith('172.29.') || 
-                    hostname.startsWith('172.30.') || 
-                    hostname.startsWith('172.31.') || 
-                    hostname.endsWith('.local') ||
-                    protocol === 'file:';
-
-    let joinUrl;
-    if (!isLocal && protocol !== 'file:') {
-      joinUrl = `${window.location.origin}/join?code=${state.roomCode || ''}`;
-    } else {
-      joinUrl = `http://${state.localIP || hostname}:${port}/join?code=${state.roomCode || ''}`;
-    }
-
     await QRCode.toCanvas(canvas, joinUrl, {
       width: 180,
       margin: 2,
       color: { dark: '#000000', light: '#ffffff' },
     });
-
-    const textoInstruccion = document.getElementById('texto-instruccion-unirse');
-    if (textoInstruccion) {
-      textoInstruccion.innerHTML = `Escanea el código QR o ingresa desde tu móvil a: <br/><span class="text-cyan-400 font-bold text-lg">${joinUrl}</span>`;
-    }
     console.log('[QR] Canvas renderizado para:', joinUrl);
   } catch (err) {
     console.error('[QR] Error al generar el código QR de vinculación de sala:', err);
+    // Fallback visual: mostrar el código de sala grande
+    if (textoInstruccion) {
+      textoInstruccion.innerHTML = `Código de sala: <span style="color:#ffe600; font-weight:900; font-size:1.8rem; letter-spacing:0.2em;">${state.roomCode || ''}</span><br/><span class="text-sm" style="color:#94a3b8;">Ingresa desde tu móvil a: <br/><span class="text-cyan-400 font-bold">${joinUrl}</span></span>`;
+    }
   }
 }
 
