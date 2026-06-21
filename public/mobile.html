@@ -996,14 +996,18 @@ async function fetchAndBuildCatalog() {
     if (!res.ok) throw new Error('API request failed');
     const map = await res.json();
     if (map && typeof map === 'object') {
+      let loadedAny = false;
       for (const gid in ARTISTS_BY_GENRE) {
         if (map[gid] && Array.isArray(map[gid]) && map[gid].length > 0) {
           ARTISTS_BY_GENRE[gid] = map[gid].sort((a, b) => a.localeCompare(b));
-        } else {
-          ARTISTS_BY_GENRE[gid] = [];
+          loadedAny = true;
         }
       }
-      console.log('[Catalog] Loaded artist map from server successfully!');
+      if (loadedAny) {
+        console.log('[Catalog] Loaded artist map from server successfully!');
+      } else {
+        console.warn('[Catalog] Server returned empty artist map, keeping fallback');
+      }
     }
   } catch (err) {
     console.warn('[Catalog] Using fallback static artists:', err);
@@ -1617,8 +1621,7 @@ function buildGenreGrid() {
   const grid = document.getElementById('genre-grid');
   grid.innerHTML = '';
   GENRES.forEach(g => {
-    // Only show genres that have at least one artist in the loaded catalog
-    if (ARTISTS_BY_GENRE[g.id] && ARTISTS_BY_GENRE[g.id].length === 0) return;
+    const artistCount = (ARTISTS_BY_GENRE[g.id] && Array.isArray(ARTISTS_BY_GENRE[g.id])) ? ARTISTS_BY_GENRE[g.id].length : 0;
 
     const btn = document.createElement('button');
     btn.className = 'genre-btn';
@@ -1626,6 +1629,7 @@ function buildGenreGrid() {
     btn.innerHTML = `
       <span class="genre-icon">${g.icon}</span>
       <span class="genre-name">${g.name}</span>
+      <span class="artist-count" style="font-size:0.65rem;color:#64748b;display:block;">${artistCount} artistas</span>
     `;
     btn.addEventListener('click', () => toggleGenre(g.id, btn, g.color));
     grid.appendChild(btn);
