@@ -697,7 +697,4 @@ document.getElementById('btn-dismiss-restore').addEventListener('click', () => {
 });
 
 
-// Restore addEventListener after socket module
-(function() {
-  // Nothing to restore - the polyfill only intercepts DOMContentLoaded
-})();
+
