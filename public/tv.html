@@ -3682,6 +3682,201 @@ function checkAllVotesSubmitted(performerSocketId) {
   const expectedVoters = state.players.filter(p => p.socketId !== performerSocketId);
   const expectedCount = expectedVoters.length;
   state.votedBy = state.votedBy || new Set();
+const existing = state.players.find(s => s.socketId === p.socketId);
+    if (existing) {
+      return { ...existing, ...p, score: existing.score ?? p.score ?? 0 };
+    }
+    // Check if this player was disconnected (reconnection by name)
+    const pending = state.players.find(s => s.disconnected && s.name === p.name && !matchedNames.has(p.name));
+    if (pending) {
+      matchedNames.add(p.name);
+      return { ...p, ...pending, socketId: p.socketId, disconnected: false };
+    }
+    // En modo restauración: buscar por nombre (una sola vez por nombre)
+    if (saved) {
+      if (!matchedNames.has(p.name)) {
+        const restored = saved.players.find(s => s.name === p.name);
+        if (restored) {
+          matchedNames.add(p.name);
+          return { ...p, ...restored, socketId: p.socketId };
+        }
+      }
+    }
+    return { ...p, score: 0, genres: [], artists: [], tomatazos: 0 };
+  });
+  // Preserve unmatched pending entries (disconnected players who haven't rejoined yet)
+  const previousPending = state.players.filter(s => s.disconnected && !matchedNames.has(s.name));
+  previousPending.forEach(pp => state.players.push(pp));
+  // Si todos los jugadores se reconectaron, salir del modo restauración
+  if (state.isRestored && saved) {
+    const allBack = saved.players.every(sp => state.players.some(p => p.name === sp.name));
+    if (allBack) {
+      state.isRestored = false;
+      clearSavedGame();
+      document.getElementById('restore-banner')?.classList.add('hidden');
+      if (state.round > 0) {
+        startRoulette();
+      }
+    }
+  }
+  renderPlayerList();
+  updatePlayerCount(player);
+  saveGameState();
+  UISounds.chime();
+  animatePlayerJoin(player);
+  const joinLines = [
+    { text: "¡El nuevo jugador llegó a echar el grito! 🎤", file: "lobby_join_0.mp3" },
+    { text: "¡Órale, otro valiente se apuntó a sufrir! 😈", file: "lobby_join_1.mp3" },
+    { text: "¡Bienvenido al ruedo! ¡Espero que afines! 🎵", file: "lobby_join_2.mp3" },
+    { text: "¡Uno más al escenario! ¡El micrófono ya tiembla! 🎙️", file: "lobby_join_3.mp3" },
+    { text: "¡Eso es todo! Entrando con todo el estilo del palenque. 😎", file: "lobby_join_4.mp3" },
+    { text: "¡Cuidado que ahí viene la verdadera competencia! 🌟", file: "lobby_join_5.mp3" },
+    { text: "¡Ya llegó por quien lloraban! Prepárense para el show. 🎭", file: "lobby_join_6.mp3" },
+    { text: "¡Le dio clic al peligro! Bienvenido a la fiesta, compa. 💥", file: "lobby_join_7.mp3" },
+    { text: "¡Qué valor el tuyo de venir a cantar frente a todos! 👏", file: "lobby_join_8.mp3" },
+    { text: "¡Pásale, pásale! Que hay lugar para un desafinado más. 🥳", file: "lobby_join_9.mp3" }
+  ];
+  const choice = joinLines[Math.floor(Math.random() * joinLines.length)];
+  const activeCount = state.players.filter(p => !p.disconnected).length;
+  updateTicker(`¡${player.name} se unió! Ya somos ${activeCount} 🎉`);
+  const now = Date.now();
+  if (!window.lastLobbyVoice || now - window.lastLobbyVoice > 3500) {
+    window.lastLobbyVoice = now;
+    axoloSay(choice.text, choice.file);
+  }
+  if (activeCount >= 1) {
+    document.getElementById('start-btn').classList.remove('hidden');
+    RitmikaStyleFX.popIn('#start-btn', { duration: 700 });
+  }
+
+  // Sync state if game has already started
+  if (state.round > 0) {
+    syncReconnectedPlayer(player);
+  }
+});
+
+socket.on('tv:player_left', ({ socketId, name, players }) => {
+  // Keep disconnected player's state for potential reconnection
+  const disconnectedPlayer = state.players.find(s => s.socketId === socketId);
+  state.players = players.map(p => ({
+    ...p,
+    score:     state.players.find(s => s.socketId === p.socketId)?.score ?? 0,
+    genres:    state.players.find(s => s.socketId === p.socketId)?.genres  ?? [],
+    artists:   state.players.find(s => s.socketId === p.socketId)?.artists ?? [],
+    tomatazos: state.players.find(s => s.socketId === p.socketId)?.tomatazos ?? 0,
+  }));
+  // Preserve disconnected player's data with flag for reconnection (avoid duplicates)
+  if (disconnectedPlayer && !state.players.some(s => s.disconnected && s.name === disconnectedPlayer.name)) {
+    state.players.push({
+      name: disconnectedPlayer.name,
+      avatarId: disconnectedPlayer.avatarId,
+      socketId: 'pending_' + disconnectedPlayer.name,
+      score: disconnectedPlayer.score ?? 0,
+      genres: disconnectedPlayer.genres ?? [],
+      artists: disconnectedPlayer.artists ?? [],
+      tomatazos: disconnectedPlayer.tomatazos ?? 0,
+      disconnected: true,
+    });
+  }
+  // Filtrar singerQueue y ajustar índice si el que se fue era el actual o estaba pendiente
+  const oldLen = state.singerQueue.length;
+  state.singerQueue = state.singerQueue.filter(p => p.socketId !== socketId);
+  if (state.singerQueue.length < oldLen && state.currentSingerIdx >= state.singerQueue.length) {
+    state.currentSingerIdx = Math.max(0, state.singerQueue.length - 1);
+  }
+  renderPlayerList(); updatePlayerCount();
+  updateTicker(`${name} abandonó la sala 👋`);
+  saveGameState();
+
+  // Sync mobile clients with updated player list
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'PLAYER_LEFT',
+    data: { players: state.players },
+  });
+
+  if (state.players.filter(p => !p.disconnected).length < 1) document.getElementById('start-btn').classList.add('hidden');
+});
+
+socket.on('tv:player_genres', ({ socketId, genres }) => {
+  const p = state.players.find(x => x.socketId === socketId);
+  if (p) p.genres = genres;
+  const name = p?.name || 'Alguien';
+  updateTicker(`${name} eligió géneros: ${genres.join(', ')} 🎵`);
+});
+
+socket.on('tv:player_artists', ({ socketId, artists }) => {
+  const p = state.players.find(x => x.socketId === socketId);
+  if (p) p.artists = artists;
+  const name = p?.name || 'Alguien';
+  updateTicker(`${name} eligió artistas: ${artists.slice(0,3).join(', ')} 🎸`);
+});
+
+socket.on('tv:tomatazo', ({ attackerName, targetName, attackerSocketId }) => {
+  const attacker = state.players.find(p => p.socketId === attackerSocketId);
+  const cost = TOMATAZO_COST;
+  if (attacker && attacker.score !== undefined) {
+    if ((attacker.score || 0) < cost) {
+      // Not enough points — send rejection to player
+      socket.emit('tv:send_to_player', {
+        targetSocketId: attackerSocketId,
+        event: 'TOMATAZO_REJECTED',
+        data: { reason: 'Puntos insuficientes', cost },
+      });
+      return;
+    }
+    attacker.score = Math.max(0, (attacker.score || 0) - cost);
+    updateAllPlayerCardScores();
+    socket.emit('tv:broadcast', {
+      roomCode: state.roomCode,
+      event: 'SCORE_UPDATE',
+      data: { players: state.players.map(p => ({ socketId: p.socketId, score: p.score || 0, name: p.name })) },
+    });
+  }
+  fireTomatazo(attackerName, targetName, cost);
+  updateTicker(`🍅 ¡${attackerName} tomatazó a ${targetName} (-${cost} pts)!`);
+  const target = state.players.find(p => p.name === targetName);
+  if (target) target.tomatazos = (target.tomatazos || 0) + 1;
+});
+
+socket.on('tv:emoji', ({ senderName, emoji }) => {
+  floatEmoji(emoji);
+  updateTicker(`${senderName} reaccionó con ${emoji}`);
+});
+
+socket.on('tv:sabotage_audio', () => {
+  state.audioSabotageCount++;
+  const pct = Math.round((state.audioSabotageCount / state.AUDIO_SABOTAGE_THRESHOLD) * 100);
+  updateTicker(`🔇 Sabotaje: ${pct}% (${state.audioSabotageCount}/${state.AUDIO_SABOTAGE_THRESHOLD})`);
+  if (state.audioSabotageCount >= state.AUDIO_SABOTAGE_THRESHOLD) {
+    triggerAudioSabotage();
+    state.audioSabotageCount = 0;
+  }
+});
+
+socket.on('tv:vote', ({ voterName, performerSocketId, score, voterSocketId }) => {
+  state.votes.push({ voterName, performerSocketId, score });
+  updateTicker(`${voterName} votó: ${score} pts 🗳️`);
+  
+  state.votedBy = state.votedBy || new Set();
+  if (voterSocketId) state.votedBy.add(voterSocketId);
+  
+  // Broadcast vote count to mobiles
+  const expectedCount = state.players.filter(p => p.socketId !== performerSocketId).length;
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'VOTE_COUNT',
+    data: { count: state.votedBy.size, total: expectedCount },
+  });
+  
+  // Check if all votes are in
+  checkAllVotesSubmitted(performerSocketId);
+});
+
+function checkAllVotesSubmitted(performerSocketId) {
+  const expectedVoters = state.players.filter(p => p.socketId !== performerSocketId);
+  const expectedCount = expectedVoters.length;
+  state.votedBy = state.votedBy || new Set();
   
   if (votePhaseActive && state.votedBy.size >= expectedCount) {
     if (votePhaseTimeout) clearTimeout(votePhaseTimeout);
@@ -3903,25 +4098,25 @@ async function startRoulette() {
     activeR2Players.forEach(p => { if (p.genres) p.genres.forEach(g => allPlayerGenres.add(g)); });
     
     // Fetch song pool from server (prefer player genres)
-    let round2Songs = [];
+    window.round2Songs = window.round2Songs || [];
     try {
-      if (allPlayerGenres.size > 0) {
+      if (allPlayerGenres.size > 0 && window.round2Songs.length === 0) {
         const url = '/api/songs?genres=' + encodeURIComponent([...allPlayerGenres].join(',')) + '&limit=60&random=true';
         const res = await fetch(url);
         if (res.ok) {
-          round2Songs = await res.json();
+          window.round2Songs = await res.json();
         }
       }
-      if (!round2Songs || round2Songs.length < 10) {
+      if (!window.round2Songs || window.round2Songs.length < 10) {
         const url = '/api/songs?limit=60&random=true';
         const res = await fetch(url);
         if (res.ok) {
-          round2Songs = (round2Songs || []).concat(await res.json());
+          window.round2Songs = (window.round2Songs || []).concat(await res.json());
         }
       }
     } catch (_) {}
-    if (!round2Songs || round2Songs.length < 10) {
-      round2Songs = FALLBACK_CATALOG;
+    if (!window.round2Songs || window.round2Songs.length < 10) {
+      window.round2Songs = FALLBACK_CATALOG;
     }
     
     socket.emit('tv:broadcast', {
@@ -3935,7 +4130,7 @@ async function startRoulette() {
           genres: p.genres || [],
           artists: p.artists || [],
         })),
-        songs: round2Songs,
+        songs: window.round2Songs,
       },
     });
 
@@ -4473,201 +4668,6 @@ async function startKaraoke(player, song) {
 
       video.onplaying = () => {
         if (myGeneration !== karaokeGeneration) return;
-        const errBanner = document.getElementById('video-error-banner');
-        if (errBanner) errBanner.classList.remove('visible');
-        if (!timerInterval) startKaraokeTimer(video, song);
-        if (video.videoWidth === 0 || video.videoHeight === 0) {
-          setTimeout(() => {
-            if (video.videoWidth === 0 || video.videoHeight === 0) {
-              showAudioOnlyPlaceholder(song);
-            }
-          }, 500);
-        }
-      };
-      
-      video.onerror = () => {
-        if (myGeneration !== karaokeGeneration) return;
-        console.error("Video load error, starting timer manually.");
-        const errBanner = document.getElementById('video-error-banner');
-        if (errBanner) errBanner.classList.add('visible');
-        if (!timerInterval) startKaraokeTimer(null, song || { duration: 120 });
-      };
-      
-      video.onended = () => {
-        if (myGeneration !== karaokeGeneration) return;
-        startVotePhase(player, song);
-      };
-
-      if (videoUrl) {
-        video.play().then(() => {
-          if (myGeneration !== karaokeGeneration) return;
-          const unmuteWhenReady = setInterval(() => {
-            if (myGeneration !== karaokeGeneration || !currentAxoloAudio) {
-              clearInterval(unmuteWhenReady);
-              video.muted = false;
-            }
-          }, 200);
-        }).catch(e => {
-          console.warn("Autoplay block or explicit play failed:", e);
-          if (!timerInterval) startKaraokeTimer(null, song);
-        });
-      } else {
-        startKaraokeTimer(null, song || { duration: 120 });
-      }
-    });
-  });
-}
-
-function startVotePhase(player, song) {
-  if (songEnded) return;
-  songEnded = true;
-  votePhaseActive = true;
-
-  clearInterval(timerInterval);
-  timerInterval = null;
-  if (blackoutTimeout) { clearTimeout(blackoutTimeout); blackoutTimeout = null; }
-  _stopCurrentAxolo();
-  stopAllSfx();
-  const mouthCss = document.getElementById('axolo-mouth-css');
-  if (mouthCss) mouthCss.classList.remove('open');
-  document.getElementById('lyrics-text').classList.remove('blackout');
-  document.getElementById('np-artist').classList.remove('blackout');
-
-  const video = document.getElementById('karaoke-video');
-  video.onplaying = null;
-  video.onerror   = null;
-  video.onended   = null;
-  const aph = document.getElementById('audio-only-placeholder');
-  if (aph) aph.classList.remove('visible');
-  video.style.filter = '';
-  video.pause();
-  video.removeAttribute('src');
-
-  socket.emit('tv:broadcast', {
-    roomCode: state.roomCode,
-    event: 'VOTE_PHASE_START',
-    data: { performerSocketId: player.socketId, performerName: player.name },
-  });
-
-  const votePrompt = AXOLO_VOTE_PROMPTS[Math.floor(Math.random() * AXOLO_VOTE_PROMPTS.length)];
-  axoloSay(votePrompt.text, votePrompt.file);
-
-  if (votePhaseTimeout) clearTimeout(votePhaseTimeout);
-  votePhaseTimeout = setTimeout(() => {
-    if (!votePhaseActive) return;
-    votePhaseActive = false;
-    songEnded = false;
-    endSong(player);
-  }, VOTE_PHASE_DURATION);
-}
-
-function showAudioOnlyPlaceholder(song) {
-  const el = document.getElementById('audio-only-placeholder');
-  if (!el) return;
-  const titleEl = document.getElementById('aop-title');
-  const artistEl = document.getElementById('aop-artist');
-  if (titleEl && song) titleEl.textContent = song.title || 'Sin título';
-  if (artistEl && song) artistEl.textContent = song.artist || '';
-  el.classList.add('visible');
-}
-
-function startKaraokeTimer(video, song) {
-  if (timerInterval) clearInterval(timerInterval);
-  const duration = Math.floor((video && video.duration) || song?.duration || 120);
-  let elapsed = 0;
-  let timerBcastTick = 0;
-
-  timerInterval = setInterval(() => {
-    elapsed++;
-    timerBcastTick++;
-    const remaining = Math.max(0, Math.floor(duration - elapsed));
-    const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
-    const ss = String(remaining % 60).padStart(2, '0');
-    document.getElementById('hud-timer').textContent = `${mm}:${ss}`;
-
-    if (timerBcastTick % 3 === 0 && state.roomCode) {
-      socket.emit('tv:broadcast', {
-        roomCode: state.roomCode,
-        event: 'SONG_TIMER',
-        data: { active: true, elapsed, duration },
-      });
-    }
-
-    // Ronda 1: fire challenge at halfway
-    if (state.round === 1 && !challengeFired && elapsed >= duration * 0.5) {
-      challengeFired = true;
-      fireChallenge();
-    }
-
-    // Ronda 3: blackout at random point between 40-60%
-    if (state.round === 3 && !blackoutFired && elapsed >= duration * 0.4) {
-      blackoutFired = true;
-      fireBlackout();
-    }
-
-    if (remaining <= 0) {
-      clearInterval(timerInterval);
-      const fallbackSinger = currentSongPerformer || state.singerQueue[state.currentSingerIdx % state.singerQueue.length] || state.players.find(p => !p.disconnected);
-      startVotePhase(fallbackSinger, song);
-    }
-  }, 1000);
-}
-
-function fireChallenge() {
-  const reto = RETO_CHALLENGES[Math.floor(Math.random() * RETO_CHALLENGES.length)];
-  document.getElementById('challenge-text').textContent = reto;
-  const banner = document.getElementById('challenge-banner');
-
-  anime({
-    targets: banner,
-    opacity: [0, 1],
-    translateY: [60, 0],
-    duration: 700,
-    easing: 'easeOutBack',
-  });
-  const cChoice = CHALLENGE_INTROS[Math.floor(Math.random() * CHALLENGE_INTROS.length)];
-  const retoMsg = `¡RETO ACTIVADO! ${reto}`;
-  axoloSay(retoMsg, cChoice.file);
-
-  // Auto-hide after 8s
-  setTimeout(() => {
-    anime({ targets: banner, opacity: [1, 0], translateY: [0, 60], duration: 400, easing: 'easeInCubic' });
-  }, 8000);
-}
-
-function fireBlackout() {
-  const video = document.getElementById('karaoke-video');
-  const lyrics = document.getElementById('lyrics-text');
-
-  // Show blackout banner
-  anime({
-    targets: '#blackout-banner',
-    scale: [0, 1.05, 1],
-    duration: 600,
-    easing: 'easeOutBack',
-  });
-  lyrics.classList.add('blackout');
-  document.getElementById('np-artist').classList.add('blackout');
-  if (video) video.style.filter = 'brightness(0.05)';
-
-  const bIntroChoice = BLACKOUT_INTROS[Math.floor(Math.random() * BLACKOUT_INTROS.length)];
-  const blackoutMsg = bIntroChoice.text;
-  axoloSay(blackoutMsg, bIntroChoice.file);
-
-  const blackoutDuration = 5000 + Math.random() * 5000;
-  blackoutTimeout = setTimeout(() => {
-    blackoutTimeout = null;
-    anime({ targets: '#blackout-banner', scale: [1, 0], duration: 400, easing: 'easeInCubic' });
-    lyrics.classList.remove('blackout');
-    document.getElementById('np-artist').classList.remove('blackout');
-    if (video) video.style.filter = '';
-    const bEndChoice = BLACKOUT_ENDS[Math.floor(Math.random() * BLACKOUT_ENDS.length)];
-    axoloSay(bEndChoice.text, bEndChoice.file);
-  }, blackoutDuration);
-}
-
-function endSong(player) {
-  if (songEnded) return;
         const errBanner = document.getElementById('video-error-banner');
         if (errBanner) errBanner.classList.remove('visible');
         if (!timerInterval) startKaraokeTimer(video, song);
