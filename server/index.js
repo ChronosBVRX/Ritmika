@@ -240,9 +240,16 @@ app.get('/api/songs', (req, res) => {
     }
   }
 
+  // Filter by game mode
+  if (req.query.mode && req.query.mode.toLowerCase() !== 'clasico') {
+    const modeStr = req.query.mode.trim().toLowerCase();
+    where.push(`LOWER(mode) = ?`);
+    params.push(modeStr);
+  }
+
   const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : '';
   const orderBy = req.query.random === 'true' ? 'ORDER BY RANDOM()' : 'ORDER BY artist, title';
-  const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+  const limit = Math.min(parseInt(req.query.limit) || 100, 5000);
 
   const sql = `SELECT * FROM songs ${whereClause} ${orderBy} LIMIT ?`;
   params.push(limit);
@@ -305,36 +312,26 @@ app.get('/api/artist-map', (req, res) => {
   res.json(map);
 });
 
-// ── Game modes config ──
-app.get('/api/game-modes', (req, res) => {
-  const modesPath = path.join(__dirname, 'game_modes_config.json');
-  if (!fs.existsSync(modesPath)) return res.json({ modes: {} });
-  try {
-    const raw = fs.readFileSync(modesPath, 'utf8').replace(/^\uFEFF/, '');
-    return res.json(JSON.parse(raw));
-  } catch (_) {
-    return res.json({ modes: {} });
-  }
-});
-
-app.post('/api/game-modes', (req, res) => {
+// ── Bulk update modes (Admin) ──
+app.put('/api/songs/bulk-mode', (req, res) => {
   const origin = req.headers.origin;
   if (!isLocalOrigin(origin)) return res.status(403).json({ error: 'CORS not allowed' });
   
+  const { songIds, mode } = req.body;
+  if (!Array.isArray(songIds)) {
+    return res.status(400).json({ error: 'songIds debe ser un array' });
+  }
+
+  if (!isDbReady()) return res.status(500).json({ error: 'DB not ready' });
+
   try {
-    const modesPath = path.join(__dirname, 'game_modes_config.json');
-    const newConfig = req.body;
-    
-    // Basic validation
-    if (!newConfig || !newConfig.modes) {
-      return res.status(400).json({ error: 'Formato inválido. Se requiere "modes".' });
-    }
-    
-    fs.writeFileSync(modesPath, JSON.stringify(newConfig, null, 2), 'utf8');
-    res.json({ success: true, message: 'Configuración guardada correctamente.' });
+    const placeholders = songIds.map(() => '?').join(',');
+    const sql = `UPDATE songs SET mode = ? WHERE id IN (${placeholders})`;
+    const result = db.prepare(sql).run(mode || '', ...songIds);
+    res.json({ success: true, updatedCount: result.changes });
   } catch (err) {
-    console.error('[ADMIN] Error saving game modes:', err.message);
-    res.status(500).json({ error: 'No se pudo guardar la configuración.' });
+    console.error('[ADMIN] Error updating bulk modes:', err.message);
+    res.status(500).json({ error: 'No se pudo actualizar el modo en la BD.' });
   }
 });
 

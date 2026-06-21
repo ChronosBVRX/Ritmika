@@ -3,14 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rítmika — Admin de Modos</title>
+  <title>Rítmika — Gestor de Catálogo</title>
   
-  <!-- Estilos base y Tailwind -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Paytone+One&display=swap" rel="stylesheet">
   
-  <!-- Usar CDN de Tailwind y Anime para asegurar carga en render -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
@@ -48,7 +46,6 @@
       color: #111827;
       border: 4px solid #111827;
       box-shadow: 6px 6px 0px #111827;
-      transition: transform 0.1s;
     }
 
     .brutal-input {
@@ -84,7 +81,6 @@
 
     .brutal-btn.primary { background-color: #ffe600; color: #111827; }
     .brutal-btn.secondary { background-color: #00e5ff; color: #111827; }
-    .brutal-btn.danger { background-color: #ef4444; color: white; }
 
     #toast {
       position: fixed;
@@ -100,228 +96,243 @@
       border-radius: 8px;
       z-index: 1000;
     }
+
+    /* Custom Checkbox */
+    .cb-brutal {
+      appearance: none;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 3px solid #111827;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      position: relative;
+    }
+    .cb-brutal:checked {
+      background: #f0047f;
+    }
+    .cb-brutal:checked::after {
+      content: '✔';
+      position: absolute;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      top: -2px;
+      left: 2px;
+    }
+    
+    .table-container {
+      max-height: 60vh;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body class="min-h-screen p-8">
 
-  <div class="max-w-5xl mx-auto">
-    <header class="flex justify-between items-center mb-8">
+  <div class="max-w-6xl mx-auto">
+    <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
       <div>
         <h1 class="font-display text-4xl md:text-5xl text-accentY drop-shadow-[4px_4px_0_rgba(17,24,39,1)]" style="-webkit-text-stroke: 2px #111827;">
-          ⚙️ RÍTMIKA MODOS
+          🎤 GESTOR DE CATÁLOGO
         </h1>
-        <p class="font-body text-xl mt-2 text-slate-300">Configuración de Modos de Juego</p>
+        <p class="font-body text-xl mt-2 text-slate-300">Asigna canciones a tus Modos de Juego</p>
       </div>
-      <button onclick="saveConfig()" class="brutal-btn primary text-xl shadow-lg">
-        💾 GUARDAR CAMBIOS
-      </button>
+      <div class="text-right">
+        <span class="bg-brutal text-white px-3 py-1 rounded-full text-sm font-bold tracking-widest uppercase">
+          Total: <span id="total-count">0</span> canciones
+        </span>
+      </div>
     </header>
 
-    <div class="brutal-box p-6 rounded-2xl mb-8">
-      <h2 class="font-display text-2xl mb-4 text-accentM">Acerca de la Configuración</h2>
-      <input type="text" id="config-desc" class="brutal-input text-lg" placeholder="Descripción general">
+    <!-- Toolbar: Buscador y Acciones Bulk -->
+    <div class="brutal-box p-6 rounded-2xl mb-8 flex flex-col md:flex-row gap-6 items-end">
+      <div class="flex-1 w-full">
+        <label class="block font-display text-sm mb-2 text-accentM">Buscar por Artista o Canción:</label>
+        <input type="text" id="search-input" class="brutal-input text-lg" placeholder="Ej: My Chemical Romance..." onkeyup="filterTable()">
+      </div>
+
+      <div class="w-full md:w-auto">
+        <label class="block font-display text-sm mb-2 text-accentC">Asignar MODO a las <span id="selected-count" class="text-accentM">0</span> seleccionadas:</label>
+        <div class="flex gap-2">
+          <select id="bulk-mode-select" class="brutal-input bg-white cursor-pointer w-48">
+            <option value="clasico">Clásico (Por defecto)</option>
+            <option value="anime">Modo Anime</option>
+            <option value="emo">Modo Emo</option>
+            <option value="ranchera">Dolidas y Rancheras</option>
+            <option value="nostalgia">Nostalgia 2000s</option>
+          </select>
+          <button onclick="applyBulkMode()" class="brutal-btn primary whitespace-nowrap">
+            Aplicar
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="font-display text-3xl text-accentC drop-shadow-[2px_2px_0_rgba(17,24,39,1)]" style="-webkit-text-stroke: 1.5px #111827;">Modos Activos</h2>
-      <button onclick="addNewMode()" class="brutal-btn secondary">
-        + AÑADIR MODO
-      </button>
-    </div>
-
-    <div id="modes-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Los modos se inyectarán aquí -->
+    <!-- Tabla de Canciones -->
+    <div class="brutal-box rounded-2xl overflow-hidden">
+      <div class="table-container bg-white">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-slate-200 sticky top-0 z-10 border-b-4 border-brutal">
+            <tr>
+              <th class="p-3 w-16 text-center border-r-2 border-brutal">
+                <input type="checkbox" id="select-all" class="cb-brutal" onchange="toggleSelectAll(this)">
+              </th>
+              <th class="p-3 font-display text-lg text-brutal border-r-2 border-brutal">Artista</th>
+              <th class="p-3 font-display text-lg text-brutal border-r-2 border-brutal">Título</th>
+              <th class="p-3 font-display text-lg text-brutal border-r-2 border-brutal">Género (Global)</th>
+              <th class="p-3 font-display text-lg text-accentM">Modo de Juego</th>
+            </tr>
+          </thead>
+          <tbody id="table-body" class="text-brutal font-semibold text-lg divide-y-2 divide-brutal">
+            <tr>
+              <td colspan="5" class="p-8 text-center text-slate-500">Cargando base de datos...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <div id="toast">✅ ¡GUARDADO CON ÉXITO!</div>
+  <div id="toast">✅ ¡ACTUALIZADO CON ÉXITO!</div>
 
   <script>
-    let globalConfig = { description: "", modes: {} };
-    let availableGenres = [];
+    let allSongs = [];
+    let filteredSongs = [];
+    const tableBody = document.getElementById('table-body');
+    const searchInput = document.getElementById('search-input');
+    const selectedCountSpan = document.getElementById('selected-count');
+    const totalCountSpan = document.getElementById('total-count');
 
-    // Init
-    async function init() {
+    // Mapeo amigable de modos para mostrar en la tabla
+    const modeNames = {
+      '': '<span class="text-slate-400 font-normal">Clásico</span>',
+      'clasico': '<span class="text-slate-400 font-normal">Clásico</span>',
+      'anime': '🌸 Anime',
+      'emo': '🖤 Emo',
+      'ranchera': '🥃 Dolidas/Ranchera',
+      'nostalgia': '💿 Nostalgia 2000s'
+    };
+
+    async function loadData() {
       try {
-        // 1. Obtener géneros
-        const mapRes = await fetch('/api/artist-map');
-        const mapData = await mapRes.json();
-        availableGenres = Object.keys(mapData).sort();
-
-        if(availableGenres.length === 0) {
-          // Fallback just in case
-          availableGenres = ['pop', 'rock', 'reggaeton', 'banda', 'cumbia', 'ranchera', 'balada', 'electronica'];
-        }
-
-        // 2. Obtener config
-        const confRes = await fetch('/api/game-modes');
-        globalConfig = await confRes.json();
-
-        if(!globalConfig.modes) globalConfig.modes = {};
-        
-        document.getElementById('config-desc').value = globalConfig.description || '';
-        
-        renderModes();
-        
-        // Animación de entrada
-        anime({
-          targets: '.brutal-box',
-          translateY: [50, 0],
-          opacity: [0, 1],
-          delay: anime.stagger(100),
-          easing: 'easeOutElastic(1, .8)'
-        });
+        const res = await fetch('/api/songs?limit=5000');
+        allSongs = await res.json();
+        filteredSongs = [...allSongs];
+        totalCountSpan.textContent = allSongs.length;
+        renderTable();
       } catch (err) {
-        console.error("Error al cargar:", err);
-        alert("Hubo un error cargando la configuración. Revisa la consola.");
+        console.error("Error al cargar canciones", err);
+        tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">Error al cargar la base de datos.</td></tr>';
       }
     }
 
-    function renderModes() {
-      const container = document.getElementById('modes-container');
-      container.innerHTML = '';
-
-      Object.entries(globalConfig.modes).forEach(([modeKey, modeData]) => {
-        const card = createModeCard(modeKey, modeData);
-        container.appendChild(card);
-      });
-    }
-
-    function createModeCard(key, data) {
-      const div = document.createElement('div');
-      div.className = 'brutal-box p-6 rounded-2xl flex flex-col gap-4 relative';
-      
-      const filterId = `filter-${key}`;
-      const genresDivId = `genres-${key}`;
-
-      let genresHTML = '';
-      availableGenres.forEach(g => {
-        const checked = (data.genres && data.genres.includes(g)) ? 'checked' : '';
-        genresHTML += `
-          <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700 bg-slate-100 p-2 rounded border-2 border-brutal hover:bg-accentY hover:text-brutal transition-colors">
-            <input type="checkbox" value="${g}" class="genre-cb-${key} w-5 h-5 accent-accentM" ${checked}>
-            <span class="capitalize">${g}</span>
-          </label>
-        `;
-      });
-
-      div.innerHTML = `
-        <div class="flex justify-between items-start">
-          <div class="flex-1 mr-4">
-            <label class="block font-display text-sm mb-1 text-slate-500 uppercase">Clave (ID interno)</label>
-            <input type="text" value="${key}" class="brutal-input bg-slate-200 text-slate-500" readonly>
-          </div>
-          <button onclick="deleteMode('${key}')" class="brutal-btn danger px-3 py-2 text-sm mt-6">X</button>
-        </div>
-
-        <div>
-          <label class="block font-display text-sm mb-1 text-accentM">Nombre visible</label>
-          <input type="text" id="label-${key}" value="${data.label || ''}" class="brutal-input text-xl text-brutal" onchange="updateModeData('${key}', 'label', this.value)">
-        </div>
-
-        <div>
-          <label class="block font-display text-sm mb-1 text-slate-500">Descripción</label>
-          <input type="text" id="desc-${key}" value="${data.description || ''}" class="brutal-input" onchange="updateModeData('${key}', 'description', this.value)">
-        </div>
-
-        <div>
-          <label class="block font-display text-sm mb-1 text-accentC">Tipo de Filtro</label>
-          <select id="${filterId}" class="brutal-input bg-white cursor-pointer" onchange="toggleGenresVisibility('${key}')">
-            <option value="all" ${data.filter === 'all' ? 'selected' : ''}>Todos (Catálogo Completo)</option>
-            <option value="has_genre" ${data.filter === 'has_genre' ? 'selected' : ''}>Tiene Género (Cualquiera)</option>
-            <option value="genre" ${data.filter === 'genre' ? 'selected' : ''}>Por Género(s) Específico(s)</option>
-          </select>
-        </div>
-
-        <div id="${genresDivId}" class="mt-2 ${data.filter === 'genre' ? 'block' : 'hidden'}">
-          <label class="block font-display text-sm mb-2 text-accentM">Selecciona los géneros permitidos:</label>
-          <div class="grid grid-cols-2 gap-2">
-            ${genresHTML}
-          </div>
-        </div>
-      `;
-
-      return div;
-    }
-
-    function toggleGenresVisibility(key) {
-      const filterVal = document.getElementById(`filter-${key}`).value;
-      const genresDiv = document.getElementById(`genres-${key}`);
-      
-      if (filterVal === 'genre') {
-        genresDiv.classList.remove('hidden');
-        genresDiv.classList.add('block');
-      } else {
-        genresDiv.classList.remove('block');
-        genresDiv.classList.add('hidden');
-      }
-      updateModeData(key, 'filter', filterVal);
-    }
-
-    function updateModeData(key, field, value) {
-      if(globalConfig.modes[key]) {
-        globalConfig.modes[key][field] = value;
-      }
-    }
-
-    function addNewMode() {
-      const key = prompt("Ingresa un ID único para el modo (ej. 'fiesta_80s', sin espacios):");
-      if (!key) return;
-      
-      const cleanKey = key.toLowerCase().replace(/[^a-z0-9_]/g, '');
-      if (globalConfig.modes[cleanKey]) {
-        alert("Ese ID ya existe.");
+    function renderTable() {
+      tableBody.innerHTML = '';
+      if(filteredSongs.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500">No se encontraron resultados.</td></tr>';
         return;
       }
 
-      globalConfig.modes[cleanKey] = {
-        label: "Nuevo Modo",
-        description: "Descripción de mi nuevo modo",
-        filter: "all",
-        genres: []
-      };
+      // Para optimizar renderizado de muchos miles, creamos un DocumentFragment
+      const fragment = document.createDocumentFragment();
 
-      renderModes();
-    }
+      // Renderizar máximo 500 para evitar lag extremo en búsqueda, si hay más, avisamos
+      const renderLimit = Math.min(filteredSongs.length, 500);
 
-    function deleteMode(key) {
-      if(confirm(`¿Estás seguro de eliminar el modo "${globalConfig.modes[key].label}"?`)) {
-        delete globalConfig.modes[key];
-        renderModes();
+      for(let i=0; i<renderLimit; i++) {
+        const song = filteredSongs[i];
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-100 transition-colors";
+        
+        const modeBadge = modeNames[song.mode] || `<span class="bg-slate-800 text-white px-2 py-1 rounded text-sm">${song.mode}</span>`;
+
+        tr.innerHTML = `
+          <td class="p-3 text-center border-r-2 border-brutal">
+            <input type="checkbox" class="cb-brutal row-cb" value="${song.id}" onchange="updateSelectedCount()">
+          </td>
+          <td class="p-3 border-r-2 border-brutal cursor-pointer text-accentM hover:underline" onclick="selectArtist('${song.artist.replace(/'/g, "\\'")}')" title="Clic para ver todas las de ${song.artist}">
+            ${song.artist}
+          </td>
+          <td class="p-3 border-r-2 border-brutal">${song.title}</td>
+          <td class="p-3 border-r-2 border-brutal uppercase text-sm">${song.genre || '-'}</td>
+          <td class="p-3">${modeBadge}</td>
+        `;
+        fragment.appendChild(tr);
       }
+
+      if(filteredSongs.length > 500) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5" class="p-4 text-center text-slate-500 bg-slate-50">Mostrando los primeros 500 resultados. Usa el buscador para refinar.</td>`;
+        fragment.appendChild(tr);
+      }
+
+      tableBody.appendChild(fragment);
+      updateSelectedCount();
+      document.getElementById('select-all').checked = false;
     }
 
-    async function saveConfig() {
-      // 1. Actualizar globalConfig con el estado de los checkboxes y descripción general
-      globalConfig.description = document.getElementById('config-desc').value;
+    function filterTable() {
+      const q = searchInput.value.toLowerCase().trim();
+      if(!q) {
+        filteredSongs = [...allSongs];
+      } else {
+        filteredSongs = allSongs.filter(s => 
+          s.title.toLowerCase().includes(q) || 
+          s.artist.toLowerCase().includes(q)
+        );
+      }
+      renderTable();
+    }
 
-      Object.keys(globalConfig.modes).forEach(key => {
-        const filterVal = document.getElementById(`filter-${key}`).value;
-        if (filterVal === 'genre') {
-          const checkboxes = document.querySelectorAll(`.genre-cb-${key}:checked`);
-          const selectedGenres = Array.from(checkboxes).map(cb => cb.value);
-          globalConfig.modes[key].genres = selectedGenres;
-        } else {
-          delete globalConfig.modes[key].genres;
-        }
-      });
+    function selectArtist(artistName) {
+      searchInput.value = artistName;
+      filterTable();
+    }
 
-      // 2. Enviar a server
+    function toggleSelectAll(cb) {
+      const checkboxes = document.querySelectorAll('.row-cb');
+      checkboxes.forEach(c => c.checked = cb.checked);
+      updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+      const count = document.querySelectorAll('.row-cb:checked').length;
+      selectedCountSpan.textContent = count;
+    }
+
+    async function applyBulkMode() {
+      const checkboxes = document.querySelectorAll('.row-cb:checked');
+      if(checkboxes.length === 0) {
+        alert("¡Selecciona al menos una canción primero!");
+        return;
+      }
+
+      const songIds = Array.from(checkboxes).map(c => c.value);
+      let selectedMode = document.getElementById('bulk-mode-select').value;
+      if (selectedMode === 'clasico') selectedMode = ''; // Clásico = sin filtro de modo
+
       try {
-        const res = await fetch('/api/game-modes', {
-          method: 'POST',
+        const res = await fetch('/api/songs/bulk-mode', {
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(globalConfig)
+          body: JSON.stringify({ songIds, mode: selectedMode })
         });
         const data = await res.json();
+        
         if(data.success) {
+          // Actualizar estado local
+          songIds.forEach(id => {
+            const s = allSongs.find(song => song.id === id);
+            if(s) s.mode = selectedMode;
+          });
+          renderTable();
           showToast();
         } else {
-          alert("Error: " + (data.error || "No se pudo guardar"));
+          alert("Error: " + data.error);
         }
       } catch (err) {
         console.error(err);
-        alert("Fallo de red al intentar guardar.");
+        alert("Fallo de red al intentar actualizar.");
       }
     }
 
@@ -347,9 +358,8 @@
       });
     }
 
-    // Arrancar app
-    document.addEventListener('DOMContentLoaded', init);
-
+    // Arrancar
+    document.addEventListener('DOMContentLoaded', loadData);
   </script>
 </body>
 </html>
