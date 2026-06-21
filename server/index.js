@@ -84,6 +84,7 @@ function getLocalIP() {
 
 const app = express();
 app.use(compression());
+app.use(express.json());
 const httpServer = http.createServer(app);
 
 // ── Socket.io con CORS permisivo local (LAN party) ────────────
@@ -121,6 +122,11 @@ app.get('/', (req, res) => {
 // ── Ruta para celulares ──────────────────────────────────────
 app.get('/join', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/mobile.html'));
+});
+
+// ── Admin: Dashboard de Modos de Juego ───────────────────────
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/admin_modes.html'));
 });
 
 
@@ -308,6 +314,27 @@ app.get('/api/game-modes', (req, res) => {
     return res.json(JSON.parse(raw));
   } catch (_) {
     return res.json({ modes: {} });
+  }
+});
+
+app.post('/api/game-modes', (req, res) => {
+  const origin = req.headers.origin;
+  if (!isLocalOrigin(origin)) return res.status(403).json({ error: 'CORS not allowed' });
+  
+  try {
+    const modesPath = path.join(__dirname, 'game_modes_config.json');
+    const newConfig = req.body;
+    
+    // Basic validation
+    if (!newConfig || !newConfig.modes) {
+      return res.status(400).json({ error: 'Formato inválido. Se requiere "modes".' });
+    }
+    
+    fs.writeFileSync(modesPath, JSON.stringify(newConfig, null, 2), 'utf8');
+    res.json({ success: true, message: 'Configuración guardada correctamente.' });
+  } catch (err) {
+    console.error('[ADMIN] Error saving game modes:', err.message);
+    res.status(500).json({ error: 'No se pudo guardar la configuración.' });
   }
 });
 

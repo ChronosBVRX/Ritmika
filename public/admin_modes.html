@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rítmika — Admin de Modos</title>
+  
+  <!-- Estilos base y Tailwind -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Paytone+One&display=swap" rel="stylesheet">
+  
+  <!-- Usar CDN de Tailwind y Anime para asegurar carga en render -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['"Paytone One"', 'sans-serif'],
+            body: ['Fredoka', 'sans-serif'],
+          },
+          colors: {
+            dark: '#0f172a',
+            brutal: '#111827',
+            accentY: '#ffe600',
+            accentC: '#00e5ff',
+            accentM: '#f0047f',
+            accentP: '#ec4899',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0f172a;
+      background-image: radial-gradient(circle at 50% 50%, rgba(255,230,0,0.05) 0%, transparent 60%);
+      color: white;
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    .brutal-box {
+      background-color: white;
+      color: #111827;
+      border: 4px solid #111827;
+      box-shadow: 6px 6px 0px #111827;
+      transition: transform 0.1s;
+    }
+
+    .brutal-input {
+      background-color: #f1f5f9;
+      border: 3px solid #111827;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 600;
+      width: 100%;
+    }
+    
+    .brutal-input:focus {
+      outline: none;
+      border-color: #f0047f;
+      box-shadow: inset 0 0 0 2px #f0047f;
+    }
+
+    .brutal-btn {
+      font-family: 'Paytone One', sans-serif;
+      text-transform: uppercase;
+      border: 4px solid #111827;
+      box-shadow: 4px 4px 0px #111827;
+      cursor: pointer;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+    }
+
+    .brutal-btn:active {
+      transform: translate(4px, 4px);
+      box-shadow: 0px 0px 0px #111827;
+    }
+
+    .brutal-btn.primary { background-color: #ffe600; color: #111827; }
+    .brutal-btn.secondary { background-color: #00e5ff; color: #111827; }
+    .brutal-btn.danger { background-color: #ef4444; color: white; }
+
+    #toast {
+      position: fixed;
+      bottom: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #10b981;
+      color: white;
+      border: 4px solid #111827;
+      box-shadow: 6px 6px 0px #111827;
+      padding: 1rem 2rem;
+      font-family: 'Paytone One', sans-serif;
+      border-radius: 8px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-8">
+
+  <div class="max-w-5xl mx-auto">
+    <header class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="font-display text-4xl md:text-5xl text-accentY drop-shadow-[4px_4px_0_rgba(17,24,39,1)]" style="-webkit-text-stroke: 2px #111827;">
+          ⚙️ RÍTMIKA MODOS
+        </h1>
+        <p class="font-body text-xl mt-2 text-slate-300">Configuración de Modos de Juego</p>
+      </div>
+      <button onclick="saveConfig()" class="brutal-btn primary text-xl shadow-lg">
+        💾 GUARDAR CAMBIOS
+      </button>
+    </header>
+
+    <div class="brutal-box p-6 rounded-2xl mb-8">
+      <h2 class="font-display text-2xl mb-4 text-accentM">Acerca de la Configuración</h2>
+      <input type="text" id="config-desc" class="brutal-input text-lg" placeholder="Descripción general">
+    </div>
+
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="font-display text-3xl text-accentC drop-shadow-[2px_2px_0_rgba(17,24,39,1)]" style="-webkit-text-stroke: 1.5px #111827;">Modos Activos</h2>
+      <button onclick="addNewMode()" class="brutal-btn secondary">
+        + AÑADIR MODO
+      </button>
+    </div>
+
+    <div id="modes-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Los modos se inyectarán aquí -->
+    </div>
+  </div>
+
+  <div id="toast">✅ ¡GUARDADO CON ÉXITO!</div>
+
+  <script>
+    let globalConfig = { description: "", modes: {} };
+    let availableGenres = [];
+
+    // Init
+    async function init() {
+      try {
+        // 1. Obtener géneros
+        const mapRes = await fetch('/api/artist-map');
+        const mapData = await mapRes.json();
+        availableGenres = Object.keys(mapData).sort();
+
+        if(availableGenres.length === 0) {
+          // Fallback just in case
+          availableGenres = ['pop', 'rock', 'reggaeton', 'banda', 'cumbia', 'ranchera', 'balada', 'electronica'];
+        }
+
+        // 2. Obtener config
+        const confRes = await fetch('/api/game-modes');
+        globalConfig = await confRes.json();
+
+        if(!globalConfig.modes) globalConfig.modes = {};
+        
+        document.getElementById('config-desc').value = globalConfig.description || '';
+        
+        renderModes();
+        
+        // Animación de entrada
+        anime({
+          targets: '.brutal-box',
+          translateY: [50, 0],
+          opacity: [0, 1],
+          delay: anime.stagger(100),
+          easing: 'easeOutElastic(1, .8)'
+        });
+      } catch (err) {
+        console.error("Error al cargar:", err);
+        alert("Hubo un error cargando la configuración. Revisa la consola.");
+      }
+    }
+
+    function renderModes() {
+      const container = document.getElementById('modes-container');
+      container.innerHTML = '';
+
+      Object.entries(globalConfig.modes).forEach(([modeKey, modeData]) => {
+        const card = createModeCard(modeKey, modeData);
+        container.appendChild(card);
+      });
+    }
+
+    function createModeCard(key, data) {
+      const div = document.createElement('div');
+      div.className = 'brutal-box p-6 rounded-2xl flex flex-col gap-4 relative';
+      
+      const filterId = `filter-${key}`;
+      const genresDivId = `genres-${key}`;
+
+      let genresHTML = '';
+      availableGenres.forEach(g => {
+        const checked = (data.genres && data.genres.includes(g)) ? 'checked' : '';
+        genresHTML += `
+          <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700 bg-slate-100 p-2 rounded border-2 border-brutal hover:bg-accentY hover:text-brutal transition-colors">
+            <input type="checkbox" value="${g}" class="genre-cb-${key} w-5 h-5 accent-accentM" ${checked}>
+            <span class="capitalize">${g}</span>
+          </label>
+        `;
+      });
+
+      div.innerHTML = `
+        <div class="flex justify-between items-start">
+          <div class="flex-1 mr-4">
+            <label class="block font-display text-sm mb-1 text-slate-500 uppercase">Clave (ID interno)</label>
+            <input type="text" value="${key}" class="brutal-input bg-slate-200 text-slate-500" readonly>
+          </div>
+          <button onclick="deleteMode('${key}')" class="brutal-btn danger px-3 py-2 text-sm mt-6">X</button>
+        </div>
+
+        <div>
+          <label class="block font-display text-sm mb-1 text-accentM">Nombre visible</label>
+          <input type="text" id="label-${key}" value="${data.label || ''}" class="brutal-input text-xl text-brutal" onchange="updateModeData('${key}', 'label', this.value)">
+        </div>
+
+        <div>
+          <label class="block font-display text-sm mb-1 text-slate-500">Descripción</label>
+          <input type="text" id="desc-${key}" value="${data.description || ''}" class="brutal-input" onchange="updateModeData('${key}', 'description', this.value)">
+        </div>
+
+        <div>
+          <label class="block font-display text-sm mb-1 text-accentC">Tipo de Filtro</label>
+          <select id="${filterId}" class="brutal-input bg-white cursor-pointer" onchange="toggleGenresVisibility('${key}')">
+            <option value="all" ${data.filter === 'all' ? 'selected' : ''}>Todos (Catálogo Completo)</option>
+            <option value="has_genre" ${data.filter === 'has_genre' ? 'selected' : ''}>Tiene Género (Cualquiera)</option>
+            <option value="genre" ${data.filter === 'genre' ? 'selected' : ''}>Por Género(s) Específico(s)</option>
+          </select>
+        </div>
+
+        <div id="${genresDivId}" class="mt-2 ${data.filter === 'genre' ? 'block' : 'hidden'}">
+          <label class="block font-display text-sm mb-2 text-accentM">Selecciona los géneros permitidos:</label>
+          <div class="grid grid-cols-2 gap-2">
+            ${genresHTML}
+          </div>
+        </div>
+      `;
+
+      return div;
+    }
+
+    function toggleGenresVisibility(key) {
+      const filterVal = document.getElementById(`filter-${key}`).value;
+      const genresDiv = document.getElementById(`genres-${key}`);
+      
+      if (filterVal === 'genre') {
+        genresDiv.classList.remove('hidden');
+        genresDiv.classList.add('block');
+      } else {
+        genresDiv.classList.remove('block');
+        genresDiv.classList.add('hidden');
+      }
+      updateModeData(key, 'filter', filterVal);
+    }
+
+    function updateModeData(key, field, value) {
+      if(globalConfig.modes[key]) {
+        globalConfig.modes[key][field] = value;
+      }
+    }
+
+    function addNewMode() {
+      const key = prompt("Ingresa un ID único para el modo (ej. 'fiesta_80s', sin espacios):");
+      if (!key) return;
+      
+      const cleanKey = key.toLowerCase().replace(/[^a-z0-9_]/g, '');
+      if (globalConfig.modes[cleanKey]) {
+        alert("Ese ID ya existe.");
+        return;
+      }
+
+      globalConfig.modes[cleanKey] = {
+        label: "Nuevo Modo",
+        description: "Descripción de mi nuevo modo",
+        filter: "all",
+        genres: []
+      };
+
+      renderModes();
+    }
+
+    function deleteMode(key) {
+      if(confirm(`¿Estás seguro de eliminar el modo "${globalConfig.modes[key].label}"?`)) {
+        delete globalConfig.modes[key];
+        renderModes();
+      }
+    }
+
+    async function saveConfig() {
+      // 1. Actualizar globalConfig con el estado de los checkboxes y descripción general
+      globalConfig.description = document.getElementById('config-desc').value;
+
+      Object.keys(globalConfig.modes).forEach(key => {
+        const filterVal = document.getElementById(`filter-${key}`).value;
+        if (filterVal === 'genre') {
+          const checkboxes = document.querySelectorAll(`.genre-cb-${key}:checked`);
+          const selectedGenres = Array.from(checkboxes).map(cb => cb.value);
+          globalConfig.modes[key].genres = selectedGenres;
+        } else {
+          delete globalConfig.modes[key].genres;
+        }
+      });
+
+      // 2. Enviar a server
+      try {
+        const res = await fetch('/api/game-modes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(globalConfig)
+        });
+        const data = await res.json();
+        if(data.success) {
+          showToast();
+        } else {
+          alert("Error: " + (data.error || "No se pudo guardar"));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Fallo de red al intentar guardar.");
+      }
+    }
+
+    function showToast() {
+      const toast = document.getElementById('toast');
+      anime({
+        targets: toast,
+        bottom: '30px',
+        opacity: 1,
+        duration: 800,
+        easing: 'easeOutElastic(1, .5)',
+        complete: function() {
+          setTimeout(() => {
+            anime({
+              targets: toast,
+              bottom: '-100px',
+              opacity: 0,
+              duration: 500,
+              easing: 'easeInBack'
+            });
+          }, 3000);
+        }
+      });
+    }
+
+    // Arrancar app
+    document.addEventListener('DOMContentLoaded', init);
+
+  </script>
+</body>
+</html>
