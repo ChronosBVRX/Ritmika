@@ -4160,6 +4160,18 @@ async function showRouletteResult(player) {
   const song = await pickSongForPlayer(player);
   state.currentSong = song;
 
+  // Resolve video URL (presigned from R2 or public fallback)
+  if (song && song.id) {
+    fetch('/api/video-url?id=' + encodeURIComponent(song.id))
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.url && state.currentSong && state.currentSong.id === song.id) {
+          state.currentSong._resolvedUrl = data.url;
+        }
+      })
+      .catch(() => {});
+  }
+
   document.getElementById('selected-player-avatar-img').src = getAvatar(player.avatarId).img;
   document.getElementById('selected-player-name').textContent = player.name;
   document.getElementById('selected-song-info').textContent = song
@@ -4250,13 +4262,21 @@ function stopAllSfx() {
   activeSfx.length = 0;
 }
 
-function startKaraoke(player, song) {
+async function startKaraoke(player, song) {
   if (document.getElementById('karaoke-screen').classList.contains('active')) return;
   karaokeGeneration++;
   songEnded = false;
   currentSongPerformer = player;
   const myGeneration = karaokeGeneration;
   showScreen('karaoke-screen', 'flash');
+
+  // Resolve video URL if not already done
+  if (song && song.id && !song._resolvedUrl) {
+    fetch('/api/video-url?id=' + encodeURIComponent(song.id))
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => { if (data && data.url) song._resolvedUrl = data.url; })
+      .catch(() => {});
+  }
 
   state.votedBy = new Set();
   
@@ -4319,12 +4339,29 @@ function startKaraoke(player, song) {
     if (wrap) wrap.appendChild(video);
   }
 
+  // Resolve video URL (prefer presigned from R2, fallback raw DB URL)
+  let videoUrl = null;
+  if (song && song.id) {
+    if (song._resolvedUrl) {
+      videoUrl = song._resolvedUrl;
+    } else {
+      try {
+        const vRes = await fetch('/api/video-url?id=' + encodeURIComponent(song.id));
+        if (vRes.ok) {
+          const vData = await vRes.json();
+          videoUrl = vData && vData.url ? vData.url : null;
+        }
+      } catch (_) {}
+    }
+  }
+  if (!videoUrl && song && song.url) videoUrl = song.url;
+
   // Set video src IMMEDIATELY so the compositor sees a valid source from frame 1
-  if (song && song.url) {
+  if (song && videoUrl) {
     document.getElementById('lyrics-text').textContent = song.title;
     document.getElementById('np-artist').textContent = song.artist;
     video.muted = true;
-    video.src = song.url;
+    video.src = videoUrl;
     if (typeof bootMusic !== 'undefined' && bootMusic) bootMusic.pause();
   } else {
     document.getElementById('lyrics-text').textContent = '¡Canta lo que quieras!';
@@ -4380,31 +4417,19 @@ function startKaraoke(player, song) {
         startVotePhase(player, song);
       };
 
-      if (song && song.url) {
-        // Try to upgrade to presigned URL (non-blocking, compositor already has src)
-        fetch('/api/video-url?id=' + encodeURIComponent(song.id))
-          .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-          .then(data => {
-            if (data.url && data.url !== video.src) video.src = data.url;
-            return video.play();
-          })
-          .catch(() => {
-            if (video.src !== song.url) video.src = song.url;
-            return video.play();
-          })
-          .then(() => {
-            if (myGeneration !== karaokeGeneration) return;
-            const unmuteWhenReady = setInterval(() => {
-              if (myGeneration !== karaokeGeneration || !currentAxoloAudio) {
-                clearInterval(unmuteWhenReady);
-                video.muted = false;
-              }
-            }, 200);
-          })
-          .catch(e => {
-            console.warn("Autoplay block or explicit play failed:", e);
-            if (!timerInterval) startKaraokeTimer(null, song);
-          });
+      if (videoUrl) {
+        video.play().then(() => {
+          if (myGeneration !== karaokeGeneration) return;
+          const unmuteWhenReady = setInterval(() => {
+            if (myGeneration !== karaokeGeneration || !currentAxoloAudio) {
+              clearInterval(unmuteWhenReady);
+              video.muted = false;
+            }
+          }, 200);
+        }).catch(e => {
+          console.warn("Autoplay block or explicit play failed:", e);
+          if (!timerInterval) startKaraokeTimer(null, song);
+        });
       } else {
         startKaraokeTimer(null, song || { duration: 120 });
       }
