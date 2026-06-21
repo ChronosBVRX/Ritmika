@@ -161,20 +161,32 @@ app.get('/api/network-config', async (req, res) => {
   res.json({ ip, port, joinUrl: `${baseUrl}/join` });
 });
 
-// ── Local Karaoke Catalog Database ───────────────────────────
-let songDatabase = [];
-const dbPath = path.join(__dirname, 'r2_db.json');
+// ── SQLite Database ──────────────────────────────────────
+const Database = require('better-sqlite3');
+const sqlitePath = path.join(__dirname, 'songs.db');
+let db;
 try {
-  if (fs.existsSync(dbPath)) {
-    songDatabase = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-    console.log(`[Server] Loaded ${songDatabase.length} songs from r2_db.json`);
-  } else {
-    console.warn('[Server] r2_db.json not found. Some features may be limited.');
-  }
+  db = new Database(sqlitePath);
+  db.pragma('journal_mode = WAL');
+  const count = db.prepare('SELECT COUNT(*) as cnt FROM songs').get().cnt;
+  console.log(`[DB] SQLite loaded — ${count} songs from songs.db`);
 } catch (err) {
-  console.error('[Server] Could not load r2_db.json:', err);
+  console.error('[DB] Could not open songs.db:', err.message);
+  db = null;
 }
 
+function isDbReady() {
+  return db !== null;
+}
+
+// ── Filtered songs API ───────────────────────────────────
+// Query params:
+//   genres   — comma-separated genre filter
+//   artists  — comma-separated artist filter (partial match)
+//   exclude  — comma-separated song IDs to exclude
+//   random   — if "true", ORDER BY RANDOM()
+//   limit    — max results (default 100)
+//   id       — single song lookup by ID
 app.get('/api/songs', (req, res) => {
   const origin = req.headers.origin;
   if (isLocalOrigin(origin)) {
@@ -185,19 +197,106 @@ app.get('/api/songs', (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
-  console.log('[Server] GET /api/songs from ' + (req.ip || req.connection?.remoteAddress || '?'));
-  if (songDatabase.length > 0) {
-    return res.json(songDatabase);
+
+  if (!isDbReady()) return res.json([]);
+
+  // Single song lookup by ID
+  if (req.query.id) {
+    const song = db.prepare('SELECT * FROM songs WHERE id = ?').get(req.query.id);
+    return res.json(song || null);
   }
-  if (fs.existsSync(dbPath)) {
-    try {
-      songDatabase = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-      return res.json(songDatabase);
-    } catch (err) {
-      console.error('Error reading local karaoke_db.json:', err);
+
+  let where = [];
+  let params = [];
+
+  if (req.query.genres) {
+    const genres = req.query.genres.split(',').map(g => g.trim().toLowerCase()).filter(Boolean);
+    if (genres.length > 0) {
+      where.push(`LOWER(genre) IN (${genres.map(() => '?').join(',')})`);
+      params.push(...genres);
     }
   }
-  res.json([]);
+
+  if (req.query.artists) {
+    const artists = req.query.artists.split(',').map(a => a.trim()).filter(Boolean);
+    if (artists.length > 0) {
+      const likeClauses = artists.map(() => `LOWER(artist) LIKE ?`);
+      where.push(`(${likeClauses.join(' OR ')})`);
+      params.push(...artists.map(a => `%${a.toLowerCase()}%`));
+    }
+  }
+
+  if (req.query.exclude) {
+    const excludeIds = req.query.exclude.split(',').map(e => e.trim()).filter(Boolean);
+    if (excludeIds.length > 0) {
+      where.push(`id NOT IN (${excludeIds.map(() => '?').join(',')})`);
+      params.push(...excludeIds);
+    }
+  }
+
+  const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : '';
+  const orderBy = req.query.random === 'true' ? 'ORDER BY RANDOM()' : 'ORDER BY artist, title';
+  const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+
+  const sql = `SELECT * FROM songs ${whereClause} ${orderBy} LIMIT ?`;
+  params.push(limit);
+
+  try {
+    const songs = db.prepare(sql).all(...params);
+    res.json(songs);
+  } catch (err) {
+    console.error('[DB] Query error:', err.message);
+    res.json([]);
+  }
+});
+
+// ── Artists by genre (for mobile catalog) ────────────────
+app.get('/api/artists', (req, res) => {
+  const origin = req.headers.origin;
+  if (isLocalOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  } else {
+    return res.status(403).json({ error: 'CORS not allowed' });
+  }
+  if (req.method === 'OPTIONS') return res.status(204).end();
+
+  if (!isDbReady()) return res.json([]);
+
+  if (req.query.genres) {
+    const genres = req.query.genres.split(',').map(g => g.trim().toLowerCase()).filter(Boolean);
+    if (genres.length > 0) {
+      const placeholders = genres.map(() => '?').join(',');
+      const artists = db.prepare(
+        `SELECT DISTINCT artist FROM songs WHERE LOWER(genre) IN (${placeholders}) ORDER BY artist`
+      ).all(...genres).map(r => r.artist);
+      return res.json(artists);
+    }
+  }
+
+  const artists = db.prepare('SELECT DISTINCT artist FROM songs ORDER BY artist').all().map(r => r.artist);
+  res.json(artists);
+});
+
+// ── Artist map by genre (for mobile) ─────────────────────
+app.get('/api/artist-map', (req, res) => {
+  const origin = req.headers.origin;
+  if (isLocalOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  } else {
+    return res.status(403).json({ error: 'CORS not allowed' });
+  }
+  if (req.method === 'OPTIONS') return res.status(204).end();
+
+  if (!isDbReady()) return res.json({});
+
+  const rows = db.prepare('SELECT DISTINCT genre, artist FROM songs WHERE genre IS NOT NULL ORDER BY genre, artist').all();
+  const map = {};
+  for (const row of rows) {
+    const g = row.genre.toLowerCase();
+    if (!map[g]) map[g] = [];
+    map[g].push(row.artist);
+  }
+  res.json(map);
 });
 
 // ── Game modes config ──
@@ -223,10 +322,11 @@ app.get('/api/audio-files', (req, res) => {
 
 // ── Health check for bootloader ──
 app.get('/api/health', (req, res) => {
+  const count = isDbReady() ? db.prepare('SELECT COUNT(*) as cnt FROM songs').get().cnt : 0;
   res.json({
     server: true,
-    catalog: songDatabase.length > 0,
-    catalogCount: songDatabase.length,
+    catalog: count > 0,
+    catalogCount: count,
     videoSource: 'cloudflare-r2',
   });
 });
@@ -251,7 +351,7 @@ app.get('/api/video-url', async (req, res) => {
   if (count > 30) return res.status(429).json({ error: 'Too many requests. Slow down.' });
 
   // Find song in database
-  const song = songDatabase.find(s => s.id === songId);
+  const song = isDbReady() ? db.prepare('SELECT * FROM songs WHERE id = ?').get(songId) : null;
   if (!song) return res.status(404).json({ error: 'Song not found' });
 
   // Extract filename from the R2 URL
@@ -577,7 +677,9 @@ io.on('connection', (socket) => {
     io.to(room.tvSocketId).emit('tv:player_joined', { player: playerInfo, players });
 
     setTimeout(() => {
-      const availableGenres = [...new Set(songDatabase.map(s => s.genre).filter(Boolean))];
+      const availableGenres = isDbReady()
+        ? db.prepare('SELECT DISTINCT genre FROM songs WHERE genre IS NOT NULL').all().map(r => r.genre)
+        : ['pop', 'rock', 'reggaeton', 'banda', 'cumbia', 'ranchera', 'balada'];
       const genresList = availableGenres.length > 0 ? availableGenres : ['pop', 'rock', 'reggaeton', 'banda', 'cumbia', 'ranchera', 'balada'];
       const randomGenres = [];
       const count = Math.min(2, genresList.length);
@@ -589,7 +691,9 @@ io.on('connection', (socket) => {
     }, 500);
 
     setTimeout(() => {
-      const availableArtists = [...new Set(songDatabase.map(s => s.artist).filter(Boolean))];
+      const availableArtists = isDbReady()
+        ? db.prepare('SELECT DISTINCT artist FROM songs').all().map(r => r.artist)
+        : ['Luis Miguel', 'Bad Bunny', 'Caifanes', 'Shakira', 'Bronco', 'Maná'];
       const artistsList = availableArtists.length > 0 ? availableArtists : ['Luis Miguel', 'Bad Bunny', 'Caifanes', 'Shakira', 'Bronco', 'Maná'];
       const randomArtists = [];
       const count = Math.min(2, artistsList.length);

@@ -989,32 +989,21 @@ const ARTISTS_BY_GENRE = {
   electronica: ['Daft Punk', 'Tiësto', 'Calvin Harris', 'Deadmau5', 'Avicii', 'Skrillex', 'David Guetta', 'Martin Garrix'],
 };
 
-// Fetch songs dynamically to override fallbacks with local database contents
+// Fetch artist catalog from server (grouped by genre)
 async function fetchAndBuildCatalog() {
   try {
-    const res = await fetch('/api/songs');
+    const res = await fetch('/api/artist-map');
     if (!res.ok) throw new Error('API request failed');
-    const catalog = await res.json();
-    if (Array.isArray(catalog) && catalog.length > 0) {
-      // Clear all genre arrays first
+    const map = await res.json();
+    if (map && typeof map === 'object') {
       for (const gid in ARTISTS_BY_GENRE) {
-        ARTISTS_BY_GENRE[gid] = [];
-      }
-      // Populate unique artists from real database
-      catalog.forEach(song => {
-        const genre = song.genre || 'pop';
-        if (!ARTISTS_BY_GENRE[genre]) {
-          ARTISTS_BY_GENRE[genre] = [];
+        if (map[gid] && Array.isArray(map[gid]) && map[gid].length > 0) {
+          ARTISTS_BY_GENRE[gid] = map[gid].sort((a, b) => a.localeCompare(b));
+        } else {
+          ARTISTS_BY_GENRE[gid] = [];
         }
-        if (song.artist && !ARTISTS_BY_GENRE[genre].includes(song.artist)) {
-          ARTISTS_BY_GENRE[genre].push(song.artist);
-        }
-      });
-      // Sort each list alphabetically
-      for (const gid in ARTISTS_BY_GENRE) {
-        ARTISTS_BY_GENRE[gid].sort((a, b) => a.localeCompare(b));
       }
-      console.log('[Catalog] Loaded dynamic artists from local database successfully!');
+      console.log('[Catalog] Loaded artist map from server successfully!');
     }
   } catch (err) {
     console.warn('[Catalog] Using fallback static artists:', err);

@@ -2062,9 +2062,8 @@
 ═══════════════════════════════════════════════════════════ */
 
 // ════════════════════════════════════════════
-//  CATALOGO & FALLBACK
+//  CATALOG & FALLBACK
 // ════════════════════════════════════════════
-const API_URL = '/api/songs';
 let bootMusic;
 
 // Fallback catalog — used when API returns empty or fails
@@ -2080,8 +2079,6 @@ const FALLBACK_CATALOG = [
   { id:'f9', title:'Gimme! Gimme! Gimme!', artist:'ABBA',                  genre:'pop',      url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:240 },
   { id:'f10',title:'La Bicicleta',          artist:'Carlos Vives',          genre:'cumbia',   url:'https://www.w3schools.com/html/mov_bbb.mp4',  duration:195 },
 ];
-
-window.catalogoKaraoke = [];
 
 // ════════════════════════════════════════════
 //  BOOTLOADER STATE MACHINE
@@ -2399,21 +2396,19 @@ async function loadCatalog(retries = 3) {
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 20000);
-      const res = await fetch(API_URL, { signal: controller.signal });
+      const res = await fetch('/api/health', { signal: controller.signal });
       clearTimeout(timer);
-      if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
-      const data = await res.json();
-
-      if (Array.isArray(data) && data.length > 0) {
-        window.catalogoKaraoke = data;
-        const msg = '📀 ' + data.length + ' canciones cargadas';
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const health = await res.json();
+      if (health.catalog && health.catalogCount > 0) {
+        const msg = '📀 ' + health.catalogCount + ' canciones disponibles';
         if (catalogInfo) catalogInfo.textContent = msg;
         try { updateTicker(msg); } catch (_) {}
-        console.log('[Catálogo] OK:', data.length, 'canciones');
-        boot.step(3, 'done', data.length + ' canciones');
+        console.log('[Catálogo] OK:', health.catalogCount, 'canciones en DB');
+        boot.step(3, 'done', health.catalogCount + ' canciones');
         return;
       } else {
-        throw new Error('Catálogo vacío del servidor');
+        throw new Error('Catálogo vacío en servidor');
       }
     } catch (e) {
       console.error('[Catálogo] Intento ' + attempt + '/' + retries + ' falló:', e.message);
@@ -2421,69 +2416,92 @@ async function loadCatalog(retries = 3) {
         if (catalogInfo) catalogInfo.textContent = '⚠️ Reintento ' + attempt + '/' + retries + ': ' + e.message;
         await new Promise(r => setTimeout(r, 3000));
       } else {
-        window.catalogoKaraoke = FALLBACK_CATALOG;
-        const msg = '📀 ' + FALLBACK_CATALOG.length + ' canciones (demo) — Error: ' + e.message;
+        const msg = '⚠️ Error: ' + e.message + ' — Se usarán canciones demo';
         if (catalogInfo) catalogInfo.textContent = msg;
         try { updateTicker(msg); } catch (_) {}
         console.warn('[Catálogo] Usando fallback tras', retries, 'intentos:', e.message);
-        boot.step(3, 'done', FALLBACK_CATALOG.length + ' (demo)');
+        boot.step(3, 'done', '0 (demo)');
       }
     }
   }
 }
 window.reloadCatalog = function() { loadCatalog(3); };
 
-// Pick best song for a player based on preferences
-function pickSongForPlayer(player) {
-  const catalog = window.catalogoKaraoke;
-  if (!catalog.length) return null;
+// Pick best song for a player based on preferences (server-side filtering)
+async function pickSongForPlayer(player) {
+  function getExclude() {
+    return state.songQueue.length > 0 ? state.songQueue.join(',') : '';
+  }
 
   // Ronda 2: usar canción asignada por otro jugador (Fuego Cruzado)
   const assigned = state.assignedSongs[player.socketId];
   if (assigned) {
-    const assignedSong = catalog.find(s => s.id === assigned.songId);
     delete state.assignedSongs[player.socketId];
-    if (assignedSong) {
-      if (!state.songQueue.includes(assignedSong.id)) {
-        state.songQueue.push(assignedSong.id);
-        saveGameState();
+    try {
+      const res = await fetch('/api/songs?id=' + encodeURIComponent(assigned.songId));
+      if (res.ok) {
+        const song = await res.json();
+        if (song && song.id && !state.songQueue.includes(song.id)) {
+          state.songQueue.push(song.id);
+          saveGameState();
+          return song;
+        }
       }
-      return assignedSong;
+    } catch (_) {}
+  }
+
+  const playerGenres  = (player.genres || []).map(g => g.toLowerCase()).filter(Boolean);
+  const playerArtists = (player.artists || []).map(a => a.toLowerCase()).filter(Boolean);
+
+  // Priority 1: artist match (server-side filtering + random pick)
+  if (playerArtists.length > 0) {
+    try {
+      let url = '/api/songs?artists=' + encodeURIComponent(playerArtists.join(',')) + '&random=true&limit=1';
+      if (getExclude()) url += '&exclude=' + encodeURIComponent(getExclude());
+      const res = await fetch(url);
+      if (res.ok) {
+        const songs = await res.json();
+        if (songs && songs.length > 0) {
+          state.songQueue.push(songs[0].id);
+          saveGameState();
+          return songs[0];
+        }
+      }
+    } catch (_) {}
+  }
+
+  // Priority 2: genre match (server-side filtering + random pick)
+  if (playerGenres.length > 0) {
+    try {
+      let url = '/api/songs?genres=' + encodeURIComponent(playerGenres.join(',')) + '&random=true&limit=1';
+      if (getExclude()) url += '&exclude=' + encodeURIComponent(getExclude());
+      const res = await fetch(url);
+      if (res.ok) {
+        const songs = await res.json();
+        if (songs && songs.length > 0) {
+          state.songQueue.push(songs[0].id);
+          saveGameState();
+          return songs[0];
+        }
+      }
+    } catch (_) {}
+  }
+
+  // Priority 3: any random song (reset songQueue if exhausted)
+  state.songQueue = [];
+  try {
+    const res = await fetch('/api/songs?random=true&limit=1');
+    if (res.ok) {
+      const songs = await res.json();
+      if (songs && songs.length > 0) {
+        state.songQueue.push(songs[0].id);
+        saveGameState();
+        return songs[0];
+      }
     }
-  }
+  } catch (_) {}
 
-  // Filter out songs already in the songQueue
-  let available = catalog.filter(s => !state.songQueue.includes(s.id));
-  if (available.length === 0) {
-    // If all songs played, reset history for this game
-    state.songQueue = [];
-    available = catalog;
-  }
-
-  const playerGenres   = (player.genres || []).map(g => g.toLowerCase());
-  const playerArtists  = (player.artists || []).map(a => a.toLowerCase());
-
-  // Priority 1: artist match (find all matching unused songs)
-  let matches = available.filter(s => s.artist && playerArtists.some(a => s.artist.toLowerCase().includes(a)));
-
-  // Priority 2: genre match (find all matching unused songs)
-  if (matches.length === 0) {
-    matches = available.filter(s => s.genre && playerGenres.includes(s.genre.toLowerCase()));
-  }
-
-  // Pick a random song from matches, or fallback to any available unused song
-  let chosenSong;
-  if (matches.length > 0) {
-    chosenSong = matches[Math.floor(Math.random() * matches.length)];
-  } else {
-    chosenSong = available[Math.floor(Math.random() * available.length)];
-  }
-
-  if (chosenSong) {
-    state.songQueue.push(chosenSong.id);
-    saveGameState();
-  }
-  return chosenSong;
+  return null;
 }
 
 // ════════════════════════════════════════════
@@ -3743,7 +3761,7 @@ const ROULETTE_INTROS = [
   { text: '¡Nadie se escapa! ¡La ruleta del Tío Axolo todo lo ve! 👁️', file: 'roulette_intro_3.mp3' },
 ];
 
-function startRoulette() {
+async function startRoulette() {
   showScreen('roulette-screen', 'flash');
 
   const remaining = state.singerQueue.slice(state.currentSingerIdx);
@@ -3755,7 +3773,7 @@ function startRoulette() {
     document.getElementById('spin-btn').style.display = 'none';
     
     // Auto-select and show result immediately without spin
-    showRouletteResult(player);
+    showRouletteResult(player).catch(()=>{});
     return;
   }
 
@@ -3786,18 +3804,29 @@ function startRoulette() {
     const activeR2Players = state.players.filter(p => !p.disconnected);
     const allPlayerGenres = new Set();
     activeR2Players.forEach(p => { if (p.genres) p.genres.forEach(g => allPlayerGenres.add(g)); });
+    
+    // Fetch song pool from server (prefer player genres)
     let round2Songs = [];
-    if (window.catalogoKaraoke) {
-      // Prefer songs matching any player's selected genres
-      const matched = window.catalogoKaraoke.filter(s => s.genre && allPlayerGenres.has(s.genre.toLowerCase()));
-      if (matched.length >= 10) {
-        round2Songs = matched.sort(() => 0.5 - Math.random()).slice(0, 60);
-      } else {
-        // Mix: half matched, half random
-        const random = window.catalogoKaraoke.filter(s => !matched.includes(s));
-        round2Songs = [...matched, ...random.sort(() => 0.5 - Math.random()).slice(0, 60 - matched.length)];
+    try {
+      if (allPlayerGenres.size > 0) {
+        const url = '/api/songs?genres=' + encodeURIComponent([...allPlayerGenres].join(',')) + '&limit=60&random=true';
+        const res = await fetch(url);
+        if (res.ok) {
+          round2Songs = await res.json();
+        }
       }
+      if (!round2Songs || round2Songs.length < 10) {
+        const url = '/api/songs?limit=60&random=true';
+        const res = await fetch(url);
+        if (res.ok) {
+          round2Songs = (round2Songs || []).concat(await res.json());
+        }
+      }
+    } catch (_) {}
+    if (!round2Songs || round2Songs.length < 10) {
+      round2Songs = FALLBACK_CATALOG;
     }
+    
     socket.emit('tv:broadcast', {
       roomCode: state.roomCode,
       event: 'ROUND_2_ASSIGN',
@@ -3817,16 +3846,25 @@ function startRoulette() {
     activeR2Players.forEach(p => {
       if (p.socketId.startsWith('bot_')) {
         const botDelay = 1500 + Math.random() * 2500; // 1.5 - 4 seconds delay
-        setTimeout(() => {
+        setTimeout(async () => {
           const lobbyScreen = document.getElementById('roulette-screen');
           if (state.round === 2 && lobbyScreen && lobbyScreen.classList.contains('active') && !state.assignedBy.has(p.socketId)) {
             // Pick a random target (not the bot itself, only active players)
             const targets = activeR2Players.filter(t => t.socketId !== p.socketId);
             const target = targets[Math.floor(Math.random() * targets.length)] || activeR2Players[0];
             
-            // Pick a random song from catalog (use larger pool)
-            const songs = window.catalogoKaraoke || [];
-            const song = songs[Math.floor(Math.random() * Math.min(100, songs.length))] || { id: 'default' };
+            // Pick a random song from server
+            let song = { id: 'default' };
+            try {
+              const res = await fetch('/api/songs?random=true&limit=1');
+              if (res.ok) {
+                const list = await res.json();
+                if (list && list.length > 0) song = list[0];
+              }
+            } catch (_) {}
+            if (song.id === 'default' && FALLBACK_CATALOG.length > 0) {
+              song = FALLBACK_CATALOG[Math.floor(Math.random() * FALLBACK_CATALOG.length)];
+            }
             
             // Simulate the assignment locally
             state.assignedSongs[target.socketId] = { attackerName: p.name, attackerSocketId: p.socketId, songId: song.id };
@@ -4091,7 +4129,7 @@ function spinRoulette() {
     complete: () => {
       rouletteAngle = (rouletteAngle + targetAngle) % 360;
       isSpinning = false;
-      showRouletteResult(winner);
+      showRouletteResult(winner).catch(()=>{});
     },
   });
 
@@ -4100,10 +4138,10 @@ function spinRoulette() {
   axoloSay(spinChoice.text, spinChoice.file);
 }
 
-function showRouletteResult(player) {
+async function showRouletteResult(player) {
   if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
   state.votes = [];
-  const song = pickSongForPlayer(player);
+  const song = await pickSongForPlayer(player);
   state.currentSong = song;
 
   document.getElementById('selected-player-avatar-img').src = getAvatar(player.avatarId).img;
@@ -6392,7 +6430,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ci = document.getElementById('catalog-info');
     const content = document.getElementById('debug-content');
     const lines = [
-      'Catalog: ' + (window.catalogoKaraoke ? window.catalogoKaraoke.length + ' songs' : 'NOT LOADED'),
+      'Catalog: server-side (SQLite)',
       'Catalog status: ' + (ci ? ci.textContent : '?'),
       'Current song: ' + (state.currentSong ? state.currentSong.title + ' — ' + state.currentSong.artist : 'none'),
       'Song URL: ' + (state.currentSong ? (state.currentSong.url || 'none') : 'none'),
