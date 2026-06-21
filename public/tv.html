@@ -3407,6 +3407,82 @@ socket.on('tv:room_created', ({ roomCode, localIP, hotspotSSID, hotspotPassword 
   // animateLobbyWelcome() is called by bootloader after transition
 });
 
+function syncReconnectedPlayer(player) {
+  if (state.round === 0) return;
+
+  const isAssign = !document.getElementById('round2-assignment-screen').classList.contains('hidden');
+  const isVideo = !document.getElementById('video-screen').classList.contains('hidden');
+  const isRoulette = !document.getElementById('roulette-screen').classList.contains('hidden');
+  const podiumScreen = document.getElementById('podium-screen');
+  const isPodium = podiumScreen && !podiumScreen.classList.contains('hidden');
+
+  if (isPodium) {
+    socket.emit('tv:send_to_player', {
+      targetSocketId: player.socketId,
+      event: 'GAME_OVER',
+      data: { players: state.players }
+    });
+    return;
+  }
+
+  if (isAssign) {
+    socket.emit('tv:send_to_player', {
+      targetSocketId: player.socketId,
+      event: 'ROUND_2_ASSIGN',
+      data: {
+        players: state.players.filter(p => !p.disconnected).map(p => ({
+          socketId: p.socketId,
+          name: p.name,
+          avatarId: p.avatarId,
+          genres: p.genres || [],
+          artists: p.artists || [],
+        })),
+        songs: window.round2Songs || FALLBACK_CATALOG,
+      }
+    });
+    return;
+  }
+
+  const singer = state.singerQueue[state.currentSingerIdx] || {};
+  const song = state.currentSong;
+
+  if (isRoulette) {
+    const spinBtnHidden = document.getElementById('spin-btn').style.display === 'none';
+    if (!spinBtnHidden) {
+      socket.emit('tv:send_to_player', {
+        targetSocketId: player.socketId,
+        event: 'ROULETTE_START',
+        data: {}
+      });
+    } else {
+      socket.emit('tv:send_to_player', {
+        targetSocketId: player.socketId,
+        event: 'SINGER_SELECTED',
+        data: { socketId: singer.socketId, name: singer.name, song }
+      });
+    }
+    return;
+  }
+
+  if (isVideo) {
+    const isVoting = !document.getElementById('voting-overlay').classList.contains('hidden');
+    if (isVoting) {
+      socket.emit('tv:send_to_player', {
+        targetSocketId: player.socketId,
+        event: 'VOTE_PHASE_START',
+        data: { performerSocketId: singer.socketId }
+      });
+    } else {
+      socket.emit('tv:send_to_player', {
+        targetSocketId: player.socketId,
+        event: 'KARAOKE_START',
+        data: { socketId: singer.socketId, name: singer.name, song }
+      });
+    }
+    return;
+  }
+}
+
 socket.on('tv:player_joined', ({ player, players }) => {
   const saved = state.isRestored ? loadSavedGame() : null;
   const matchedNames = new Set();
@@ -3476,6 +3552,11 @@ socket.on('tv:player_joined', ({ player, players }) => {
   if (activeCount >= 1) {
     document.getElementById('start-btn').classList.remove('hidden');
     RitmikaStyleFX.popIn('#start-btn', { duration: 700 });
+  }
+
+  // Sync state if game has already started
+  if (state.round > 0) {
+    syncReconnectedPlayer(player);
   }
 });
 
@@ -4587,6 +4668,201 @@ function fireBlackout() {
 
 function endSong(player) {
   if (songEnded) return;
+        const errBanner = document.getElementById('video-error-banner');
+        if (errBanner) errBanner.classList.remove('visible');
+        if (!timerInterval) startKaraokeTimer(video, song);
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          setTimeout(() => {
+            if (video.videoWidth === 0 || video.videoHeight === 0) {
+              showAudioOnlyPlaceholder(song);
+            }
+          }, 500);
+        }
+      };
+      
+      video.onerror = () => {
+        if (myGeneration !== karaokeGeneration) return;
+        console.error("Video load error, starting timer manually.");
+        const errBanner = document.getElementById('video-error-banner');
+        if (errBanner) errBanner.classList.add('visible');
+        if (!timerInterval) startKaraokeTimer(null, song || { duration: 120 });
+      };
+      
+      video.onended = () => {
+        if (myGeneration !== karaokeGeneration) return;
+        startVotePhase(player, song);
+      };
+
+      if (videoUrl) {
+        video.play().then(() => {
+          if (myGeneration !== karaokeGeneration) return;
+          const unmuteWhenReady = setInterval(() => {
+            if (myGeneration !== karaokeGeneration || !currentAxoloAudio) {
+              clearInterval(unmuteWhenReady);
+              video.muted = false;
+            }
+          }, 200);
+        }).catch(e => {
+          console.warn("Autoplay block or explicit play failed:", e);
+          if (!timerInterval) startKaraokeTimer(null, song);
+        });
+      } else {
+        startKaraokeTimer(null, song || { duration: 120 });
+      }
+    });
+  });
+}
+
+function startVotePhase(player, song) {
+  if (songEnded) return;
+  songEnded = true;
+  votePhaseActive = true;
+
+  clearInterval(timerInterval);
+  timerInterval = null;
+  if (blackoutTimeout) { clearTimeout(blackoutTimeout); blackoutTimeout = null; }
+  _stopCurrentAxolo();
+  stopAllSfx();
+  const mouthCss = document.getElementById('axolo-mouth-css');
+  if (mouthCss) mouthCss.classList.remove('open');
+  document.getElementById('lyrics-text').classList.remove('blackout');
+  document.getElementById('np-artist').classList.remove('blackout');
+
+  const video = document.getElementById('karaoke-video');
+  video.onplaying = null;
+  video.onerror   = null;
+  video.onended   = null;
+  const aph = document.getElementById('audio-only-placeholder');
+  if (aph) aph.classList.remove('visible');
+  video.style.filter = '';
+  video.pause();
+  video.removeAttribute('src');
+
+  socket.emit('tv:broadcast', {
+    roomCode: state.roomCode,
+    event: 'VOTE_PHASE_START',
+    data: { performerSocketId: player.socketId, performerName: player.name },
+  });
+
+  const votePrompt = AXOLO_VOTE_PROMPTS[Math.floor(Math.random() * AXOLO_VOTE_PROMPTS.length)];
+  axoloSay(votePrompt.text, votePrompt.file);
+
+  if (votePhaseTimeout) clearTimeout(votePhaseTimeout);
+  votePhaseTimeout = setTimeout(() => {
+    if (!votePhaseActive) return;
+    votePhaseActive = false;
+    songEnded = false;
+    endSong(player);
+  }, VOTE_PHASE_DURATION);
+}
+
+function showAudioOnlyPlaceholder(song) {
+  const el = document.getElementById('audio-only-placeholder');
+  if (!el) return;
+  const titleEl = document.getElementById('aop-title');
+  const artistEl = document.getElementById('aop-artist');
+  if (titleEl && song) titleEl.textContent = song.title || 'Sin título';
+  if (artistEl && song) artistEl.textContent = song.artist || '';
+  el.classList.add('visible');
+}
+
+function startKaraokeTimer(video, song) {
+  if (timerInterval) clearInterval(timerInterval);
+  const duration = Math.floor((video && video.duration) || song?.duration || 120);
+  let elapsed = 0;
+  let timerBcastTick = 0;
+
+  timerInterval = setInterval(() => {
+    elapsed++;
+    timerBcastTick++;
+    const remaining = Math.max(0, Math.floor(duration - elapsed));
+    const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+    const ss = String(remaining % 60).padStart(2, '0');
+    document.getElementById('hud-timer').textContent = `${mm}:${ss}`;
+
+    if (timerBcastTick % 3 === 0 && state.roomCode) {
+      socket.emit('tv:broadcast', {
+        roomCode: state.roomCode,
+        event: 'SONG_TIMER',
+        data: { active: true, elapsed, duration },
+      });
+    }
+
+    // Ronda 1: fire challenge at halfway
+    if (state.round === 1 && !challengeFired && elapsed >= duration * 0.5) {
+      challengeFired = true;
+      fireChallenge();
+    }
+
+    // Ronda 3: blackout at random point between 40-60%
+    if (state.round === 3 && !blackoutFired && elapsed >= duration * 0.4) {
+      blackoutFired = true;
+      fireBlackout();
+    }
+
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      const fallbackSinger = currentSongPerformer || state.singerQueue[state.currentSingerIdx % state.singerQueue.length] || state.players.find(p => !p.disconnected);
+      startVotePhase(fallbackSinger, song);
+    }
+  }, 1000);
+}
+
+function fireChallenge() {
+  const reto = RETO_CHALLENGES[Math.floor(Math.random() * RETO_CHALLENGES.length)];
+  document.getElementById('challenge-text').textContent = reto;
+  const banner = document.getElementById('challenge-banner');
+
+  anime({
+    targets: banner,
+    opacity: [0, 1],
+    translateY: [60, 0],
+    duration: 700,
+    easing: 'easeOutBack',
+  });
+  const cChoice = CHALLENGE_INTROS[Math.floor(Math.random() * CHALLENGE_INTROS.length)];
+  const retoMsg = `¡RETO ACTIVADO! ${reto}`;
+  axoloSay(retoMsg, cChoice.file);
+
+  // Auto-hide after 8s
+  setTimeout(() => {
+    anime({ targets: banner, opacity: [1, 0], translateY: [0, 60], duration: 400, easing: 'easeInCubic' });
+  }, 8000);
+}
+
+function fireBlackout() {
+  const video = document.getElementById('karaoke-video');
+  const lyrics = document.getElementById('lyrics-text');
+
+  // Show blackout banner
+  anime({
+    targets: '#blackout-banner',
+    scale: [0, 1.05, 1],
+    duration: 600,
+    easing: 'easeOutBack',
+  });
+  lyrics.classList.add('blackout');
+  document.getElementById('np-artist').classList.add('blackout');
+  if (video) video.style.filter = 'brightness(0.05)';
+
+  const bIntroChoice = BLACKOUT_INTROS[Math.floor(Math.random() * BLACKOUT_INTROS.length)];
+  const blackoutMsg = bIntroChoice.text;
+  axoloSay(blackoutMsg, bIntroChoice.file);
+
+  const blackoutDuration = 5000 + Math.random() * 5000;
+  blackoutTimeout = setTimeout(() => {
+    blackoutTimeout = null;
+    anime({ targets: '#blackout-banner', scale: [1, 0], duration: 400, easing: 'easeInCubic' });
+    lyrics.classList.remove('blackout');
+    document.getElementById('np-artist').classList.remove('blackout');
+    if (video) video.style.filter = '';
+    const bEndChoice = BLACKOUT_ENDS[Math.floor(Math.random() * BLACKOUT_ENDS.length)];
+    axoloSay(bEndChoice.text, bEndChoice.file);
+  }, blackoutDuration);
+}
+
+function endSong(player) {
+  if (songEnded) return;
   songEnded = true;
   clearInterval(timerInterval);
   timerInterval = null;
@@ -4733,68 +5009,6 @@ function nextTurn() {
     });
 
     state.singerQueue = [...state.players.filter(p => !p.disconnected)].sort(() => Math.random() - 0.5);
-    saveGameState();
-
-    showRoundSplash(state.round, () => { startRoulette(); });
-    const rStartIdx = Math.floor(Math.random() * 2);
-    let rStartText = '';
-    if (state.round === 1) {
-      rStartText = rStartIdx === 0 ? "&#161;Ronda 1 iniciando! Prep&#225;rense para cantar." : "&#161;Arranca la Ronda 1! Escojan sus mejores rolas y demuestren talento.";
-    } else if (state.round === 2) {
-      rStartText = rStartIdx === 0 ? "&#161;Fuego cruzado activado! Asignen canciones a sus rivales" : "&#161;Ronda 2: Fuego Cruzado! Es hora de vengarse y darles la peor canci&#243;n posible.";
-    } else {
-      rStartText = rStartIdx === 0 ? "&#161;Ronda 3 iniciando! Se viene el apag&#243;n mental." : "&#161;Ronda 3! El Apag&#243;n Mental. Canten sin letra o queden en el olvido.";
-    }
-    axoloSay(rStartText, `round_${state.round}_start_${rStartIdx}.mp3`);
-    return;
-  }
-
-  startRoulette();
-}
-
-// ==============================================
-//  PODIO FINAL - PREMIUM
-// ==============================================
-const AWARD_CARRILLA = {
-  rey:      [{text:'&#161;La banda reconoci&#243; al verdadero &#237;dolo de la noche!', file:'award_rey_0.mp3'}, {text:'&#161;Nadie le llega ni a los talones!', file:'award_rey_1.mp3'}, {text:'&#161;El micr&#243;fono ya tiene nuevo due&#241;o permanente!', file:'award_rey_2.mp3'}],
-  gallo:    [{text:'&#161;Los perros del barrio aullaron de solidaridad!', file:'award_gallo_0.mp3'}, {text:'&#161;Urgen 3 meses de solfeo, urgente!', file:'award_gallo_1.mp3'}, {text:'&#161;El honor de la familia exige pr&#225;ctica diaria!', file:'award_gallo_2.mp3'}],
-  tomate:   [{text:'&#161;La banda habl&#243; con los proyectiles!', file:'award_tomate_0.mp3'}, {text:'&#161;Concentr&#243; todo el amor en forma de tomate!', file:'award_tomate_1.mp3'}, {text:'&#161;Tan bueno que mereci&#243; atenci&#243;n especial de todos!', file:'award_tomate_2.mp3'}],
-  vengador: [{text:'&#161;Rob&#243; m&#225;s puntos que el gobierno!', file:'award_vengador_0.mp3'}, {text:'&#161;La t&#225;ctica del ataque silencioso funcion&#243; perfecto!', file:'award_vengador_1.mp3'}, {text:'&#161;Estratega karaoke de alto nivel!', file:'award_vengador_2.mp3'}],
-};
-
-let podiumBgm = null;
-
-function showPodium() {
-  if (typeof bootMusic !== 'undefined' && bootMusic) { bootMusic.pause(); }
-  clearSavedGame();
-  if (podiumBgm) { podiumBgm.pause(); podiumBgm.currentTime = 0; podiumBgm = null; }
-
-  const sorted       = [...state.players].sort((a, b) => b.score - a.score);
-  const mostTomatoes = [...state.players].sort((a, b) => (b.tomatazos||0) - (a.tomatazos||0))[0];
-  const vengador     = sorted.length >= 3 ? sorted[1] : (sorted[1] || sorted[0]);
-  const rand = arr => arr[Math.floor(Math.random() * arr.length)];
-
-  const awardsData = [
-    { icon:'&#128019;', title:'Gallo Supremo',    subtitle:'Valor Desafinado', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: rand(AWARD_CARRILLA.gallo) },
-    { icon:'&#127813;', title:'Salsa de Tomate',  subtitle:'El M&#225;s Atacado',   player: mostTomatoes && mostTomatoes.tomatazos > 0 ? mostTomatoes : null, color:'#ef4444', border:'#dc2626', obj: rand(AWARD_CARRILLA.tomate) },
-    { icon:'&#128535;', title:'Vengador An&#243;nimo', subtitle:'Fuego Cruzado',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
-  ].map(a => ({...a, carrilla: a.obj.text, file: a.obj.file}));
-  const stepData = [
-    { place:3, player:sorted[2], rank:'&#129350;', label:'3er Lugar', color:'#f97316', glow:'#f9731640', pedColor:'#f97316', size:'5.5rem' },
-    { place:2, player:sorted[1], rank:'&#129349;', label:'2do Lugar', color:'#22d3ee', glow:'#22d3ee40', pedColor:'#06b6d4', size:'5.5rem' },
-    { place:1, player:sorted[0], rank:'&#129351;', label:'1er Lugar', color:'#facc15', glow:'#facc1560', pedColor:'#facc15', size:'7.5rem' },
-  ];
-
-  const axoloOverlay = document.getElementById('axolo-cutin-overlay');
-  if (axoloOverlay) axoloOverlay.style.zIndex = '10002';
-  document.querySelectorAll('.tv-screen').forEach(s => { s.classList.remove('active'); s.style.display='none'; });
-  const oldPodium = document.getElementById('podium-screen');
-  if (oldPodium && oldPodium.parentNode) oldPodium.parentNode.removeChild(oldPodium);
-
-  const ceremonyRoot = document.createElement('div');
-  ceremonyRoot.id = 'podium-screen';
-  ceremonyRoot.style.cssText = 'position:fixed;inset:0;z-index:10001;background:#0a0a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;font-family:Fredoka,sans-serif;';
-  document.body.appendChild(ceremonyRoot);
 
   const starCanvas = document.createElement('canvas');
   starCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;';
