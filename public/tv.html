@@ -2501,7 +2501,23 @@ async function pickSongForPlayer(player) {
     }
   } catch (_) {}
 
-  return null;
+  // Priority 4: fallback to local demo catalog (filter by genre if available)
+  let fallbackPool = FALLBACK_CATALOG.filter(s => !state.songQueue.includes(s.id));
+  const fallbackGenrePool = playerGenres.length > 0
+    ? fallbackPool.filter(s => playerGenres.includes(s.genre.toLowerCase()))
+    : [];
+  fallbackPool = fallbackGenrePool.length > 0 ? fallbackGenrePool : fallbackPool;
+  if (fallbackPool.length > 0) {
+    const song = fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+    state.songQueue.push(song.id);
+    saveGameState();
+    return song;
+  }
+  // If all fallback songs exhausted, reset and repeat
+  const resetSong = FALLBACK_CATALOG[Math.floor(Math.random() * FALLBACK_CATALOG.length)];
+  state.songQueue = [resetSong.id];
+  saveGameState();
+  return resetSong;
 }
 
 // ════════════════════════════════════════════
@@ -4259,7 +4275,18 @@ function startKaraoke(player, song) {
           updateTicker(`${p.name} votó: ${botScore} pts 🗳️`);
           
           state.votedBy.add(p.socketId);
-          checkAllVotesSubmitted(player.socketId);
+          if (typeof checkAllVotesSubmitted === 'function') {
+            checkAllVotesSubmitted(player.socketId);
+          } else {
+            // Fallback inline check
+            const expectedVoters = (state.players || []).filter(p2 => p2.socketId !== player.socketId);
+            if (votePhaseActive && (state.votedBy || new Set()).size >= expectedVoters.length) {
+              if (votePhaseTimeout) clearTimeout(votePhaseTimeout);
+              votePhaseActive = false;
+              songEnded = false;
+              endSong(player);
+            }
+          }
         }
       }, botDelay);
     }

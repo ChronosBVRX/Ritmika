@@ -322,6 +322,10 @@ app.get('/api/audio-files', (req, res) => {
 
 // ── Health check for bootloader ──
 app.get('/api/health', (req, res) => {
+  const origin = req.headers.origin;
+  if (isLocalOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
   const count = isDbReady() ? db.prepare('SELECT COUNT(*) as cnt FROM songs').get().cnt : 0;
   res.json({
     server: true,
