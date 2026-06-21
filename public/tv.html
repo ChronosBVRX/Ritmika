@@ -5008,7 +5008,70 @@ function nextTurn() {
       data: { round: state.round },
     });
 
-    state.singerQueue = [...state.players.filter(p => !p.disconnected)].sort(() => Math.random() - 0.5);
+        state.singerQueue = [...state.players.filter(p => !p.disconnected)].sort(() => Math.random() - 0.5);
+    saveGameState();
+
+    showRoundSplash(state.round, () => { startRoulette(); });
+    const rStartIdx = Math.floor(Math.random() * 2);
+    let rStartText = '';
+    if (state.round === 1) {
+      rStartText = rStartIdx === 0 ? "&#161;Ronda 1 iniciando! Prep&#225;rense para cantar." : "&#161;Arranca la Ronda 1! Escojan sus mejores rolas y demuestren talento.";
+    } else if (state.round === 2) {
+      rStartText = rStartIdx === 0 ? "&#161;Fuego cruzado activado! Asignen canciones a sus rivales" : "&#161;Ronda 2: Fuego Cruzado! Es hora de vengarse y darles la peor canci&#243;n posible.";
+    } else {
+      rStartText = rStartIdx === 0 ? "&#161;Ronda 3 iniciando! Se viene el apag&#243;n mental." : "&#161;Ronda 3! El Apag&#243;n Mental. Canten sin letra o queden en el olvido.";
+    }
+    axoloSay(rStartText, `round_${state.round}_start_${rStartIdx}.mp3`);
+    return;
+  }
+
+  startRoulette();
+}
+
+// ==============================================
+//  PODIO FINAL - PREMIUM
+// ==============================================
+const AWARD_CARRILLA = {
+  rey:      [{text:'&#161;La banda reconoci&#243; al verdadero &#237;dolo de la noche!', file:'award_rey_0.mp3'}, {text:'&#161;Nadie le llega ni a los talones!', file:'award_rey_1.mp3'}, {text:'&#161;El micr&#243;fono ya tiene nuevo due&#241;o permanente!', file:'award_rey_2.mp3'}],
+  gallo:    [{text:'&#161;Los perros del barrio aullaron de solidaridad!', file:'award_gallo_0.mp3'}, {text:'&#161;Urgen 3 meses de solfeo, urgente!', file:'award_gallo_1.mp3'}, {text:'&#161;El honor de la familia exige pr&#225;ctica diaria!', file:'award_gallo_2.mp3'}],
+  tomate:   [{text:'&#161;La banda habl&#243; con los proyectiles!', file:'award_tomate_0.mp3'}, {text:'&#161;Concentr&#243; todo el amor en forma de tomate!', file:'award_tomate_1.mp3'}, {text:'&#161;Tan bueno que mereci&#243; atenci&#243;n especial de todos!', file:'award_tomate_2.mp3'}],
+  vengador: [{text:'&#161;Rob&#243; m&#225;s puntos que el gobierno!', file:'award_vengador_0.mp3'}, {text:'&#161;La t&#225;ctica del ataque silencioso funcion&#243; perfecto!', file:'award_vengador_1.mp3'}, {text:'&#161;Estratega karaoke de alto nivel!', file:'award_vengador_2.mp3'}],
+};
+
+let podiumBgm = null;
+
+function showPodium() {
+  if (typeof bootMusic !== 'undefined' && bootMusic) { bootMusic.pause(); }
+  clearSavedGame();
+  if (podiumBgm) { podiumBgm.pause(); podiumBgm.currentTime = 0; podiumBgm = null; }
+
+  const sorted       = [...state.players].sort((a, b) => b.score - a.score);
+  const mostTomatoes = [...state.players].sort((a, b) => (b.tomatazos||0) - (a.tomatazos||0))[0];
+  const vengador     = sorted.length >= 3 ? sorted[1] : (sorted[1] || sorted[0]);
+  const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  const awardsData = [
+    { icon:'&#128019;', img: './assets/award_gallo.webp', title:'Gallo Supremo',    subtitle:'Valor Desafinado', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: rand(AWARD_CARRILLA.gallo) },
+    { icon:'&#127813;', img: './assets/award_tomate.webp', title:'Salsa de Tomate',  subtitle:'El M&#225;s Atacado',   player: mostTomatoes && mostTomatoes.tomatazos > 0 ? mostTomatoes : null, color:'#ef4444', border:'#dc2626', obj: rand(AWARD_CARRILLA.tomate) },
+    { icon:'&#128535;', img: './assets/award_vengador.webp', title:'Vengador An&#243;nimo', subtitle:'Fuego Cruzado',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
+  ].map(a => ({...a, carrilla: a.obj.text, file: a.obj.file}));
+  const stepData = [
+    { place:3, player:sorted[2], rank:'&#129350;', label:'3er Lugar', color:'#f97316', glow:'#f9731640', pedColor:'#f97316', size:'5.5rem' },
+    { place:2, player:sorted[1], rank:'&#129349;', label:'2do Lugar', color:'#22d3ee', glow:'#22d3ee40', pedColor:'#06b6d4', size:'5.5rem' },
+    { place:1, player:sorted[0], rank:'&#129351;', label:'1er Lugar', color:'#facc15', glow:'#facc1560', pedColor:'#facc15', size:'7.5rem' },
+  ];
+
+  const axoloOverlay = document.getElementById('axolo-cutin-overlay');
+  if (axoloOverlay) axoloOverlay.style.zIndex = '10002';
+  document.querySelectorAll('.tv-screen').forEach(s => { s.classList.remove('active'); s.style.display='none'; });
+  const oldPodium = document.getElementById('podium-screen');
+  if (oldPodium && oldPodium.parentNode) oldPodium.parentNode.removeChild(oldPodium);
+
+  const ceremonyRoot = document.createElement('div');
+  ceremonyRoot.id = 'podium-screen';
+  ceremonyRoot.style.cssText = 'position:fixed;inset:0;z-index:10001;background:#0a0a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;font-family:Fredoka,sans-serif;';
+  document.body.appendChild(ceremonyRoot);
+
 
   const starCanvas = document.createElement('canvas');
   starCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;';
@@ -5136,7 +5199,8 @@ function nextTurn() {
       aCard.style.border='6px solid '+award.color;
       aCard.style.boxShadow='16px 16px 0 #111827, 0 0 40px '+award.color+'88';
       aCard.style.transform='translateX('+(sideDir*130)+'%)';
-      aCard.innerHTML='<div style="font-size:76px;margin-bottom:8px;filter:drop-shadow(0 0 18px '+award.color+');">'+award.icon+'</div>'
+      let awardGraphic = award.img ? '<img src="'+award.img+'" style="width:160px;height:160px;object-fit:contain;margin:0 auto 12px;filter:drop-shadow(0 0 18px '+award.color+');"/>' : '<div style="font-size:76px;margin-bottom:8px;filter:drop-shadow(0 0 18px '+award.color+');">'+award.icon+'</div>';
+      aCard.innerHTML= awardGraphic 
         +'<h2 style="font-family:\'Paytone One\',sans-serif;font-size:42px;margin:6px 0;text-shadow:0 0 22px '+award.color+';color:'+award.color+';">'+award.title+'</h2>'
         +'<p style="font-family:Fredoka,sans-serif;font-size:15px;color:#94a3b8;font-weight:700;margin-bottom:16px;letter-spacing:2px;text-transform:uppercase;">'+award.subtitle+'</p>'
         +'<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0;padding:12px 20px;border-radius:0;background:'+award.color+';border:6px solid #111827;box-shadow:8px 8px 0 #111827;">'
