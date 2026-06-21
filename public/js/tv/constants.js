@@ -294,7 +294,7 @@ function _setupFirstInteraction() {
   document.addEventListener('keydown', handler, { once: true });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function _initConstants() {
   bootMusic = document.getElementById('boot-music');
   const preBootScreen = document.getElementById('pre-boot-screen');
   const enterBtn = document.getElementById('enter-ritmika-btn');
@@ -326,7 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.bootloaderVisible = true;
     _setupFirstInteraction();
   }
-});
+}
+_initConstants();
 
 async function loadCatalog(retries = 3) {
   console.log('[Bootloader] loadCatalog() called');

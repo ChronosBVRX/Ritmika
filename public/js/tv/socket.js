@@ -1,6 +1,17 @@
-// ═══ SOCKET.IO ═══
-// Módulo extraído de tv.html
-// ==============================================
+// Socket module polyfill: run DOMContentLoaded callbacks immediately
+// since the DOM is already ready when this script executes.
+(function() {
+  var _origAdd = document.addEventListener.bind(document);
+  document.addEventListener = function(event, fn, opts) {
+    if (event === 'DOMContentLoaded') {
+      if (document.readyState !== 'loading') {
+        fn();
+        return;
+      }
+    }
+    return _origAdd(event, fn, opts);
+  };
+})();
 
 // ════════════════════════════════════════════
 //  SOCKET.IO
@@ -684,4 +695,9 @@ document.getElementById('btn-dismiss-restore').addEventListener('click', () => {
   const rrChoice = ROOM_READY_PHRASES[Math.floor(Math.random() * ROOM_READY_PHRASES.length)];
   axoloSay(rrChoice.text, rrChoice.file);
 });
-
+
+
+// Restore addEventListener after socket module
+(function() {
+  // Nothing to restore - the polyfill only intercepts DOMContentLoaded
+})();
