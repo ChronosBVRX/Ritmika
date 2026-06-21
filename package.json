@@ -7,7 +7,7 @@
     "start": "node server/index.js",
     "dev": "nodemon server/index.js",
     "deploy": "git add . && git commit -m \"Actualizacion automatica\" && git push origin main",
-    "postinstall": "node scripts/migrate_to_sqlite.js"
+
   },
   "keywords": [
     "karaoke",

@@ -14,7 +14,3 @@ Microsoft.Web.WebView2.WinForms.dll
 # WebView2 SDK DLLs (downloaded by build script)
 Ritmika.exe.WebView2/
 
-# SQLite database (generated from r2_db.json by scripts/migrate_to_sqlite.js)
-server/songs.db
-server/songs.db-shm
-server/songs.db-wal
