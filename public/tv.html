@@ -4492,14 +4492,14 @@ function showAudioOnlyPlaceholder(song) {
 
 function startKaraokeTimer(video, song) {
   if (timerInterval) clearInterval(timerInterval);
-  const duration = (video && video.duration) || song?.duration || 120;
+  const duration = Math.floor((video && video.duration) || song?.duration || 120);
   let elapsed = 0;
   let timerBcastTick = 0;
 
   timerInterval = setInterval(() => {
     elapsed++;
     timerBcastTick++;
-    const remaining = Math.max(0, duration - elapsed);
+    const remaining = Math.max(0, Math.floor(duration - elapsed));
     const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
     const ss = String(remaining % 60).padStart(2, '0');
     document.getElementById('hud-timer').textContent = `${mm}:${ss}`;
