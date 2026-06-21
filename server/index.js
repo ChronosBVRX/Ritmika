@@ -164,8 +164,13 @@ app.get('/api/network-config', async (req, res) => {
 // ── SQLite Database ──────────────────────────────────────
 const Database = require('better-sqlite3');
 const sqlitePath = path.join(__dirname, 'songs.db');
+const r2JsonPath = path.join(__dirname, 'r2_db.json');
 let db;
 try {
+  if (!fs.existsSync(sqlitePath) && fs.existsSync(r2JsonPath)) {
+    console.log('[DB] songs.db not found, generating from r2_db.json...');
+    require('child_process').execSync('node ' + JSON.stringify(path.join(__dirname, '..', 'scripts', 'migrate_to_sqlite.js')), { stdio: 'inherit', cwd: path.join(__dirname, '..') });
+  }
   db = new Database(sqlitePath);
   db.pragma('journal_mode = WAL');
   const count = db.prepare('SELECT COUNT(*) as cnt FROM songs').get().cnt;
