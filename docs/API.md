@@ -113,8 +113,7 @@ Verifica que el servidor esté operativo. Usado por el bootloader de la TV.
   "server": true,
   "catalog": true,
   "catalogCount": 3845,
-  "videoSource": "cloudflare-r2",
-  "db": "sqlite"
+  "videoSource": "cloudflare-r2"
 }
 ```
 
@@ -128,8 +127,7 @@ Genera una URL presignada de Cloudflare R2 (expira en 30 minutos) para reproduci
 ```json
 {
   "url": "https://ritmika.3bb6544fbc15f95620470c922b1a0dfe.r2.cloudflarestorage.com/...",
-  "expires": 1800,
-  "song": { "id": "r2_...", "title": "...", "artist": "..." }
+  "expiresIn": 1800
 }
 ```
 

@@ -128,7 +128,7 @@ app.get('/join', (req, res) => {
 
 // ── Admin: Dashboard de Modos de Juego ───────────────────────
 app.get('/admin', requireAdmin, (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/admin_modes.html'));
+  res.sendFile(path.join(__dirname, 'views/admin_modes.html'));
 });
 
 
@@ -566,7 +566,7 @@ io.on('connection', (socket) => {
   // ──────────────────────────────────────────────────────────
   socket.on('player:select_genres', ({ roomCode, genres }) => {
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room || !room.players.has(socket.id)) return;
     io.to(room.tvSocketId).emit('tv:player_genres', {
       socketId: socket.id,
       genres,
@@ -579,7 +579,7 @@ io.on('connection', (socket) => {
   // ──────────────────────────────────────────────────────────
   socket.on('player:select_artists', ({ roomCode, artists }) => {
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room || !room.players.has(socket.id)) return;
     io.to(room.tvSocketId).emit('tv:player_artists', {
       socketId: socket.id,
       artists,
@@ -614,7 +614,7 @@ io.on('connection', (socket) => {
   socket.on('player:tomatazo', ({ roomCode, targetName }) => {
     if (!canAct(socket.id, 2000)) return;
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room || !room.players.has(socket.id)) return;
     const attacker = room.players.get(socket.id);
     let cleanTargetName = typeof targetName === 'string' ? targetName.trim().substring(0, 15).replace(/<[^>]*>/g, '') : 'Alguien';
     io.to(room.tvSocketId).emit('tv:tomatazo', {
@@ -632,7 +632,7 @@ io.on('connection', (socket) => {
   socket.on('player:emoji', ({ roomCode, emoji }) => {
     if (!canAct(socket.id, 500)) return;
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room || !room.players.has(socket.id)) return;
     const sender = room.players.get(socket.id);
     io.to(room.tvSocketId).emit('tv:emoji', {
       senderName: sender?.name || '?',
@@ -647,7 +647,7 @@ io.on('connection', (socket) => {
   socket.on('player:sabotage_audio', ({ roomCode }) => {
     if (!canAct(socket.id, 3000)) return;
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room || !room.players.has(socket.id)) return;
     io.to(room.tvSocketId).emit('tv:sabotage_audio', {
       socketId: socket.id,
     });
@@ -683,7 +683,7 @@ io.on('connection', (socket) => {
   // ──────────────────────────────────────────────────────────
   socket.on('player:assign_song', ({ roomCode, targetSocketId, songId }) => {
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room || !room.players.has(socket.id)) return;
     const attacker = room.players.get(socket.id);
     io.to(room.tvSocketId).emit('tv:song_assigned', {
       attackerName: attacker?.name || '?',
@@ -808,6 +808,18 @@ io.on('connection', (socket) => {
       const { code, room } = playerRoom;
       const leavingPlayer = room.players.get(socket.id);
       room.players.delete(socket.id);
+      // Reasignar host si el que se fue era el host
+      if (room.hostPlayerSocketId === socket.id) {
+        const nextHost = room.players.keys().next().value || null;
+        room.hostPlayerSocketId = nextHost;
+        if (nextHost) {
+          io.to(nextHost).emit('game:private', {
+            event: 'HOST_ASSIGNED',
+            data: { isHost: true },
+          });
+          console.log(`[HOST] ${room.players.get(nextHost)?.name} heredó el control en sala ${code}`);
+        }
+      }
       const players = getPublicPlayerList(room);
       io.to(room.tvSocketId).emit('tv:player_left', {
         socketId: socket.id,
