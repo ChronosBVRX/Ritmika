@@ -2,7 +2,7 @@
 
 Referencia completa de endpoints REST y eventos Socket.io del servidor Rítmika.
 
-> Servidor: `server/index.js` (~600 líneas) — Express + Socket.io + compression, puerto 3000.
+> Servidor: `server/index.js` (~825 líneas) — Express + Socket.io + better-sqlite3 + compression, puerto 3000.
 
 ---
 
@@ -45,23 +45,55 @@ Devuelve la configuración de red local para que los clientes se conecten. Usa `
 
 ### `GET /api/songs`
 
-Devuelve la base de datos completa de canciones de karaoke.
+Devuelve canciones de karaoke de la base de datos SQLite. Soporta filtros dinámicos.
 
-- **Response**: Array de objetos song
 - **CORS**: Solo orígenes locales (`isLocalOrigin()`)
-- **Fuente**: `server/r2_db.json` (cargado en memoria al inicio), fallback a `karaoke_db.json`
+- **Fuente**: SQLite (`server/songs.db`)
+- **Parámetros query**:
+
+| Param | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | string | Lookup individual por ID |
+| `genres` | string | Filtro por géneros (comma-separated, ej: `pop,rock`) |
+| `artists` | string | Filtro por artistas (comma-separated, match parcial) |
+| `exclude` | string | IDs a excluir (comma-separated) |
+| `random` | string | `"true"` para `ORDER BY RANDOM()` |
+| `limit` | number | Máximo de resultados (default 100, max 5000) |
+| `mode` | string | Filtro por modo de juego (excluido si es `clasico`) |
 
 ```json
-[
-  {
-    "id": "r2_d28183bb3f65",
-    "title": "3BallMTY & America Sierra Porque el amor manda",
-    "artist": "3Ball MTY",
-    "genre": "reggaeton",
-    "url": "https://media.pixelhub.party/...",
-    "duration": 180
-  }
-]
+{
+  "id": "r2_d28183bb3f65",
+  "title": "3BallMTY & America Sierra Porque el amor manda",
+  "artist": "3Ball MTY",
+  "genre": "reggaeton",
+  "url": "https://media.pixelhub.party/...",
+  "duration": 180
+}
+```
+
+Ejemplo con filtros:
+```
+GET /api/songs?genres=pop,rock&exclude=id1,id2&random=true&limit=1
+```
+
+### `GET /api/artists?genres=<genres>`
+
+Devuelve artistas distintos filtrados por género.
+
+```json
+["Shakira", "Bad Bunny", "Dua Lipa"]
+```
+
+### `GET /api/artist-map`
+
+Devuelve mapa de artistas agrupados por género (usado por mobile para selección).
+
+```json
+{
+  "pop": ["Shakira", "Dua Lipa", "..."],
+  "rock": ["Maná", "Caifanes", "..."]
+}
 ```
 
 ### `GET /api/audio-files`
@@ -81,7 +113,8 @@ Verifica que el servidor esté operativo. Usado por el bootloader de la TV.
   "server": true,
   "catalog": true,
   "catalogCount": 3845,
-  "videoSource": "cloudflare-r2"
+  "videoSource": "cloudflare-r2",
+  "db": "sqlite"
 }
 ```
 
@@ -266,3 +299,9 @@ Cuando la TV llama a `tv:add_bot`, el servidor:
 | `HOTSPOT_PASSWORD` | `Ritmika2026` | Contraseña del hotspot |
 | `ELEVENLABS_API_KEY` | — | Solo para scripts de generación de audio |
 | `ELEVENLABS_VOICE_ID` | — | Solo para scripts de generación de audio |
+
+### Base de datos
+
+- **DB**: `server/songs.db` (SQLite via `better-sqlite3`)
+- **Migración**: `node scripts/migrate_to_sqlite.js` genera `songs.db` desde `server/r2_db.json`
+- **WAL mode** activado para mejor concurrencia

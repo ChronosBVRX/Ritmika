@@ -13,7 +13,7 @@
 
 Rítmika es un juego de karaoke para fiestas donde un grupo de jugadores se conecta desde sus celulares a una PC que hace de servidor y pantalla grande. Un anfitrión virtual — el **Tío Axolo** — guía la partida con bromas, reacciones y premiaciones al estilo Persona 5 / Jackbox.
 
-**No necesitas internet.** Solo una PC con Windows y un hotspot WiFi.
+**Funciona local y en la nube.** Modo local: PC con Windows + hotspot WiFi. Modo online: deploy en Render, jugadores desde cualquier lugar con internet.
 
 ## Características
 
@@ -100,9 +100,10 @@ PC (servidor + TV)
 ```
 Ritmika/
 ├── server/
-│   ├── index.js              # Servidor Express + Socket.io (~600 líneas)
-│   ├── r2_db.json            # DB principal: 3,845 canciones (Cloudflare R2)
-│   └── karaoke_db.json       # DB fallback: 2,820 canciones
+│   ├── index.js              # Servidor Express + Socket.io (~825 líneas)
+│   ├── songs.db              # DB principal: SQLite con 3,845 canciones
+│   ├── game_modes_config.json # Config de modos de juego
+│   └── deezer_audit.json     # Auditoría de géneros
 ├── public/
 │   ├── tv.html               # Pantalla de TV (~5600 líneas)
 │   ├── mobile.html           # Controlador móvil (~1960 líneas)
@@ -133,11 +134,12 @@ Ritmika/
 
 | Capa | Tecnología |
 |------|-----------|
-| Servidor | Node.js + Express + Socket.io + compression + qrcode |
+| Servidor | Node.js + Express + Socket.io + better-sqlite3 + compression + qrcode |
 | TV | HTML/JS vanilla + Anime.js + GSAP + Tailwind CSS + SVG |
 | Móvil | HTML/JS vanilla + Tailwind CSS |
 | Launcher | C# WinForms (.NET 4.x) |
 | WebView2 | Edge runtime (incluido en Windows 10/11) |
+| DB | SQLite (better-sqlite3, ~0.5MB, 3,845 canciones) |
 | Video | Cloudflare R2 (presigned URLs via AWS SDK) |
 | Audio | Web Audio API (sintetizado) + ElevenLabs (grabado) |
 | Build | `build.bat` — csc.exe + descarga WebView2 |

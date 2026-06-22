@@ -50,7 +50,7 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Assets de premiación con halos verdes → procesados con floodfill
 
 ### Changed
-- DB principal: `r2_db.json` (3,845 canciones con URLs R2) reemplaza a `karaoke_db.json` (fallback)
+- DB principal migrada a SQLite (`server/songs.db` via `better-sqlite3`) — reemplaza a `r2_db.json` en memoria
 - Video endpoint: `/api/video-url` (presigned R2 URLs) reemplaza a `/api/video-proxy` (inexistente)
 - Assets de imagen: todos convertidos de PNG a WebP (avatares + vignettes Axolo)
 - Launcher C# abre GameWindow directo (sin formulario previo)

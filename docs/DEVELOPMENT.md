@@ -55,10 +55,8 @@ npm run dev
 ```
 Ritmika/
 ├── server/
-│   ├── index.js              # Servidor Express + Socket.io (~600 líneas)
-│   ├── r2_db.json            # DB principal: 3,845 canciones (Cloudflare R2)
-│   ├── karaoke_db.json       # DB fallback: 2,820 canciones
-│   ├── build_summary.json    # Stats de build
+│   ├── index.js              # Servidor Express + Socket.io (~825 líneas)
+│   ├── songs.db              # DB principal: SQLite con 3,845 canciones
 │   ├── game_modes_config.json # Config de modos de juego
 │   └── deezer_audit.json     # Auditoría de géneros
 │
@@ -174,8 +172,15 @@ Ritmika/
 
 ### Nueva canción
 
+**Opción A: Agregar al JSON y migrar**
 1. Agregar entrada en `server/r2_db.json` con `{ id, title, artist, genre, url, duration }`
-2. El servidor la carga automáticamente al reiniciar
+2. Ejecutar `node scripts/migrate_to_sqlite.js` para regenerar `songs.db`
+
+**Opción B: Insertar directo en SQLite**
+```sql
+INSERT INTO songs (id, title, artist, genre, url, duration)
+VALUES ('r2_nueva', 'Nombre Canción', 'Artista', 'pop', 'https://...', 180);
+```
 
 ### Nueva expresión de Axolo
 
@@ -199,7 +204,7 @@ Ritmika/
 
 - Verificar que el puerto 3000 no esté en uso: `netstat -ano | findstr :3000`
 - Matar proceso previo: `taskkill /PID <pid> /F`
-- Verificar que `server/r2_db.json` existe
+- Verificar que `server/songs.db` existe y es SQLite válido
 
 ### WebView2 no carga
 
@@ -230,8 +235,8 @@ Ritmika/
 
 ### DB no carga
 
-- Verificar que `server/r2_db.json` existe y es JSON válido
-- El servidor usa `r2_db.json` como primario, `karaoke_db.json` como fallback
+- Verificar que `server/songs.db` existe y es SQLite válido
+- Si necesita regenerar: `node scripts/migrate_to_sqlite.js`
 - Si R2 no está configurado, las URLs de video pueden no funcionar
 
 ---
@@ -255,7 +260,6 @@ curl http://localhost:3000/api/songs | head
 
 - Abrir DevTools en WebView2: F12
 - `localStorage.getItem('ritmika_game_state')` — ver estado guardado
-- `window.catalogoKaraoke` — ver catálogo de canciones cargado
 - Ctrl+Shift+D — debug panel con info de estado
 
 ### Socket.io

@@ -53,6 +53,7 @@ El servidor **no tiene lógica de juego**. Solo enruta eventos JSON entre la TV 
 - Generar presigned URLs de Cloudflare R2 para video
 - Gestión de salas (crear, unir, cerrar)
 - Compresión gzip en todas las respuestas
+- Consultas SQLite filtradas (genres, artists, exclude, random, limit)
 
 **No hace**:
 - No valida reglas de juego
@@ -166,16 +167,25 @@ Cada acción del celular (voto, tomatazo, emoji, sabotaje) pasa por el server y 
 
 ## Base de datos de canciones
 
-### DB principal: `r2_db.json`
+### DB principal: SQLite (`server/songs.db`)
 
+- **Driver**: `better-sqlite3` (síncrono, nativo, rápido)
 - **3,845 canciones** con URLs de Cloudflare R2 (`media.pixelhub.party`)
-- Distribución: pop domina (2,205), balada (453), banda (327), rock (250), ranchera (219), reggaeton (201), cumbia (187), electrónica (3)
-- Cargada en memoria al inicio del servidor
+- **Schema**: Tabla `songs` con columnas `id`, `title`, `artist`, `genre`, `url`, `duration`. Índices en `genre` y `artist`.
+- **WAL mode** activado para mejor concurrencia de lectura
+- **Distribución**: pop domina (2,205), balada (453), banda (327), rock (250), ranchera (219), reggaeton (201), cumbia (187), electrónica (3)
 
-### DB fallback: `karaoke_db.json`
+### Endpoints de consulta
 
-- **2,820 canciones**, 7 géneros (sin electrónica)
-- Solo se usa si `r2_db.json` falla
+- `GET /api/songs?genres=pop,rock&artists=Shakira&exclude=id1,id2&random=true&limit=1` — Filtros dinámicos SQL
+- `GET /api/artists?genres=pop` — Artistas distintos por género
+- `GET /api/artist-map` — Mapa completo género→artistas (para mobile)
+
+### Migración desde JSON
+
+- **Origen**: `server/r2_db.json` (migrado via `scripts/migrate_to_sqlite.js`)
+- **Script**: `node scripts/migrate_to_sqlite.js` — Lee JSON, crea tabla, inserta registros
+- Los archivos JSON viejos (`r2_db.json`, `karaoke_db.json`) siguen en disco pero ya no se usan
 
 ---
 
@@ -184,9 +194,12 @@ Cada acción del celular (voto, tomatazo, emoji, sabotaje) pasa por el server y 
 ### En memoria (server)
 
 - `rooms`: Map de salas activas (se pierde al reiniciar)
-- `songDatabase`: Array de canciones de `r2_db.json`
 - `lastEventTime`: Map para rate limiting de sockets
 - `urlReqCount`: Map para rate limiting de video URLs (30/min/IP)
+
+### En disco (server)
+
+- `server/songs.db`: SQLite con 3,845 canciones (persistente, WAL mode)
 
 ### En el cliente (TV)
 
