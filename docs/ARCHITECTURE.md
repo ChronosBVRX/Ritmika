@@ -63,23 +63,22 @@ El servidor **no tiene lógica de juego**. Solo enruta eventos JSON entre la TV 
 
 **Endpoints REST (9)**: Ver [API.md](API.md)
 
-### 2. TV Frontend (`public/tv.html`)
+### 2. TV Frontend (`public/tv.html` + `public/js/`)
 
 **Stack**: HTML5 + Vanilla JS + Anime.js + GSAP + Tailwind CSS + SVG
 
-**~5600 líneas** que contienen toda la lógica del juego:
+**~2566 líneas HTML/CSS** + **9 módulos JS (~4310 líneas)**:
 
-- **Pantalla Pre-boot**: Splash con Axolo, desbloquea AudioContext
-- **Bootloader**: 5 pasos (conectar, crear sala, cargar catálogo, FFmpeg, optimizar)
-- **Selección de modo**: 5 modos (solo Clásico funciona)
-- **Lobby**: QR, lista de jugadores, botón iniciar
-- **Ruleta SVG**: Avatares PNG, giro determinista, auto-spin
-- **Karaoke**: Video player, timer, mecánicas por ronda
-- **Votación**: Promedio de votos → puntaje acumulado
-- **Podio**: Ceremonia de 5 fases con premios especiales
-- **Persistencia**: localStorage con TTL 4h, restore banner
-- **Axolo**: Cut-ins estilo Persona, 180+ barks, 6 emociones, SFX ducking
-- **Debug panel**: Ctrl+Shift+D
+- **`tv.html`** — Estructura HTML + CSS + bootloader inline + debug panel inline + keyboard/gamepad
+- **`js/tv/constants.js`** (861 líneas) — Configuración: géneros, retos, frases Axolo, presets de audio, colores de ruleta
+- **`js/tv/game.js`** (1354 líneas) — Lógica core: rondas, karaoke, votación, podio, ruleta, song selection server-side
+- **`js/tv/lobby.js`** (728 líneas) — Lobby, QR, joins, sala de espera, bot system
+- **`js/tv/socket.js`** (463 líneas) — Eventos Socket.io, rate limiting, relay TV↔Server
+- **`js/tv/state.js`** (54 líneas) — Estado global del juego (players, scores, round, etc.)
+- **`js/tv/ui.js`** (301 líneas) — Helpers de UI, cut-in Axolo, DOM manipulation
+- **`js/bootloader.js`** (190 líneas) — Bootloader de 5 pasos + preboot splash
+- **`js/animations.js`** (290 líneas) — UISounds + RitmikaStyleFX (confetti, screen-shake, pop-in, glowPulse)
+- **`js/styles.js`** (68 líneas) — CSS helper functions
 
 ### 3. Mobile Frontend (`public/mobile.html`)
 

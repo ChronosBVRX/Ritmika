@@ -65,6 +65,7 @@ npm start
 PORT=3000
 HOTSPOT_SSID=Ritmika
 HOTSPOT_PASSWORD=Ritmika2026
+ADMIN_TOKEN=una_clave_segura_aqui
 ```
 
 ## Cómo jugar

@@ -137,6 +137,9 @@ R2_ENDPOINT=https://tu_account_id.r2.cloudflarestorage.com
 
 # URL externa (solo para deploy en la nube)
 RENDER_EXTERNAL_URL=https://tu-app.onrender.com
+
+# Admin token (protege /admin y bulk-mode)
+ADMIN_TOKEN=una_clave_segura_aqui
 ```
 
 ### Descripción de variables
@@ -151,6 +154,7 @@ RENDER_EXTERNAL_URL=https://tu-app.onrender.com
 | `R2_ENDPOINT` | No | `https://...r2.cloudflarestorage.com` | Endpoint de R2 |
 | `RENDER_EXTERNAL_URL` | No | — | URL pública (para Render) |
 | `PUBLIC_URL` | No | — | Override de URL base |
+| `ADMIN_TOKEN` | No | — | Token para proteger rutas admin (`/admin`, `PUT /api/songs/bulk-mode`) |
 
 ---
 

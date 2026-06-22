@@ -1,23 +1,17 @@
-// Socket module polyfill: run DOMContentLoaded callbacks immediately
-// since the DOM is already ready when this script executes.
-(function() {
-  var _origAdd = document.addEventListener.bind(document);
-  document.addEventListener = function(event, fn, opts) {
-    if (event === 'DOMContentLoaded') {
-      if (document.readyState !== 'loading') {
-        fn();
-        return;
-      }
-    }
-    return _origAdd(event, fn, opts);
-  };
-})();
+// Helper: run callback when DOM is ready
+function onReady(fn) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fn);
+  } else {
+    fn();
+  }
+}
 
 // ════════════════════════════════════════════
 //  SOCKET.IO
 // ════════════════════════════════════════════
 let socket;
-document.addEventListener('DOMContentLoaded', () => {
+onReady(() => {
   socket = io();
 
   socket.on('connect', () => {

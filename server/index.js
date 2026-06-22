@@ -54,11 +54,6 @@ function isLocalOrigin(origin) {
       return true;
     }
     
-    // Allow any .onrender.com subdomain
-    if (hostname.endsWith('.onrender.com')) {
-      return true;
-    }
-
     return hostname === 'localhost' || 
            hostname === '127.0.0.1' || 
            hostname.startsWith('192.168.') || 
@@ -80,7 +75,14 @@ function getLocalIP() {
   return '127.0.0.1';
 }
 
-
+// ── Admin auth middleware ────────────────────────────────
+function requireAdmin(req, res, next) {
+  const token = req.headers['x-admin-token'] || req.query.token;
+  if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
 
 const app = express();
 app.use(compression());
@@ -125,7 +127,7 @@ app.get('/join', (req, res) => {
 });
 
 // ── Admin: Dashboard de Modos de Juego ───────────────────────
-app.get('/admin', (req, res) => {
+app.get('/admin', requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin_modes.html'));
 });
 
@@ -313,7 +315,7 @@ app.get('/api/artist-map', (req, res) => {
 });
 
 // ── Bulk update modes (Admin) ──
-app.put('/api/songs/bulk-mode', (req, res) => {
+app.put('/api/songs/bulk-mode', requireAdmin, (req, res) => {
   const origin = req.headers.origin;
   if (!isLocalOrigin(origin)) return res.status(403).json({ error: 'CORS not allowed' });
   
@@ -486,6 +488,7 @@ io.on('connection', (socket) => {
     rooms.set(code, {
       tvSocketId: socket.id,
       players: new Map(),
+      hostPlayerSocketId: null,
     });
 
     socket.join(code);
@@ -540,6 +543,10 @@ io.on('connection', (socket) => {
 
     const playerInfo = { name: cleanName, avatarId: cleanAvatarId, socketId: socket.id };
     room.players.set(socket.id, playerInfo);
+    // First player to join becomes host
+    if (room.players.size === 1 && !room.hostPlayerSocketId) {
+      room.hostPlayerSocketId = socket.id;
+    }
     socket.join(code);
 
     const players = getPublicPlayerList(room);
@@ -585,6 +592,8 @@ io.on('connection', (socket) => {
   // La TV lo usa para enviar actualizaciones de UI a los móviles
   // ──────────────────────────────────────────────────────────
   socket.on('tv:broadcast', ({ roomCode, event, data }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.tvSocketId !== socket.id) return;
     socket.to(roomCode).emit('game:update', { event, data });
   });
 
@@ -593,6 +602,8 @@ io.on('connection', (socket) => {
   // Payload: { targetSocketId, event: string, data: object }
   // ──────────────────────────────────────────────────────────
   socket.on('tv:send_to_player', ({ targetSocketId, event, data }) => {
+    const myRoom = getRoomByTvSocket(socket.id);
+    if (!myRoom) return;
     io.to(targetSocketId).emit('game:private', { event, data });
   });
 
@@ -689,7 +700,7 @@ io.on('connection', (socket) => {
   socket.on('tv:add_bot', ({ roomCode }) => {
     const code = roomCode?.toUpperCase().trim();
     const room = rooms.get(code);
-    if (!room) return;
+    if (!room || room.tvSocketId !== socket.id) return;
 
     const botSocketId = 'bot_' + Math.random().toString(36).substr(2, 9);
     const names = ['Axolote Veloz', 'Catarina Rockera', 'Tlacuache Punk', 'Mariachi Loco', 'Llama Popstar', 'Chiba DJ'];
@@ -746,28 +757,28 @@ io.on('connection', (socket) => {
     console.log(`[🎮 JUEGO] Iniciado en sala ${roomCode}`);
   });
 
-  // Retransmitir comandos de avance desde los mandos móviles a la TV
+  // Retransmitir comandos de avance desde el host a la TV
   socket.on('player:start_game', ({ roomCode }) => {
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room || room.hostPlayerSocketId !== socket.id) return;
     io.to(room.tvSocketId).emit('tv:start_game_trigger');
   });
 
   socket.on('player:start_song', ({ roomCode }) => {
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room || room.hostPlayerSocketId !== socket.id) return;
     io.to(room.tvSocketId).emit('tv:start_song_trigger');
   });
 
   socket.on('player:next_turn', ({ roomCode }) => {
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room || room.hostPlayerSocketId !== socket.id) return;
     io.to(room.tvSocketId).emit('tv:next_turn_trigger');
   });
 
   socket.on('player:new_game', ({ roomCode }) => {
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room || room.hostPlayerSocketId !== socket.id) return;
     io.to(room.tvSocketId).emit('tv:new_game_trigger');
   });
 
