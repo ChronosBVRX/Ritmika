@@ -13,6 +13,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
   <script>
+    // Leer token del query string (ej: /admin?token=miclave)
+    const ADMIN_TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+
     tailwind.config = {
       theme: {
         extend: {
@@ -314,7 +317,7 @@
       try {
         const res = await fetch('/api/songs/bulk-mode', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
           body: JSON.stringify({ songIds, mode: selectedMode })
         });
         const data = await res.json();

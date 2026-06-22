@@ -216,3 +216,14 @@ ADMIN_TOKEN=una_clave_segura_aqui
 - Usar solo en redes de confianza o con VPN
 - El archivo `.env` contiene secrets — nunca commitearlo
 - `.gitignore` ya excluye `.env`
+
+### Admin dashboard
+
+El dashboard de administración (`/admin`) y el endpoint `PUT /api/songs/bulk-mode` están protegidos con `ADMIN_TOKEN`.
+
+**Uso:**
+1. Definir `ADMIN_TOKEN=una_clave_segura` en `.env`
+2. Acceder vía: `http://localhost:3000/admin?token=una_clave_segura`
+3. El token se pasa automáticamente en las peticiones AJAX del dashboard
+
+Sin el token, el servidor devuelve `401 Unauthorized`.
