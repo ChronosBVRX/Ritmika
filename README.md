@@ -105,10 +105,14 @@ Ritmika/
 │   ├── game_modes_config.json # Config de modos de juego
 │   └── deezer_audit.json     # Auditoría de géneros
 ├── public/
-│   ├── tv.html               # Pantalla de TV (~5600 líneas)
-│   ├── mobile.html           # Controlador móvil (~1960 líneas)
+│   ├── tv.html               # Pantalla de TV (~2566 líneas, HTML/CSS)
+│   ├── mobile.html           # Controlador móvil (~2015 líneas)
+│   ├── js/
+│   │   ├── tv/               # 6 módulos: constants, state, ui, socket, game, lobby
+│   │   ├── animations.js     # UISounds + RitmikaStyleFX
+│   │   ├── bootloader.js     # Bootloader 5 pasos
+│   │   └── styles.js         # CSS helpers
 │   ├── assets/               # Audio (392 MP3s), avatares (8 WebP), Axolo (6 WebP)
-│   ├── js/                   # Animaciones y síntesis de sonido
 │   └── libs/                 # Tailwind, Anime.js, GSAP, QRCode (offline)
 ├── src/
 │   ├── Launcher.cs           # Launcher C# WinForms (281 líneas)

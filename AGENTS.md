@@ -9,7 +9,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 | Capa | Tecnología |
 |------|-----------|
 | Servidor | Node.js + Express + Socket.io + better-sqlite3 + qrcode + compression (puerto 3000) |
-| TV (pantalla grande) | HTML/JS vanilla + Tailwind + Anime.js + GSAP + SVG, ~5600 líneas en `public/tv.html` |
+| TV (pantalla grande) | HTML/JS vanilla + Tailwind + Anime.js + GSAP + SVG, ~2566 líneas HTML + 9 módulos JS en `public/js/` (~4310 líneas) |
 | Control móvil | HTML/JS vanilla + Tailwind, ~1960 líneas en `public/mobile.html` |
 | Base de datos | SQLite (`better-sqlite3`, ~0.5MB, 3,845 canciones en `server/songs.db`) |
 | Launcher nativo | C# WinForms (.NET Framework 4.x), compilado con csc.exe (sin dependencias externas) |
@@ -30,9 +30,17 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 - `server/deezer_audit.json` — Auditoría de la API de Deezer para resolución de géneros de artistas.
 
 ### Frontend
-- `public/tv.html` — ~5600 líneas. Pantalla grande. Toda la lógica del juego: pantalla pre-boot, bootloader de 5 pasos, selección de modo, ruleta SVG, karaoke con video player, votación, podio de 5 fases, QR dinámico, persistencia localStorage, sistema de voces Axolo con cut-in (estilo Persona/RFG). Debug panel (Ctrl+Shift+D). Audio preloader. SFX ducking. **Ya no almacena el catálogo completo** — `pickSongForPlayer()` hace consultas server-side con filtros.
-- `public/mobile.html` — ~1960 líneas. Control táctil. 8 pantallas: join, avatar, géneros, artistas, sala de espera, panel de control, asignación R2, podio. Service Worker PWA. Haptic feedback. Fullscreen automático. Deep-linking con `?code=`. Catálogo de artistas vía `/api/artist-map`.
-- `public/js/animations.js` — 314 líneas. UISounds (Web Audio API synthesizer: click, tick, chime, whoosh, reveal, stinger) + RitmikaStyleFX (confetti, screen-shake, pop-in, stagger, glowPulse, axoloNod, bigReveal, flashBang, counter).
+- `public/tv.html` — ~2566 líneas. HTML/CSS + inline JS mínimo (keyboard/gamepad, debug panel, fullscreen). La lógica del juego está modularizada en `public/js/`.
+- `public/js/tv/constants.js` — 861 líneas. Configuración: géneros, retos, frases Axolo, presets de audio, colores de ruleta.
+- `public/js/tv/game.js` — 1354 líneas. Lógica core: rondas, karaoke, votación, podio, ruleta, song selection server-side.
+- `public/js/tv/lobby.js` — 728 líneas. Lobby, QR, joins, sala de espera, bot system.
+- `public/js/tv/socket.js` — 463 líneas. Eventos Socket.io, rate limiting, relay TV↔Server.
+- `public/js/tv/state.js` — 54 líneas. Estado global del juego (players, scores, round, etc.).
+- `public/js/tv/ui.js` — 301 líneas. Helpers de UI, cut-in system Axolo, DOM manipulation.
+- `public/js/bootloader.js` — 190 líneas. Bootloader de 5 pasos + preboot splash.
+- `public/js/animations.js` — 290 líneas. UISounds (Web Audio API synthesizer) + RitmikaStyleFX (confetti, screen-shake, pop-in, stagger, glowPulse, etc.).
+- `public/js/styles.js` — 68 líneas. CSS helper functions.
+- `public/mobile.html` — ~2015 líneas. Control táctil. 8 pantallas: join, avatar, géneros, artistas, sala de espera, panel de control, asignación R2, podio. Service Worker PWA. Haptic feedback. Fullscreen automático. Deep-linking con `?code=`. Catálogo de artistas vía `/api/artist-map`.
 - `public/assets/audio/` — 392 archivos MP3. Voces Axolo por género (20×9 géneros = 180 barks), reacciones de voto (15×4 tiers = 60), intros (20), premios (16), eventos (lobby, round, blackout, roulette, sabotage, idle, podium, modes, SFX).
 - `public/assets/avatars/` — 8 WebP de avatares con transparencia alfa real (generados con IA + floodfill, convertidos de PNG a WebP).
 - `public/assets/tio_axolo_vignette_<emocion>.webp` — Assets de la mascota en modo RGBA con transparencia real. 6 emociones: `neutral`, `laughing`, `mischievous`, `sad`, `angry`, `singing`. + `tio_axolo_body.webp` para pantalla de carga. + Variantes por modo: `axolo_anime.webp`, `axolo_emo.webp`, `axolo_ranchera.webp`, `axolo_nostalgia.webp`.
@@ -195,7 +203,7 @@ Celulares desde cualquier lugar
 - **Audio de inicio desactivado**: `new_game.mp3` está comentado en el código.
 - **`menu_music.mp3` SÍ existe** en `public/assets/audio/`.
 
-### Sistema de voces Axolo (tv.html)
+### Sistema de voces Axolo (`public/js/tv/ui.js` + `tv.html`)
 - `axoloSay(text, moodOrDuration)` → función principal. Reproduce audio MP3 y muestra cut-in.
 - `hacerHablarAlAxolo(texto, audioFile)` → normaliza `.wav` a `.mp3` en runtime. Todos los archivos reales son MP3.
 - `AXOLO_PRESET_MAP` → mapea archivo de audio a emoción del retrato (talking, mischievous, laughing, angry). Sad y singing manejados en el cut-in handler.
@@ -248,15 +256,15 @@ Celulares desde cualquier lugar
 - Tipografía: `Paytone One` (títulos) y `Fredoka` (instrucciones).
 - Colores: fondo `#0f172a`, acento `#ffe600` (amarillo), `#00e5ff` (cian), `#f0047f` (magenta), `#ec4899` (rosa).
 
-### Pantalla Pre-boot y Bootloader (tv.html)
+### Pantalla Pre-boot y Bootloader (`public/js/bootloader.js` + `tv.html`)
 - **Pre-boot**: Splash con imagen de Axolo y botón "Entrar a Ritmika" que desbloquea el AudioContext del navegador.
 - **Bootloader**: Secuencia de 5 pasos: 1) Conectar al servidor, 2) Crear sala, 3) Verificar catálogo (vía `/api/health`), 4) Verificar FFmpeg, 5) Optimizar motor de juego. Incluye retry button y done banner.
 
-### Audio Preloader (tv.html)
+### Audio Preloader (`public/js/bootloader.js`)
 - Durante el boot, pre-descarga todos los MP3s de `public/assets/audio/` vía `/api/audio-files`.
 - Max 6 descargas concurrentes. Evita buffers durante el juego.
 
-### Debug Panel (tv.html)
+### Debug Panel (inline en `tv.html`, ~50 líneas)
 - Ctrl+Shift+D activa un overlay con info de debug: estado de video, código de sala, etc.
 
 ### Service Worker (mobile.html)
@@ -348,7 +356,7 @@ node scripts/migrate_to_sqlite.js   # Genera server/songs.db desde r2_db.json
 | Componente | Estado | Notas |
 |-----------|--------|-------|
 | Server | **COMPLETO** | ~800 líneas, Express + Socket.io + SQLite, R2 presigned URLs, endpoints filtrados |
-| TV Frontend | **COMPLETO** | ~5600 líneas, server-side song selection, sin catálogo en memoria |
+| TV Frontend | **COMPLETO** | ~2566 líneas HTML + 9 módulos JS (~4310 líneas), server-side song selection, sin catálogo en memoria |
 | Mobile Frontend | **COMPLETO** | ~1960 líneas, artist map via API, 8 pantallas, PWA, haptic |
 | Launcher C# | **COMPLETO** | 281 líneas, bug de RButton corregido, audio desactivado |
 | GameWindow | **COMPLETO** | 132 líneas, WebView2, sin animación de carga |

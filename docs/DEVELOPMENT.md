@@ -61,10 +61,19 @@ Ritmika/
 │   └── deezer_audit.json     # Auditoría de géneros
 │
 ├── public/
-│   ├── tv.html               # Pantalla TV (~5600 líneas)
-│   ├── mobile.html           # Controlador móvil (~1960 líneas)
+│   ├── tv.html               # Pantalla TV (~2566 líneas, HTML/CSS + inline mínimo)
+│   ├── mobile.html           # Controlador móvil (~2015 líneas)
 │   ├── js/
-│   │   └── animations.js     # UISounds (Web Audio) + RitmikaStyleFX (confetti, etc.)
+│   │   ├── animations.js     # UISounds (Web Audio) + RitmikaStyleFX (confetti, etc.)
+│   │   ├── bootloader.js     # Bootloader de 5 pasos + preboot splash
+│   │   ├── styles.js         # CSS helper functions
+│   │   └── tv/
+│   │       ├── constants.js  # Config: géneros, retos, frases Axolo, presets audio
+│   │       ├── state.js      # Estado global del juego
+│   │       ├── ui.js         # Helpers UI, cut-in Axolo, DOM manipulation
+│   │       ├── socket.js     # Eventos Socket.io, rate limiting, relay
+│   │       ├── game.js       # Lógica core: rondas, karaoke, votación, podio
+│   │       └── lobby.js      # Lobby, QR, joins, sala de espera, bots
 │   ├── libs/
 │   │   ├── tailwind.js       # Tailwind CSS local
 │   │   ├── anime.min.js      # Anime.js para animaciones
