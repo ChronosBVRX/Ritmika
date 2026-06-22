@@ -170,10 +170,10 @@ Al conectarse, el servidor envía automáticamente:
 | `player:sabotage_audio` | `{ roomCode }` | 3s | Activa sabotaje de audio. |
 | `player:vote` | `{ roomCode, score, performerSocketId }` | — | Vota por un cantante. Score: 10, 30, 60 o 100. |
 | `player:assign_song` | `{ roomCode, targetSocketId, songId }` | — | Asigna una canción a otro jugador (Ronda 2). |
-| `player:start_game` | `{ roomCode }` | — | Trigger para iniciar el juego (reenviado al TV como `tv:start_game_trigger`). |
-| `player:start_song` | `{ roomCode }` | — | Trigger para iniciar la canción (reenviado al TV como `tv:start_song_trigger`). |
-| `player:next_turn` | `{ roomCode }` | — | Trigger para avanzar al siguiente turno (reenviado al TV como `tv:next_turn_trigger`). |
-| `player:new_game` | `{ roomCode }` | — | Trigger para nueva partida (reenviado al TV como `tv:new_game_trigger`). |
+| `player:start_game` | `{ roomCode }` | — | Trigger para iniciar el juego (reenviado al TV como `tv:start_game_trigger`). **Solo el host puede ejecutarlo.** |
+| `player:start_song` | `{ roomCode }` | — | Trigger para iniciar la canción (reenviado al TV como `tv:start_song_trigger`). **Solo el host puede ejecutarlo.** |
+| `player:next_turn` | `{ roomCode }` | — | Trigger para avanzar al siguiente turno (reenviado al TV como `tv:next_turn_trigger`). **Solo el host puede ejecutarlo.** |
+| `player:new_game` | `{ roomCode }` | — | Trigger para nueva partida (reenviado al TV como `tv:new_game_trigger`). **Solo el host puede ejecutarlo.** |
 
 ### Server → TV
 
@@ -223,6 +223,7 @@ Al conectarse, el servidor envía automáticamente:
 ```
 rooms: Map<roomCode, {
   tvSocketId: string,
+  hostPlayerSocketId: string | null,  // primer jugador que se unió
   players: Map<socketId, {
     name: string,       // máx 15 chars, sanitizado
     avatarId: number,   // 0-7
@@ -230,6 +231,8 @@ rooms: Map<roomCode, {
   }>
 }>
 ```
+
+El `hostPlayerSocketId` se asigna automáticamente al primer jugador que se une. Si el host se desconecta, se reasigna al siguiente jugador en la lista y este recibe el evento privado `HOST_ASSIGNED`.
 
 ### Generación de código de sala
 

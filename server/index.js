@@ -604,6 +604,8 @@ io.on('connection', (socket) => {
   socket.on('tv:send_to_player', ({ targetSocketId, event, data }) => {
     const myRoom = getRoomByTvSocket(socket.id);
     if (!myRoom) return;
+    const { room } = myRoom;
+    if (!room.players.has(targetSocketId)) return;
     io.to(targetSocketId).emit('game:private', { event, data });
   });
 
@@ -684,6 +686,8 @@ io.on('connection', (socket) => {
   socket.on('player:assign_song', ({ roomCode, targetSocketId, songId }) => {
     const room = rooms.get(roomCode);
     if (!room || !room.players.has(socket.id)) return;
+    if (!room.players.has(targetSocketId)) return;
+    if (typeof songId !== 'string' || songId.length > 100) return;
     const attacker = room.players.get(socket.id);
     io.to(room.tvSocketId).emit('tv:song_assigned', {
       attackerName: attacker?.name || '?',

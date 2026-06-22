@@ -1026,13 +1026,13 @@ const me = {
   hasVoted: false,
   currentSingerSocketId: null,
   score: 0,
+  isHost: false,
 };
 
 let roomPlayers = [];
 
 function isVip() {
-  if (roomPlayers.length === 0) return false;
-  return roomPlayers[0].name === me.name;
+  return me.isHost === true;
 }
 
 // ── SOCKET.IO ─────────────────────────────────────────────
@@ -1082,6 +1082,7 @@ socket.on('player:join_ack', ({ success, error, roomCode, players }) => {
   // Successfully joined
   me.roomCode = roomCode;
   roomPlayers = players || [];
+  me.isHost = roomPlayers.length > 0 && roomPlayers[0].name === me.name;
   renderWaitingRoom(players);
   goToScreen('screen-waiting');
   showToast(`¡Bienvenido a la sala ${roomCode}! 🎉`);
@@ -1178,11 +1179,13 @@ function handleGameEvent(event, data) {
 
     case 'PLAYER_JOINED':
       roomPlayers = data.players || [];
+      me.isHost = roomPlayers.length > 0 && roomPlayers[0].name === me.name;
       updateWaitingRoomPlayers(data.players);
       break;
     
     case 'PLAYER_LEFT':
       roomPlayers = data.players || [];
+      me.isHost = roomPlayers.length > 0 && roomPlayers[0].name === me.name;
       updateWaitingRoomPlayers(data.players);
       break;
 
@@ -1420,6 +1423,14 @@ function handlePrivateEvent(event, data) {
       showToast('🎤 ¡Es tu turno! ¡A cantar!');
       document.getElementById('current-singer-name').textContent = '¡TÚ! 🎤';
       me.currentSingerSocketId = socket.id;
+      break;
+
+    case 'HOST_ASSIGNED':
+      me.isHost = true;
+      showToast('👑 Ahora eres el Host');
+      if (document.getElementById('screen-waiting').classList.contains('active')) {
+        renderWaitingRoom(roomPlayers);
+      }
       break;
 
     case 'TOMATAZO_REJECTED':
