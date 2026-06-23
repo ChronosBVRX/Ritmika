@@ -688,6 +688,7 @@ io.on('connection', (socket) => {
     if (!room || !room.players.has(socket.id)) return;
     if (!room.players.has(targetSocketId)) return;
     if (typeof songId !== 'string' || songId.length > 100) return;
+    if (isDbReady() && !db.prepare('SELECT id FROM songs WHERE id = ?').get(songId)) return;
     const attacker = room.players.get(socket.id);
     io.to(room.tvSocketId).emit('tv:song_assigned', {
       attackerName: attacker?.name || '?',
@@ -814,7 +815,7 @@ io.on('connection', (socket) => {
       room.players.delete(socket.id);
       // Reasignar host si el que se fue era el host
       if (room.hostPlayerSocketId === socket.id) {
-        const nextHost = room.players.keys().next().value || null;
+        const nextHost = Array.from(room.players.keys()).find(id => !id.startsWith('bot_')) || null;
         room.hostPlayerSocketId = nextHost;
         if (nextHost) {
           io.to(nextHost).emit('game:private', {

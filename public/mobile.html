@@ -1082,7 +1082,7 @@ socket.on('player:join_ack', ({ success, error, roomCode, players }) => {
   // Successfully joined
   me.roomCode = roomCode;
   roomPlayers = players || [];
-  me.isHost = roomPlayers.length > 0 && roomPlayers[0].name === me.name;
+  me.isHost = roomPlayers.length > 0 && roomPlayers[0].socketId === socket.id;
   renderWaitingRoom(players);
   goToScreen('screen-waiting');
   showToast(`¡Bienvenido a la sala ${roomCode}! 🎉`);
@@ -1179,13 +1179,13 @@ function handleGameEvent(event, data) {
 
     case 'PLAYER_JOINED':
       roomPlayers = data.players || [];
-      me.isHost = roomPlayers.length > 0 && roomPlayers[0].name === me.name;
+      me.isHost = roomPlayers.length > 0 && roomPlayers[0].socketId === socket.id;
       updateWaitingRoomPlayers(data.players);
       break;
     
     case 'PLAYER_LEFT':
       roomPlayers = data.players || [];
-      me.isHost = roomPlayers.length > 0 && roomPlayers[0].name === me.name;
+      me.isHost = roomPlayers.length > 0 && roomPlayers[0].socketId === socket.id;
       updateWaitingRoomPlayers(data.players);
       break;
 
