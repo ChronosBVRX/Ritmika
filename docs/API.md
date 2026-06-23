@@ -201,7 +201,13 @@ Al conectarse, el servidor envía automáticamente:
 | `player:join_ack` | `{ success, roomCode?, players?, error? }` | Ack de unión a sala. |
 | `game:started` | `{ message }` | El juego ha comenzado. |
 | `game:update` | `{ event, data }` | Actualización genérica de estado del juego. |
-| `game:private` | `{ event, data }` | Mensaje privado para un jugador específico. |
+| `game:private` | `{ event, data }` | Mensaje privado para un jugador específico. Los sub-eventos posibles son: |
+
+| Sub-evento `game:private` | Descripción |
+|---------------------------|-------------|
+| `HOST_ASSIGNED` | `{ isHost: true }` — El jugador heredó el rol de host (por desconexión del host anterior). |
+| `YOUR_TURN` | Sin datos — Indica que es el turno del jugador para cantar. |
+| `TOMATAZO_REJECTED` | `{ reason, cost }` — El tomatazo fue rechazado (puntos insuficientes). |
 | `game:tv_disconnected` | `{ message }` | La TV se desconectó / sala cerrada. |
 
 ---
