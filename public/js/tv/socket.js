@@ -471,6 +471,8 @@ document.getElementById('btn-restore').addEventListener('click', () => {
   const saved = loadSavedGame();
   if (!saved) return;
   state.isRestored = true;
+  state.gameMode = saved.gameMode || 'clasico';
+  if (typeof applyModeTheme === 'function') applyModeTheme();
   document.getElementById('restore-banner').classList.add('hidden');
   // Cargar datos guardados al lobby
   state.players = saved.players.map(sp => ({

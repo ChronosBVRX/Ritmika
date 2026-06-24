@@ -331,4 +331,34 @@ function showScreen(id, transitionType, onComplete) {
 
   (transitions[type] || transitions.slide)();
 }
-
+
+
+// Apply Mode Theme based on gameMode
+window.applyModeTheme = function() {
+  if (typeof state !== 'undefined' && state.gameMode) {
+    if (state.gameMode === 'clasico') {
+      document.body.removeAttribute('data-mode');
+    } else {
+      document.body.setAttribute('data-mode', state.gameMode);
+    }
+  }
+};
+
+// --- MODE THEME HELPERS ---
+window.getModeRoundLabels = function() {
+  if (typeof state !== 'undefined' && state.gameMode === 'emo') {
+    return {
+      round1: "Tu Diario de Depresión",
+      round2: "Trauma Compartido",
+      round3: "Apagón Emocional"
+    };
+  }
+  return null; // Fallback a clasico
+};
+
+window.getModeQueryParam = function() {
+  if (typeof state !== 'undefined' && state.gameMode && state.gameMode !== 'clasico') {
+    return `&mode=${state.gameMode}`;
+  }
+  return '';
+};

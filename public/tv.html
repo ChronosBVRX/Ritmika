@@ -2561,7 +2561,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       // Request room from server
-      if (typeof state !== 'undefined') state.gameMode = selectedMode;
+      if (typeof state !== 'undefined') { state.gameMode = selectedMode; if (typeof applyModeTheme === 'function') applyModeTheme(); }
       socket.emit('tv:create_room', { mode: selectedMode });
 
       // Transition to Lobby (simulating the wipe)
