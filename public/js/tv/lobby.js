@@ -363,7 +363,18 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
   }
   
   // 2. Load the vignette asset and change style
-  portrait.src = `./assets/tio_axolo_vignette_${assetName}.webp`;
+  if (typeof state !== 'undefined' && state && state.gameMode === 'emo') {
+    portrait.src = `./assets/modes/emo/tio_axolo_vignette_emo_${assetName}.webp`;
+    // Override bgColor for EMO mode
+    if (emocion === 'laughing') bgColor = '#db2777'; // Darker pink
+    else if (emocion === 'mischievous') bgColor = '#4c1d95'; // Deep purple
+    else if (emocion === 'sad') bgColor = '#0f172a'; // Very dark slate
+    else if (emocion === 'angry') bgColor = '#991b1b'; // Dark red
+    else if (emocion === 'singing') bgColor = '#164e63'; // Dark cyan
+    else bgColor = '#1e293b'; // Slate for neutral/talking
+  } else {
+    portrait.src = `./assets/tio_axolo_vignette_${assetName}.webp`;
+  }
   bar.style.backgroundColor = bgColor;
   textBox.textContent = texto;
   
@@ -641,7 +652,11 @@ let idleInterval = setInterval(() => {
   if (state.round === 0) {
     const lobbyScreen = document.getElementById('lobby-screen');
     if (!lobbyScreen || !lobbyScreen.classList.contains('active')) return;
-    const choice = idlePhrases[phraseIdx++ % idlePhrases.length];
+    let currentPhrases = idlePhrases;
+    if (typeof state !== 'undefined' && state && state.gameMode === 'emo' && typeof EMO_MODE_PHRASES !== 'undefined' && EMO_MODE_PHRASES.idle) {
+      currentPhrases = EMO_MODE_PHRASES.idle;
+    }
+    const choice = currentPhrases[phraseIdx++ % currentPhrases.length];
     axoloSay(choice.text, choice.file);
   }
 }, 8000);
@@ -799,4 +814,4 @@ document.getElementById('btn-debug-skip-song').addEventListener('click', () => {
   const sq = state.singerQueue.length ? state.singerQueue : state.players.filter(p => !p.disconnected);
   const currentPlayer = sq[state.currentSingerIdx % sq.length] || sq[0];
   if (currentPlayer) startVotePhase(currentPlayer, state.currentSong);
-});
+});

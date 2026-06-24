@@ -982,16 +982,13 @@ function nextTurn() {
     let rStartText = '';
     let barkFile = `round_${state.round}_start_${rStartIdx}.mp3`;
     if (state.gameMode === 'emo') {
-      if (state.round === 1) {
-        rStartText = "¡Bienvenidos a Fiesta Emo! Hoy no se canta, se sangra emocionalmente. 🖤";
-        barkFile = 'emo_intro_0.mp3';
-      } else if (state.round === 2) {
-        rStartText = "Elige a quién vas a destruir emocionalmente. 💔";
-        barkFile = 'emo_intro_1.mp3';
-      } else {
-        rStartText = "Cuando la pantalla se apague, canta como si todavía doliera. 🌑";
-        barkFile = 'emo_blackout_0.mp3';
-      }
+      let phrases = EMO_MODE_PHRASES.intro;
+      if (state.round === 2) phrases = EMO_MODE_PHRASES.intro; // You can mix if needed, or just intro
+      if (state.round === 3) phrases = EMO_MODE_PHRASES.blackout;
+      
+      const choice = phrases[Math.floor(Math.random() * phrases.length)];
+      rStartText = choice.text;
+      barkFile = choice.file;
     } else {
       if (state.round === 1) {
         rStartText = rStartIdx === 0 ? "&#161;Ronda 1 iniciando! Prep&#225;rense para cantar." : "&#161;Arranca la Ronda 1! Escojan sus mejores rolas y demuestren talento.";
