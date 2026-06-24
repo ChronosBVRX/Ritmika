@@ -35,11 +35,13 @@ socket.on('connect_error', () => {
   updateTicker('No se puede conectar al servidor. ¿Está encendido?');
 });
 
-socket.on('tv:room_created', ({ roomCode, localIP, hotspotSSID, hotspotPassword }) => {
+socket.on('tv:room_created', ({ roomCode, mode, localIP, hotspotSSID, hotspotPassword }) => {
   state.roomCode = roomCode;
+  state.gameMode = mode || 'clasico';
   state.localIP = localIP || window.location.hostname;
   state.hotspotSSID = hotspotSSID || 'Ritmika';
   state.hotspotPassword = hotspotPassword || 'Ritmika2026';
+  if (typeof applyModeTheme === 'function') applyModeTheme();
   renderRoomCode(roomCode);
   inicializarQRConexion();
   const st = document.getElementById('status-text');

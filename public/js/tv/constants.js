@@ -909,4 +909,28 @@ function getVoteReaction(score) {
 
 const SAVE_KEY = 'ritmika_game_state';
 const SAVE_TTL = 4 * 60 * 60 * 1000; // 4 horas
-
+
+
+const EMO_MODE_PHRASES = {
+  intro: [
+    { text: '¡Bienvenidos a Fiesta Emo! Hoy no se canta, se sangra emocionalmente. 🖤', file: 'emo_intro_0.mp3' },
+    { text: 'Delineador listo, corazón roto y garganta temblando. Esto es Rítmika Emo. 💔', file: 'emo_intro_1.mp3' },
+    { text: 'No es una fase, es una competencia con trauma musical. 🖤🎤', file: 'emo_intro_2.mp3' }
+  ],
+  roulette: [
+    { text: 'La ruleta va a elegir quién abre su diario frente a todos. 📓🖤', file: 'emo_roulette_0.mp3' },
+    { text: 'Gira la rueda del dolor adolescente. A ver quién llora primero. 💔', file: 'emo_roulette_1.mp3' }
+  ],
+  selected: [
+    { text: 'Te tocó. Sube al escenario y decepciona a tu ex con estilo. 🖤', file: 'emo_selected_0.mp3' },
+    { text: 'El destino eligió tu sufrimiento. Canta como si fuera 2008. 💀', file: 'emo_selected_1.mp3' }
+  ],
+  vote: [
+    { text: 'Hora de votar. ¿Fue arte, drama o puro berrinche afinado? 🗳️', file: 'emo_vote_0.mp3' },
+    { text: 'Califiquen con el corazón roto, pero con honestidad. 💔', file: 'emo_vote_1.mp3' }
+  ],
+  blackout: [
+    { text: 'Se fue la letra, como se fue esa persona. Sigue cantando. 🌑', file: 'emo_blackout_0.mp3' },
+    { text: 'Sin pantalla, sin ayuda y sin estabilidad emocional. 🖤', file: 'emo_blackout_1.mp3' }
+  ]
+};

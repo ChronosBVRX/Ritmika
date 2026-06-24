@@ -471,7 +471,7 @@ io.on('connection', (socket) => {
   // Payload: ninguno
   // Emite → tv:       { type: 'ROOM_CREATED', roomCode }
   // ──────────────────────────────────────────────────────────
-  socket.on('tv:create_room', () => {
+  socket.on('tv:create_room', (payload = {}) => {
     // Destruir sala anterior de esta TV si existe
     const oldRoom = getRoomByTvSocket(socket.id);
     if (oldRoom) {
@@ -485,15 +485,20 @@ io.on('connection', (socket) => {
     let code;
     do { code = generateRoomCode(); } while (rooms.has(code));
 
+    const validModes = new Set(['clasico', 'emo']);
+    const cleanMode = validModes.has(payload.mode) ? payload.mode : 'clasico';
+
     rooms.set(code, {
       tvSocketId: socket.id,
       players: new Map(),
       hostPlayerSocketId: null,
+      mode: cleanMode,
     });
 
     socket.join(code);
     socket.emit('tv:room_created', {
       roomCode: code,
+      mode: cleanMode,
       localIP: getLocalIP(),
       hotspotSSID: process.env.HOTSPOT_SSID || 'Ritmika',
       hotspotPassword: process.env.HOTSPOT_PASSWORD || 'Ritmika2026',
@@ -552,7 +557,7 @@ io.on('connection', (socket) => {
     const players = getPublicPlayerList(room);
 
     // Confirmar al jugador
-    socket.emit('player:join_ack', { success: true, roomCode: code, players });
+    socket.emit('player:join_ack', { success: true, roomCode: code, mode: room.mode || 'clasico', players });
 
     // Notificar a la TV
     io.to(room.tvSocketId).emit('tv:player_joined', { player: playerInfo, players });

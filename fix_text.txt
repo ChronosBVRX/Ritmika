@@ -1,9 +1,4 @@
-import os
-
-with open('public/tv.html', 'r', encoding='utf-8') as f:
-    content = f.read()
-
-missing_block = r'''    state.singerQueue = [...state.players.filter(p => !p.disconnected)].sort(() => Math.random() - 0.5);
+    state.singerQueue = [...state.players.filter(p => !p.disconnected)].sort(() => Math.random() - 0.5);
     saveGameState();
 
     showRoundSplash(state.round, () => { startRoulette(); });
@@ -16,7 +11,7 @@ missing_block = r'''    state.singerQueue = [...state.players.filter(p => !p.dis
     } else {
       rStartText = rStartIdx === 0 ? "&#161;Ronda 3 iniciando! Se viene el apag&#243;n mental." : "&#161;Ronda 3! El Apag&#243;n Mental. Canten sin letra o queden en el olvido.";
     }
-    axoloSay(rStartText, ound__start_.mp3);
+    axoloSay(rStartText, `round_${state.round}_start_${rStartIdx}.mp3`);
     return;
   }
 
@@ -65,31 +60,4 @@ function showPodium() {
   const ceremonyRoot = document.createElement('div');
   ceremonyRoot.id = 'podium-screen';
   ceremonyRoot.style.cssText = 'position:fixed;inset:0;z-index:10001;background:#0a0a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;font-family:Fredoka,sans-serif;';
-  document.body.appendChild(ceremonyRoot);'''
-
-target_hook = "    state.singerQueue = [...state.players.filter(p => !p.disconnected)].sort(() => Math.random() - 0.5);"
-
-if target_hook in content:
-    content = content.replace(target_hook, missing_block)
-    
-    # Also replace the innerHTML generation with the img graphic
-    old_card_logic = r'''      aCard.style.transform='translateX('+(sideDir*130)+'%)';
-      aCard.innerHTML='<div style="font-size:76px;margin-bottom:8px;filter:drop-shadow(0 0 18px '+award.color+');">'+award.icon+'</div>'
-        +'<h2 style="font-family:\'Paytone One\',sans-serif;font-size:42px;margin:6px 0;text-shadow:0 0 22px '+award.color+';color:'+award.color+';">'+award.title+'</h2>'
-        +'<p style="font-family:Fredoka,sans-serif;font-size:15px;color:#94a3b8;font-weight:700;margin-bottom:16px;letter-spacing:2px;text-transform:uppercase;">'+award.subtitle+'</p>' '''
-    
-    # Strip whitespace issues for matching
-    import re
-    # We will just do a simpler replace for the innerHTML
-    
-    content = re.sub(
-        r"aCard\.innerHTML='<div style=\"font-size:76px;margin-bottom:8px;filter:drop-shadow\(0 0 18px '\+award\.color\+'\);\">'\+award\.icon\+'</div>'(\s+)\+'<h2 style=\"font-family:\\'Paytone One\\',sans-serif;font-size:42px;margin:6px 0;text-shadow:0 0 22px '\+award\.color\+';color:'\+award\.color\+';\">'\+award\.title\+'</h2>'",
-        r"let awardGraphic = award.img ? '<img src=\"'+award.img+'\" style=\"width:160px;height:160px;object-fit:contain;margin:0 auto 12px;filter:drop-shadow(0 0 18px '+award.color+');\"/>' : '<div style=\"font-size:76px;margin-bottom:8px;filter:drop-shadow(0 0 18px '+award.color+');\">'+award.icon+'</div>';\n      aCard.innerHTML= awardGraphic \1+'<h2 style=\"font-family:\\'Paytone One\\',sans-serif;font-size:42px;margin:6px 0;text-shadow:0 0 22px '+award.color+';color:'+award.color+';\">'+award.title+'</h2>'",
-        content
-    )
-    
-    with open('public/tv.html', 'w', encoding='utf-8') as f:
-        f.write(content)
-    print("Fixed!")
-else:
-    print("Hook not found!")
+  document.body.appendChild(ceremonyRoot);

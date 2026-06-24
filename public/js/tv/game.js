@@ -66,14 +66,14 @@ async function startRoulette() {
     window.round2Songs = window.round2Songs || [];
     try {
       if (allPlayerGenres.size > 0 && window.round2Songs.length === 0) {
-        const url = '/api/songs?genres=' + encodeURIComponent([...allPlayerGenres].join(',')) + '&limit=60&random=true';
+        const url = '/api/songs?genres=' + encodeURIComponent([...allPlayerGenres].join(',')) + '&limit=60&random=true' + (typeof getModeQueryParam === 'function' ? getModeQueryParam() : '');
         const res = await fetch(url);
         if (res.ok) {
           window.round2Songs = await res.json();
         }
       }
       if (!window.round2Songs || window.round2Songs.length < 10) {
-        const url = '/api/songs?limit=60&random=true';
+        const url = '/api/songs?limit=60&random=true' + (typeof getModeQueryParam === 'function' ? getModeQueryParam() : '');
         const res = await fetch(url);
         if (res.ok) {
           window.round2Songs = (window.round2Songs || []).concat(await res.json());
@@ -113,7 +113,7 @@ async function startRoulette() {
             // Pick a random song from server
             let song = { id: 'default' };
             try {
-              const res = await fetch('/api/songs?random=true&limit=1');
+              const res = await fetch('/api/songs?random=true&limit=1' + (typeof getModeQueryParam === 'function' ? getModeQueryParam() : ''));
               if (res.ok) {
                 const list = await res.json();
                 if (list && list.length > 0) song = list[0];
@@ -162,9 +162,10 @@ async function startRoulette() {
   }
 
   // Update round badge and heading
-  const badges = ['Ronda 1 — Tu Elección, Tu Condena', 'Ronda 2 — Fuego Cruzado', 'Ronda 3 — Apagón Mental'];
+  const labels = typeof getModeRoundLabels === 'function' ? getModeRoundLabels() : null;
+  const badges = labels ? labels.badges : ['Ronda 1 — Tu Elección, Tu Condena', 'Ronda 2 — Fuego Cruzado', 'Ronda 3 — Apagón Mental'];
   document.getElementById('roulette-round-badge').querySelector('span:last-child').textContent = badges[state.round - 1] || 'Ronda Final';
-  const headings = ['¿Quién canta primero?', 'Asignen canciones a sus rivales...', '¿Quién sobrevive al apagón?'];
+  const headings = labels ? labels.headings : ['¿Quién canta primero?', 'Asignen canciones a sus rivales...', '¿Quién sobrevive al apagón?'];
   document.getElementById('roulette-heading').textContent = headings[state.round - 1] || '¿Quién sigue?';
 
   // Mini player avatars
@@ -979,14 +980,28 @@ function nextTurn() {
     showRoundSplash(state.round, () => { startRoulette(); });
     const rStartIdx = Math.floor(Math.random() * 2);
     let rStartText = '';
-    if (state.round === 1) {
-      rStartText = rStartIdx === 0 ? "&#161;Ronda 1 iniciando! Prep&#225;rense para cantar." : "&#161;Arranca la Ronda 1! Escojan sus mejores rolas y demuestren talento.";
-    } else if (state.round === 2) {
-      rStartText = rStartIdx === 0 ? "&#161;Fuego cruzado activado! Asignen canciones a sus rivales" : "&#161;Ronda 2: Fuego Cruzado! Es hora de vengarse y darles la peor canci&#243;n posible.";
+    let barkFile = `round_${state.round}_start_${rStartIdx}.mp3`;
+    if (state.gameMode === 'emo') {
+      if (state.round === 1) {
+        rStartText = "¡Bienvenidos a Fiesta Emo! Hoy no se canta, se sangra emocionalmente. 🖤";
+        barkFile = 'emo_intro_0.mp3';
+      } else if (state.round === 2) {
+        rStartText = "Elige a quién vas a destruir emocionalmente. 💔";
+        barkFile = 'emo_intro_1.mp3';
+      } else {
+        rStartText = "Cuando la pantalla se apague, canta como si todavía doliera. 🌑";
+        barkFile = 'emo_blackout_0.mp3';
+      }
     } else {
-      rStartText = rStartIdx === 0 ? "&#161;Ronda 3 iniciando! Se viene el apag&#243;n mental." : "&#161;Ronda 3! El Apag&#243;n Mental. Canten sin letra o queden en el olvido.";
+      if (state.round === 1) {
+        rStartText = rStartIdx === 0 ? "&#161;Ronda 1 iniciando! Prep&#225;rense para cantar." : "&#161;Arranca la Ronda 1! Escojan sus mejores rolas y demuestren talento.";
+      } else if (state.round === 2) {
+        rStartText = rStartIdx === 0 ? "&#161;Fuego cruzado activado! Asignen canciones a sus rivales" : "&#161;Ronda 2: Fuego Cruzado! Es hora de vengarse y darles la peor canci&#243;n posible.";
+      } else {
+        rStartText = rStartIdx === 0 ? "&#161;Ronda 3 iniciando! Se viene el apag&#243;n mental." : "&#161;Ronda 3! El Apag&#243;n Mental. Canten sin letra o queden en el olvido.";
+      }
     }
-    axoloSay(rStartText, `round_${state.round}_start_${rStartIdx}.mp3`);
+    axoloSay(rStartText, barkFile);
     return;
   }
 
@@ -1015,11 +1030,21 @@ function showPodium() {
   const vengador     = sorted.length >= 3 ? sorted[1] : (sorted[1] || sorted[0]);
   const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 
-  const awardsData = [
-    { icon:'&#128019;', img: './assets/award_gallo.webp', title:'Gallo Supremo',    subtitle:'Valor Desafinado', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: rand(AWARD_CARRILLA.gallo) },
-    { icon:'&#127813;', img: './assets/award_tomate.webp', title:'Salsa de Tomate',  subtitle:'El M&#225;s Atacado',   player: mostTomatoes && mostTomatoes.tomatazos > 0 ? mostTomatoes : null, color:'#ef4444', border:'#dc2626', obj: rand(AWARD_CARRILLA.tomate) },
-    { icon:'&#128535;', img: './assets/award_vengador.webp', title:'Vengador An&#243;nimo', subtitle:'Fuego Cruzado',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
-  ].map(a => ({...a, carrilla: a.obj.text, file: a.obj.file}));
+  let awardsData = [];
+  if (state.gameMode === 'emo') {
+    awardsData = [
+      { icon:'💔', img: './assets/modes/emo/award_broken_heart.webp', title:'Corazón Más Roto', subtitle:'Mayor Sufrimiento', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: {text:'Ni tu ex te dejó tan mal como esta puntuación.', file: 'emo_award_0.mp3'} },
+      { icon:'📱', img: './assets/modes/emo/award_indirecta.webp', title:'Mejor Indirecta', subtitle:'Fuego Cruzado Emo', player: vengador, color:'#a855f7', border:'#9333ea', obj: {text:'Esa indirecta dolió hasta en la otra cuadra.', file: 'emo_award_1.mp3'} },
+      { icon:'🌑', img: './assets/modes/emo/award_blackout.webp', title:'Sobreviviente', subtitle:'Superó el Apagón', player: sorted[0], color:'#facc15', border:'#eab308', obj: {text:'Cantaste en la oscuridad mejor que en la luz.', file: 'emo_award_2.mp3'} },
+    ];
+  } else {
+    awardsData = [
+      { icon:'&#128019;', img: './assets/award_gallo.webp', title:'Gallo Supremo',    subtitle:'Valor Desafinado', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: rand(AWARD_CARRILLA.gallo) },
+      { icon:'&#127813;', img: './assets/award_tomate.webp', title:'Salsa de Tomate',  subtitle:'El M&#225;s Atacado',   player: mostTomatoes && mostTomatoes.tomatazos > 0 ? mostTomatoes : null, color:'#ef4444', border:'#dc2626', obj: rand(AWARD_CARRILLA.tomate) },
+      { icon:'&#128535;', img: './assets/award_vengador.webp', title:'Vengador An&#243;nimo', subtitle:'Fuego Cruzado',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
+    ];
+  }
+  awardsData = awardsData.map(a => ({...a, carrilla: a.obj.text, file: a.obj.file}));
   const stepData = [
     { place:3, player:sorted[2], rank:'&#129350;', label:'3er Lugar', color:'#f97316', glow:'#f9731640', pedColor:'#f97316', size:'5.5rem' },
     { place:2, player:sorted[1], rank:'&#129349;', label:'2do Lugar', color:'#22d3ee', glow:'#22d3ee40', pedColor:'#06b6d4', size:'5.5rem' },
@@ -1478,4 +1503,4 @@ function showPodium() {
 
   runCeremony();
 }
-
+

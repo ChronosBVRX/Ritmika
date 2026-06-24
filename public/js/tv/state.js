@@ -7,6 +7,7 @@ function saveGameState() {
     const data = {
       v: 1,
       savedAt: Date.now(),
+      gameMode: state.gameMode,
       players: state.players.filter(p => !p.disconnected).map(p => ({
         name: p.name, avatarId: p.avatarId,
         score: p.score || 0, genres: p.genres || [],
@@ -29,6 +30,7 @@ function loadSavedGame() {
       localStorage.removeItem(SAVE_KEY);
       return null;
     }
+    // Set gameMode globally on restore if not already set, but state object is populated later by caller
     return data;
   } catch (e) { return null; }
 }
@@ -44,6 +46,7 @@ const state = {
   localIP:    '127.0.0.1',
   hotspotSSID: 'Ritmika',
   hotspotPassword: '',
+  gameMode:   'clasico',
   players:    [],   // { socketId, name, avatarId, score, genres, artists, tomatazos }
   round:      0,    // 0=lobby, 1, 2, 3
   isRestored: false, // true si se restauró desde localStorage
@@ -57,4 +60,3 @@ const state = {
   tomatazoCounts: {},
   assignedSongs: {}, // targetSocketId → { attackerName, songId }
 };
-

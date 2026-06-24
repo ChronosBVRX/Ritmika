@@ -2327,7 +2327,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const p = document.createElement('div');
           p.className = 'glitter-particle';
           p.style.width = Math.random() * 8 + 4 + 'px';
-          p.style.height = p.style.width;
+          p.style.height = p.width;
           p.style.left = Math.random() * 80 + 10 + '%';
           p.style.bottom = Math.random() * 40 + 10 + '%';
           const dur = Math.random() * 1.5 + 1;
@@ -2375,7 +2375,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnCrearSalaModo) {
     btnCrearSalaModo.addEventListener('click', () => {
-      if (selectedMode !== 'clasico') {
+      if (selectedMode !== 'clasico' && selectedMode !== 'emo') {
         try { if(window.UISounds) UISounds.playTone(150, 0.3, 'sawtooth'); } catch(e){}
         if (typeof axoloSay === 'function') {
           axoloSay("¡Aguanta compa! Los changos del código siguen armando este modo.", "sad", 4000, true);
@@ -2399,6 +2399,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       // Request room from server
+      if (typeof state !== 'undefined') state.gameMode = selectedMode;
       socket.emit('tv:create_room', { mode: selectedMode });
 
       // Transition to Lobby (simulating the wipe)
