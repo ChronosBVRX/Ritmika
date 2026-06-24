@@ -119,16 +119,19 @@ app.use(express.static(path.join(__dirname, '../public'), {
 
 // ── Ruta raíz → TV principal ─────────────────────────────────
 app.get('/', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.sendFile(path.join(__dirname, '../public/tv.html'));
 });
 
 // ── Ruta para celulares ──────────────────────────────────────
 app.get('/join', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.sendFile(path.join(__dirname, '../public/mobile.html'));
 });
 
 // ── Admin: Dashboard de Modos de Juego ───────────────────────
 app.get('/admin', requireAdmin, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.sendFile(path.join(__dirname, 'views/admin_modes.html'));
 });
 

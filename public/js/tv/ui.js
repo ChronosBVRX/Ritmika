@@ -334,13 +334,12 @@ function showScreen(id, transitionType, onComplete) {
 
 
 // Apply Mode Theme based on gameMode
-window.applyModeTheme = function() {
-  if (typeof state !== 'undefined' && state.gameMode) {
-    if (state.gameMode === 'clasico') {
-      document.body.removeAttribute('data-mode');
-    } else {
-      document.body.setAttribute('data-mode', state.gameMode);
-    }
+window.applyModeTheme = function(forcedMode) {
+  const modeToApply = forcedMode || (typeof state !== 'undefined' ? state.gameMode : 'clasico');
+  if (modeToApply && modeToApply !== 'clasico') {
+    document.body.setAttribute('data-mode', modeToApply);
+  } else {
+    document.body.removeAttribute('data-mode');
   }
 };
 
