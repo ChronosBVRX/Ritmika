@@ -78,8 +78,8 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 - `check_audio.js`, `fix2.js`, `fix3.js`, `patch_tv.js`, `replace.js` — Scripts de mantenimiento varios.
 
 ### Config
-- `.env` — `PORT=3000`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`
-- `.gitignore` — Excluye `.env`, EXEs, DLLs de WebView2, `libs/webview2/`, `songs.db`, `*.log`
+- `.env` — `PORT=3000`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `ADMIN_TOKEN`, `GITHUB_TOKEN`
+- `.gitignore` — Excluye `.env`, EXEs, DLLs de WebView2, `libs/webview2/`, `server/songs.db-shm`, `server/songs.db-wal`, `*.log`. Nota: `server/songs.db` **sí está trackeado** (se deploya con el código a Render).
 
 ---
 

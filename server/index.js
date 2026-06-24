@@ -190,7 +190,15 @@ function isDbReady() {
 
 function gitCommitAndPush(callback) {
   const gitDir = path.resolve(__dirname, '..');
-  exec('git add server/songs.db && git commit -m "auto: actualizar modos de juego" && git push', { cwd: gitDir }, (err, stdout, stderr) => {
+  const repoUrl = 'https://github.com/ChronosBVRX/Ritmika.git';
+  const token = process.env.GITHUB_TOKEN;
+  const pushRemote = token ? `https://x-access-token:${token}@github.com/ChronosBVRX/Ritmika.git` : 'origin';
+  const cmds = [
+    'git add server/songs.db',
+    `git diff --cached --quiet || git commit -m "auto: actualizar modos de juego"`,
+    `git push ${pushRemote} main`
+  ].join(' && ');
+  exec(cmds, { cwd: gitDir }, (err, stdout, stderr) => {
     if (err) {
       console.error('[GIT] Error:', stderr || err.message);
       if (callback) callback(err);
