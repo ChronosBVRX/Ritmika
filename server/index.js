@@ -13,6 +13,7 @@ const os = require('os');
 const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
+const { exec } = require('child_process');
 
 const internalIp = require('internal-ip');
 require('dotenv').config();
@@ -187,6 +188,19 @@ function isDbReady() {
   return db !== null;
 }
 
+function gitCommitAndPush(callback) {
+  const gitDir = path.resolve(__dirname, '..');
+  exec('git add server/songs.db && git commit -m "auto: actualizar modos de juego" && git push', { cwd: gitDir }, (err, stdout, stderr) => {
+    if (err) {
+      console.error('[GIT] Error:', stderr || err.message);
+      if (callback) callback(err);
+    } else {
+      console.log('[GIT] songs.db committed and pushed');
+      if (callback) callback(null);
+    }
+  });
+}
+
 // ── Filtered songs API ───────────────────────────────────
 // Query params:
 //   genres   — comma-separated genre filter
@@ -330,6 +344,9 @@ app.put('/api/songs/bulk-mode', requireAdmin, (req, res) => {
     const placeholders = songIds.map(() => '?').join(',');
     const sql = `UPDATE songs SET mode = ? WHERE id IN (${placeholders})`;
     const result = db.prepare(sql).run(mode || '', ...songIds);
+    if (result.changes > 0) {
+      gitCommitAndPush();
+    }
     res.json({ success: true, updatedCount: result.changes });
   } catch (err) {
     console.error('[ADMIN] Error updating bulk modes:', err.message);
