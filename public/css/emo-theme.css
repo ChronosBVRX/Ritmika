@@ -1,0 +1,97 @@
+/* public/css/emo-theme.css */
+/* Estilos Persona 5 / Emo Mode */
+
+body[data-mode="emo"] {
+  background-color: #0f0f0f !important; /* Very dark background */
+  color: #ffffff;
+}
+
+/* Halftone overlay pattern for the body background */
+body[data-mode="emo"]::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: radial-gradient(#1e1e1e 20%, transparent 20%);
+  background-size: 8px 8px;
+  opacity: 0.8;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Red accents */
+body[data-mode="emo"] .tv-screen {
+  box-shadow: inset 0 0 50px rgba(220, 38, 38, 0.4); /* Red glow */
+}
+
+/* Lobby background adjustment */
+body[data-mode="emo"] #lobby-screen {
+  background: linear-gradient(135deg, #000000 0%, #1a0000 50%, #4a0404 100%);
+}
+
+body[data-mode="emo"] #lobby-screen .video-bg {
+  filter: grayscale(100%) contrast(1.5) opacity(0.3) sepia(1) hue-rotate(-50deg) saturate(3);
+}
+
+/* Tio Axolo Cut-in styling (Persona 5 style) */
+body[data-mode="emo"] #axolo-cutin-bar {
+  background-color: #dc2626 !important; /* Bright Red */
+  transform: skewX(-20deg) scaleY(1.1);
+  box-shadow: -10px 10px 0px rgba(0,0,0,0.8), 0 0 20px rgba(220,38,38,0.5);
+  border: 4px solid #fff;
+}
+
+body[data-mode="emo"] #axolo-cutin-portrait-wrap,
+body[data-mode="emo"] #axolo-cutin-textbox {
+  transform: skewX(20deg) scaleY(0.9);
+}
+
+body[data-mode="emo"] #axolo-cutin-textbox {
+  color: #fff !important;
+  text-shadow: 2px 2px 0 #000 !important;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+/* Halftone pattern in the cut-in bar */
+body[data-mode="emo"] #axolo-cutin-bar::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: radial-gradient(rgba(0,0,0,0.5) 15%, transparent 16%);
+  background-size: 6px 6px;
+  pointer-events: none;
+}
+
+/* Roulette styling */
+body[data-mode="emo"] #screen-roulette {
+  background: #0a0a0a;
+}
+body[data-mode="emo"] #screen-roulette h1 {
+  color: #dc2626;
+  text-shadow: 4px 4px 0 #000, -2px -2px 0 #fff;
+  transform: rotate(-2deg);
+}
+
+/* Player cards in Emo Mode */
+body[data-mode="emo"] .player-card {
+  border-color: #dc2626 !important;
+  box-shadow: 4px 4px 0px #dc2626 !important;
+  background: #111;
+}
+
+/* Podium styling */
+body[data-mode="emo"] #podium-bg-img {
+  filter: grayscale(80%) sepia(50%) hue-rotate(-50deg) saturate(2);
+}
+
+body[data-mode="emo"] .text-jb-yellow {
+  color: #dc2626 !important; /* Force red instead of yellow */
+}
+
+body[data-mode="emo"] .text-jb-cyan {
+  color: #fff !important; /* Force white instead of cyan */
+}
+
+body[data-mode="emo"] .text-jb-magenta {
+  color: #7f1d1d !important; /* Dark red */
+}

@@ -926,37 +926,51 @@ const EMO_MODE_PHRASES = {
     { text: '¡Bienvenidos a Fiesta Emo! Hoy no se canta, se sangra emocionalmente. 🖤', file: 'emo_intro_0.mp3' },
     { text: 'Delineador listo, corazón roto y garganta temblando. Esto es Rítmika Emo. 💔', file: 'emo_intro_1.mp3' },
     { text: 'No es una fase, es una competencia con trauma musical. 🖤🎤', file: 'emo_intro_2.mp3' },
-    { text: 'Saquen el delineador y las lágrimas falsas. Empezamos la masacre emocional.', file: 'emo_intro_3.mp3' },
-    { text: 'Aquí venimos a sufrir por elección. ¡Que empiece la depresión colectiva!', file: 'emo_intro_4.mp3' }
+    { text: 'Ronda uno: Tu Diario de Depresión. Escojan la canción que más les duela.', file: 'emo/emo_round_1_intro.mp3' },
+    { text: 'Ronda dos: Trauma Compartido. Asigna una canción a alguien más. Destruyan su dignidad.', file: 'emo/emo_round_2_intro.mp3' },
+    { text: 'Ronda tres: Apagón Emocional. Canten desde la memoria, a oscuras.', file: 'emo/emo_round_3_intro.mp3' }
   ],
   roulette: [
     { text: 'La ruleta va a elegir quién abre su diario frente a todos. 📓🖤', file: 'emo_roulette_0.mp3' },
     { text: 'Gira la rueda del dolor adolescente. A ver quién llora primero. 💔', file: 'emo_roulette_1.mp3' },
-    { text: 'Girando la ruleta de la desgracia musical...', file: 'emo_roulette_2.mp3' },
-    { text: 'A ver a quién le toca exponer sus sentimientos oscuros esta vez.', file: 'emo_roulette_3.mp3' }
+    { text: 'La ruleta del sufrimiento está girando. A ver a quién le toca exponer su corazón.', file: 'emo/emo_roulette_spin.mp3' }
   ],
   selected: [
     { text: 'Te tocó. Sube al escenario y decepciona a tu ex con estilo. 🖤', file: 'emo_selected_0.mp3' },
     { text: 'El destino eligió tu sufrimiento. Canta como si fuera 2008. 💀', file: 'emo_selected_1.mp3' },
-    { text: 'Vas tú. Rompe el micrófono o rompe a llorar, pero haz algo.', file: 'emo_selected_2.mp3' },
-    { text: 'Es tu turno de transmitir todo ese dolor reprimido. ¡Échale ganas!', file: 'emo_selected_3.mp3' }
+    { text: 'Qué tragedia. Te toca cantar.', file: 'emo/emo_roulette_result_0.mp3' },
+    { text: 'Destino cruel. El escenario es tuyo.', file: 'emo/emo_roulette_result_1.mp3' }
   ],
   vote: [
     { text: 'Hora de votar. ¿Fue arte, drama o puro berrinche afinado? 🗳️', file: 'emo_vote_0.mp3' },
-    { text: 'Califiquen con el corazón roto, pero con honestidad. 💔', file: 'emo_vote_1.mp3' },
-    { text: 'Digan la verdad: ¿nos hizo llorar o solo nos dio pena ajena?', file: 'emo_vote_2.mp3' },
-    { text: 'Voten sin piedad, como cuando tu ex te dejó por mensaje.', file: 'emo_vote_3.mp3' }
+    { text: 'Wow. Me hiciste llorar, y eso que soy un ajolote digital.', file: 'emo/emo_vote_good_0.mp3' },
+    { text: 'Tanta oscuridad en esa interpretación. Fue... poético.', file: 'emo/emo_vote_good_1.mp3' },
+    { text: 'Eso no dolió por el sentimiento, dolió por la desafinación.', file: 'emo/emo_vote_bad_0.mp3' },
+    { text: 'Mis oídos lloran sangre. Y no de manera artística.', file: 'emo/emo_vote_bad_1.mp3' }
   ],
   blackout: [
     { text: 'Se fue la letra, como se fue esa persona. Sigue cantando. 🌑', file: 'emo_blackout_0.mp3' },
-    { text: 'Sin pantalla, sin ayuda y sin estabilidad emocional. 🖤', file: 'emo_blackout_1.mp3' },
-    { text: 'Te apagamos la luz porque ya estabas bastante oscuro por dentro.', file: 'emo_blackout_2.mp3' }
+    { text: 'Sin pantalla, sin ayuda y sin estabilidad emocional. 🖤', file: 'emo_blackout_1.mp3' }
   ],
   idle: [
     { text: '¿Se van a apurar o sigo escribiendo en mi fotolog? 🖤', file: 'emo_idle_0.mp3' },
     { text: 'Tanto drama y ni siquiera han empezado. Qué decepción.', file: 'emo_idle_1.mp3' },
-    { text: 'Si no empiezan pronto, voy a escuchar My Chemical Romance solo.', file: 'emo_idle_2.mp3' },
-    { text: 'Tanta oscuridad en esta sala y nadie presiona Iniciar. 🦇', file: 'emo_idle_3.mp3' }
+    { text: 'El silencio es ensordecedor... igual que sus promesas vacías.', file: 'emo/emo_lobby_idle_0.mp3' },
+    { text: '¿A qué hora empezamos? La depresión no se va a curar sola.', file: 'emo/emo_lobby_idle_1.mp3' }
+  ],
+  welcome: [
+    { text: 'Bienvenidos a este rincón de miseria... digo, al lobby de Rítmika. Vamos a llorar juntos.', file: 'emo/emo_lobby_0.mp3' },
+    { text: 'Todo es efímero. Igual que tu afinación. Conéctense rápido para terminar con este sufrimiento.', file: 'emo/emo_lobby_1.mp3' },
+    { text: 'La pantalla está oscura, como mi alma. Únanse a la sala antes de que me arrepienta.', file: 'emo/emo_lobby_2.mp3' },
+    { text: 'Suspirar no sirve de nada. Escaneen el código y preparen esos pulmones rotos.', file: 'emo/emo_lobby_3.mp3' }
+  ],
+  podium: [
+    { text: 'Y así termina nuestra sesión de terapia grupal. Veamos quién sufrió más.', file: 'emo/emo_podium_intro.mp3' },
+    { text: 'El rey de la desgracia. Ganaste, supongo. Felicidades por tu victoria vacía.', file: 'emo/emo_podium_winner.mp3' }
+  ],
+  sabotage: [
+    { text: 'Alguien acaba de sabotearte. Qué traición tan clásica.', file: 'emo/emo_sabotage_0.mp3' },
+    { text: 'Te aventaron un tomate virtual. La humillación es total.', file: 'emo/emo_tomato_0.mp3' }
   ]
 };
 

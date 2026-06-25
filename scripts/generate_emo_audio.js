@@ -10,50 +10,51 @@ if (!API_KEY) {
   console.error('ERROR: ELEVENLABS_API_KEY no está definida en .env');
   process.exit(1);
 }
-const OUTPUT_DIR = path.resolve(__dirname, '..', 'public', 'assets', 'audio');
+const OUTPUT_DIR = path.resolve(__dirname, '..', 'public', 'assets', 'audio', 'emo');
 
+// Ensure output directory exists
 if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
+// Emo / Persona 5 Phrases
 const PHRASES = {
-  "emo_intro_0": "¡Bienvenidos a Fiesta Emo! Hoy no se canta, se sangra emocionalmente.",
-  "emo_intro_1": "Delineador listo, corazón roto y garganta temblando. Esto es Rítmika Emo.",
-  "emo_intro_2": "No es una fase, es una competencia con trauma musical.",
-  "emo_intro_3": "Saquen el delineador y las lágrimas falsas. Empezamos la masacre emocional.",
-  "emo_intro_4": "Aquí venimos a sufrir por elección. ¡Que empiece la depresión colectiva!",
-  "emo_roulette_0": "La ruleta va a elegir quién abre su diario frente a todos.",
-  "emo_roulette_1": "Gira la rueda del dolor adolescente. A ver quién llora primero.",
-  "emo_roulette_2": "Girando la ruleta de la desgracia musical...",
-  "emo_roulette_3": "A ver a quién le toca exponer sus sentimientos oscuros esta vez.",
-  "emo_selected_0": "Te tocó. Sube al escenario y decepciona a tu ex con estilo.",
-  "emo_selected_1": "El destino eligió tu sufrimiento. Canta como si fuera 2008.",
-  "emo_selected_2": "Vas tú. Rompe el micrófono o rompe a llorar, pero haz algo.",
-  "emo_selected_3": "Es tu turno de transmitir todo ese dolor reprimido. ¡Échale ganas!",
-  "emo_vote_0": "Hora de votar. ¿Fue arte, drama o puro berrinche afinado?",
-  "emo_vote_1": "Califiquen con el corazón roto, pero con honestidad.",
-  "emo_vote_2": "Digan la verdad: ¿nos hizo llorar o solo nos dio pena ajena?",
-  "emo_vote_3": "Voten sin piedad, como cuando tu ex te dejó por mensaje.",
-  "emo_blackout_0": "Se fue la letra, como se fue esa persona. Sigue cantando.",
-  "emo_blackout_1": "Sin pantalla, sin ayuda y sin estabilidad emocional.",
-  "emo_blackout_2": "Te apagamos la luz porque ya estabas bastante oscuro por dentro.",
-  "emo_idle_0": "¿Se van a apurar o sigo escribiendo en mi fotolog?",
-  "emo_idle_1": "Tanto drama y ni siquiera han empezado. Qué decepción.",
-  "emo_idle_2": "Si no empiezan pronto, voy a escuchar My Chemical Romance solo.",
-  "emo_idle_3": "Tanta oscuridad en esta sala y nadie presiona Iniciar.",
-  "emo_award_0": "Ni tu ex te dejó tan mal como esta puntuación.",
-  "emo_award_1": "Esa indirecta dolió hasta en la otra cuadra.",
-  "emo_award_2": "Cantaste en la oscuridad mejor que en la luz."
+  "emo_lobby_0": "Bienvenidos a este rincón de miseria... digo, al lobby de Rítmika. Vamos a llorar juntos.",
+  "emo_lobby_1": "Todo es efímero. Igual que tu afinación. Conéctense rápido para terminar con este sufrimiento.",
+  "emo_lobby_2": "La pantalla está oscura, como mi alma. Únanse a la sala antes de que me arrepienta.",
+  "emo_lobby_3": "Suspirar no sirve de nada. Escaneen el código y preparen esos pulmones rotos.",
+  "emo_lobby_idle_0": "El silencio es ensordecedor... igual que sus promesas vacías.",
+  "emo_lobby_idle_1": "¿A qué hora empezamos? La depresión no se va a curar sola.",
+
+  "emo_round_1_intro": "Ronda uno: Tu Diario de Depresión. Escojan la canción que más les duela. O la que cantan en la regadera.",
+  "emo_round_2_intro": "Ronda dos: Trauma Compartido. Asigna una canción a alguien más. Destruyan su dignidad, confío en ustedes.",
+  "emo_round_3_intro": "Ronda tres: Apagón Emocional. Canten desde la memoria, a oscuras. Como si todavía doliera.",
+
+  "emo_roulette_spin": "La ruleta del sufrimiento está girando. A ver a quién le toca exponer su corazón.",
+  "emo_roulette_result_0": "Qué tragedia. Te toca cantar.",
+  "emo_roulette_result_1": "Destino cruel. El escenario es tuyo.",
+  
+  "emo_vote_good_0": "Wow. Me hiciste llorar, y eso que soy un ajolote digital.",
+  "emo_vote_good_1": "Tanta oscuridad en esa interpretación. Fue... poético.",
+  "emo_vote_bad_0": "Eso no dolió por el sentimiento, dolió por la desafinación.",
+  "emo_vote_bad_1": "Mis oídos lloran sangre. Y no de manera artística.",
+
+  "emo_sabotage_0": "Alguien acaba de sabotearte. Qué traición tan clásica.",
+  "emo_tomato_0": "Te aventaron un tomate virtual. La humillación es total.",
+  
+  "emo_podium_intro": "Y así termina nuestra sesión de terapia grupal. Veamos quién sufrió más.",
+  "emo_podium_winner": "El rey de la desgracia. Ganaste, supongo. Felicidades por tu victoria vacía."
 };
 
-async function generateAudio(text, filename) {
-  const filePath = path.join(OUTPUT_DIR, filename);
+async function generateAudio(phraseId, text) {
+  const filePath = path.join(OUTPUT_DIR, `${phraseId}.mp3`);
+  
   if (fs.existsSync(filePath)) {
-    console.log(`El archivo ${filename} ya existe. Saltando...`);
+    console.log(`[SKIP] Ya existe ${phraseId}.mp3`);
     return;
   }
-
-  console.log(`Generando: ${filename} - "${text}"`);
+  
+  console.log(`[GENERANDO] ${phraseId}...`);
   
   try {
     const response = await axios({
@@ -61,44 +62,37 @@ async function generateAudio(text, filename) {
       url: `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
       headers: {
         'Accept': 'audio/mpeg',
-        'xi-api-key': API_KEY,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'xi-api-key': API_KEY
       },
       data: {
         text: text,
         model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          style: 0.3,
-          use_speaker_boost: true
-        }
+        voice_settings: { stability: 0.6, similarity_boost: 0.8, style: 0.2, use_speaker_boost: true }
       },
       responseType: 'stream'
     });
-
+    
     const writer = fs.createWriteStream(filePath);
     response.data.pipe(writer);
-
+    
     return new Promise((resolve, reject) => {
       writer.on('finish', resolve);
       writer.on('error', reject);
     });
   } catch (error) {
-    console.error(`Error generando ${filename}:`, error.message);
-    if (error.response && error.response.status === 401) {
-       console.error("API KEY INVALIDE");
-       process.exit(1);
-    }
+    console.error(`Error generando ${phraseId}:`, error.response ? error.response.statusText : error.message);
   }
 }
 
-async function run() {
-  for (const [key, text] of Object.entries(PHRASES)) {
-    await generateAudio(text, `${key}.mp3`);
-    await new Promise(r => setTimeout(r, 500)); // Respect rate limits
+async function main() {
+  const keys = Object.keys(PHRASES);
+  console.log(`Generando ${keys.length} audios Emo...`);
+  for (const key of keys) {
+    await generateAudio(key, PHRASES[key]);
+    await new Promise(r => setTimeout(r, 500));
   }
-  console.log('¡Generación de audio completada!');
+  console.log('¡Generación de audios Emo completada!');
 }
 
-run();
+main();

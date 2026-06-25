@@ -995,10 +995,12 @@ function nextTurn() {
     let barkFile = `round_${state.round}_start_${rStartIdx}.mp3`;
     if (state.gameMode === 'emo') {
       let phrases = EMO_MODE_PHRASES.intro;
-      if (state.round === 2) phrases = EMO_MODE_PHRASES.intro; // You can mix if needed, or just intro
-      if (state.round === 3) phrases = EMO_MODE_PHRASES.blackout;
+      let choice = phrases[Math.floor(Math.random() * 3)]; // 0, 1, 2 are general intros
       
-      const choice = phrases[Math.floor(Math.random() * phrases.length)];
+      if (state.round === 1 && phrases.length >= 4) choice = phrases[3];
+      if (state.round === 2 && phrases.length >= 5) choice = phrases[4];
+      if (state.round === 3 && phrases.length >= 6) choice = phrases[5];
+      
       rStartText = choice.text;
       barkFile = choice.file;
     } else {
@@ -1162,7 +1164,12 @@ function showPodium() {
     await wait(400);
     anime({targets:subtitleEl,opacity:[0,1],translateY:[20,0],duration:600,easing:'easeOutQuad'});
     anime({targets:trophyEl,scale:[1,1.08,1],duration:1800,loop:true,easing:'easeInOutSine'});
-    axoloSay('&#161;Bienvenidos, banda, a la Gran Premiaci&#243;n de R&#237;tmika! Lleg&#243; el momento de la verdad. Vamos a coronar al Rey del Palenque, pero tambi&#233;n vamos a dar carrilla. Premios especiales, podio de ganadores, y muchas sorpresas m&#225;s. &#161;Que empiece la ceremonia!','podium_intro_ceremony.mp3');
+    if (typeof state !== 'undefined' && state.gameMode === 'emo') {
+      const p = EMO_MODE_PHRASES.podium[0];
+      axoloSay(p.text, p.file);
+    } else {
+      axoloSay('&#161;Bienvenidos, banda, a la Gran Premiaci&#243;n de R&#237;tmika! Lleg&#243; el momento de la verdad. Vamos a coronar al Rey del Palenque, pero tambi&#233;n vamos a dar carrilla. Premios especiales, podio de ganadores, y muchas sorpresas m&#225;s. &#161;Que empiece la ceremonia!','podium_intro_ceremony.mp3');
+    }
     await waitForAxoloAudio(1500);
     anime({targets:[titleBlock,subtitleEl,trophyEl],opacity:[1,0],translateY:[0,-40],duration:500,easing:'easeInCubic'});
     await wait(600);
@@ -1354,7 +1361,12 @@ function showPodium() {
       const wScoreEl=document.getElementById('winner-score-display');
       if(wScoreEl) setTimeout(()=>animatePodiumCounter(wScoreEl,sorted[0].score||0,1400),700);
       _stopCurrentAxolo();
-      axoloSay('&#161;El nuevo Rey del Palenque! &#161;' + escapeHtml(sorted[0].name) + '! El que demostr&#243; que tiene flow y que no le tiembla la voz. &#161;Felicidades, campe&#243;n, de parte del T&#237;o Axolo y de toda la banda!', 'podium_winner_reveal.mp3');
+      if (typeof state !== 'undefined' && state.gameMode === 'emo') {
+        const p = EMO_MODE_PHRASES.podium[1];
+        axoloSay(p.text, p.file);
+      } else {
+        axoloSay('&#161;El nuevo Rey del Palenque! &#161;' + escapeHtml(sorted[0].name) + '! El que demostr&#243; que tiene flow y que no le tiembla la voz. &#161;Felicidades, campe&#243;n, de parte del T&#237;o Axolo y de toda la banda!', 'podium_winner_reveal.mp3');
+      }
       [800,1200,1600,2000].forEach(delay=>{
         setTimeout(()=>fireworkBurst(window.innerWidth*(0.2+Math.random()*0.6),window.innerHeight*(0.1+Math.random()*0.4)),delay);
       });

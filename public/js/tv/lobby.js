@@ -627,6 +627,23 @@ async function axoloSay(text, moodOrDuration = 'neutral', duration = 4000, inter
     audioFile = moodOrDuration;
   }
 
+  // Intercept Emo Mode generic phrases
+  if (typeof state !== 'undefined' && state.gameMode === 'emo' && typeof EMO_MODE_PHRASES !== 'undefined') {
+    let override = null;
+    if (audioFile.startsWith('lobby_welcome')) {
+      override = EMO_MODE_PHRASES.welcome[Math.floor(Math.random() * EMO_MODE_PHRASES.welcome.length)];
+    } else if (audioFile.startsWith('sabotage_reaction')) {
+      override = EMO_MODE_PHRASES.sabotage[0];
+    } else if (audioFile.startsWith('award_tomate')) {
+      override = EMO_MODE_PHRASES.sabotage[1];
+    }
+    
+    if (override) {
+      text = override.text;
+      audioFile = override.file;
+    }
+  }
+
   const spokeWithAudio = await hacerHablarAlAxolo(text, audioFile, interrupt);
 
   if (!spokeWithAudio) {
