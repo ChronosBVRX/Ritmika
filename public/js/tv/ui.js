@@ -347,9 +347,16 @@ window.applyModeTheme = function(forcedMode) {
 window.getModeRoundLabels = function() {
   if (typeof state !== 'undefined' && state.gameMode === 'emo') {
     return {
-      round1: "Tu Diario de Depresión",
-      round2: "Trauma Compartido",
-      round3: "Apagón Emocional"
+      badges: [
+        'Ronda 1 — Mi Rola Triste',
+        'Ronda 2 — Dedicada al Ex',
+        'Ronda 3 — Apagón del Corazón'
+      ],
+      headings: [
+        '¿Quién llora primero?',
+        '¿A quién le vas a dedicar esta indirecta?',
+        'Canta de memoria, como si todavía doliera.'
+      ]
     };
   }
   return null; // Fallback a clasico
