@@ -68,18 +68,23 @@ async function startRoulette() {
       if (allPlayerGenres.size > 0 && window.round2Songs.length === 0) {
         const url = '/api/songs?genres=' + encodeURIComponent([...allPlayerGenres].join(',')) + '&limit=60&random=true' + (typeof getModeQueryParam === 'function' ? getModeQueryParam() : '');
         const res = await fetch(url);
-        if (res.ok) {
-          window.round2Songs = await res.json();
-        }
+        if (res.ok) window.round2Songs = await res.json();
       }
       if (!window.round2Songs || window.round2Songs.length < 10) {
         const url = '/api/songs?limit=60&random=true' + (typeof getModeQueryParam === 'function' ? getModeQueryParam() : '');
         const res = await fetch(url);
-        if (res.ok) {
-          window.round2Songs = (window.round2Songs || []).concat(await res.json());
-        }
+        if (res.ok) window.round2Songs = (window.round2Songs || []).concat(await res.json());
+      }
+      
+      // NEW FALLBACK: if we STILL have < 10 songs AND we are in a special mode, try querying the general catalog without mode
+      if ((!window.round2Songs || window.round2Songs.length < 10) && state.gameMode && state.gameMode !== 'clasico') {
+        console.warn(`⚠️ Catálogo insuficiente para modo ${state.gameMode}. Recurriendo al catálogo general.`);
+        const url = '/api/songs?limit=60&random=true';
+        const res = await fetch(url);
+        if (res.ok) window.round2Songs = (window.round2Songs || []).concat(await res.json());
       }
     } catch (_) {}
+    
     if (!window.round2Songs || window.round2Songs.length < 10) {
       window.round2Songs = FALLBACK_CATALOG;
     }
@@ -117,6 +122,13 @@ async function startRoulette() {
               if (res.ok) {
                 const list = await res.json();
                 if (list && list.length > 0) song = list[0];
+              }
+              if (song.id === 'default' && state.gameMode && state.gameMode !== 'clasico') {
+                const fallbackRes = await fetch('/api/songs?random=true&limit=1');
+                if (fallbackRes.ok) {
+                  const fallbackList = await fallbackRes.json();
+                  if (fallbackList && fallbackList.length > 0) song = fallbackList[0];
+                }
               }
             } catch (_) {}
             if (song.id === 'default' && FALLBACK_CATALOG.length > 0) {

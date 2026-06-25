@@ -392,56 +392,65 @@ async function pickSongForPlayer(player) {
     } catch (_) {}
   }
 
+  async function fetchSongWithFallback(urlBase) {
+    let url = urlBase;
+    if (getExclude()) url += (url.includes('?') ? '&' : '?') + 'exclude=' + encodeURIComponent(getExclude());
+    
+    if (state.gameMode && state.gameMode !== 'clasico') {
+      try {
+        const res = await fetch(url + '&mode=' + encodeURIComponent(state.gameMode));
+        if (res.ok) {
+          const songs = await res.json();
+          if (songs && songs.length > 0) return songs[0];
+        }
+      } catch(_) {}
+      console.warn(`[Fallback] No hay canciones para el modo ${state.gameMode}, usando catálogo general.`);
+    }
+    
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const songs = await res.json();
+        if (songs && songs.length > 0) return songs[0];
+      }
+    } catch(_) {}
+    return null;
+  }
+
   const playerGenres  = (player.genres || []).map(g => g.toLowerCase()).filter(Boolean);
   const playerArtists = (player.artists || []).map(a => a.toLowerCase()).filter(Boolean);
 
   // Priority 1: artist match (server-side filtering + random pick)
   if (playerArtists.length > 0) {
-    try {
-      let url = '/api/songs?artists=' + encodeURIComponent(playerArtists.join(',')) + '&random=true&limit=1';
-      if (getExclude()) url += '&exclude=' + encodeURIComponent(getExclude());
-      const res = await fetch(url);
-      if (res.ok) {
-        const songs = await res.json();
-        if (songs && songs.length > 0) {
-          state.songQueue.push(songs[0].id);
-          saveGameState();
-          return songs[0];
-        }
-      }
-    } catch (_) {}
+    const urlBase = '/api/songs?artists=' + encodeURIComponent(playerArtists.join(',')) + '&random=true&limit=1';
+    const song = await fetchSongWithFallback(urlBase);
+    if (song) {
+      state.songQueue.push(song.id);
+      saveGameState();
+      return song;
+    }
   }
 
   // Priority 2: genre match (server-side filtering + random pick)
   if (playerGenres.length > 0) {
-    try {
-      let url = '/api/songs?genres=' + encodeURIComponent(playerGenres.join(',')) + '&random=true&limit=1';
-      if (getExclude()) url += '&exclude=' + encodeURIComponent(getExclude());
-      const res = await fetch(url);
-      if (res.ok) {
-        const songs = await res.json();
-        if (songs && songs.length > 0) {
-          state.songQueue.push(songs[0].id);
-          saveGameState();
-          return songs[0];
-        }
-      }
-    } catch (_) {}
+    const urlBase = '/api/songs?genres=' + encodeURIComponent(playerGenres.join(',')) + '&random=true&limit=1';
+    const song = await fetchSongWithFallback(urlBase);
+    if (song) {
+      state.songQueue.push(song.id);
+      saveGameState();
+      return song;
+    }
   }
 
   // Priority 3: any random song (reset songQueue if exhausted)
   state.songQueue = [];
-  try {
-    const res = await fetch('/api/songs?random=true&limit=1');
-    if (res.ok) {
-      const songs = await res.json();
-      if (songs && songs.length > 0) {
-        state.songQueue.push(songs[0].id);
-        saveGameState();
-        return songs[0];
-      }
-    }
-  } catch (_) {}
+  const urlBase = '/api/songs?random=true&limit=1';
+  const song = await fetchSongWithFallback(urlBase);
+  if (song) {
+    state.songQueue.push(song.id);
+    saveGameState();
+    return song;
+  }
 
   // Priority 4: fallback to local demo catalog (filter by genre if available)
   let fallbackPool = FALLBACK_CATALOG.filter(s => !state.songQueue.includes(s.id));
