@@ -237,7 +237,9 @@ function buildRouletteWheel(playersToDraw) {
   if (n === 0) return;
 
   const cx = 250, cy = 250, r = 228;
-  const SLICE_COLORS = ['#ec4899','#22d3ee','#a855f7','#facc15','#f97316','#22c55e','#3b82f6','#06b6d4'];
+  const SLICE_COLORS = (state.gameMode === 'emo')
+    ? ['#831843','#450a0a','#1e1b4b','#0f172a','#312e81','#000000','#581c87','#7f1d1d']
+    : ['#ec4899','#22d3ee','#a855f7','#facc15','#f97316','#22c55e','#3b82f6','#06b6d4'];
 
   if (n === 1) {
     const p = players[0];

@@ -329,12 +329,24 @@ app.get('/api/artist-map', (req, res) => {
 
   if (!isDbReady()) return res.json({});
 
-  const rows = db.prepare('SELECT DISTINCT genre, artist FROM songs WHERE genre IS NOT NULL ORDER BY genre, artist').all();
+  const mode = req.query.mode ? req.query.mode.trim().toLowerCase() : null;
+  let query = 'SELECT DISTINCT genre, artist FROM songs WHERE genre IS NOT NULL';
+  let params = [];
+
+  if (mode === 'emo') {
+    query += " AND LOWER(mode) = 'emo'";
+  }
+
+  query += ' ORDER BY genre, artist';
+  
+  const rows = db.prepare(query).all(...params);
   const map = {};
   for (const row of rows) {
-    const g = row.genre.toLowerCase();
+    const g = mode === 'emo' ? 'emo' : row.genre.toLowerCase();
     if (!map[g]) map[g] = [];
-    map[g].push(row.artist);
+    if (!map[g].includes(row.artist)) {
+      map[g].push(row.artist);
+    }
   }
   res.json(map);
 });
@@ -363,6 +375,22 @@ app.put('/api/songs/bulk-mode', requireAdmin, (req, res) => {
     console.error('[ADMIN] Error updating bulk modes:', err.message);
     res.status(500).json({ error: 'No se pudo actualizar el modo en la BD.' });
   }
+});
+
+// ── Room Info (for mobile check before joining) ──
+app.get('/api/room/:code', (req, res) => {
+  const origin = req.headers.origin;
+  if (isLocalOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  } else {
+    return res.status(403).json({ error: 'CORS not allowed' });
+  }
+  const code = req.params.code ? req.params.code.toUpperCase() : '';
+  const room = rooms.get(code);
+  if (!room) {
+    return res.status(404).json({ error: 'Room not found' });
+  }
+  res.json({ mode: room.mode || 'clasico' });
 });
 
 // ── Audio files listing (for preloader) ──

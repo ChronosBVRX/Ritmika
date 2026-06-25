@@ -1034,13 +1034,18 @@ const ARTISTS_BY_GENRE = {
 };
 
 // Fetch artist catalog from server (grouped by genre)
-async function fetchAndBuildCatalog() {
+async function fetchAndBuildCatalog(mode = null) {
   try {
-    const res = await fetch('/api/artist-map');
+    const url = mode ? `/api/artist-map?mode=${encodeURIComponent(mode)}` : '/api/artist-map';
+    const res = await fetch(url);
     if (!res.ok) throw new Error('API request failed');
     const map = await res.json();
     if (map && typeof map === 'object') {
       let loadedAny = false;
+      // Also allow dynamic genres from server (like 'emo')
+      for (const gid in map) {
+        if (!ARTISTS_BY_GENRE[gid]) ARTISTS_BY_GENRE[gid] = [];
+      }
       for (const gid in ARTISTS_BY_GENRE) {
         if (map[gid] && Array.isArray(map[gid]) && map[gid].length > 0) {
           ARTISTS_BY_GENRE[gid] = map[gid].sort((a, b) => a.localeCompare(b));
@@ -1048,7 +1053,7 @@ async function fetchAndBuildCatalog() {
         }
       }
       if (loadedAny) {
-        console.log('[Catalog] Loaded artist map from server successfully!');
+        console.log(`[Catalog] Loaded artist map from server successfully! (Mode: ${mode || 'default'})`);
       } else {
         console.warn('[Catalog] Server returned empty artist map, keeping fallback');
       }
@@ -1594,11 +1599,38 @@ function validateJoinForm() {
   document.getElementById('join-error').classList.add('hidden');
 }
 
-document.getElementById('btn-go-to-avatar').addEventListener('click', () => {
+document.getElementById('btn-go-to-avatar').addEventListener('click', async () => {
   UISounds.click();
   const name = document.getElementById('player-name-input').value.trim();
+  const code = getCode();
+  const btn = document.getElementById('btn-go-to-avatar');
+  
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    const res = await fetch(`/api/room/${code}`);
+    if (res.ok) {
+      const data = await res.json();
+      me.gameMode = data.mode || 'clasico';
+      if (typeof applyMobileModeTheme === 'function') applyMobileModeTheme();
+      await fetchAndBuildCatalog(me.gameMode);
+    } else {
+      // Si la sala no existe, dejamos el modo por defecto pero podríamos mostrar error.
+      // Por ahora continuamos para que el servidor maneje el error final en join.
+      me.gameMode = 'clasico';
+      await fetchAndBuildCatalog();
+    }
+  } catch (err) {
+    me.gameMode = 'clasico';
+    await fetchAndBuildCatalog();
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Siguiente: Mi Alter Ego 😈';
+
   me.name = name;
-  me.roomCode = getCode();
+  me.roomCode = code;
   document.getElementById('name-preview-text').textContent = name;
   buildAvatarGrid();
   goToScreen('screen-avatar');
@@ -1671,8 +1703,14 @@ function selectAvatar(id) {
 document.getElementById('back-to-join').addEventListener('click', () => goToScreen('screen-join'));
 
 document.getElementById('btn-go-to-genres').addEventListener('click', () => {
-  buildGenreGrid();
-  goToScreen('screen-genres');
+  if (me.gameMode === 'emo') {
+    me.genres = ['emo'];
+    buildArtistGrid();
+    goToScreen('screen-artists');
+  } else {
+    buildGenreGrid();
+    goToScreen('screen-genres');
+  }
 });
 
 // ── SCREEN 3: GÉNEROS ─────────────────────────────────────

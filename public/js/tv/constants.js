@@ -928,25 +928,37 @@ const EMO_MODE_PHRASES = {
     { text: 'No es una fase, es una competencia con trauma musical. 🖤🎤', file: 'emo_intro_2.mp3' },
     { text: 'Ronda uno: Tu Diario de Depresión. Escojan la canción que más les duela.', file: 'emo/emo_round_1_intro.mp3' },
     { text: 'Ronda dos: Trauma Compartido. Asigna una canción a alguien más. Destruyan su dignidad.', file: 'emo/emo_round_2_intro.mp3' },
-    { text: 'Ronda tres: Apagón Emocional. Canten desde la memoria, a oscuras.', file: 'emo/emo_round_3_intro.mp3' }
+    { text: 'Ronda tres: Apagón Emocional. Canten desde la memoria, a oscuras.', file: 'emo/emo_round_3_intro.mp3' },
+    { text: '¡Oh vaya, otra fiesta Emo! Prepárense para llorar por sus ex y desafinar con orgullo. 🖤', file: 'emo/emo_intro_3.mp3' },
+    { text: 'Si no traes delineador negro, puedes salir de la sala. Esto es Rítmika Emo. 💔', file: 'emo/emo_intro_4.mp3' },
+    { text: 'Hoy no venimos a ganar, venimos a desahogarnos. Bienvenidos al club de los corazones rotos.', file: 'emo/emo_intro_5.mp3' }
   ],
   roulette: [
     { text: 'La ruleta va a elegir quién abre su diario frente a todos. 📓🖤', file: 'emo_roulette_0.mp3' },
     { text: 'Gira la rueda del dolor adolescente. A ver quién llora primero. 💔', file: 'emo_roulette_1.mp3' },
-    { text: 'La ruleta del sufrimiento está girando. A ver a quién le toca exponer su corazón.', file: 'emo/emo_roulette_spin.mp3' }
+    { text: 'La ruleta del sufrimiento está girando. A ver a quién le toca exponer su corazón.', file: 'emo/emo_roulette_spin.mp3' },
+    { text: 'La ruleta gira, al igual que nuestra espiral de tristeza. ¿A quién le toca sufrir?', file: 'emo/emo_roulette_2.mp3' },
+    { text: 'Es hora de que la rueda decida quién va a pasar el ridículo más triste de la noche.', file: 'emo/emo_roulette_3.mp3' }
   ],
   selected: [
     { text: 'Te tocó. Sube al escenario y decepciona a tu ex con estilo. 🖤', file: 'emo_selected_0.mp3' },
     { text: 'El destino eligió tu sufrimiento. Canta como si fuera 2008. 💀', file: 'emo_selected_1.mp3' },
     { text: 'Qué tragedia. Te toca cantar.', file: 'emo/emo_roulette_result_0.mp3' },
-    { text: 'Destino cruel. El escenario es tuyo.', file: 'emo/emo_roulette_result_1.mp3' }
+    { text: 'Destino cruel. El escenario es tuyo.', file: 'emo/emo_roulette_result_1.mp3' },
+    { text: 'Te tocó a ti. Saca ese dolor atorado en la garganta y dale con todo.', file: 'emo/emo_selected_2.mp3' },
+    { text: 'No te escondas, el destino ya te eligió. Vamos, sube a decepcionarnos.', file: 'emo/emo_selected_3.mp3' }
   ],
   vote: [
     { text: 'Hora de votar. ¿Fue arte, drama o puro berrinche afinado? 🗳️', file: 'emo_vote_0.mp3' },
     { text: 'Wow. Me hiciste llorar, y eso que soy un ajolote digital.', file: 'emo/emo_vote_good_0.mp3' },
     { text: 'Tanta oscuridad en esa interpretación. Fue... poético.', file: 'emo/emo_vote_good_1.mp3' },
+    { text: '¡Qué intensidad! Si sigo escuchándote, me voy a pintar las uñas de negro.', file: 'emo/emo_vote_good_2.mp3' },
+    { text: 'Mis respetos. Cantaste con tanto dolor que me dieron ganas de mandarle un mensaje a mi ex.', file: 'emo/emo_vote_good_3.mp3' },
     { text: 'Eso no dolió por el sentimiento, dolió por la desafinación.', file: 'emo/emo_vote_bad_0.mp3' },
-    { text: 'Mis oídos lloran sangre. Y no de manera artística.', file: 'emo/emo_vote_bad_1.mp3' }
+    { text: 'Mis oídos lloran sangre. Y no de manera artística.', file: 'emo/emo_vote_bad_1.mp3' },
+    { text: 'Eso dolió más que cuando se separó My Chemical Romance.', file: 'emo/emo_vote_bad_2.mp3' },
+    { text: 'Qué desastre. Cantas peor que mis decisiones amorosas en el 2009.', file: 'emo/emo_vote_bad_3.mp3' },
+    { text: 'Creí que venías a cantar Emo, no a hacer berrinche desafinado.', file: 'emo/emo_vote_bad_4.mp3' }
   ],
   blackout: [
     { text: 'Se fue la letra, como se fue esa persona. Sigue cantando. 🌑', file: 'emo_blackout_0.mp3' },

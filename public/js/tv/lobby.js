@@ -562,9 +562,24 @@ function _playAxoloAudio(texto, audioFileOrMood) {
   }, { once: true });
 
   currentAxoloAudio.play().catch(e => {
-    console.warn('[Voice] Autoplay blocked:', e);
+    console.warn('[Voice] Autoplay blocked or audio load failed:', e);
     window.welcomePlaying = false;
     currentAxoloAudio = null;
+    
+    // Fallback: hide the cutin after a few seconds if audio failed
+    setTimeout(() => {
+      hideTioAxolCutin();
+      unduckSfx();
+      if (axoloQueue.length > 0) {
+        const next = axoloQueue.shift();
+        _queueDrainTimeout = setTimeout(() => { _queueDrainTimeout = null; _playAxoloAudio(next.text, next.audioFile); }, 400);
+      }
+      if (_axoloAudioDoneResolve) {
+        const cb = _axoloAudioDoneResolve;
+        _axoloAudioDoneResolve = null;
+        cb();
+      }
+    }, 3000);
   });
 }
 
@@ -575,6 +590,7 @@ function _stopCurrentAxolo() {
     currentAxoloAudio.pause();
     currentAxoloAudio = null;
   }
+  hideTioAxolCutin();
   unduckSfx();
   axoloQueue = [];
   if (_axoloAudioDoneResolve) {
