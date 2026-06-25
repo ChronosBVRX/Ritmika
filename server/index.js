@@ -333,8 +333,9 @@ app.get('/api/artist-map', (req, res) => {
   let query = 'SELECT DISTINCT genre, artist FROM songs WHERE genre IS NOT NULL';
   let params = [];
 
-  if (mode === 'emo') {
-    query += " AND LOWER(mode) = 'emo'";
+  if (mode && mode !== 'clasico') {
+    query += " AND LOWER(mode) = ?";
+    params.push(mode);
   }
 
   query += ' ORDER BY genre, artist';
@@ -342,7 +343,7 @@ app.get('/api/artist-map', (req, res) => {
   const rows = db.prepare(query).all(...params);
   const map = {};
   for (const row of rows) {
-    const g = mode === 'emo' ? 'emo' : row.genre.toLowerCase();
+    const g = (mode && mode !== 'clasico') ? mode : row.genre.toLowerCase();
     if (!map[g]) map[g] = [];
     if (!map[g].includes(row.artist)) {
       map[g].push(row.artist);
@@ -541,7 +542,7 @@ io.on('connection', (socket) => {
     let code;
     do { code = generateRoomCode(); } while (rooms.has(code));
 
-    const validModes = new Set(['clasico', 'emo']);
+    const validModes = new Set(['clasico', 'emo', 'ranchera', 'nostalgia', 'anime']);
     const cleanMode = validModes.has(payload.mode) ? payload.mode : 'clasico';
 
     rooms.set(code, {
