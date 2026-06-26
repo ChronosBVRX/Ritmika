@@ -640,57 +640,84 @@ async function startKaraoke(player, song) {
     timerInterval = null;
   }
 
-  // YIELD to event loop so Chromium can attach the DOM element to the hardware compositor
-  // Without this double requestAnimationFrame, the second video will play audio only (black screen)
-  requestAnimationFrame(() => {
+  const proceedWithKaraoke = () => {
+    // YIELD to event loop so Chromium can attach the DOM element to the hardware compositor
+    // Without this double requestAnimationFrame, the second video will play audio only (black screen)
     requestAnimationFrame(() => {
-      if (myGeneration !== karaokeGeneration) return;
+      requestAnimationFrame(() => {
+        if (myGeneration !== karaokeGeneration) return;
 
-      video.onplaying = () => {
-        if (myGeneration !== karaokeGeneration) return;
-        const errBanner = document.getElementById('video-error-banner');
-        if (errBanner) errBanner.classList.remove('visible');
-        if (!timerInterval) startKaraokeTimer(video, song);
-        if (video.videoWidth === 0 || video.videoHeight === 0) {
-          setTimeout(() => {
-            if (video.videoWidth === 0 || video.videoHeight === 0) {
-              showAudioOnlyPlaceholder(song);
-            }
-          }, 500);
-        }
-      };
-      
-      video.onerror = () => {
-        if (myGeneration !== karaokeGeneration) return;
-        console.error("Video load error, starting timer manually.");
-        const errBanner = document.getElementById('video-error-banner');
-        if (errBanner) errBanner.classList.add('visible');
-        if (!timerInterval) startKaraokeTimer(null, song || { duration: 120 });
-      };
-      
-      video.onended = () => {
-        if (myGeneration !== karaokeGeneration) return;
-        startVotePhase(player, song);
-      };
-
-      if (videoUrl) {
-        video.play().then(() => {
+        video.onplaying = () => {
           if (myGeneration !== karaokeGeneration) return;
-          const unmuteWhenReady = setInterval(() => {
-            if (myGeneration !== karaokeGeneration || !currentAxoloAudio) {
-              clearInterval(unmuteWhenReady);
-              video.muted = false;
-            }
-          }, 200);
-        }).catch(e => {
-          console.warn("Autoplay block or explicit play failed:", e);
-          if (!timerInterval) startKaraokeTimer(null, song);
-        });
-      } else {
-        startKaraokeTimer(null, song || { duration: 120 });
-      }
+          const errBanner = document.getElementById('video-error-banner');
+          if (errBanner) errBanner.classList.remove('visible');
+          if (!timerInterval) startKaraokeTimer(video, song);
+          if (video.videoWidth === 0 || video.videoHeight === 0) {
+            setTimeout(() => {
+              if (video.videoWidth === 0 || video.videoHeight === 0) {
+                showAudioOnlyPlaceholder(song);
+              }
+            }, 500);
+          }
+        };
+        
+        video.onerror = () => {
+          if (myGeneration !== karaokeGeneration) return;
+          console.error("Video load error, starting timer manually.");
+          const errBanner = document.getElementById('video-error-banner');
+          if (errBanner) errBanner.classList.add('visible');
+          if (!timerInterval) startKaraokeTimer(null, song || { duration: 120 });
+        };
+        
+        video.onended = () => {
+          if (myGeneration !== karaokeGeneration) return;
+          startVotePhase(player, song);
+        };
+
+        if (videoUrl) {
+          video.play().then(() => {
+            if (myGeneration !== karaokeGeneration) return;
+            const unmuteWhenReady = setInterval(() => {
+              if (myGeneration !== karaokeGeneration || !currentAxoloAudio) {
+                clearInterval(unmuteWhenReady);
+                video.muted = false;
+              }
+            }, 200);
+          }).catch(e => {
+            console.warn("Autoplay block or explicit play failed:", e);
+            if (!timerInterval) startKaraokeTimer(null, song);
+          });
+        } else {
+          startKaraokeTimer(null, song || { duration: 120 });
+        }
+      });
     });
-  });
+  };
+
+  // EMO MODE: Diario Secreto (Round 1) y Dedicatoria (Round 2)
+  if (state.gameMode === 'emo') {
+    if (state.round === 1) {
+      const diaryText = EMO_DIARY_LINES[Math.floor(Math.random() * EMO_DIARY_LINES.length)];
+      document.getElementById('emo-diary-text').textContent = `"${diaryText}"`;
+      document.getElementById('emo-diary-overlay').style.display = 'flex';
+      setTimeout(() => {
+        document.getElementById('emo-diary-overlay').style.display = 'none';
+        proceedWithKaraoke();
+      }, 5000);
+    } else if (state.round === 2) {
+      const dedicationText = EMO_DEDICATIONS[Math.floor(Math.random() * EMO_DEDICATIONS.length)];
+      document.getElementById('emo-dedication-text').textContent = `"${dedicationText}"`;
+      document.getElementById('emo-dedication-overlay').style.display = 'flex';
+      setTimeout(() => {
+        document.getElementById('emo-dedication-overlay').style.display = 'none';
+        proceedWithKaraoke();
+      }, 5000);
+    } else {
+      proceedWithKaraoke();
+    }
+  } else {
+    proceedWithKaraoke();
+  }
 }
 
 function startVotePhase(player, song) {
@@ -777,7 +804,11 @@ function startKaraokeTimer(video, song) {
     // Ronda 3: blackout at random point between 40-60%
     if (state.round === 3 && !blackoutFired && elapsed >= duration * 0.4) {
       blackoutFired = true;
-      fireBlackout();
+      if (state.gameMode === 'emo') {
+        fireEmoRain();
+      } else {
+        fireBlackout();
+      }
     }
 
     if (remaining <= 0) {
@@ -808,6 +839,41 @@ function fireChallenge() {
   setTimeout(() => {
     anime({ targets: banner, opacity: [1, 0], translateY: [0, 60], duration: 400, easing: 'easeInCubic' });
   }, 8000);
+}
+
+function fireEmoRain() {
+  const reto = EMO_DRAMA_CHALLENGES[Math.floor(Math.random() * EMO_DRAMA_CHALLENGES.length)];
+  document.getElementById('emo-rain-challenge').textContent = `"${reto}"`;
+  const banner = document.getElementById('emo-rain-overlay');
+  banner.style.display = 'flex';
+  
+  anime({
+    targets: banner,
+    opacity: [0, 1],
+    duration: 1000,
+    easing: 'easeOutQuad',
+  });
+  
+  const video = document.getElementById('karaoke-video');
+  const originalFilter = video.style.filter;
+  video.style.filter = 'grayscale(80%) contrast(1.2) brightness(0.6)';
+
+  if (typeof axoloSay === 'function') {
+    const p = EMO_MODE_PHRASES.blackout ? EMO_MODE_PHRASES.blackout[Math.floor(Math.random() * EMO_MODE_PHRASES.blackout.length)] : { text: "Lluvia dramática. Sufre." };
+    axoloSay(p.text, p.file);
+  }
+
+  // Auto-hide after 12s
+  setTimeout(() => {
+    anime({ 
+      targets: banner, 
+      opacity: [1, 0], 
+      duration: 1000, 
+      easing: 'easeInCubic',
+      complete: () => { banner.style.display = 'none'; }
+    });
+    video.style.filter = originalFilter;
+  }, 12000);
 }
 
 function fireBlackout() {
@@ -891,9 +957,16 @@ function endSong(player) {
       const row = document.createElement('div');
       row.className = 'score-row';
       row.style.cssText = `background:${v.score >= 80 ? '#facc1522' : v.score >= 50 ? '#22d3ee22' : '#6b728022'}; border:1px solid ${v.score >= 80 ? '#facc1544' : '#33415544'}; opacity:0; transform:translateX(-30px);`;
+      let badge = v.score >= 80 ? '&#127942;' : v.score >= 50 ? '&#128077;' : '&#128128;';
+      if (state.gameMode === 'emo') {
+        badge = v.score >= 80 ? '🖤' : v.score >= 50 ? '💔' : '😭';
+        if (v.score === 10) badge = '🥱'; // No dolió
+      }
+      let voteLabel = EMO_VOTE_LABELS[v.score] || `${v.score} pts`;
       row.innerHTML = `
-        <span class="text-2xl">${v.score >= 80 ? '&#127942;' : v.score >= 50 ? '&#128077;' : '&#128128;'}</span>
+        <span class="text-2xl">${badge}</span>
         <span class="font-bold text-sm flex-1" style="color:#f1f5f9;">${escapeHtml(v.voterName)}</span>
+        <span class="text-xs font-bold" style="color:#94a3b8; margin-right:8px;">${state.gameMode === 'emo' ? voteLabel : ''}</span>
         <span class="text-xl font-black vote-score" style="color:${v.score >= 80 ? '#facc15' : '#94a3b8'};">0 pts</span>
       `;
       list.appendChild(row);
@@ -1046,9 +1119,9 @@ function showPodium() {
   let awardsData = [];
   if (state.gameMode === 'emo') {
     awardsData = [
-      { icon:'💔', img: './assets/modes/emo/award_broken_heart.webp', title:'Corazón Más Roto', subtitle:'Mayor Sufrimiento', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: {text:'Ni tu ex te dejó tan mal como esta puntuación.', file: 'emo_award_0.mp3'} },
-      { icon:'📱', img: './assets/modes/emo/award_indirecta.webp', title:'Mejor Indirecta', subtitle:'Fuego Cruzado Emo', player: vengador, color:'#a855f7', border:'#9333ea', obj: {text:'Esa indirecta dolió hasta en la otra cuadra.', file: 'emo_award_1.mp3'} },
-      { icon:'🌑', img: './assets/modes/emo/award_blackout.webp', title:'Sobreviviente', subtitle:'Superó el Apagón', player: sorted[0], color:'#facc15', border:'#eab308', obj: {text:'Cantaste en la oscuridad mejor que en la luz.', file: 'emo_award_2.mp3'} },
+      { icon:'💔', img: './assets/award_broken_heart.webp', title:'Corazón Más Roto', subtitle:'Mayor Sufrimiento', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: {text:'Ni tu ex te dejó tan mal como esta puntuación.', file: 'emo/emo_award_0.mp3'} },
+      { icon:'📱', img: './assets/award_indirecta.webp', title:'Mejor Indirecta', subtitle:'Fuego Cruzado Emo', player: vengador, color:'#a855f7', border:'#9333ea', obj: {text:'Esa indirecta dolió hasta en la otra cuadra.', file: 'emo/emo_award_1.mp3'} },
+      { icon:'🌑', img: './assets/award_blackout.webp', title:'Sobreviviente', subtitle:'Superó el Apagón', player: sorted[0], color:'#facc15', border:'#eab308', obj: {text:'Cantaste en la oscuridad mejor que en la luz.', file: 'emo/emo_award_2.mp3'} },
     ];
   } else {
     awardsData = [
@@ -1225,8 +1298,21 @@ function showPodium() {
       if(axoloOverlay) axoloOverlay.style.zIndex='10002';
       if(award.icon==='&#128019;' || award.icon==='&#127813;'){ playSfx('./assets/audio/sfx_comedy_fail.mp3'); } else { playSfx('./assets/audio/sfx_magic_reveal.mp3'); }
       _stopCurrentAxolo();
-      const awardCeremonyFile = award.icon==='&#128019;' ? 'podium_award_gallo.mp3' : (award.icon==='&#127813;' ? 'podium_award_tomate.mp3' : 'podium_award_vengador.mp3');
-      const awardCeremonyText = award.icon==='&#128019;' ? '&#161;El primero de los premios especiales... Gallo Supremo! Para el m&#225;s valiente, el que se atrevi&#243; a cantar pareciendo gato en licuadora. Banda, el Gallo Supremo de la noche es...' : (award.icon==='&#127813;' ? '&#161;Y ahora el premio Salsa de Tomate! Para el que recibi&#243; m&#225;s tomatazos que la selecci&#243;n en el Azteca. El rey de los tomatazos de la noche es...' : '&#161;El premio al Vengador An&#243;nimo! Saboteador profesional con cara de inocente. Rob&#243; m&#225;s puntos que el SAT. El Vengador An&#243;nimo es...');
+      let awardCeremonyFile = award.icon==='&#128019;' ? 'podium_award_gallo.mp3' : (award.icon==='&#127813;' ? 'podium_award_tomate.mp3' : 'podium_award_vengador.mp3');
+      let awardCeremonyText = award.icon==='&#128019;' ? '&#161;El primero de los premios especiales... Gallo Supremo! Para el m&#225;s valiente, el que se atrevi&#243; a cantar pareciendo gato en licuadora. Banda, el Gallo Supremo de la noche es...' : (award.icon==='&#127813;' ? '&#161;Y ahora el premio Salsa de Tomate! Para el que recibi&#243; m&#225;s tomatazos que la selecci&#243;n en el Azteca. El rey de los tomatazos de la noche es...' : '&#161;El premio al Vengador An&#243;nimo! Saboteador profesional con cara de inocente. Rob&#243; m&#225;s puntos que el SAT. El Vengador An&#243;nimo es...');
+
+      if (state.gameMode === 'emo') {
+        if (award.icon === '💔') {
+          awardCeremonyFile = 'emo/emo_podium_award_0.mp3';
+          awardCeremonyText = 'Primer premio: Corazón Más Roto. Para quien nos hizo sufrir más que su ex. Y el ganador es...';
+        } else if (award.icon === '📱') {
+          awardCeremonyFile = 'emo/emo_podium_award_1.mp3';
+          awardCeremonyText = 'Siguiente premio: Mejor Indirecta. Para esa persona que lanza dagas como si publicara estados de Messenger...';
+        } else if (award.icon === '🌑') {
+          awardCeremonyFile = 'emo/emo_podium_award_2.mp3';
+          awardCeremonyText = 'Último premio: Sobreviviente del Apagón. Brillaste más en la oscuridad. El premio es para...';
+        }
+      }
       axoloSay(awardCeremonyText, awardCeremonyFile);
       await waitForAxoloAudio(1500);
       anime({targets:[aLabel,aCard],opacity:[1,0],translateY:[0,-40],duration:400,easing:'easeInCubic'});

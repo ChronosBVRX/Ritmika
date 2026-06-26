@@ -986,3 +986,58 @@ const EMO_MODE_PHRASES = {
   ]
 };
 
+// ════════════════════════════════════════════
+// NUEVAS CONSTANTES: MODO EMO
+// ════════════════════════════════════════════
+const EMO_DIARY_LINES = [
+  "Nadie entiende mi playlist.",
+  "No estoy triste, estoy en acústico.",
+  "Mi corazón tiene WiFi, pero nadie se conecta.",
+  "Esta canción me cambió en secundaria.",
+  "Mi fleco sabe cosas que yo no.",
+  "No era una etapa, era mi soundtrack.",
+  "Hoy no lloré, solo afiné por dentro.",
+  "Mi alma está en modo avión.",
+  "Canto porque publicar indirectas ya no basta.",
+  "El delineador se corre, pero el drama permanece."
+];
+
+const EMO_DEDICATIONS = [
+  "Para tu yo de secundaria.",
+  "Para quien te dejó en visto.",
+  "Para tu etapa intensa.",
+  "Para tu foto de perfil en blanco y negro.",
+  "Para cuando publicabas indirectas.",
+  "Para tu antiguo estado de Messenger.",
+  "Para esa persona que nunca entendió tu playlist.",
+  "Para cuando decías que estabas bien, pero ponías esta canción.",
+  "Para quien te cambió por alguien con mejor fleco.",
+  "Para tu corazón con contraseña olvidada."
+];
+
+const EMO_DRAMA_CHALLENGES = [
+  "Canta mirando al piso.",
+  "Canta con la mano en el corazón.",
+  "Canta como si estuvieras en un videoclip bajo la lluvia.",
+  "Grita el coro como si doliera.",
+  "Haz cara de traición.",
+  "Canta como si nadie te entendiera.",
+  "Dedica esta parte a tu yo de secundaria.",
+  "Canta sin sonreír.",
+  "Haz una pausa dramática antes del coro.",
+  "Canta como si acabaras de cerrar Messenger."
+];
+
+const EMO_VOTE_LABELS = {
+  10: "No dolió",
+  30: "Medio intenso",
+  60: "Sí lo sintió",
+  100: "Cringe legendario"
+};
+
+const EMO_AWARD_CONFIG = [
+  { id: 'award_emo_cringe', title: 'Cringe Legendario', desc: 'Tuvo la mayor cantidad de votos máximos en la partida.', img: './assets/award_star_sunglasses.webp' }, // Usar assets fallback o los mismos pero con nombres de emo
+  { id: 'award_emo_lagrima', title: 'Lágrima Negra', desc: 'Recibió más sabotajes y tomates. Todos te odiaron.', img: './assets/award_tomato_king.webp' },
+  { id: 'award_emo_drama', title: 'Más Drama que Afinación', desc: 'La actitud superó por mucho al talento musical.', img: './assets/award_broken_heart.webp' },
+  { id: 'award_emo_incomprendido', title: 'El Incomprendido', desc: 'El puntaje más bajo. Nadie entendió tu visión artística.', img: './assets/award_blackout.webp' }
+];

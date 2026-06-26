@@ -95,3 +95,26 @@ body[data-mode="emo"] .text-jb-cyan {
 body[data-mode="emo"] .text-jb-magenta {
   color: #7f1d1d !important; /* Dark red */
 }
+/* Rain effect for Lluvia Dramática */
+body[data-mode="emo"] #emo-rain-overlay::before {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 200%;
+  background: transparent;
+  background-image: 
+    linear-gradient(transparent, rgba(255,255,255,0.2) 2px, transparent 3px),
+    linear-gradient(90deg, transparent, rgba(255,255,255,0.2) 1px, transparent 2px);
+  background-size: 20px 100px, 100% 100%;
+  animation: rainAnim 0.5s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+@keyframes rainAnim {
+  0% { background-position: 0 0; }
+  100% { background-position: 15px 100vh; }
+}

@@ -2367,62 +2367,10 @@ function applyMobileModeTheme() {
 function applyMobileModeTheme() {
   document.body.dataset.mode = me.gameMode || 'clasico';
 
-  if (me.gameMode === 'emo') {
-    // Votación
-    const voteLabels = document.querySelectorAll('#screen-vote .opacity-70');
-    if (voteLabels.length >= 4) {
-      voteLabels[0].textContent = 'Me rompió el corazón · 100 pts';
-      voteLabels[1].textContent = 'Dolió bonito · 60 pts';
-      voteLabels[2].textContent = 'Fue dramático · 30 pts';
-      voteLabels[3].textContent = 'Ni mi ex me lastimó tanto · 10 pts';
-    }
-    // Asignación (Ronda 2)
-    const assignTitle = document.querySelector('#screen-assign h2');
-    if (assignTitle) assignTitle.textContent = 'Dedicada al Ex';
-    const assignDesc = document.querySelector('#screen-assign p.text-sm');
-    if (assignDesc) assignDesc.textContent = 'Elige a quién se la dedicas y con qué indirecta';
-    
-    const victimLabel = document.querySelector('#screen-assign .mb-4:nth-of-type(1) p');
-    if (victimLabel) victimLabel.textContent = '¿A QUIÉN SE LA DEDICAS?';
-    const songLabel = document.querySelector('#screen-assign .mb-4:nth-of-type(2) p');
-    if (songLabel) songLabel.textContent = 'INDIRECTA MUSICAL';
-    const sendBtn = document.getElementById('btn-send-assignment');
-    if (sendBtn) sendBtn.innerHTML = '💔 Dedicar con dolor';
-  } else {
-    // Restaurar a Clásico
-    const voteLabels = document.querySelectorAll('#screen-vote .opacity-70');
-    if (voteLabels.length >= 4) {
-      voteLabels[0].textContent = 'Dale un Grammy · 100 pts';
-      voteLabels[1].textContent = 'Ni fu ni fa · 60 pts';
-      voteLabels[2].textContent = 'Casi, casi · 30 pts';
-      voteLabels[3].textContent = 'Desafinado total · 10 pts';
-    }
-    const assignTitle = document.querySelector('#screen-assign h2');
-    if (assignTitle) assignTitle.textContent = 'Fuego Cruzado';
-    const assignDesc = document.querySelector('#screen-assign p.text-sm');
-    if (assignDesc) assignDesc.textContent = 'Elige a quién atacar y con qué canción';
-    
-    const victimLabel = document.querySelector('#screen-assign .mb-4:nth-of-type(1) p');
-    if (victimLabel) victimLabel.textContent = 'VÍCTIMA';
-    const songLabel = document.querySelector('#screen-assign .mb-4:nth-of-type(2) p');
-    if (songLabel) songLabel.textContent = 'CANCIÓN ASESINA';
-    const sendBtn = document.getElementById('btn-send-assignment');
-    if (sendBtn) sendBtn.innerHTML = '🎯 ¡Lanzar el ataque!';
-  }
-}
-
-</script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
-        .catch(err => console.error('Error al registrar Service Worker:', err));
-    });
-  }
-
-function applyMobileModeTheme() {
-  document.body.dataset.mode = me.gameMode || 'clasico';
+  // Action buttons
+  const sabotageBtn = document.getElementById('sabotage-btn');
+  const tomatazoBtn = document.getElementById('tomatazo-btn');
+  const sabotageConfirmTitle = document.querySelector('#confirm-sabotage-overlay .font-black');
 
   if (me.gameMode === 'emo') {
     // Votación
@@ -2445,6 +2393,11 @@ function applyMobileModeTheme() {
     if (songLabel) songLabel.textContent = 'INDIRECTA MUSICAL';
     const sendBtn = document.getElementById('btn-send-assignment');
     if (sendBtn) sendBtn.innerHTML = '💔 Dedicar con dolor';
+
+    // Powers
+    if (sabotageBtn) sabotageBtn.innerHTML = '<div class="w-10 h-10 rounded-full flex items-center justify-center text-xl bg-slate-900 border border-slate-700">🖤</div><div class="flex-1"><p class="font-bold text-slate-100">No me hablen</p><p class="text-xs text-slate-400">Saboteo de audio (3s)</p></div>';
+    if (tomatazoBtn) tomatazoBtn.innerHTML = '<div class="w-10 h-10 rounded-full flex items-center justify-center text-xl bg-slate-900 border border-slate-700">😭</div><div class="flex-1"><p class="font-bold text-slate-100">Lágrima Negra</p><p class="text-xs text-slate-400">Tomatazo emocional</p></div><div id="tomatazo-badge" class="badge-count hidden">3</div>';
+    if (sabotageConfirmTitle) sabotageConfirmTitle.textContent = '¿No me hablen?';
   } else {
     // Restaurar a Clásico
     const voteLabels = document.querySelectorAll('#screen-vote .opacity-70');
@@ -2465,6 +2418,11 @@ function applyMobileModeTheme() {
     if (songLabel) songLabel.textContent = 'CANCIÓN ASESINA';
     const sendBtn = document.getElementById('btn-send-assignment');
     if (sendBtn) sendBtn.innerHTML = '🎯 ¡Lanzar el ataque!';
+
+    // Powers
+    if (sabotageBtn) sabotageBtn.innerHTML = '<div class="w-10 h-10 rounded-full flex items-center justify-center text-xl bg-slate-900 border border-slate-700">🎙️</div><div class="flex-1"><p class="font-bold text-slate-100">Sabotear</p><p class="text-xs text-slate-400">Interrumpe el audio (3s)</p></div>';
+    if (tomatazoBtn) tomatazoBtn.innerHTML = '<div class="w-10 h-10 rounded-full flex items-center justify-center text-xl bg-slate-900 border border-slate-700">🍅</div><div class="flex-1"><p class="font-bold text-slate-100">Tomatazo</p><p class="text-xs text-slate-400">Mancha su pantalla</p></div><div id="tomatazo-badge" class="badge-count hidden">3</div>';
+    if (sabotageConfirmTitle) sabotageConfirmTitle.textContent = '¿Sabotear audio?';
   }
 }
 
