@@ -33,11 +33,29 @@ body[data-mode="emo"] #lobby-screen .video-bg {
 }
 
 /* Lobby UI Emo Override */
-body[data-mode="emo"] #join-qr-container,
-body[data-mode="emo"] #lobby-screen > div[style*="border"] {
+body[data-mode="emo"] .lobby-qr-frame {
   background-color: #111827 !important;
   border-color: #7f1d1d !important;
-  box-shadow: 10px 10px 0px #450a0a !important;
+  box-shadow: 0 0 40px rgba(127,29,29,0.5), inset 0 0 30px rgba(0,0,0,0.8) !important;
+}
+
+body[data-mode="emo"] .lobby-qr-glow {
+  border-color: #450a0a !important;
+  box-shadow: none !important;
+}
+
+body[data-mode="emo"] .lobby-badge {
+  background: linear-gradient(135deg, #7f1d1d, #450a0a) !important;
+  border-color: #991b1b !important;
+  box-shadow: 0 0 20px rgba(127,29,29,0.5) !important;
+}
+
+body[data-mode="emo"] .code-letter {
+  background: rgba(15,23,42,0.9) !important;
+  color: #f87171 !important;
+  border-color: #7f1d1d !important;
+  box-shadow: 0 0 15px rgba(127,29,29,0.5), inset 0 0 10px rgba(0,0,0,0.5) !important;
+  text-shadow: 0 0 10px #f87171 !important;
 }
 
 body[data-mode="emo"] .player-card {
