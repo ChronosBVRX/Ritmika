@@ -28,14 +28,9 @@ body[data-mode="emo"] #lobby-screen {
   background: none;
 }
 
-body[data-mode="emo"] #lobby-screen::before {
-  content: "";
-  position: absolute; inset: 0;
-  background-image: url('../assets/lobby_bg_emo.webp');
-  background-size: cover;
-  background-position: center;
-  z-index: 0;
-  opacity: 0.9;
+body[data-mode="emo"] .lobby-bg-img {
+  background: url('../assets/lobby_bg_emo.webp') center/cover no-repeat !important;
+  opacity: 0.9 !important;
 }
 
 body[data-mode="emo"] #lobby-screen .video-bg {
