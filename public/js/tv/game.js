@@ -697,21 +697,35 @@ async function startKaraoke(player, song) {
   // EMO MODE: Diario Secreto (Round 1) y Dedicatoria (Round 2)
   if (state.gameMode === 'emo') {
     if (state.round === 1) {
-      const diaryText = EMO_DIARY_LINES[Math.floor(Math.random() * EMO_DIARY_LINES.length)];
-      document.getElementById('emo-diary-text').textContent = `"${diaryText}"`;
-      document.getElementById('emo-diary-overlay').style.display = 'flex';
-      setTimeout(() => {
-        document.getElementById('emo-diary-overlay').style.display = 'none';
+      const overlay = document.getElementById('emo-diary-overlay');
+      const textEl = document.getElementById('emo-diary-text');
+      if (overlay && textEl) {
+        const diaryText = EMO_DIARY_LINES[Math.floor(Math.random() * EMO_DIARY_LINES.length)];
+        textEl.textContent = `"${diaryText}"`;
+        overlay.style.display = 'flex';
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          proceedWithKaraoke();
+        }, 5000);
+      } else {
+        console.warn('[EMO] Diary overlay missing, continuing karaoke');
         proceedWithKaraoke();
-      }, 5000);
+      }
     } else if (state.round === 2) {
-      const dedicationText = EMO_DEDICATIONS[Math.floor(Math.random() * EMO_DEDICATIONS.length)];
-      document.getElementById('emo-dedication-text').textContent = `"${dedicationText}"`;
-      document.getElementById('emo-dedication-overlay').style.display = 'flex';
-      setTimeout(() => {
-        document.getElementById('emo-dedication-overlay').style.display = 'none';
+      const overlay = document.getElementById('emo-dedication-overlay');
+      const textEl = document.getElementById('emo-dedication-text');
+      if (overlay && textEl) {
+        const dedicationText = EMO_DEDICATIONS[Math.floor(Math.random() * EMO_DEDICATIONS.length)];
+        textEl.textContent = `"${dedicationText}"`;
+        overlay.style.display = 'flex';
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          proceedWithKaraoke();
+        }, 5000);
+      } else {
+        console.warn('[EMO] Dedication overlay missing, continuing karaoke');
         proceedWithKaraoke();
-      }, 5000);
+      }
     } else {
       proceedWithKaraoke();
     }
@@ -843,8 +857,15 @@ function fireChallenge() {
 
 function fireEmoRain() {
   const reto = EMO_DRAMA_CHALLENGES[Math.floor(Math.random() * EMO_DRAMA_CHALLENGES.length)];
-  document.getElementById('emo-rain-challenge').textContent = `"${reto}"`;
   const banner = document.getElementById('emo-rain-overlay');
+  const challengeText = document.getElementById('emo-rain-challenge');
+  
+  if (!banner || !challengeText) {
+    console.warn('[EMO] Rain overlay missing, continuing karaoke');
+    return;
+  }
+  
+  challengeText.textContent = `"${reto}"`;
   banner.style.display = 'flex';
   
   anime({

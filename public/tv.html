@@ -2466,7 +2466,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnCrearSalaModo) {
     btnCrearSalaModo.addEventListener('click', () => {
-      if (selectedMode === 'anime') {
+      if (selectedMode !== 'clasico' && selectedMode !== 'emo') {
         try { if(window.UISounds) UISounds.playTone(150, 0.3, 'sawtooth'); } catch(e){}
         if (typeof axoloSay === 'function') {
           axoloSay("¡Aguanta compa! Los changos del código siguen armando este modo.", "sad", 4000, true);

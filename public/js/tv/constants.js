@@ -923,9 +923,9 @@ const SAVE_TTL = 4 * 60 * 60 * 1000; // 4 horas
 
 const EMO_MODE_PHRASES = {
   intro: [
-    { text: '¡Bienvenidos a Fiesta Emo! Hoy no se canta, se sangra emocionalmente. 🖤', file: 'emo_intro_0.mp3' },
-    { text: 'Delineador listo, corazón roto y garganta temblando. Esto es Rítmika Emo. 💔', file: 'emo_intro_1.mp3' },
-    { text: 'No es una fase, es una competencia con trauma musical. 🖤🎤', file: 'emo_intro_2.mp3' },
+    { text: '¡Bienvenidos a Fiesta Emo! Hoy no se canta, se sangra emocionalmente. 🖤', file: 'emo/emo_intro_0.mp3' },
+    { text: 'Delineador listo, corazón roto y garganta temblando. Esto es Rítmika Emo. 💔', file: 'emo/emo_intro_1.mp3' },
+    { text: 'No es una fase, es una competencia con trauma musical. 🖤🎤', file: 'emo/emo_intro_2.mp3' },
     { text: 'Ronda uno: Tu Diario de Depresión. Escojan la canción que más les duela.', file: 'emo/emo_round_1_intro.mp3' },
     { text: 'Ronda dos: Trauma Compartido. Asigna una canción a alguien más. Destruyan su dignidad.', file: 'emo/emo_round_2_intro.mp3' },
     { text: 'Ronda tres: Apagón Emocional. Canten desde la memoria, a oscuras.', file: 'emo/emo_round_3_intro.mp3' },
@@ -934,22 +934,22 @@ const EMO_MODE_PHRASES = {
     { text: 'Hoy no venimos a ganar, venimos a desahogarnos. Bienvenidos al club de los corazones rotos.', file: 'emo/emo_intro_5.mp3' }
   ],
   roulette: [
-    { text: 'La ruleta va a elegir quién abre su diario frente a todos. 📓🖤', file: 'emo_roulette_0.mp3' },
-    { text: 'Gira la rueda del dolor adolescente. A ver quién llora primero. 💔', file: 'emo_roulette_1.mp3' },
+    { text: 'La ruleta va a elegir quién abre su diario frente a todos. 📓🖤', file: 'emo/emo_roulette_0.mp3' },
+    { text: 'Gira la rueda del dolor adolescente. A ver quién llora primero. 💔', file: 'emo/emo_roulette_1.mp3' },
     { text: 'La ruleta del sufrimiento está girando. A ver a quién le toca exponer su corazón.', file: 'emo/emo_roulette_spin.mp3' },
     { text: 'La ruleta gira, al igual que nuestra espiral de tristeza. ¿A quién le toca sufrir?', file: 'emo/emo_roulette_2.mp3' },
     { text: 'Es hora de que la rueda decida quién va a pasar el ridículo más triste de la noche.', file: 'emo/emo_roulette_3.mp3' }
   ],
   selected: [
-    { text: 'Te tocó. Sube al escenario y decepciona a tu ex con estilo. 🖤', file: 'emo_selected_0.mp3' },
-    { text: 'El destino eligió tu sufrimiento. Canta como si fuera 2008. 💀', file: 'emo_selected_1.mp3' },
+    { text: 'Te tocó. Sube al escenario y decepciona a tu ex con estilo. 🖤', file: 'emo/emo_selected_0.mp3' },
+    { text: 'El destino eligió tu sufrimiento. Canta como si fuera 2008. 💀', file: 'emo/emo_selected_1.mp3' },
     { text: 'Qué tragedia. Te toca cantar.', file: 'emo/emo_roulette_result_0.mp3' },
     { text: 'Destino cruel. El escenario es tuyo.', file: 'emo/emo_roulette_result_1.mp3' },
     { text: 'Te tocó a ti. Saca ese dolor atorado en la garganta y dale con todo.', file: 'emo/emo_selected_2.mp3' },
     { text: 'No te escondas, el destino ya te eligió. Vamos, sube a decepcionarnos.', file: 'emo/emo_selected_3.mp3' }
   ],
   vote: [
-    { text: 'Hora de votar. ¿Fue arte, drama o puro berrinche afinado? 🗳️', file: 'emo_vote_0.mp3' },
+    { text: 'Hora de votar. ¿Fue arte, drama o puro berrinche afinado? 🗳️', file: 'emo/emo_vote_0.mp3' },
     { text: 'Wow. Me hiciste llorar, y eso que soy un ajolote digital.', file: 'emo/emo_vote_good_0.mp3' },
     { text: 'Tanta oscuridad en esa interpretación. Fue... poético.', file: 'emo/emo_vote_good_1.mp3' },
     { text: '¡Qué intensidad! Si sigo escuchándote, me voy a pintar las uñas de negro.', file: 'emo/emo_vote_good_2.mp3' },
@@ -961,12 +961,12 @@ const EMO_MODE_PHRASES = {
     { text: 'Creí que venías a cantar Emo, no a hacer berrinche desafinado.', file: 'emo/emo_vote_bad_4.mp3' }
   ],
   blackout: [
-    { text: 'Se fue la letra, como se fue esa persona. Sigue cantando. 🌑', file: 'emo_blackout_0.mp3' },
-    { text: 'Sin pantalla, sin ayuda y sin estabilidad emocional. 🖤', file: 'emo_blackout_1.mp3' }
+    { text: 'Se fue la letra, como se fue esa persona. Sigue cantando. 🌑', file: 'emo/emo_blackout_0.mp3' },
+    { text: 'Sin pantalla, sin ayuda y sin estabilidad emocional. 🖤', file: 'emo/emo_blackout_1.mp3' }
   ],
   idle: [
-    { text: '¿Se van a apurar o sigo escribiendo en mi fotolog? 🖤', file: 'emo_idle_0.mp3' },
-    { text: 'Tanto drama y ni siquiera han empezado. Qué decepción.', file: 'emo_idle_1.mp3' },
+    { text: '¿Se van a apurar o sigo escribiendo en mi fotolog? 🖤', file: 'emo/emo_idle_0.mp3' },
+    { text: 'Tanto drama y ni siquiera han empezado. Qué decepción.', file: 'emo/emo_idle_1.mp3' },
     { text: 'El silencio es ensordecedor... igual que sus promesas vacías.', file: 'emo/emo_lobby_idle_0.mp3' },
     { text: '¿A qué hora empezamos? La depresión no se va a curar sola.', file: 'emo/emo_lobby_idle_1.mp3' }
   ],

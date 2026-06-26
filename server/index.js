@@ -343,7 +343,7 @@ app.get('/api/artist-map', (req, res) => {
   const rows = db.prepare(query).all(...params);
   const map = {};
   for (const row of rows) {
-    const g = row.genre.toLowerCase();
+    const g = (mode && mode !== 'clasico') ? mode : row.genre.toLowerCase();
     if (!map[g]) map[g] = [];
     if (!map[g].includes(row.artist)) {
       map[g].push(row.artist);
