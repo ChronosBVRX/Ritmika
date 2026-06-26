@@ -107,10 +107,10 @@ Celulares desde cualquier lugar
 5. Celulares abren `http://<IP>:3000/join` (por WiFi local o por internet público)
 6. Tío Axolo (host) guía el juego: 3 rondas → podio de 5 fases
 
-### Modos de juego (5, solo Clásico funciona)
+### Modos de juego (5)
 - **Clásico** — Modo estándar con todos los géneros
+- **Fiesta Emo** — IMPLEMENTADO (Rondas 1-3, overlays dramáticos, CSS temático, UI en móvil)
 - **Fiesta Anime** — PRÓXIMAMENTE
-- **Fiesta Emo** — PRÓXIMAMENTE
 - **Dolidas & Rancheras** — PRÓXIMAMENTE
 - **Nostalgia Pop** — PRÓXIMAMENTE
 
@@ -347,7 +347,8 @@ node scripts/migrate_to_sqlite.js   # Genera server/songs.db desde r2_db.json
 - [ ] **Probar restore banner en TV** (recargar en medio del juego)
 - [ ] **Probar Ronda 2 (Fuego Cruzado)** completa
 - [ ] **Probar con 4+ jugadores simultáneos**
-- [ ] Implementar modos de juego (Anime, Emo, Ranchera, Nostalgia)
+- [x] Implementar modo de juego Fiesta Emo (No es una fase)
+- [ ] Implementar otros modos de juego (Anime, Ranchera, Nostalgia)
 
 ---
 
