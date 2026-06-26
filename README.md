@@ -25,7 +25,7 @@ Rítmika es un juego de karaoke para fiestas donde un grupo de jugadores se cone
 - **Ruleta animada** — SVG con avatares reales y giro determinista
 - **Votación en vivo** — 10, 30, 60 o 100 puntos por canción
 - **Premiación épica** — Ceremonia tipo pasarela con premios especiales
-- **5 modos de juego** — Clásico (funcional), Anime, Emo, Ranchera, Nostalgia (próximamente)
+- **5 modos de juego** — Clásico y Fiesta Emo (funcionales). Anime, Ranchera, Nostalgia (próximamente)
 - **Neo-brutalismo** — Estética Jackbox/Persona 5 con sombras sólidas y colores vibrantes
 
 ## Quick Start
