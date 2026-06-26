@@ -267,22 +267,49 @@ app.get('/api/songs', (req, res) => {
     }
   }
 
-  // Filter by game mode
-  if (req.query.mode && req.query.mode.toLowerCase() !== 'clasico') {
-    const modeStr = req.query.mode.trim().toLowerCase();
-    where.push(`LOWER(mode) = ?`);
-    params.push(modeStr);
-  }
-
-  const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : '';
   const orderBy = req.query.random === 'true' ? 'ORDER BY RANDOM()' : 'ORDER BY artist, title';
   const limit = Math.min(parseInt(req.query.limit) || 100, 5000);
 
-  const sql = `SELECT * FROM songs ${whereClause} ${orderBy} LIMIT ?`;
-  params.push(limit);
+  const fetchSongs = (w, p, l) => {
+    const whereClause = w.length > 0 ? 'WHERE ' + w.join(' AND ') : '';
+    const sql = `SELECT * FROM songs ${whereClause} ${orderBy} LIMIT ?`;
+    return db.prepare(sql).all(...p, l);
+  };
 
   try {
-    const songs = db.prepare(sql).all(...params);
+    let songs = [];
+    const isEmo = req.query.mode && req.query.mode.toLowerCase() === 'emo';
+
+    if (isEmo) {
+      songs = fetchSongs([...where, `LOWER(mode) = ?`], [...params, 'emo'], limit);
+      
+      if (songs.length < limit) {
+        let fbWhere = [...where, `LOWER(genre) IN ('rock', 'balada', 'pop')`];
+        let fbParams = [...params];
+        if (songs.length > 0) {
+          fbWhere.push(`id NOT IN (${songs.map(() => '?').join(',')})`);
+          fbParams.push(...songs.map(s => s.id));
+        }
+        songs = songs.concat(fetchSongs(fbWhere, fbParams, limit - songs.length));
+      }
+      
+      if (songs.length < limit) {
+        let allWhere = [...where];
+        let allParams = [...params];
+        if (songs.length > 0) {
+          allWhere.push(`id NOT IN (${songs.map(() => '?').join(',')})`);
+          allParams.push(...songs.map(s => s.id));
+        }
+        songs = songs.concat(fetchSongs(allWhere, allParams, limit - songs.length));
+      }
+    } else {
+      if (req.query.mode && req.query.mode.toLowerCase() !== 'clasico') {
+        where.push(`LOWER(mode) = ?`);
+        params.push(req.query.mode.trim().toLowerCase());
+      }
+      songs = fetchSongs(where, params, limit);
+    }
+    
     res.json(songs);
   } catch (err) {
     console.error('[DB] Query error:', err.message);
@@ -542,7 +569,7 @@ io.on('connection', (socket) => {
     let code;
     do { code = generateRoomCode(); } while (rooms.has(code));
 
-    const validModes = new Set(['clasico', 'emo', 'ranchera', 'nostalgia', 'anime']);
+    const validModes = new Set(['clasico', 'emo']);
     const cleanMode = validModes.has(payload.mode) ? payload.mode : 'clasico';
 
     rooms.set(code, {

@@ -765,7 +765,13 @@ function startVotePhase(player, song) {
     data: { performerSocketId: player.socketId, performerName: player.name },
   });
 
-  const votePrompt = AXOLO_VOTE_PROMPTS[Math.floor(Math.random() * AXOLO_VOTE_PROMPTS.length)];
+  let votePrompt;
+  if (state.gameMode === 'emo' && typeof EMO_MODE_PHRASES !== 'undefined') {
+    const phrases = EMO_MODE_PHRASES.vote;
+    votePrompt = phrases[Math.floor(Math.random() * phrases.length)];
+  } else {
+    votePrompt = AXOLO_VOTE_PROMPTS[Math.floor(Math.random() * AXOLO_VOTE_PROMPTS.length)];
+  }
   axoloSay(votePrompt.text, votePrompt.file);
 
   if (votePhaseTimeout) clearTimeout(votePhaseTimeout);
