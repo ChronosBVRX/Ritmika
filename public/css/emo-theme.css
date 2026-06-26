@@ -25,23 +25,36 @@ body[data-mode="emo"] .tv-screen {
 
 /* Lobby background adjustment */
 body[data-mode="emo"] #lobby-screen {
-  background: linear-gradient(135deg, #000000 0%, #1a0000 50%, #4a0404 100%);
+  background: none;
+}
+
+body[data-mode="emo"] #lobby-screen::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: url('../assets/lobby_bg_emo.webp');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  opacity: 0.9;
 }
 
 body[data-mode="emo"] #lobby-screen .video-bg {
-  filter: grayscale(100%) contrast(1.5) opacity(0.3) sepia(1) hue-rotate(-50deg) saturate(3);
+  display: none !important;
 }
 
 /* Lobby UI Emo Override */
 body[data-mode="emo"] .lobby-qr-frame {
-  background-color: #111827 !important;
-  border-color: #7f1d1d !important;
-  box-shadow: 0 0 40px rgba(127,29,29,0.5), inset 0 0 30px rgba(0,0,0,0.8) !important;
+  background-image: url('../assets/qr_frame_emo.webp') !important;
+  background-size: 100% 100% !important;
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 body[data-mode="emo"] .lobby-qr-glow {
-  border-color: #450a0a !important;
-  box-shadow: none !important;
+  display: none !important;
 }
 
 body[data-mode="emo"] .lobby-badge {
