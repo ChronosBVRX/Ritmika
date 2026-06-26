@@ -29,7 +29,7 @@ body[data-mode="emo"] #lobby-screen {
 }
 
 body[data-mode="emo"] .lobby-bg-img {
-  background: url('../assets/lobby_bg_emo.webp') center/cover no-repeat !important;
+  background: url('../assets/lobby_bg_emo.webp?v=3') center/cover no-repeat !important;
   opacity: 0.9 !important;
 }
 
@@ -38,8 +38,20 @@ body[data-mode="emo"] #lobby-screen .video-bg {
 }
 
 /* Lobby UI Emo Override */
+body[data-mode="emo"] .lobby-particles > div {
+  width: 32px !important;
+  height: 32px !important;
+  background-image: url('../assets/particle_feather.webp?v=3') !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
 body[data-mode="emo"] .lobby-qr-frame {
-  background-image: url('../assets/qr_frame_emo.webp') !important;
+  background-image: url('../assets/qr_frame_emo.webp?v=4') !important;
   background-size: 100% 100% !important;
   background-color: transparent !important;
   background-repeat: no-repeat !important;
@@ -165,6 +177,7 @@ body[data-mode="emo"] .text-jb-cyan {
 body[data-mode="emo"] .text-jb-magenta {
   color: #7f1d1d !important; /* Dark red */
 }
+
 /* Rain effect for Lluvia Dramática */
 body[data-mode="emo"] #emo-rain-overlay::before {
   content: "";
@@ -187,4 +200,17 @@ body[data-mode="emo"] #emo-rain-overlay::before {
 @keyframes rainAnim {
   0% { background-position: 0 0; }
   100% { background-position: 15px 100vh; }
+}
+
+/* Darken cheerful buttons in Emo Mode */
+body[data-mode="emo"] .jackbox-color-cyan,
+body[data-mode="emo"] .jackbox-color-magenta,
+body[data-mode="emo"] .jackbox-color-yellow,
+body[data-mode="emo"] .jackbox-color-orange,
+body[data-mode="emo"] .jackbox-button-sticker {
+  background: #111827 !important;
+  color: #dc2626 !important;
+  border-color: #7f1d1d !important;
+  box-shadow: 4px 4px 0px #7f1d1d !important;
+  text-shadow: none !important;
 }
