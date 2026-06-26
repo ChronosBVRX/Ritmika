@@ -700,9 +700,16 @@ async function startKaraoke(player, song) {
       const overlay = document.getElementById('emo-diary-overlay');
       const textEl = document.getElementById('emo-diary-text');
       if (overlay && textEl) {
-        const diaryText = EMO_DIARY_LINES[Math.floor(Math.random() * EMO_DIARY_LINES.length)];
+        const selected = EMO_DIARY_LINES[Math.floor(Math.random() * EMO_DIARY_LINES.length)];
+        const diaryText = selected.text || selected;
+        const file = selected.file || null;
         textEl.textContent = `"${diaryText}"`;
         overlay.style.display = 'flex';
+        
+        if (file && typeof axoloSay === 'function') {
+          axoloSay(diaryText, file, 5000, true);
+        }
+        
         setTimeout(() => {
           overlay.style.display = 'none';
           proceedWithKaraoke();
@@ -715,9 +722,16 @@ async function startKaraoke(player, song) {
       const overlay = document.getElementById('emo-dedication-overlay');
       const textEl = document.getElementById('emo-dedication-text');
       if (overlay && textEl) {
-        const dedicationText = EMO_DEDICATIONS[Math.floor(Math.random() * EMO_DEDICATIONS.length)];
+        const selected = EMO_DEDICATIONS[Math.floor(Math.random() * EMO_DEDICATIONS.length)];
+        const dedicationText = selected.text || selected;
+        const file = selected.file || null;
         textEl.textContent = `"${dedicationText}"`;
         overlay.style.display = 'flex';
+        
+        if (file && typeof axoloSay === 'function') {
+          axoloSay(dedicationText, file, 5000, true);
+        }
+        
         setTimeout(() => {
           overlay.style.display = 'none';
           proceedWithKaraoke();
@@ -862,7 +876,9 @@ function fireChallenge() {
 }
 
 function fireEmoRain() {
-  const reto = EMO_DRAMA_CHALLENGES[Math.floor(Math.random() * EMO_DRAMA_CHALLENGES.length)];
+  const selected = EMO_DRAMA_CHALLENGES[Math.floor(Math.random() * EMO_DRAMA_CHALLENGES.length)];
+  const reto = selected.text || selected;
+  const file = selected.file || null;
   const banner = document.getElementById('emo-rain-overlay');
   const challengeText = document.getElementById('emo-rain-challenge');
   
@@ -886,8 +902,12 @@ function fireEmoRain() {
   video.style.filter = 'grayscale(80%) contrast(1.2) brightness(0.6)';
 
   if (typeof axoloSay === 'function') {
-    const p = EMO_MODE_PHRASES.blackout ? EMO_MODE_PHRASES.blackout[Math.floor(Math.random() * EMO_MODE_PHRASES.blackout.length)] : { text: "Lluvia dramática. Sufre." };
-    axoloSay(p.text, p.file);
+    if (file) {
+      axoloSay(reto, file, 5000, true);
+    } else {
+      const p = EMO_MODE_PHRASES.blackout ? EMO_MODE_PHRASES.blackout[Math.floor(Math.random() * EMO_MODE_PHRASES.blackout.length)] : { text: "Lluvia dramática. Sufre." };
+      axoloSay(p.text, p.file);
+    }
   }
 
   // Auto-hide after 12s

@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "nodemon server/index.js",
-    "deploy": "git add . && git commit -m \"Actualizacion automatica\" && git push origin main"
+    "deploy": "git add . && git commit -m \"Actualizacion automatica\" && git push origin main",
+    "check:emo-audio": "node scripts/check_emo_audio.js",
+    "generate:emo-audio": "node scripts/generate_missing_emo_audio.js"
   },
   "keywords": [
     "karaoke",

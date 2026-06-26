@@ -990,42 +990,42 @@ const EMO_MODE_PHRASES = {
 // NUEVAS CONSTANTES: MODO EMO
 // ════════════════════════════════════════════
 const EMO_DIARY_LINES = [
-  "Nadie entiende mi playlist.",
-  "No estoy triste, estoy en acústico.",
-  "Mi corazón tiene WiFi, pero nadie se conecta.",
-  "Esta canción me cambió en secundaria.",
-  "Mi fleco sabe cosas que yo no.",
-  "No era una etapa, era mi soundtrack.",
-  "Hoy no lloré, solo afiné por dentro.",
-  "Mi alma está en modo avión.",
-  "Canto porque publicar indirectas ya no basta.",
-  "El delineador se corre, pero el drama permanece."
+  { text: "Nadie entiende mi playlist.", file: "emo/emo_diary_0.mp3" },
+  { text: "No estoy triste, estoy en acústico.", file: "emo/emo_diary_1.mp3" },
+  { text: "Mi corazón tiene WiFi, pero nadie se conecta.", file: "emo/emo_diary_2.mp3" },
+  { text: "Esta canción me cambió en secundaria.", file: "emo/emo_diary_3.mp3" },
+  { text: "Mi fleco sabe cosas que yo no.", file: "emo/emo_diary_4.mp3" },
+  { text: "No era una etapa, era mi soundtrack.", file: "emo/emo_diary_5.mp3" },
+  { text: "Hoy no lloré, solo afiné por dentro.", file: "emo/emo_diary_6.mp3" },
+  { text: "Mi alma está en modo avión.", file: "emo/emo_diary_7.mp3" },
+  { text: "Canto porque publicar indirectas ya no basta.", file: "emo/emo_diary_8.mp3" },
+  { text: "El delineador se corre, pero el drama permanece.", file: "emo/emo_diary_9.mp3" }
 ];
 
 const EMO_DEDICATIONS = [
-  "Para tu yo de secundaria.",
-  "Para quien te dejó en visto.",
-  "Para tu etapa intensa.",
-  "Para tu foto de perfil en blanco y negro.",
-  "Para cuando publicabas indirectas.",
-  "Para tu antiguo estado de Messenger.",
-  "Para esa persona que nunca entendió tu playlist.",
-  "Para cuando decías que estabas bien, pero ponías esta canción.",
-  "Para quien te cambió por alguien con mejor fleco.",
-  "Para tu corazón con contraseña olvidada."
+  { text: "Para tu yo de secundaria.", file: "emo/emo_dedication_0.mp3" },
+  { text: "Para quien te dejó en visto.", file: "emo/emo_dedication_1.mp3" },
+  { text: "Para tu etapa intensa.", file: "emo/emo_dedication_2.mp3" },
+  { text: "Para tu foto de perfil en blanco y negro.", file: "emo/emo_dedication_3.mp3" },
+  { text: "Para cuando publicabas indirectas.", file: "emo/emo_dedication_4.mp3" },
+  { text: "Para tu antiguo estado de Messenger.", file: "emo/emo_dedication_5.mp3" },
+  { text: "Para esa persona que nunca entendió tu playlist.", file: "emo/emo_dedication_6.mp3" },
+  { text: "Para cuando decías que estabas bien, pero ponías esta canción.", file: "emo/emo_dedication_7.mp3" },
+  { text: "Para quien te cambió por alguien con mejor fleco.", file: "emo/emo_dedication_8.mp3" },
+  { text: "Para tu corazón con contraseña olvidada.", file: "emo/emo_dedication_9.mp3" }
 ];
 
 const EMO_DRAMA_CHALLENGES = [
-  "Canta mirando al piso.",
-  "Canta con la mano en el corazón.",
-  "Canta como si estuvieras en un videoclip bajo la lluvia.",
-  "Grita el coro como si doliera.",
-  "Haz cara de traición.",
-  "Canta como si nadie te entendiera.",
-  "Dedica esta parte a tu yo de secundaria.",
-  "Canta sin sonreír.",
-  "Haz una pausa dramática antes del coro.",
-  "Canta como si acabaras de cerrar Messenger."
+  { text: "Canta mirando al piso.", file: "emo/emo_challenge_0.mp3" },
+  { text: "Canta con la mano en el corazón.", file: "emo/emo_challenge_1.mp3" },
+  { text: "Canta como si estuvieras en un videoclip bajo la lluvia.", file: "emo/emo_challenge_2.mp3" },
+  { text: "Grita el coro como si doliera.", file: "emo/emo_challenge_3.mp3" },
+  { text: "Haz cara de traición.", file: "emo/emo_challenge_4.mp3" },
+  { text: "Canta como si nadie te entendiera.", file: "emo/emo_challenge_5.mp3" },
+  { text: "Dedica esta parte a tu yo de secundaria.", file: "emo/emo_challenge_6.mp3" },
+  { text: "Canta sin sonreír.", file: "emo/emo_challenge_7.mp3" },
+  { text: "Haz una pausa dramática antes del coro.", file: "emo/emo_challenge_8.mp3" },
+  { text: "Canta como si acabaras de cerrar Messenger.", file: "emo/emo_challenge_9.mp3" }
 ];
 
 const EMO_VOTE_LABELS = {
