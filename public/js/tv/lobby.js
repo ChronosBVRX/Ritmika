@@ -727,8 +727,11 @@ async function inicializarQRConexion() {
                   hostname.endsWith('.local') ||
                   protocol === 'file:';
 
+  const cfg = window.RITMIKA_CONFIG || {};
   let joinUrl;
-  if (!isLocal && protocol !== 'file:') {
+  if (cfg.CONNECTION_MODE === 'online' && cfg.RELAY_URL) {
+    joinUrl = `${cfg.RELAY_URL.replace(/\/$/, '')}/join?code=${state.roomCode || ''}`;
+  } else if (!isLocal && protocol !== 'file:') {
     joinUrl = `${window.location.origin}/join?code=${state.roomCode || ''}`;
   } else {
     joinUrl = `http://${state.localIP || hostname}:${port}/join?code=${state.roomCode || ''}`;

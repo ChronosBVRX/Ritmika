@@ -241,7 +241,7 @@ async function run() {
     // Validación estática de existencia de handlers
     await test('server/index.js contiene handlers esperados', async () => {
       const fs = require('fs');
-      const src = fs.readFileSync(path.join(__dirname, '../server/index.js'), 'utf8');
+      let src=''; try{ src=fs.readFileSync(path.join(__dirname, '../server/index.js'), 'utf8'); if(src.includes("require('./local")) src+=fs.readFileSync(path.join(__dirname, '../server/local/index.js'),'utf8'); }catch{}
       const events = ['tv:create_room','tv:close_room','tv:broadcast','tv:send_to_player','tv:add_bot','tv:start_game',
         'player:join','player:select_genres','player:select_artists','player:tomatazo','player:emoji','player:sabotage_audio','player:vote','player:assign_song','player:start_game','player:start_song','player:next_turn','player:new_game'];
       for (const ev of events) {

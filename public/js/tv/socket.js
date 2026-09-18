@@ -11,36 +11,106 @@ function onReady(fn) {
 //  SOCKET.IO
 // ════════════════════════════════════════════
 let socket;
-onReady(() => {
-  socket = io();
+let _hostToken = null;
+let _relayConnected = false;
+try { _hostToken = localStorage.getItem('ritmika_host_token'); } catch {}
 
-  socket.on('connect', () => {
-  console.log('[TV] Conectado. Preparando sala...');
-  boot.step(1, 'done');
-  boot.step(2, 'done', 'Esperando selección de modo');
-  loadCatalog();
-  // Check FFmpeg via health endpoint (step 4)
-  fetch('/api/health', { signal: AbortSignal.timeout(5000) })
-    .then(r => r.json())
-    .then(h => {
-      boot.step(4, 'done', h.ffmpeg ? 'FFmpeg disponible' : 'Sin FFmpeg (MP4 nativo OK)');
-    })
-    .catch(() => {
-      boot.step(4, 'done', 'no verificado');
-    });
-});
+function getSocketUrl() {
+  const cfg = window.RITMIKA_CONFIG || {};
+  if (cfg.CONNECTION_MODE === 'online' && cfg.RELAY_URL) return cfg.RELAY_URL;
+  return undefined; // same origin (local)
+}
 
-socket.on('connect_error', () => {
-  boot.fail(1, 'Sin conexión al servidor');
-  updateTicker('No se puede conectar al servidor. ¿Está encendido?');
-});
+function saveHostToken(token, code) {
+  _hostToken = token;
+  state.hostToken = token;
+  try {
+    if (token) localStorage.setItem('ritmika_host_token', token);
+    if (code) localStorage.setItem('ritmika_room_code', code);
+  } catch {}
+}
 
-socket.on('tv:room_created', ({ roomCode, mode, localIP, hotspotSSID, hotspotPassword }) => {
-  state.roomCode = roomCode;
-  state.gameMode = mode || 'clasico';
-  state.localIP = localIP || window.location.hostname;
-  state.hotspotSSID = hotspotSSID || 'Ritmika';
-  state.hotspotPassword = hotspotPassword || 'Ritmika2026';
+function clearHostToken() {
+  _hostToken = null;
+  state.hostToken = null;
+  try { localStorage.removeItem('ritmika_host_token'); localStorage.removeItem('ritmika_room_code'); } catch {}
+}
+
+function setupSocket(s) {
+  socket = s;
+  window._ritmikaSocket = s; // for debugging
+
+  s.on('connect', () => {
+    _relayConnected = true;
+    console.log('[TV] Conectado a', s.io.uri || 'local', 'socket', s.id);
+    const dot = document.getElementById('relay-status-dot');
+    if (dot) dot.style.background = '#22c55e';
+    const txt = document.getElementById('relay-status-text');
+    if (txt) txt.textContent = 'Relay conectado';
+    boot.step(1, 'done');
+    boot.step(2, 'done', 'Esperando selección de modo');
+    // Intentar reconexión de host si tenemos token y sala
+    const savedCode = state.roomCode || (()=>{ try{return localStorage.getItem('ritmika_room_code');}catch{return null;}})();
+    if (_hostToken && savedCode) {
+      console.log('[TV] Intentando reconectar host a sala', savedCode);
+      s.emit('tv:reconnect_host', { roomCode: savedCode, hostToken: _hostToken });
+    } else {
+      // No hay reconexión, flujo normal
+      loadCatalog();
+    }
+    fetch('/api/health', { signal: AbortSignal.timeout(5000) })
+      .then(r => r.json())
+      .then(h => { boot.step(4, 'done', h.ffmpeg ? 'FFmpeg disponible' : 'Sin FFmpeg (MP4 nativo OK)'); })
+      .catch(() => { boot.step(4, 'done', 'no verificado'); });
+  });
+
+  s.on('disconnect', (reason) => {
+    _relayConnected = false;
+    console.warn('[TV] Desconectado:', reason);
+    const dot = document.getElementById('relay-status-dot');
+    if (dot) dot.style.background = '#ef4444';
+    const txt = document.getElementById('relay-status-text');
+    if (txt) txt.textContent = 'Reconectando...';
+    // No cerrar partida, esperar reconexión (tolerancia)
+    updateTicker('Conexión al relay perdida. Reconectando... No se pierde la partida.');
+  });
+
+  s.on('connect_error', (err) => {
+    console.warn('[TV] connect_error', err && err.message);
+    boot.fail(1, 'Sin conexión al relay/servidor');
+    updateTicker('No se puede conectar al relay. Verifica Internet o RELAY_URL.');
+    const dot = document.getElementById('relay-status-dot');
+    if (dot) dot.style.background = '#eab308';
+  });
+
+  s.on('tv:reconnect_ack', ({ success, error, roomCode, mode }) => {
+    if (success) {
+      console.log('[TV] Reconexión exitosa sala', roomCode);
+      state.roomCode = roomCode;
+      state.gameMode = mode || state.gameMode || 'clasico';
+      try{ localStorage.setItem('ritmika_room_code', roomCode);}catch{}
+      renderRoomCode(roomCode);
+      inicializarQRConexion();
+      updateTicker('Reconectado a sala ' + roomCode + ' ✅');
+      loadCatalog();
+    } else {
+      console.warn('[TV] Reconexión falló:', error);
+      clearHostToken();
+      loadCatalog();
+      // Crear sala nueva será disparado por el flujo normal tras elegir modo?
+      // No auto-crear aquí, esperar a que usuario seleccione modo
+    }
+  });
+
+  s.on('tv:room_created', ({ roomCode, mode, localIP, hotspotSSID, hotspotPassword, hostToken, relayUrl }) => {
+    if (hostToken) saveHostToken(hostToken, roomCode);
+    // relayUrl puede venir del relay para QR
+    if (relayUrl) window.RITMIKA_CONFIG.RELAY_URL = relayUrl;
+    state.roomCode = roomCode;
+    state.gameMode = mode || 'clasico';
+    state.localIP = localIP || window.location.hostname;
+    state.hotspotSSID = hotspotSSID || 'Ritmika';
+    state.hotspotPassword = hotspotPassword || 'Ritmika2026';
   if (typeof applyModeTheme === 'function') applyModeTheme();
   renderRoomCode(roomCode);
   inicializarQRConexion();
@@ -409,6 +479,13 @@ socket.on('tv:new_game_trigger', () => {
     btn.click();
   }
 });
+} // end setupSocket
+
+onReady(async () => {
+  try { if (window.ritmikaConfigReady) await window.ritmikaConfigReady; } catch {}
+  const url = getSocketUrl();
+  const s = url ? io(url, { transports: ['websocket'], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000 }) : io();
+  setupSocket(s);
 });
 
 // START GAME BUTTON

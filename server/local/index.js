@@ -17,6 +17,7 @@ const { exec } = require('child_process');
 
 const internalIp = require('internal-ip');
 require('dotenv').config();
+const { config: ritmikaConfig } = require('../shared/config');
 
 // ── Cloudflare R2 client (presigned URLs) ─────────────────────
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
@@ -132,7 +133,7 @@ app.get('/join', (req, res) => {
 // ── Admin: Dashboard de Modos de Juego ───────────────────────
 app.get('/admin', requireAdmin, (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-  res.sendFile(path.join(__dirname, 'views/admin_modes.html'));
+  res.sendFile(path.join(__dirname, '../views/admin_modes.html'));
 });
 
 
@@ -175,7 +176,7 @@ app.get('/api/network-config', async (req, res) => {
 
 // ── SQLite Database ──────────────────────────────────────
 const Database = require('better-sqlite3');
-const sqlitePath = path.join(__dirname, 'songs.db');
+const sqlitePath = path.join(__dirname, '../songs.db');
 let db;
 try {
   db = new Database(sqlitePath);
@@ -192,7 +193,7 @@ function isDbReady() {
 }
 
 function gitCommitAndPush(callback) {
-  const gitDir = path.resolve(__dirname, '..');
+  const gitDir = path.resolve(__dirname, '../..');
   const repoUrl = 'https://github.com/ChronosBVRX/Ritmika.git';
   const token = process.env.GITHUB_TOKEN;
   const pushRemote = token ? `https://x-access-token:${token}@github.com/ChronosBVRX/Ritmika.git` : 'origin';
@@ -430,6 +431,18 @@ app.get('/api/audio-files', (req, res) => {
   });
 });
 
+// ── Config centralizada para TV (dual-origen) ──
+app.get('/api/config', (req, res) => {
+  const ip = getLocalIP();
+  const port = parseInt(process.env.PORT || '3000', 10);
+  res.json({
+    localBaseUrl: `http://${ip}:${port}`,
+    relayUrl: ritmikaConfig.relayUrl || '',
+    connectionMode: ritmikaConfig.connectionMode,
+    version: require('../../package.json').version,
+  });
+});
+
 // ── Health check for bootloader ──
 app.get('/api/health', (req, res) => {
   const origin = req.headers.origin;
@@ -437,11 +450,15 @@ app.get('/api/health', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', origin || '*');
   }
   const count = isDbReady() ? db.prepare('SELECT COUNT(*) as cnt FROM songs').get().cnt : 0;
+  const cfg = ritmikaConfig;
   res.json({
     server: true,
     catalog: count > 0,
     catalogCount: count,
     videoSource: 'cloudflare-r2',
+    relayUrl: cfg.relayUrl || null,
+    connectionMode: cfg.connectionMode,
+    localHealth: true,
   });
 });
 
@@ -544,7 +561,7 @@ function canAct(socketId, cooldownMs = 1000) {
   return true;
 }
 
-const packageVersion = require('../package.json').version;
+const packageVersion = require('../../package.json').version;
 
 io.on('connection', (socket) => {
   console.log(`[+] Conexión: ${socket.id}`);
