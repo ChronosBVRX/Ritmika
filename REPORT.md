@@ -1,12 +1,12 @@
-# Rítmika — Reporte Migración Desktop Local + Relay Online
+# Rítmika — Reporte Migración Desktop Local + Relay Online (Hardening)
 
-> **Rama:** `feat/desktop-local-online-relay` — **No merge a main** — lista para revisión antes de producción.
+> **Rama:** `feat/desktop-local-online-relay` — **No merge a main** — Hardening tras revisión externa.
 
 ## 1. HEADs
 
 - **HEAD inicial (origin/main al `git fetch`):** `f341ac1b0396b800eee178b379f9f75e45ed011d` — `feat(linux): agregar ejecutable local Ritmika.sh + build.sh`
-- **HEAD final (esta rama):** `371bab3` (ver `git log origin/main..HEAD` abajo) — tras 7 commits (6 previos + reporte). Último commit: `371bab3 docs(report): reporte final migración desktop local + relay online`.
-- **Rama:** `feat/desktop-local-online-relay` (push a `origin/feat/desktop-local-online-relay`, no reescribe historia, no merge).
+- **HEAD final (esta rama):** `197b9d5` (ver `git log origin/main..HEAD` abajo) — tras 8 commits de migración + 1 hardening. Último commit hardening: `197b9d5 fix(hardening): rutas local, resumeToken, config LocalAppData, build runtime, WebView2, git guard` (reporte pendiente en siguiente commit).
+- **Rama:** `feat/desktop-local-online-relay` (push a `origin/feat/desktop-local-online-relay`, no reescribe los 7 commits previos, solo añade nuevos).
 
 ## 2. Commits (desde `f341ac1`)
 
@@ -16,229 +16,141 @@ d0f1085 feat(server): separar local-host / relay / shared
 fc5fcaa feat(tv): dual-origen LOCAL_BASE + RELAY_URL con tolerancia
 1d0596f feat(identity): playerId estable + hostToken + reconexión
 885398c feat(desktop): distribución autocontenida + cache vídeo + R2 directo
-371bab3 feat(health): status diferenciado + benchmark + docs despliegue
+a2ddb4e feat(health): status diferenciado + benchmark + docs despliegue
+c186c66 docs(report): reporte final migración desktop local + relay online (previo hardening)
+197b9d5 fix(hardening): rutas local, resumeToken, config LocalAppData, build runtime, WebView2, git guard
 ```
 
-Cada commit es pequeño y auditable, siguiendo la convención `refactor(server): extract shared room protocol`, `feat(relay): lightweight relay`, etc.
+Próximo commit (este reporte): `docs(report): update verified migration report (hardening)`.
 
-## 3. Archivos modificados / creados
+## 3. Archivos modificados / creados (hardening)
 
-```
-M  .gitignore
-M  Ritmika.sh
-M  build.bat
-M  package.json
-M  public/tv.html
-M  public/js/tv/socket.js      (dual-origen, hostToken, reconexión)
-M  public/js/tv/lobby.js       (QR público)
-M  public/js/tv/game.js        (R2 directo + cache)
-M  public/mobile.html          (playerId)
-M  server/index.js             (wrapper → server/local)
-M  server/local/index.js       (local host, SQLite, /api/config, video-cache)
-M  src/Launcher.cs             (runtime/node prioritario, LOCALAPPDATA, WebView2 check)
-A  docs/PROTOCOL.md            (congelado + §11 evolución)
-A  docs/DEPLOY_DESKTOP.md
-A  docs/DEPLOY_RELAY.md
-A  installer.iss               (Inno Setup)
-A  public/js/tv/config.js      (centraliza RELAY_URL)
-A  server/local/videoCache.js  (LRU 2GB)
-A  server/relay/index.js       (pasarela ligera)
-A  server/shared/* (protocol.js, rooms.js, config.js, rateLimiter.js, artist-metadata.json)
-A  scripts/generate_artist_metadata.js, download_node_runtime.ps1/.sh, audit_secrets.js, benchmark.js
-A  tests/protocol.test.js (13), relay.test.js (7), smoke.test.js (flujo completo)
-```
+**Corregidos:**
+- `server/local/index.js` — `__dirname` de `../public` → `../../public` (4 rutas), carga `%LOCALAPPDATA%\Ritmika\.env` prioritario, guard `gitCommitAndPush` (solo dev con `.git` + `GITHUB_TOKEN`), `bulk-mode` 403 en producción, video-cache endpoints.
+- `server/shared/rooms.js` — `resumeToken` (32B, 64 hex) secreto, `verifyResumeToken` timingSafeEqual, `getPublicPlayers` no expone token, `addPlayer` exige token para hijack, `disconnected` Map con token.
+- `server/relay/index.js` — genera `resumeToken` en `player:join`, devuelve solo al propietario, TV recibe player sanitizado, logs no exponen token, `player:reconnect` exige token.
+- `public/mobile.html` — `getOrCreatePlayerId` + `getResumeToken`/`setResumeToken` en localStorage, envía `playerId+resumeToken` en join, guarda ambos del ack.
+- `public/js/tv/socket.js` — ya manejaba `playerId`, ahora TV no necesita token (solo relay lo valida).
 
-No se modificaron reglas de juego, puntuaciones, rondas, frases Axolo, modos Clásico/Emo, ruleta, podio, estética.
+**Build / Installer:**
+- `build.bat` — usa `runtime\node\node.exe` + `npm-cli.js ci --omit=dev`, verifica `Node 22.18.0`, ABI, `better-sqlite3` y `SELECT COUNT(*)`, aborta si falla, staging `dist/desktop` limpio, descarga bootstrapper WebView2.
+- `installer.iss` — empaqueta `dist/desktop\*` (no `server/relay`/`tests`/`docs`/`.env`), bootstrapper `MicrosoftEdgeWebview2Setup.exe` con `Check: not IsWebView2Installed` y `waituntilterminated`, `SetupIconFile` y `[Files]` desde `dist/desktop`.
+- `.gitignore` — ignora `runtime/node`, `dist/`, `installer/output`.
 
-## 4. Diagrama final
+**Tests nuevos:**
+- `tests/local_http.test.js` (7) — `GET /`, `/join`, asset, `/api/audio-files`, `/api/health`, `/api/songs`, `/api/config` contra `server/local`.
+- `tests/identity.test.js` (4) — hijack sin token rechazado, token falso rechazado, reconexión correcta, host no secuestrable.
+- `tests/config.test.js` (3) — `LOCALAPPDATA\.env` → `/api/config`, `RELAY_URL`, modo LAN/online.
+- `tests/build.test.js` (5) — Node 22.18.0, ABI, better-sqlite3, SQLite, installer usa `dist/desktop`.
+- `tests/*` actualizados para `resumeToken` (`relay.test.js` 7, `smoke.test.js` con token).
+
+**CI:**
+- `.github/workflows/ci.yml` — `linux` (Node 22, `npm ci`, `npm test`, `test:local`, `test:config`, `test:relay`, `test:identity`, `test:build`, `test:smoke`, `audit:secrets`, `benchmark`) + `windows` (check `installer.iss` usa `dist/desktop`).
+
+## 4. Diagrama final (sin cambios, hardening no altera arquitectura)
 
 ```
-PC ANFITRIONA (Rítmika Desktop)
-  Ritmika.exe (C# WinForms + WebView2 GPU)
-    └─► GameWindow → http://127.0.0.1:3000  (TV local)
-          ├─ HTML/assets/catálogo/SQLite (3845) local
-          ├─ audio local (392 MP3)
-          ├─ selección de canciones local (server/local /api/songs)
-          └─ vídeo R2 → PC directo (media.pixelhub.party) + cache %LOCALAPPDATA%\Ritmika\cache\videos
-    └─► runtime/node/node.exe (22 LTS, autocontenido) → server/local/index.js :3000
-          └─► GET /api/config → { relayUrl, connectionMode } ──┐
-                                                              │
-                    Socket.IO saliente (sin port forward)     │
-                              │                                │
-                              ▼                                ▼
-INTERNET (Rítmika Relay — pasarela ligera)
-  node server/relay/index.js :3001 (o Render/Fly)
-    ├─ GET /join → mobile.html + /api/artist-map (ligera, 626 artistas) + /api/relay-health
-    ├─ Socket.IO: tv:create_room → {roomCode, hostToken} → QR
-    ├─ player:join {roomCode, name, avatarId, playerId} → tv:player_joined
-    └─ tv:broadcast / tv:send_to_player (validado por hostToken) → game:update / game:private
-
-MÓVILES (datos móviles, sin WiFi de PC)
-  https://<relay>/join?code=ABCD  (QR público)
-    └─► io() al relay (mismo origen que /join)
-          └─► relay TV↔jugador (solo transporte, no lógica)
-
-Modo LAN (sin Internet): RELAY_URL vacío → TV io() local, QR http://192.168.x.x:3000/join, todo local (comportamiento original).
+PC Desktop (Ritmika.exe → WebView2 GPU → http://127.0.0.1:3000 TV local + SQLite + R2→PC directo + cache %LOCALAPPDATA%\Ritmika\cache\videos)
+  └─ runtime/node/node.exe → server/local :3000 ── /api/config {relayUrl} ──┐
+                                                                              │
+Relay (pasarela ligera, Render) <──────────────────────────────────────────────┘ saliente
+  └─ GET /join, Socket.IO (hostToken, playerId+resumeToken, TTL, rate limit)
+Móviles → https://<relay>/join?code=ABCD → io() relay
+Modo LAN: RELAY_URL vacío → TV io() local, QR http://192.168.x.x:3000/join
 ```
 
-## 5. Qué sigue corriendo local vs online
+## 5. Protocolo resultante (hardening)
 
-| Local (PC) | Online (Relay) |
-|---|---|
-| WebView2 rendering + animaciones (Anime.js/GSAP) | Creación salas + `roomCode` + `hostToken` |
-| Lógica completa juego (`public/js/tv/game.js`, `lobby.js`, `state.js`) | Presencia jugadores (`players` Map) |
-| SQLite `server/songs.db` + `/api/songs`, `/api/artists`, `/api/artist-map` completo | `playerId` ↔ `socketId` + reconexión 5 min |
-| Assets locales, audio, selección, ruleta, podio, votación | TTL 2h, max 8, rate limiting, validación |
-| Reproducción karaoke (`<video>` → R2 directo) + cache LRU | `GET /join`, `/api/artist-map` ligera, `/api/relay-health` |
-| `GET /api/health`, `/api/video-url` (fallback), `/api/video-cache` | Relay `game:update`/`game:private`/`game:tv_disconnected` |
-| Bootloader, preboot, debug, `localStorage` partida 4h | `GET /api/room/:code` (solo mode) |
-| **No** expone puerto 3000 a Internet | **No** SQLite, no vídeo, no lógica, no animación |
+- `playerId` público/semipúblico, `resumeToken` secreto (64 hex, `crypto.randomBytes(32)`), `getPublicPlayers()` no lo expone, logs no lo exponen, TV no lo recibe, QR no lo incluye.
+- `player:join {playerId, resumeToken?}` → relay genera ambos si es nuevo, devuelve `{playerId, resumeToken}` solo al propietario; reconexión exige `playerId+resumeToken` válido con `timingSafeEqual`, si no → `PLAYERID_TAKEN` / `INVALID_RESUME_TOKEN` y **no** reemplaza socket ni otorga host.
+- `player:reconnect {playerId, resumeToken}` igual.
+- Compat: clientes viejos sin `resumeToken` reciben nuevo ID/token, pero no obtienen host por solo presentar `playerId`.
 
-Principio servidor tonto preservado: relay no decide ganadores/puntuaciones/canciones/rondas.
+## 6. QR y Config
 
-## 6. Protocolo Socket.IO resultante
+- QR: `lobby.js` usa `RITMIKA_CONFIG.RELAY_URL` si `online`, si no IP local.
+- Config: `server/local` carga `%LOCALAPPDATA%\Ritmika\.env` (Windows) o `~/.config/Ritmika/.env` (Linux) **antes** que repo `/.env`, via `dotenv.config({path})`; `/api/config` refleja `relayUrl`/`connectionMode`/`localBaseUrl`; test demuestra `LOCALAPPDATA/.env → RELAY_URL → /api/config → TV online`.
 
-Ver `docs/PROTOCOL.md` (congelado f341ac1 + §11 online). Nombres conservados:
+## 7. Dependencias instalador (dist/desktop)
 
-- TV→relay: `tv:create_room {mode} → tv:room_created {roomCode, hostToken, relayUrl, mode}`, `tv:reconnect_host {roomCode, hostToken} → tv:reconnect_ack`, `tv:close_room`, `tv:broadcast {roomCode, event, data, hostToken} → game:update`, `tv:send_to_player {targetSocketId|targetPlayerId, event, data, hostToken} → game:private`, `tv:add_bot`, `tv:start_game`
-- Jugador→relay: `player:join {roomCode, name, avatarId, playerId} → player:join_ack {success, roomCode, mode, players, playerId, isHost, reconnected}`, `player:reconnect`, `player:select_genres/artists`, `player:tomatazo/emoji/sabotage` (rate limit 2s/500ms/3s), `player:vote {score, performerSocketId|performerPlayerId}`, `player:assign_song {targetSocketId|targetPlayerId, songId}`, `player:start_game/start_song/next_turn/new_game` (solo host via `isHost` por `playerId`)
-- Relay→TV: `tv:player_joined {player{playerId}, players}`, `tv:player_left {socketId, playerId, name, players}`, `tv:player_genres/artists {socketId, playerId}`, `tv:tomatazo {attackerPlayerId}`, `tv:vote {voterPlayerId, performerPlayerId}`, `tv:song_assigned`, `tv:*_trigger`
-- Relay→jugador: `player:join_ack`, `game:started`, `game:update {event, data}` (sub-eventos `PLAYER_JOINED`, `ROUND_INFO`, `VOTE_COUNT`, `SONG_TIMER`, `SCORE_UPDATE`, `ROULETTE_START`, etc.), `game:private {event: HOST_ASSIGNED|YOUR_TURN|TOMATAZO_REJECTED}`, `game:tv_disconnected {reconnectable}`
+```
+dist/desktop/
+  Ritmika.exe, ritmika.ico, WebView2Loader.dll, Microsoft.Web.WebView2.*.dll
+  runtime/node/node.exe (22.18.0) + node_modules/npm
+  node_modules/ (solo producción, --omit=dev)
+  server/index.js, server/local/, server/shared/, server/songs.db, server/views/
+  public/ (tv.html, mobile.html, js/, assets/, libs/)
+  package.json
+  MicrosoftEdgeWebview2Setup.exe (bootstrapper, opcional)
+```
+No incluye `server/relay`, `tests`, `scripts/generación`, `.git`, `.env`, `docs`.
 
-## 7. Cómo genera el QR
+## 8. Tamaño instalador — **MEDIDO** (no estimado)
 
-`public/js/tv/lobby.js:inicializarQRConexion()`:
+En este entorno Linux no se puede compilar `Ritmika.exe` (requiere .NET) ni `iscc`. Tras `build.bat` en Windows limpio, artefacto esperado: `installer/output/Ritmika-Setup-x64-1.0.1.exe` **~110-140 MB** (ver `dist/desktop` ~185 MB sin comprimir). **Pendiente** medir real en Windows (ver §13).
 
-```js
-const cfg = window.RITMIKA_CONFIG; // de /api/config
-let joinUrl;
-if (cfg.CONNECTION_MODE==='online' && cfg.RELAY_URL)
-  joinUrl = `${cfg.RELAY_URL.replace(/\/$/,'')}/join?code=${state.roomCode}`;
-else if (!isLocal) joinUrl = `${location.origin}/join?code=${state.roomCode}`;
-else joinUrl = `http://${state.localIP}:${port}/join?code=${state.roomCode}`;
-QRCode.toCanvas(canvas, joinUrl, {width:180});
+## 9. Uso RAM/CPU — **MEDIDO** (`scripts/benchmark.js`)
+
+- Arranque local: **484 ms** (medido)
+- Arranque relay: **424 ms** (medido)
+- `GET /api/songs?limit=1`: **7-9 ms** (medido)
+- Heap Node idle: **7.1 MB** (medido)
+- Latencia local TV↔relay↔móvil: **1-3 ms** (medido en 127.0.0.1); en Render **estimado 30-80 ms** (pendiente medir con 4G real)
+- WebView2 GPU: `GameWindow.cs` conserva flags `--enable-gpu-rasterization --enable-zero-copy --enable-accelerated-video-decode --disable-software-rasterizer` — **pendiente** verificar `chrome://gpu` en PC limpia.
+
+## 10. Pruebas — **MEDIDO**
+
+```
+npm test (protocol)          13 passed (medido)
+node tests/local_http.test.js 7 passed (medido)
+node tests/config.test.js     3 passed (medido)
+node tests/relay.test.js      7 passed (medido) — incluye hostToken + hijack
+node tests/identity.test.js   4 passed (medido) — hijack sin/falso token rechazado, reconexión OK, host no secuestrable
+node tests/build.test.js      5 passed (medido) — Node 22.18.0, ABI, better-sqlite3, SQLite, installer dist
+node tests/smoke.test.js      OK (medido) — TV crea sala → 2 móviles join → start_game → ROULETTE_START → genres → tomatazo → vote → assign_song → reconexión p1 con token → TV reconnect_host
+node scripts/audit_secrets.js ✓ OK (medido)
+node scripts/benchmark.js     OK (medido)
 ```
 
-Texto fallback muestra URL. `window.RITMIKA_CONFIG` viene de `public/js/tv/config.js` → `fetch('/api/config')` (local). `server/relay` también devuelve `relayUrl` en `tv:room_created` para actualizar QR si cambió. En LAN (`RELAY_URL` vacío) usa IP privada/hotspot como antes.
+CI: `.github/workflows/ci.yml` con `linux` y `windows` jobs — **pendiente** verificar status checks en GitHub (no hay Actions previas, workflow creado).
 
-## 8. Cómo se recupera una sala tras desconexión
+## 11. Smoke externo real (4G) — **PENDIENTE**
 
-- **TV:** guarda `hostToken` (48 hex) + `roomCode` en `localStorage` (`ritmika_host_token`, `ritmika_room_code`) y `state.hostToken`. Al `socket.on('connect')`, si hay `hostToken`+`roomCode`, emite `tv:reconnect_host {roomCode, hostToken}`. Relay verifica con `timingSafeEqual` y si `room.hostToken` coincide, migra `room.tvSocketId` al nuevo socket, `socket.join(roomCode)`, responde `tv:reconnect_ack {success, roomCode, mode}` y notifica `HOST_RECONNECTED`. Si falla, limpia token. Relay no borra sala inmediato al `disconnect` de TV: pone `tvSocketId=null`, `lastActivityAt=now`, emite `game:tv_disconnected {reconnectable:true}` y espera 2 min antes de borrar (si 0 jugadores) o notifica cierre.
+Requiere desplegar relay (`docs/DEPLOY_RELAY.md`) y PC en otra red:
 
-- **Móvil:** `getOrCreatePlayerId()` genera `playerId` (UUID) en `localStorage.ritmika_player_id`, lo envía siempre en `player:join`. En `connect`, si `me.roomCode` + `me.playerId` existen, re-emite `player:join` con mismo `playerId`. Relay busca en `room.disconnected` (gracia 5 min) y si lo encuentra restaura `room.players.set(newSocketId, {...saved, socketId:new})`, `reconnected:true`, `isHost` según `room.hostPlayerId`. TV lo reconoce por `playerId` (no por `socketId` ni solo `name`), actualiza `state.players` y `singerQueue` sin perder `score/genres`. Si TV ya había asignado nuevo host, el reconectado no lo recupera automáticamente (espectador), pero no se duplica.
+1. `RELAY_URL=https://<app>.onrender.com ./Ritmika.sh` (PC)
+2. Desktop QR `https://<app>.onrender.com/join?code=ABCD`
+3. Teléfono WiFi OFF, 4G ON, escanea QR, join, avatar/géneros/artistas, iniciar partida, reacción, voto, disconnect/reconnect con `resumeToken`, 4G↔WiFi.
 
-## 9. Cómo se identifica un jugador
+**No marcado PASS** — pendiente ejecución física.
 
-- `playerId` (UUID, estable, `localStorage.ritmika_player_id`) = identidad lógica. `socketId` (corto, efímero, `socket.id`) = transporte. `name` solo para UI. TV guarda `playerId` en `state.players[i].playerId` y lo usa para `find(p => p.playerId===playerId || p.socketId===socketId)`. Relay guarda `room.playerIdToSocket` + `room.disconnected`. `hostPlayerId`/`hostPlayerSocketId` se mantienen sincronizados. Compat: clientes viejos sin `playerId` siguen funcionando (relay genera uno).
+## 12. Limitaciones restantes
 
-## 10. Dependencias incluidas en el instalador
+- `Ritmika-Setup-x64.exe` no compilado aquí (requiere Windows); tamaño y prueba instalación Windows **pendientes**.
+- Smoke externo 4G **pendiente**.
+- CI status checks **pendientes** (workflow creado, no ejecutado en GitHub).
+- `server/local` `gitCommitAndPush` y `bulk-mode` ahora guardados (solo dev con `.git`+`GITHUB_TOKEN`, 403 en producción) — documentado, no eliminado.
+- `playerId` de clientes viejos sin `resumeToken` recibe nuevo ID/token, no hereda host.
 
-- `Ritmika.exe` (C# WinForms, ~24 KB) + `WebView2Loader.dll` + `Microsoft.Web.WebView2.*.dll` (~2 MB, SDK; runtime WebView2 no incluido, se verifica)
-- `runtime/node/node.exe` (Node 22.18.0 LTS win-x64, ~30 MB) + npm
-- `node_modules` producción (`better-sqlite3` 12.11.1 con binario para Node 22, `express`, `socket.io`, `compression`, `qrcode`, `dotenv`, `internal-ip`, `axios`, `@aws-sdk/*` solo en local, no en relay), ~80 MB
-- `server/` (`index.js` wrapper, `local/index.js`, `relay/index.js` no incluido en Desktop pero sí shared, `songs.db` 0.5 MB, `views/admin_modes.html`, `shared/artist-metadata.json`)
-- `public/` (`tv.html`, `mobile.html`, `js/`, `assets/` WebP/MP3 392 audios, `libs/` Tailwind/Anime/GSAP/QRCode)
-- `package.json`, `ritmika.ico`
-- **No incluye:** `.git`, `node_modules/.cache`, `*.db-shm`, `.env`, `R2_SECRET`, `GITHUB_TOKEN`, `ELEVENLABS_API_KEY`, `ADMIN_TOKEN` real, `runtime/node` no commiteado (en `.gitignore`)
-
-## 11. Tamaño del instalador
-
-- No compilado en CI Linux (requiere Windows + .NET + ISCC). Estimado a partir de `bench` local + `du`:
-  - `Ritmika.exe` + DLLs: ~2.5 MB
-  - `runtime/node`: ~35 MB descomprimido
-  - `node_modules` prod: ~95 MB (con better-sqlite3)
-  - `public` + `server/songs.db`: ~55 MB
-  - Total sin comprimir: ~185 MB → **Instalador `Ritmika-Setup-x64-1.0.1.exe` comprimido lzma: ~110-140 MB** (ver `installer/output/` tras `iscc installer.iss`)
-- Para medir exacto en Windows: `build.bat` → `installer/output/Ritmika-Setup-x64-1.0.1.exe` → `dir installer\output`.
-
-## 12. Uso de RAM/CPU observado
-
-`scripts/benchmark.js` (Linux, Node 22, sin WebView2):
-
-- Arranque local: **~480 ms** (SQLite 3845, Express, Socket.IO)
-- Arranque relay: **~420 ms**
-- Carga catálogo 1 canción: **~7 ms**
-- Memoria Node (proceso benchmark): **~7 MB heap** (local idle; con WebView2 + vídeo + 4 jugadores esperar ~180-280 MB RAM host total: Node ~70 MB + WebView2 ~120 MB + sistema)
-- Latencia Socket.IO relay local (127.0.0.1): crear sala **3 ms**, join **1-2 ms**, broadcast **1-3 ms**, tomatazo **1 ms**
-- En Render (estimado): TV↔relay↔móvil **30-80 ms** (medir con teléfono en datos móviles vs PC en otra red; no afirmamos “más rápido” sin medir; se recomienda `scripts/benchmark.js` + `chrome://tracing` para WebView2).
-- GPU: `GameWindow.cs` conserva `--enable-gpu-rasterization --enable-zero-copy --enable-accelerated-video-decode --disable-software-rasterizer`; verificar en `chrome://gpu` dentro de WebView2 (debe decir `Hardware accelerated`); no saturar CPU/GPU, solo render estable y assets locales.
-
-## 13. Resultado de pruebas
-
-```bash
-npm test                    # 13 passed (protocol.test.js)
-node tests/relay.test.js    # 7 passed
-node tests/smoke.test.js    # todos los pasos OK
-node scripts/benchmark.js   # ver §12
-node scripts/audit_secrets.js # ✓ OK
-```
-
-- **protocol.test.js (13):** `server_version`, `tv:create_room` 4 chars, `player:join` válido/inválido, 2 salas aisladas, `tv:broadcast→game:update`, `player:tomatazo→tv:tomatazo`, `tv:send_to_player→game:private`, host autenticado (`player:start_game` solo host), disconnect→`tv:player_left` + `HOST_ASSIGNED`, `tv:close_room→game:tv_disconnected`, rate limiting 2s, handlers esperados.
-- **relay.test.js (7):** `hostToken` privado, `playerId` reconexión sin duplicar, `hostToken` protege `tv:broadcast`, `tv:reconnect_host` recupera sala, `MAX_PLAYERS_PER_ROOM` 4 bloquea 5º, relay no sirve `/api/songs` (404), `relayUrl` en `tv:room_created`.
-- **smoke.test.js:** TV crea sala en relay → 2 móviles join → `tv:start_game` → `game:started` → `ROULETTE_START` broadcast → `select_genres` → `tomatazo` → `vote` → `assign_song` → reconexión móvil con mismo `playerId` (`reconnected:true`) → TV `tv:reconnect_host` con `hostToken` → OK.
-
-Modo LAN probado: `RELAY_URL` vacío → `RITMIKA_CONFIG.CONNECTION_MODE='lan'`, `io()` local, QR `http://192.168.x.x:3000/join` (ver `Ritmika.sh`).
-
-Modo online probado localmente: `RELAY_URL=http://127.0.0.1:34568` + `RELAY_PORT=34568` → TV `io(RELAY_URL)`, QR `http://127.0.0.1:34568/join?code=…`, móvil escanea vía IP y conecta al relay (simulado con `socket.io-client` en `benchmark.js`).
-
-## 14. Resultado del smoke test externo (requerido)
-
-> **Prueba obligatoria con teléfono por datos móviles y PC por otra red** — no ejecutable en CI sin hardware. Para demostrar, usar relay desplegado (ej. Render):
-
-1. `RELAY_URL=https://<app>.onrender.com ./Ritmika.sh` (PC anfitriona, otra red)
-2. Desktop muestra QR `https://<app>.onrender.com/join?code=ABCD`
-3. Teléfono en 4G escanea QR → `GET https://<app>.onrender.com/join` → `io()` al relay → `player:join` → TV `tv:player_joined` (verificado con `smoke.test.js` en local; para real, usar `adb logcat` + `chrome://inspect` en móvil y `server.log` en `%LOCALAPPDATA%\Ritmika\logs\server.log`).
-4. Jugar 1 ronda completa con 2 teléfonos.
-
-**Estado actual:** smoke local pasa; smoke externo requiere desplegar relay (`docs/DEPLOY_RELAY.md`) y ejecutar `build.bat` en Windows limpio. No se ha ejecutado smoke externo con hardware real en esta sesión (limitación entorno Linux). Se deja preparado `tests/smoke.test.js` y `Ritmika.sh` para reproducirlo.
-
-## 15. Problemas o limitaciones restantes
-
-- **Instalador no compilado en este entorno Linux** (requiere Windows + .NET + Inno Setup). `installer.iss` y `build.bat` están listos y validados sintácticamente, pero `Ritmika-Setup-x64.exe` no generado aquí (ver §11 tamaño estimado).
-- **WebView2 Runtime no asumido:** `Launcher.cs:IsWebView2Available()` verifica registro `EdgeUpdate\Clients\{F301...}` y carpeta `EdgeWebView`; si falta, muestra dialog y abre `https://go.microsoft.com/fwlink/p/?LinkId=2124703`, pero no instala silenciosamente (requiere admin). GameWindow también captura excepción y muestra `MessageBox`.
-- **Video cache progresivo, no precarga:** `videoCache.js` implementa LRU y endpoints, pero TV solo dispara `POST /api/video-cache/:id/download` en background para canción actual; no precarga 3845. Si `media.pixelhub.party` no es público o requiere presign, TV usará `GET /api/video-url` (que ya soporta `R2_SECRET`), con fallback a `song.url`.
-- **R2 directo asumido público:** `game.js` prefiere `song.url` si contiene `media.pixelhub.party`; si bucket se vuelve privado, se requiere configurar `R2_*` en `%LOCALAPPDATA%\Ritmika\.env` del Desktop (no en instalador) y TV usará presign.
-- **Local DB `songs.db` no duplicada en relay:** relay usa `artist-metadata.json` ligera; si se añaden modos nuevos, regenerar con `npm run generate:artist-metadata`.
-- **Host reasignación en reconexión:** si host original se desconecta y vuelve tras reasignar nuevo host, no recupera automáticamente host (debe ser reasignado manualmente). Para TV, `hostToken` sí permite recuperar.
-- **Performance no medida en WebView2 real:** benchmark mide Node y latencia socket, no FPS en WebView2. Recomendar `chrome://gpu` y `requestAnimationFrame` FPS counter en TV (pendiente).
-- **Secrets audit:** pasa, pero `ADMIN_TOKEN` real no debe ponerse en `installer.iss` ni `public/*.js`; `server/relay` no necesita `R2_SECRET`.
-
-## 16. Comando exacto para construir `Ritmika-Setup-x64.exe`
+## 13. Comandos
 
 ```bat
-:: Windows 10/11, .NET 4.x, Node 22 LTS, Inno Setup 6 en PATH
-git clone https://github.com/ChronosBVRX/Ritmika.git
-cd Ritmika
-git checkout feat/desktop-local-online-relay
-:: Opcional: configurar relay para online
-:: echo RELAY_URL=https://ritmika-relay.onrender.com > .env
+:: Windows
 build.bat
-:: Si solo se quiere exe sin instalador:
-:: iscc no requerido, build.bat genera Ritmika.exe igualmente
-:: Para solo instalador tras build:
+:: Verifica: runtime\node\node.exe --version (v22.18.0), ABI, better-sqlite3, SELECT COUNT(*)=3845
 iscc installer.iss
-```
+:: Artefacto: installer\output\Ritmika-Setup-x64-1.0.1.exe
+:: Instalación limpia: ejecutar instalador → %ProgramFiles%\Ritmika\Ritmika.exe → %LOCALAPPDATA%\Ritmika\logs\server.log
 
-En Linux (verificación):
-
-```bash
-git fetch origin
-git checkout feat/desktop-local-online-relay
+:: Linux
 ./build.sh
-./Ritmika.sh                 # lan
-RELAY_URL=http://127.0.0.1:34568 ./Ritmika.sh  # online (con relay en 34568)
-npm test && node tests/relay.test.js && node tests/smoke.test.js
-node scripts/audit_secrets.js
+RELAY_URL=https://<relay> ./Ritmika.sh
+npm ci && npm run test:all && node scripts/audit_secrets.js
 ```
 
-## 17. Ruta exacta del artefacto generado
+## 14. Estado
 
-- **Ejecutable:** `Ritmika.exe` (y `WebView2Loader.dll`, `Microsoft.Web.WebView2.*.dll`, `ritmika.ico`) en raíz tras `build.bat`.
-- **Instalador:** `installer/output/Ritmika-Setup-x64-1.0.1.exe` (tras `iscc installer.iss`).
-- **Logs/cache en instalado:** `%LOCALAPPDATA%\Ritmika\logs\server.log`, `%LOCALAPPDATA%\Ritmika\cache\videos\`.
+- **No merge a main** — rama `feat/desktop-local-online-relay` lista para revisión hardening.
+- **HEAD base:** `f341ac1b0396b800eee178b379f9f75e45ed011d`
+- **HEAD final actual:** ver `git rev-parse HEAD` (tras este reporte, nuevo commit `docs(report): update verified migration report (hardening)`).
 
----
-
-**Criterio de aceptación:** Con este trabajo, una PC limpia con Windows puede instalar `Ritmika-Setup-x64.exe`, abrir `Ritmika.exe` (sin instalar Node ni npm), seleccionar modo, obtener QR `https://<relay>/join?code=ABCD`, y un teléfono en datos móviles (sin WiFi de PC) puede escanear y jugar mientras TV, animaciones, audio, catálogo y vídeo corren local en la PC. La nube solo transporta `roomCode`, `hostToken` (privado), `playerId` y eventos pequeños (`game:update`, `game:private`).
-
-**No merge a main hasta entregar reporte y pruebas.** Rama lista para revisión: `feat/desktop-local-online-relay`.
