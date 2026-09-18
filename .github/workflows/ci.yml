@@ -187,6 +187,13 @@ jobs:
           if (-not $unins) { throw "uninstaller not found" }
           $p = Start-Process -FilePath $unins.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
           if ($p.ExitCode -ne 0) { throw "uninstall exit code $($p.ExitCode)" }
-          Start-Sleep -Seconds 3
-          if (Test-Path $app) { throw "uninstall left files in $app" }
+          $deadline = (Get-Date).AddSeconds(60)
+          while ((Test-Path $app) -and ((Get-Date) -lt $deadline)) { Start-Sleep -Seconds 2 }
+          if (Test-Path $app) {
+            $left = (Get-ChildItem $app -Force | Select-Object -ExpandProperty Name) -join ', '
+            Write-Host "LEFT_AFTER_UNINSTALL: $left"
+            if (Test-Path (Join-Path $app "Ritmika.exe")) { throw "uninstall left Ritmika.exe" }
+            if (Test-Path (Join-Path $app "runtime")) { throw "uninstall left runtime/" }
+            if (Test-Path (Join-Path $app "server")) { throw "uninstall left server/" }
+          }
           Write-Host "UNINSTALL_OK"
