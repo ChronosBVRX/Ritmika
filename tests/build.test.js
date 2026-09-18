@@ -74,6 +74,15 @@ async function test(){
     assert(!/xcopy[^\n]*tests/i.test(bat), 'build.bat no debe copiar tests');
   });
 
+  await chk('server usa DB escribible en LOCALAPPDATA (instalacion limpia)', async()=>{
+    const src=fs.readFileSync('server/local/index.js','utf8');
+    assert(src.includes('resolveWritableAppDir'), 'debe resolver dir escribible');
+    assert(src.includes('prepareWritableDb'), 'debe preparar copia escribible');
+    assert(src.includes('copyFileSync'), 'debe copiar songs.db');
+    const iss=fs.readFileSync('installer.iss','utf8');
+    assert(iss.includes('{localappdata}\\Ritmika\\songs.db'), 'uninstall debe limpiar la DB copiada');
+  });
+
   await chk('ritmika.ico versionado y valido (instalador lo requiere)', async()=>{
     assert(fs.existsSync('ritmika.ico'), 'ritmika.ico debe existir en el repo');
     const buf=fs.readFileSync('ritmika.ico');

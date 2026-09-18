@@ -206,17 +206,61 @@ app.get('/api/network-config', async (req, res) => {
 });
 
 // ── SQLite Database ──────────────────────────────────────
+// El instalador coloca songs.db en Program Files (solo lectura para el usuario).
+// Copiamos la DB a un directorio escribible (%LOCALAPPDATA%\Ritmika) para poder
+// abrirla en WAL y permitir cambios de modo. Así el catálogo funciona en una
+// instalación limpia sin privilegios de administrador.
 const Database = require('better-sqlite3');
-const sqlitePath = path.join(__dirname, '../songs.db');
+const sourceDbPath = path.join(__dirname, '../songs.db');
+
+function resolveWritableAppDir() {
+  const candidates = [];
+  if (process.env.LOCALAPPDATA) candidates.push(path.join(process.env.LOCALAPPDATA, 'Ritmika'));
+  if (process.env.RITMIKA_APPDATA) candidates.push(path.join(process.env.RITMIKA_APPDATA, 'Ritmika'));
+  if (process.env.APPDATA) candidates.push(path.join(process.env.APPDATA, 'Ritmika'));
+  if (process.platform !== 'win32') candidates.push(path.join(os.homedir(), '.config', 'Ritmika'));
+  candidates.push(path.join(os.tmpdir(), 'Ritmika'));
+  for (const dir of candidates) {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      fs.accessSync(dir, fs.constants.W_OK);
+      return dir;
+    } catch {}
+  }
+  return null;
+}
+
+function prepareWritableDb() {
+  const dir = resolveWritableAppDir();
+  if (!dir) return sourceDbPath;
+  const target = path.join(dir, 'songs.db');
+  try {
+    const needCopy = !fs.existsSync(target) ||
+      (fs.existsSync(sourceDbPath) && fs.statSync(sourceDbPath).mtimeMs > fs.statSync(target).mtimeMs);
+    if (needCopy && fs.existsSync(sourceDbPath)) fs.copyFileSync(sourceDbPath, target);
+  } catch (err) {
+    console.warn('[DB] No se pudo copiar songs.db a', dir, '-', err.message);
+  }
+  return fs.existsSync(target) ? target : sourceDbPath;
+}
+
+const sqlitePath = prepareWritableDb();
 let db;
 try {
   db = new Database(sqlitePath);
   db.pragma('journal_mode = WAL');
   const count = db.prepare('SELECT COUNT(*) as cnt FROM songs').get().cnt;
-  console.log(`[DB] SQLite loaded — ${count} songs from songs.db`);
+  console.log(`[DB] SQLite loaded — ${count} songs from ${sqlitePath}`);
 } catch (err) {
   console.error('[DB] Could not open songs.db:', err.message);
-  db = null;
+  try {
+    db = new Database(sourceDbPath, { readonly: true });
+    const count = db.prepare('SELECT COUNT(*) as cnt FROM songs').get().cnt;
+    console.log(`[DB] SQLite read-only — ${count} songs from ${sourceDbPath}`);
+  } catch (err2) {
+    console.error('[DB] Could not open songs.db (readonly):', err2.message);
+    db = null;
+  }
 }
 
 function isDbReady() {

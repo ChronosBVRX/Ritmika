@@ -175,6 +175,12 @@ jobs:
             Write-Host "HEALTH_OK server=$($health.server) relay=$($health.relayUrl)"
             Write-Host "SONGS_ENDPOINT_OK count=$($songs.Count)"
             Write-Host "CONFIG_OK mode=$($cfg.connectionMode)"
+
+            # La DB debe copiarse a un directorio escribible del usuario, no a Program Files.
+            $userDb = Join-Path $appData "Ritmika\songs.db"
+            if (-not (Test-Path $userDb)) { throw "expected writable DB copy at $userDb" }
+            Write-Host "USER_DB_OK: $userDb"
+            if (Test-Path (Join-Path $app "server/songs.db-wal")) { throw "Program Files DB was written (WAL present)" }
           } finally {
             if ($proc -and -not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
           }

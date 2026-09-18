@@ -52,6 +52,10 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\Ritmika\cache"
 Type: filesandordirs; Name: "{localappdata}\Ritmika\logs"
+; DB escribible copiada desde Program Files + artefactos WAL
+Type: files; Name: "{localappdata}\Ritmika\songs.db"
+Type: files; Name: "{localappdata}\Ritmika\songs.db-wal"
+Type: files; Name: "{localappdata}\Ritmika\songs.db-shm"
 
 [Code]
 function IsWebView2Installed: Boolean;
