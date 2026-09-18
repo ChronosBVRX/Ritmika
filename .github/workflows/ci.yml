@@ -62,3 +62,63 @@ jobs:
           if [ ! -f "installer.iss" ]; then echo "installer.iss missing" && exit 1; fi
           grep -q "dist\\\\desktop" installer.iss || (echo "installer must use dist/desktop" && exit 1)
         shell: bash
+
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+          cache: 'npm'
+      - name: Install deps
+        run: npm ci
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Add Inno Setup to PATH
+        shell: pwsh
+        run: |
+          $iscc = Get-ChildItem "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" -ErrorAction SilentlyContinue
+          if (-not $iscc) { $iscc = Get-ChildItem "C:\Program Files\Inno Setup 6\ISCC.exe" -ErrorAction SilentlyContinue }
+          if (-not $iscc) { throw "ISCC.exe not found after choco install" }
+          Split-Path $iscc.FullName | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+      - name: Build desktop + installer
+        shell: cmd
+        run: build.bat < nul
+      - name: Verify installer and staging
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = "installer/output/Ritmika-Setup-x64-1.0.1.exe"
+          if (-not (Test-Path $exe)) { throw "installer not produced: $exe" }
+          $size = (Get-Item $exe).Length
+          $hash = (Get-FileHash $exe -Algorithm SHA256).Hash
+          Write-Host "INSTALLER: $exe"
+          Write-Host "SIZE_BYTES: $size"
+          Write-Host "SHA256: $hash"
+          if ($size -lt 5000000) { throw "installer suspiciously small: $size" }
+
+          $stage = "dist/desktop"
+          foreach ($forbidden in @(".env",".git",".github","server/relay","tests","docs")) {
+            if (Test-Path (Join-Path $stage $forbidden)) { throw "forbidden path in staging: $forbidden" }
+          }
+          foreach ($dev in @("nodemon","tailwindcss","socket.io-client")) {
+            if (Test-Path (Join-Path $stage "node_modules/$dev")) { throw "devDependency in staging: $dev" }
+          }
+
+          Push-Location $stage
+          $nodeVer = & "runtime/node/node.exe" --version
+          Write-Host "NODE_RUNTIME: $nodeVer"
+          if ($nodeVer.Trim() -ne "v22.18.0") { throw "unexpected bundled Node: $nodeVer" }
+          $count = & "runtime/node/node.exe" -e "const c=require('better-sqlite3')('server/songs.db').prepare('SELECT COUNT(*) c FROM songs').get().c; if(c!==3845) throw new Error('songs '+c); console.log(c)"
+          Pop-Location
+          Write-Host "SONGS: $count"
+          if (-not (Test-Path "$stage/server/songs.db")) { throw "songs.db missing in staging" }
+          if (-not (Test-Path "$stage/public/assets")) { throw "public/assets missing in staging" }
+          if (-not (Test-Path "$stage/MicrosoftEdgeWebview2Setup.exe")) { Write-Warning "WebView2 bootstrapper missing (download may have failed)" }
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ritmika-Setup-x64-1.0.1
+          path: installer/output/*.exe
+          if-no-files-found: error
