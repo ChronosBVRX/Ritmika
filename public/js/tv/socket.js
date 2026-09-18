@@ -60,8 +60,17 @@ function setupSocket(s) {
     }
     fetch('/api/health', { signal: AbortSignal.timeout(5000) })
       .then(r => r.json())
-      .then(h => { boot.step(4, 'done', h.ffmpeg ? 'FFmpeg disponible' : 'Sin FFmpeg (MP4 nativo OK)'); })
-      .catch(() => { boot.step(4, 'done', 'no verificado'); });
+      .then(h => {
+        boot.step(4, 'done', h.ffmpeg ? 'FFmpeg disponible' : 'Sin FFmpeg (MP4 nativo OK)');
+        const lt=document.getElementById('local-status-text');
+        if(lt) lt.textContent = 'Local: ' + (h.catalog ? h.catalogCount + ' canciones' : 'OK');
+        if(lt) lt.style.color = h.catalog ? '#22c55e' : '#eab308';
+      })
+      .catch(() => {
+        boot.step(4, 'done', 'no verificado');
+        const lt=document.getElementById('local-status-text');
+        if(lt){ lt.textContent='Local: fallo'; lt.style.color='#ef4444'; }
+      });
   });
 
   s.on('disconnect', (reason) => {
