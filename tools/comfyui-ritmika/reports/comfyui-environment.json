@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-18T14:22:26-0600",
+  "generated_at": "2026-09-18T16:59:28-0600",
   "host_platform": {
     "os": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
     "python": "3.12.3",
@@ -15,7 +15,7 @@
       "system": {
         "os": "linux",
         "ram_total": 33468575744,
-        "ram_free": 13015781376,
+        "ram_free": 13165391872,
         "comfyui_version": "0.36.0",
         "required_frontend_version": "1.52.7",
         "installed_templates_version": "0.11.62",
@@ -65,7 +65,7 @@
           "type": "cuda",
           "index": 0,
           "vram_total": 12488343552,
-          "vram_free": 10366252752,
+          "vram_free": 10387486416,
           "torch_vram_total": 939524096,
           "torch_vram_free": 17790672
         }
@@ -450,7 +450,7 @@
       {
         "name": "NVIDIA GeForce RTX 3060",
         "memory_total_mib": "12288",
-        "memory_used_mib": "2041",
+        "memory_used_mib": "2021",
         "driver": "580.178.04",
         "compute_cap": "8.6"
       }

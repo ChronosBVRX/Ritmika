@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-18T13:52:42-0600",
+  "generatedAt": "2026-09-18T16:54:22-0600",
   "source": "manifests/source-assets.json",
   "count": 73,
   "byAnimation": {
@@ -156,8 +156,7 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "dry-run",
-      "updatedAt": "2026-09-18T14:26:51-0600"
+      "status": "pending"
     },
     {
       "id": "tio-axolo-vignette-angry-reaction",
@@ -189,8 +188,7 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "dry-run",
-      "updatedAt": "2026-09-18T14:26:51-0600"
+      "status": "pending"
     },
     {
       "id": "tio-axolo-vignette-emo-angry-reaction",
