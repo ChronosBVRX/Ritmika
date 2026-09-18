@@ -1,0 +1,17 @@
+# Local, machine-specific config (never commit)
+config.json
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Local virtualenv if someone creates it inside the tool
+.venv/
+venv/
+
+# Transient reports (keep directory, ignore noisy per-run batch logs)
+reports/batch-*.json
+
+# Generated previews accidentally placed here
+*.webm
+*.mp4
