@@ -1,0 +1,26 @@
+{
+  "id": "character_reaction",
+  "description": "Short non-looping reaction clip for a character (celebration, laugh, anger, surprise, defeat, mischievous). Identity preserved, motion stronger than idle but still contained.",
+  "animationType": "reaction",
+  "loop": false,
+  "alphaRequired": true,
+  "workflowFile": "workflow.api.json",
+  "defaults": {
+    "frames": 14,
+    "fps": 8,
+    "steps": 20,
+    "cfg": 7.0,
+    "sampler": "euler",
+    "scheduler": "karras",
+    "denoise": 0.52,
+    "motionScale": 1.1,
+    "contextLength": 16,
+    "contextOverlap": 4,
+    "closedLoop": false,
+    "interpMultiplier": 2,
+    "outputFps": 24,
+    "loopMode": "none"
+  },
+  "positive": "single short character reaction, expressive face, upper body reacts, exact same character design, same clothing, same colors, same facial features, animated cartoon character",
+  "negative": "deformation, extra limbs, extra fingers, changing clothes, color shift, morphing, identity change, camera movement, camera zoom, new accessories, new objects, background changes, text, watermark, logo, blurry, low quality"
+}
