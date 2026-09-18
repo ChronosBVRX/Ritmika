@@ -153,3 +153,50 @@ KARAOKE_START {socketId,name,song}
 ## 10. Tests asociados
 
 `tests/protocol.test.js` — cubre creación, join válido/inválido, aislamiento, broadcast, private, host triggers, disconnect, rate limiting (ver `tests/README.md`).
+
+---
+
+## 11. Evolución Online Relay (post-f341ac1, rama feat/desktop-local-online-relay)
+
+> Esta sección documenta extensiones **aditivas** y compatibles hacia atrás. Nombres de eventos originales se conservan.
+
+### 11.1 Config dual-origen
+
+- `GET /api/config` (local) → `{ localBaseUrl, relayUrl, connectionMode, version }`
+- TV carga `public/js/tv/config.js` que hace `fetch('/api/config')` y expone `window.RITMIKA_CONFIG` + `window.ritmikaConfigReady` (Promise).
+- TV decide socket URL: `if (CONNECTION_MODE==='online' && RELAY_URL) io(RELAY_URL) else io()` (mismo origen).
+- `LOCAL_BASE_URL` siempre es el origen que sirve HTML/assets/catálogo (`http://127.0.0.1:3000` en Desktop). `RELAY_URL` es la pasarela pública (`https://<relay>/`).
+
+### 11.2 QR público
+
+- Antes: `http://192.168.x.x:3000/join?code=ABCD` (LAN)
+- Ahora online: `https://<relay>/join?code=ABCD` (Internet). Generado en `public/js/tv/lobby.js:inicializarQRConexion()` cuando `RITMIKA_CONFIG.CONNECTION_MODE==='online'`.
+- La PC y los teléfonos **no** necesitan misma red. Conexión TV→relay es saliente.
+
+### 11.3 Identidad estable
+
+- `playerId`: string UUID (cliente genera `crypto.randomUUID()` y guarda en `localStorage.ritmika_player_id`), enviado en `player:join {roomCode, name, avatarId, playerId}`.
+- Relay lo persiste en `room.playerIdToSocket` + `room.disconnected` (gracia 5 min). Si mismo `playerId` vuelve con socket distinto, se considera **reconexión** (`ack.reconnected===true`), no nuevo jugador, no cuenta para `MAX_PLAYERS`.
+- `socketId` sigue siendo transporte actual; `playerId` es identidad lógica. TV reconoce reconexión por `playerId` (antes solo por `name`).
+- Mobile guarda `playerId` del `player:join_ack {playerId}` si el servidor lo generó.
+
+### 11.4 Host token
+
+- `hostToken`: 48 hex chars (`crypto.randomBytes(24)`), generado en `tv:create_room` por relay, **solo** devuelto a TV en `tv:room_created {roomCode, hostToken, relayUrl, mode}`. Nunca viaja a jugadores ni en QR.
+- Operaciones privilegiadas de TV (`tv:broadcast`, `tv:send_to_player`, `tv:start_game`, `tv:close_room`) deben incluir `hostToken` cuando la TV habla con relay; relay verifica con `timingSafeEqual`. En modo LAN local, `hostToken` se ignora (compat).
+- TV lo guarda en `localStorage.ritmika_host_token` + `state.hostToken` para reconexión.
+- Reconexión TV: `tv:reconnect_host {roomCode, hostToken}` → `tv:reconnect_ack {success, roomCode, mode}`. Si falla, TV limpia token y crea sala nueva.
+
+### 11.5 Salas fortalecidas
+
+- `MAX_PLAYERS_PER_ROOM` (env, default 8) — `player:join` rechaza con `{success:false, error:'Sala llena'}` si se excede (reconexiones no cuentan).
+- `ROOM_TTL` / `ROOM_TTL_MS` (default 2h) — salas huérfanas (TV desconectada + 0 jugadores o inactividad) se borran en `RoomManager.cleanup()` cada 60s. TV desconectada no borra inmediato: espera 2 min para reconexión, avisa `game:tv_disconnected {reconnectable:true}`.
+- Rate limiting: `player:tomatazo` 2s, `player:emoji` 500ms, `player:sabotage_audio` 3s vía `RateLimiter`; `GET /api/video-url` 30/min/IP + `IpRateLimiter` 60/min/IP en relay.
+- Validación payload: `roomCode` uppercase trim, `name` ≤15 strip `<>`, `avatarId` 0-7, `score` ∈[10,30,60,100], `songId` ≤100 sin `<>`, `event`/`data` JSON ≤20KB, `emoji` ≤10 chars.
+
+### 11.6 Relay → TV/Jugador (nuevos sub-eventos)
+
+- `tv:reconnect_ack` (relay→TV) y `player:reconnect_ack` (relay→player) para flujos de reconexión.
+- `game:tv_disconnected` ahora puede incluir `{reconnectable:true}` para tolerancia.
+- `tv:player_joined` ahora incluye `playerId` en `player` y `players[]`; `tv:player_left` incluye `playerId`.
+

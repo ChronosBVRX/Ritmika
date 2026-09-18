@@ -37,6 +37,7 @@ class RoomManager {
       hostToken, // solo para TV/relay auth
       players: new Map(), // socketId -> player {name, avatarId, socketId, playerId, joinedAt}
       playerIdToSocket: new Map(), // playerId -> socketId (estable)
+      disconnected: new Map(), // playerId -> {player, disconnectedAt}
       hostPlayerSocketId: null,
       hostPlayerId: null,
       mode: cleanMode,
@@ -76,10 +77,23 @@ class RoomManager {
   }
 
   addPlayer(room, socketId, { name, avatarId, playerId }) {
+    // Reconexión desde disconnected (mismo playerId pero socket diferente)
+    if (playerId && room.disconnected.has(playerId)) {
+      const saved = room.disconnected.get(playerId);
+      room.disconnected.delete(playerId);
+      const oldSocketId = saved.socketId;
+      const updated = { ...saved, socketId, lastSeenAt: Date.now(), name: name || saved.name, avatarId: avatarId ?? saved.avatarId };
+      // Si sala llena, permitir reconexión aunque esté llena (no cuenta como nuevo)
+      room.players.set(socketId, updated);
+      room.playerIdToSocket.set(playerId, socketId);
+      if (room.hostPlayerId === playerId) room.hostPlayerSocketId = socketId;
+      room.lastActivityAt = Date.now();
+      return { player: updated, reconnected: true, oldSocketId };
+    }
     if (room.players.size >= this.maxPlayers) {
       return { error: 'Sala llena (máx ' + this.maxPlayers + ')' };
     }
-    // Si playerId ya existe, es reconexión — reemplazar socket
+    // Si playerId ya existe en players (mismo socket reconectado rápido)
     if (playerId) {
       const existing = this.findPlayerByPlayerId(room, playerId);
       if (existing) {
@@ -116,8 +130,9 @@ class RoomManager {
     const p = room.players.get(socketId);
     if (!p) return null;
     room.players.delete(socketId);
-    // No borrar de playerIdToSocket inmediatamente — permitir reconexión 5min
-    // se limpia en cleanup si no vuelve
+    // Guardar para reconexión 5min
+    room.disconnected.set(p.playerId, { ...p, disconnectedAt: Date.now() });
+    // No borrar de playerIdToSocket inmediatamente — permitir reconexión
     room.lastActivityAt = Date.now();
     // Reasignar host si era el que se fue
     if (room.hostPlayerSocketId === socketId) {
