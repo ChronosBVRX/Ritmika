@@ -23,6 +23,10 @@ jobs:
         run: node tests/local_http.test.js
       - name: Config tests
         run: node tests/config.test.js
+      - name: CORS allowlist tests
+        run: node tests/cors.test.js
+      - name: Reconnect grace tests
+        run: node tests/reconnect.test.js
       - name: Relay tests
         run: npm run test:relay
       - name: Identity tests

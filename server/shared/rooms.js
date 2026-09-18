@@ -10,6 +10,8 @@ class RoomManager {
     this.rooms = new Map(); // roomCode -> room
     this.maxPlayers = opts.maxPlayers || 8;
     this.ttlMs = opts.ttlMs || 2 * 60 * 60 * 1000; // 2h huérfanas
+    // Ventana de reconexión de jugador (default 5 min)
+    this.playerReconnectGraceMs = opts.playerReconnectGraceMs || 5 * 60 * 1000;
     this.cleanupIntervalMs = opts.cleanupIntervalMs || 60 * 1000;
     this._cleanupTimer = null;
     if (opts.autoCleanup !== false) this.startCleanup();
@@ -213,6 +215,28 @@ class RoomManager {
     this.rooms.delete(code.toUpperCase().trim());
   }
 
+  /**
+   * Elimina de `room.disconnected` los jugadores cuya ventana de reconexión
+   * expiró y borra su mapping en `playerIdToSocket`. Un jugador reconectado
+   * ya no está en `disconnected`, por lo que nunca se elimina aquí.
+   * @returns {string[]} playerIds expirados
+   */
+  expireDisconnected(room, now = Date.now()) {
+    if (!room || !room.disconnected) return [];
+    const expired = [];
+    for (const [playerId, saved] of room.disconnected) {
+      const disconnectedAt = saved && saved.disconnectedAt ? saved.disconnectedAt : 0;
+      if (now - disconnectedAt > this.playerReconnectGraceMs) {
+        room.disconnected.delete(playerId);
+        const mappedSocket = room.playerIdToSocket.get(playerId);
+        const stillConnected = mappedSocket && room.players.has(mappedSocket);
+        if (!stillConnected) room.playerIdToSocket.delete(playerId);
+        expired.push(playerId);
+      }
+    }
+    return expired;
+  }
+
   cleanup() {
     const now = Date.now();
     for (const [code, room] of this.rooms) {
@@ -223,20 +247,10 @@ class RoomManager {
       const stale = (now - room.lastActivityAt) > this.ttlMs;
       if (stale && (room.players.size === 0 || isOrphan)) {
         this.rooms.delete(code);
+        continue;
       }
-      // Limpiar mapeo playerId -> socket muerto después de 5min sin reconexión
-      for (const [pid, sid] of room.playerIdToSocket) {
-        const pl = room.players.get(sid);
-        if (!pl) {
-          // buscar si hay otro socket con mismo pid (reconectó)
-          const stillExists = [...room.players.values()].some(v => v.playerId === pid);
-          if (!stillExists) {
-            // si lleva >5min sin estar en players, borrar mapeo
-            // usamos lastActivity como proxy
-            if (stale) room.playerIdToSocket.delete(pid);
-          }
-        }
-      }
+      // Expirar ventana de reconexión de jugadores
+      this.expireDisconnected(room, now);
     }
   }
 

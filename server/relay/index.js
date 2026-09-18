@@ -12,6 +12,7 @@ require('dotenv').config();
 const { config } = require('../shared/config');
 const { EVENTS, RATE_LIMITS, sanitizeName, sanitizeAvatarId, sanitizeScore, sanitizeRoomCode } = require('../shared/protocol');
 const RoomManager = require('../shared/rooms');
+const { isOriginAllowed } = require('../shared/cors');
 const { RateLimiter, IpRateLimiter } = require('../shared/rateLimiter');
 
 const app = express();
@@ -20,21 +21,13 @@ app.use(express.json({ limit: '20kb' }));
 
 const httpServer = http.createServer(app);
 
-// CORS para relay: permitir cualquier origen móvil, pero validar en socket
+// CORS para relay: público si no hay allowlist; si CORS_ALLOWED_ORIGINS está
+// configurado, solo se permiten orígenes de la lista + localhost/127.0.0.1/::1.
 const io = new Server(httpServer, {
   cors: {
     origin: (origin, cb) => {
-      // Relay es público: permitir cualquier origen (móviles por datos)
-      // Si CORS_ALLOWED_ORIGINS está configurado, validar contra lista
-      if (config.corsAllowedOrigins.length === 0) return cb(null, true);
-      if (!origin) return cb(null, true);
-      try {
-        const host = new URL(origin).hostname;
-        if (config.corsAllowedOrigins.some(p => host === p || host.endsWith('.' + p) || origin.includes(p))) {
-          return cb(null, true);
-        }
-      } catch {}
-      return cb(null, true); // fallback permisivo para móviles
+      if (isOriginAllowed(origin, config.corsAllowedOrigins)) return cb(null, true);
+      return cb(null, false); // denegado: sin fallback permisivo
     },
     methods: ['GET', 'POST'],
   },
@@ -113,6 +106,7 @@ app.get('/api/artist-map', (req, res) => {
 const roomManager = new RoomManager({
   maxPlayers: config.maxPlayersPerRoom,
   ttlMs: config.roomTtlMs,
+  playerReconnectGraceMs: config.playerReconnectGraceMs,
   cleanupIntervalMs: 60 * 1000,
 });
 roomManager.isSocketAlive = (sid) => io.sockets.sockets.has(sid);

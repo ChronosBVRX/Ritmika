@@ -29,6 +29,8 @@ const config = {
   roomTtlMs: parseInt(getEnv('ROOM_TTL_MS', String(2 * 60 * 60 * 1000)), 10),
   roomTtlSec: parseInt(getEnv('ROOM_TTL', String(2 * 60 * 60)), 10),
   maxPlayersPerRoom: parseInt(getEnv('MAX_PLAYERS_PER_ROOM', '8'), 10),
+  // Ventana real de reconexión de jugador (default 5 min)
+  playerReconnectGraceMs: parseInt(getEnv('PLAYER_RECONNECT_GRACE_MS', String(5 * 60 * 1000)), 10),
   // CORS relay
   corsAllowedOrigins: parseOrigins(getEnv('CORS_ALLOWED_ORIGINS', '')),
   // R2 — solo local, nunca en relay bundle
