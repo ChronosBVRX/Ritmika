@@ -176,7 +176,7 @@ KARAOKE_START {socketId,name,song}
 ### 11.3 Identidad estable
 
 - `playerId`: string UUID (cliente genera `crypto.randomUUID()` y guarda en `localStorage.ritmika_player_id`), enviado en `player:join {roomCode, name, avatarId, playerId}`.
-- Relay lo persiste en `room.playerIdToSocket` + `room.disconnected` (gracia 5 min). Si mismo `playerId` vuelve con socket distinto, se considera **reconexión** (`ack.reconnected===true`), no nuevo jugador, no cuenta para `MAX_PLAYERS`.
+- Relay lo persiste en `room.playerIdToSocket` + `room.disconnected` con gracia configurable `PLAYER_RECONNECT_GRACE_MS` (default `300000` = 5 min). Si mismo `playerId` vuelve con socket distinto y `resumeToken` válido dentro de la ventana, se considera **reconexión** (`ack.reconnected===true`), no nuevo jugador, no cuenta para `MAX_PLAYERS`. Al expirar la ventana, `RoomManager.expireDisconnected()` (invocado desde `cleanup()` cada 60s) elimina el registro de `room.disconnected` y su mapping `playerIdToSocket`; el `resumeToken` anterior ya no restaura la sesión y el jugador entra como nuevo según las reglas normales. Un jugador reconectado nunca se elimina.
 - `socketId` sigue siendo transporte actual; `playerId` es identidad lógica. TV reconoce reconexión por `playerId` (antes solo por `name`).
 - Mobile guarda `playerId` del `player:join_ack {playerId}` si el servidor lo generó.
 

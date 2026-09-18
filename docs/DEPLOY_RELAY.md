@@ -11,7 +11,7 @@
 - `GET /api/room/:code` → `{mode}` o 404
 - `GET /api/artist-map` → metadata ligera (`server/shared/artist-metadata.json`, 8 géneros, ~626 artistas, no DB completa)
 - `GET /public/*` → assets ligeros para móvil (libs, avatares)
-- **Socket.IO** (CORS abierto para móviles): `tv:create_room`, `player:join`, `tv:broadcast`, `tv:send_to_player`, `player:*`, `tv:reconnect_host`, `player:reconnect` etc. (ver `docs/PROTOCOL.md` §11)
+- **Socket.IO** (CORS: abierto si no hay allowlist; con `CORS_ALLOWED_ORIGINS` solo lista + `localhost`/`127.0.0.1`/`::1`): `tv:create_room`, `player:join`, `tv:broadcast`, `tv:send_to_player`, `player:*`, `tv:reconnect_host`, `player:reconnect` etc. (ver `docs/PROTOCOL.md` §11)
 
 **No hace:** no calcula puntuaciones/rondas, no rinde, no procesa vídeo, no sirve `songs.db`, no guarda estado completo, no anima.
 
@@ -23,7 +23,8 @@
 | `RELAY_PUBLIC_URL` / `RELAY_URL` | `http://localhost:3000` | URL pública para QR y `tv:room_created.relayUrl` |
 | `ROOM_TTL` / `ROOM_TTL_MS` | `7200s` / `2h` | TTL salas huérfanas |
 | `MAX_PLAYERS_PER_ROOM` | `8` | Límite por sala |
-| `CORS_ALLOWED_ORIGINS` | `` (abierto) | Lista coma-sep. para restringir, por defecto permite cualquier móvil |
+| `PLAYER_RECONNECT_GRACE_MS` | `300000` (5 min) | Ventana real de reconexión de jugador; al expirar se borra de `room.disconnected` y `playerIdToSocket` |
+| `CORS_ALLOWED_ORIGINS` | `` (abierto) | Lista coma-sep. de hostnames/orígenes permitidos. Si está configurada, solo se aceptan esos + `localhost`/`127.0.0.1`/`::1`; cualquier otro origen se deniega (sin fallback permisivo). Sin configurar, relay público para móviles |
 
 No usar `RENDER_EXTERNAL_URL` como concepto central; relay es agnóstico (Render/Fly.io/Railway/VPS).
 
