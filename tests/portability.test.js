@@ -11,6 +11,7 @@ const offenders = [];
 
 for (const file of fs.readdirSync(testsDir)) {
   if (!file.endsWith('.test.js')) continue;
+  if (file === path.basename(__filename)) continue; // el guard contiene los patrones
   const content = fs.readFileSync(path.join(testsDir, file), 'utf8');
   content.split('\n').forEach((line, index) => {
     const bad = line.includes('/home/chronos')
