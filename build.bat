@@ -145,28 +145,30 @@ echo   Descargando WebView2 Bootstrapper (Evergreen)...
 if not exist "dist\desktop\MicrosoftEdgeWebview2Setup.exe" (
     powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile 'dist\desktop\MicrosoftEdgeWebview2Setup.exe' -UseBasicParsing" 2>nul
     if exist "dist\desktop\MicrosoftEdgeWebview2Setup.exe" echo   [OK] Bootstrapper listo
-    if not exist "dist\desktop\MicrosoftEdgeWebview2Setup.exe" echo   [WARN] No se pudo descargar bootstrapper (continuando sin él)
+    if not exist "dist\desktop\MicrosoftEdgeWebview2Setup.exe" echo   [WARN] No se pudo descargar bootstrapper, continuando sin el
 ) else echo   [OK] Bootstrapper ya existe
 echo.
 
 echo   [6/6] Instalador Inno Setup...
 where iscc >nul 2>&1
-if %errorlevel%==0 (
-    echo   [+] Compilando instalador con ISCC...
-    iscc installer.iss
-    if errorlevel 1 (
-        echo   [WARN] ISCC fallo
-    ) else (
-        echo   [OK] Instalador generado en installer\output\
-        dir /b installer\output\*.exe
-    )
+if not errorlevel 1 goto INSTALLER_FOUND
+echo   [INFO] Inno Setup iscc no encontrado. Para generar Ritmika-Setup-x64.exe:
+echo         1. Instala Inno Setup 6: https://jrsoftware.org/isinfo.php
+echo         2. Asegurate de que iscc este en PATH
+echo         3. Ejecuta: iscc installer.iss
+goto INSTALLER_DONE
+
+:INSTALLER_FOUND
+echo   [+] Compilando instalador con ISCC...
+iscc installer.iss
+if errorlevel 1 (
+    echo   [WARN] ISCC fallo
 ) else (
-    echo   [INFO] Inno Setup (iscc) no encontrado. Para generar Ritmika-Setup-x64.exe:
-    echo         1. Instala Inno Setup 6: https://jrsoftware.org/isinfo.php
-    echo         2. Asegurate de que iscc este en PATH
-    echo         3. Ejecuta: iscc installer.iss
-    echo         O usa: build.bat (este paso es opcional para desarrollo)
+    echo   [OK] Instalador generado en installer\output\
+    dir /b installer\output\*.exe
 )
+
+:INSTALLER_DONE
 echo.
 echo   ============================================
 echo   BUILD COMPLETO
