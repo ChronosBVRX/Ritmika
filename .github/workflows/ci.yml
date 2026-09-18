@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [ "feat/desktop-local-online-relay", "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+          cache: 'npm'
+      - name: Install deps
+        run: npm ci
+      - name: Protocol tests
+        run: npm test
+      - name: Local HTTP tests
+        run: node tests/local_http.test.js
+      - name: Config tests
+        run: node tests/config.test.js
+      - name: Relay tests
+        run: npm run test:relay
+      - name: Identity tests
+        run: node tests/identity.test.js
+      - name: Build tests
+        run: node tests/build.test.js
+      - name: Smoke test
+        run: node tests/smoke.test.js
+      - name: Audit secrets
+        run: node scripts/audit_secrets.js
+      - name: Benchmark (no fail)
+        run: node scripts/benchmark.js || true
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+          cache: 'npm'
+      - name: Install deps
+        run: npm ci
+      - name: Build desktop (check)
+        run: |
+          npm run generate:artist-metadata
+          node -e "require('better-sqlite3')('server/songs.db').prepare('SELECT COUNT(*) as c FROM songs').get().c"
+        shell: bash
+      - name: Check installer.iss syntax
+        run: |
+          if [ ! -f "installer.iss" ]; then echo "installer.iss missing" && exit 1; fi
+          grep -q "dist\\\\desktop" installer.iss || (echo "installer must use dist/desktop" && exit 1)
+        shell: bash

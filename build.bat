@@ -33,23 +33,37 @@ if not exist "runtime\node\node.exe" (
 echo.
 
 echo   [3/6] Dependencias Node (produccion) + better-sqlite3...
-if not exist "node_modules\better-sqlite3\build\Release\better_sqlite3.node" (
-    echo   [+] npm ci --production
-    call npm ci --production --no-audit --no-fund
-    if errorlevel 1 call npm install --production
-)
-echo   Verificando better-sqlite3 para Node !NODE_VERSION! ...
-runtime\node\node.exe -e "require('better-sqlite3'); console.log('better-sqlite3 OK')" 2>&1
+echo   Node runtime: 
+runtime\node\node.exe --version
 if errorlevel 1 (
-    echo   [WARN] better-sqlite3 no coincide con runtime Node, rebuildeando...
-    runtime\node\node.exe "%~dp0runtime\node\npm" rebuild better-sqlite3 2>&1 | more
-    call runtime\node\node.exe -e "require('better-sqlite3'); console.log('better-sqlite3 OK')" 2>&1
+    echo   [ERROR] runtime\node\node.exe no ejecuta
+    pause
+    exit /b 1
+)
+echo   Verificando ABI y better-sqlite3 con runtime empaquetado...
+runtime\node\node.exe -e "console.log('Node',process.version,'ABI',process.versions.modules); require('better-sqlite3'); console.log('better-sqlite3 OK:'+require('better-sqlite3')('server/songs.db').prepare('SELECT COUNT(*) as c FROM songs').get().c+' canciones')" 2>&1
+if errorlevel 1 (
+    echo   [+] Instalando dependencias con npm del runtime empaquetado...
+    if exist "runtime\node\node_modules\npm\bin\npm-cli.js" (
+        runtime\node\node.exe runtime\node\node_modules\npm\bin\npm-cli.js ci --omit=dev --no-audit --no-fund
+    ) else (
+        runtime\node\node.exe runtime\node\npm ci --omit=dev --no-audit --no-fund 2>nul
+        if errorlevel 1 call npm ci --omit=dev
+    )
     if errorlevel 1 (
-        echo   [ERROR] better-sqlite3 sigue fallando. Ejecuta: npm rebuild better-sqlite3
+        echo   [WARN] npm ci fallo, intentando npm install con runtime...
+        if exist "runtime\node\node_modules\npm\bin\npm-cli.js" (
+            runtime\node\node.exe runtime\node\node_modules\npm\bin\npm-cli.js install --omit=dev --no-audit --no-fund
+        ) else call npm install --omit=dev
+    )
+    echo   Re-verificando better-sqlite3...
+    runtime\node\node.exe -e "console.log('Node',process.version,'ABI',process.versions.modules); require('better-sqlite3'); console.log('better-sqlite3 OK:'+require('better-sqlite3')('server/songs.db').prepare('SELECT COUNT(*) as c FROM songs').get().c+' canciones')" 2>&1
+    if errorlevel 1 (
+        echo   [ERROR] better-sqlite3 sigue fallando tras install. Verifica Node 22.18.0 y que el binario coincida.
         pause
         exit /b 1
     )
-) else echo   [OK] better-sqlite3 compatible
+) else echo   [OK] better-sqlite3 compatible con runtime
 echo.
 
 echo   [4/6] Generando icono...
@@ -85,6 +99,42 @@ copy /y "%WV2%\Microsoft.Web.WebView2.Core.dll" "." >nul 2>&1
 copy /y "%WV2%\Microsoft.Web.WebView2.WinForms.dll" "." >nul 2>&1
 copy /y "%WV2%\WebView2Loader.dll" "." >nul 2>&1
 echo   [OK] DLLs copiadas
+echo.
+
+echo   [5.5/6] Staging limpio dist/desktop...
+if exist "dist\desktop" rmdir /s /q "dist\desktop"
+mkdir "dist\desktop"
+mkdir "dist\desktop\runtime\node"
+mkdir "dist\desktop\server\local"
+mkdir "dist\desktop\server\shared"
+mkdir "dist\desktop\server\views"
+mkdir "dist\desktop\public"
+echo   Copiando ejecutable y DLLs...
+copy /y "Ritmika.exe" "dist\desktop\" >nul
+copy /y "ritmika.ico" "dist\desktop\" >nul 2>&1
+copy /y "WebView2Loader.dll" "dist\desktop\" >nul 2>&1
+copy /y "Microsoft.Web.WebView2.Core.dll" "dist\desktop\" >nul 2>&1
+copy /y "Microsoft.Web.WebView2.WinForms.dll" "dist\desktop\" >nul 2>&1
+echo   Copiando runtime Node...
+xcopy /y /e /q "runtime\node\*" "dist\desktop\runtime\node\" >nul
+echo   Copiando node_modules (produccion)...
+xcopy /y /e /q "node_modules\*" "dist\desktop\node_modules\" >nul
+echo   Copiando server y public (sin relay/tests/docs)...
+copy /y "server\index.js" "dist\desktop\server\" >nul
+copy /y "server\songs.db" "dist\desktop\server\" >nul
+xcopy /y /e /q "server\local\*" "dist\desktop\server\local\" >nul
+xcopy /y /e /q "server\shared\*" "dist\desktop\server\shared\" >nul
+copy /y "server\views\admin_modes.html" "dist\desktop\server\views\" >nul 2>&1
+xcopy /y /e /q "public\*" "dist\desktop\public\" >nul
+copy /y "package.json" "dist\desktop\" >nul
+echo   [OK] Staging dist/desktop listo
+for /f %%f in ('dir /s /b "dist\desktop" ^| find /c /v ""') do echo   Archivos: %%f
+echo   Descargando WebView2 Bootstrapper (Evergreen)...
+if not exist "dist\desktop\MicrosoftEdgeWebview2Setup.exe" (
+    powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile 'dist\desktop\MicrosoftEdgeWebview2Setup.exe' -UseBasicParsing" 2>nul
+    if exist "dist\desktop\MicrosoftEdgeWebview2Setup.exe" echo   [OK] Bootstrapper listo
+    if not exist "dist\desktop\MicrosoftEdgeWebview2Setup.exe" echo   [WARN] No se pudo descargar bootstrapper (continuando sin él)
+) else echo   [OK] Bootstrapper ya existe
 echo.
 
 echo   [6/6] Instalador Inno Setup...

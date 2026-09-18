@@ -54,10 +54,11 @@ async function run(){
       const p1=connect(url); await once(p1,'server_version');
       p1.emit('player:join',{roomCode, name:'Bob', avatarId:1, playerId:pid});
       const ack1=await once(p1,'player:join_ack'); assert(ack1.playerId===pid);
+      const token=ack1.resumeToken;
       p1.disconnect(); await wait(400);
       const p2=connect(url); await once(p2,'server_version');
       const tvRejoin=once(tv,'tv:player_joined');
-      p2.emit('player:join',{roomCode, name:'Bob', avatarId:1, playerId:pid});
+      p2.emit('player:join',{roomCode, name:'Bob', avatarId:1, playerId:pid, resumeToken:token});
       const ack2=await once(p2,'player:join_ack');
       assert(ack2.reconnected===true);
       const tvData=await tvRejoin;

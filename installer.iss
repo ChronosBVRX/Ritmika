@@ -33,24 +33,10 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; Ejecutable y DLLs WebView2 (generados por build.bat)
-Source: "Ritmika.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "WebView2Loader.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Microsoft.Web.WebView2.Core.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Microsoft.Web.WebView2.WinForms.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "ritmika.ico"; DestDir: "{app}"; Flags: ignoreversion
-
-; Runtime Node autocontenido (generado por scripts/download_node_runtime.ps1)
-Source: "runtime\node\node.exe"; DestDir: "{app}\runtime\node"; Flags: ignoreversion
-Source: "runtime\node\*"; DestDir: "{app}\runtime\node"; Flags: ignoreversion recursesubdirs createallsubdirs
-
-; Dependencias de producción (copiadas por build.bat -> dist/node_modules filtrado)
-Source: "node_modules\*"; DestDir: "{app}\node_modules"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".bin\*,.cache\*,*.map"
-
-; Servidor y frontend (sin secretos)
-Source: "server\*"; DestDir: "{app}\server"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.log,*.db-shm,*.db-wal,.env,*.tmp"
-Source: "public\*"; DestDir: "{app}\public"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "package.json"; DestDir: "{app}"; Flags: ignoreversion
+; Todo el staging limpio dist/desktop (autocontenido, sin relay/tests/docs/.env)
+Source: "dist\desktop\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Bootstrapper WebView2 Evergreen (descargado por build.bat, opcional)
+Source: "dist\desktop\MicrosoftEdgeWebview2Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Permissions: users-modify
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\ritmika.ico"
@@ -58,6 +44,7 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; IconFilename: "{app}\ritmika.ico"
 
 [Run]
+Filename: "{tmp}\MicrosoftEdgeWebview2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "Instalando WebView2 Runtime..."; Check: not IsWebView2Installed; Flags: waituntilterminated
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]

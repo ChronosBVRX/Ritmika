@@ -1076,10 +1076,13 @@ function getOrCreatePlayerId(){
     return id;
   }catch{ return 'p_'+Math.random().toString(36).slice(2,10); }
 }
+function getResumeToken(){ try{ return localStorage.getItem('ritmika_resume_token') || null; }catch{ return null; } }
+function setResumeToken(t){ try{ if(t) localStorage.setItem('ritmika_resume_token', t); }catch{} }
 
 // ── STATE ─────────────────────────────────────────────────
 const me = {
   playerId: getOrCreatePlayerId(),
+  resumeToken: getResumeToken(),
   name: '',
   avatarId: null,
   roomCode: '',
@@ -1118,6 +1121,7 @@ socket.on('connect', () => {
       name: me.name,
       avatarId: me.avatarId,
       playerId: me.playerId,
+      resumeToken: me.resumeToken,
     });
     setTimeout(() => {
       if (me.genres.length) socket.emit('player:select_genres', { roomCode: me.roomCode, genres: me.genres });
@@ -1149,6 +1153,10 @@ socket.on('player:join_ack', (data) => {
   if (data && data.playerId) {
     me.playerId = data.playerId;
     try{ localStorage.setItem('ritmika_player_id', me.playerId); }catch{}
+  }
+  if (data && data.resumeToken) {
+    me.resumeToken = data.resumeToken;
+    setResumeToken(data.resumeToken);
   }
   me.roomCode = roomCode;
   me.gameMode = mode || 'clasico';
@@ -1885,6 +1893,7 @@ function joinGame() {
     name: me.name,
     avatarId: me.avatarId,
     playerId: me.playerId,
+    resumeToken: me.resumeToken,
   });
 
   // Send genre and artist selections after join (with slight delay)

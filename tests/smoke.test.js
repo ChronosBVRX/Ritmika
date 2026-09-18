@@ -45,6 +45,7 @@ async function run(){
     p1.emit('player:join',{roomCode:room.roomCode, name:'Alice', avatarId:1, playerId:'p1-id-stable'});
     const ack1=await once(p1,'player:join_ack');
     assert(ack1.success && ack1.playerId==='p1-id-stable');
+    const p1Token=ack1.resumeToken;
     const tvData1=await tvP1;
     assert(tvData1.player.name==='Alice');
 
@@ -99,7 +100,7 @@ async function run(){
     p1.disconnect(); await wait(400);
     const p1b=connect(url); await once(p1b,'server_version');
     const tvRejoin=once(tv,'tv:player_joined');
-    p1b.emit('player:join',{roomCode:room.roomCode, name:'Alice', avatarId:1, playerId:'p1-id-stable'});
+    p1b.emit('player:join',{roomCode:room.roomCode, name:'Alice', avatarId:1, playerId:'p1-id-stable', resumeToken:p1Token});
     const ackRe=await once(p1b,'player:join_ack');
     assert(ackRe.reconnected===true, 'reconexión esperada');
     const tvRe=await tvRejoin;

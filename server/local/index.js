@@ -16,7 +16,37 @@ const fs = require('fs');
 const { exec } = require('child_process');
 
 const internalIp = require('internal-ip');
-require('dotenv').config();
+// Carga .env priorizando %LOCALAPPDATA%\Ritmika\.env (producción) sobre repo/.env (desarrollo)
+(function loadEnv(){
+  const dotenv=require('dotenv');
+  const path=require('path');
+  const os=require('os');
+  const fs=require('fs');
+  // 1. Intentar %LOCALAPPDATA%\Ritmika\.env (Windows) o ~/.config/Ritmika/.env (Linux)
+  // Para test, también respeta LOCALAPPDATA en cualquier plataforma
+  let localEnv=null;
+  if (process.env.LOCALAPPDATA) {
+    localEnv=path.join(process.env.LOCALAPPDATA,'Ritmika','.env');
+  } else if (process.env.RITMIKA_APPDATA) {
+    localEnv=path.join(process.env.RITMIKA_APPDATA,'Ritmika','.env');
+  } else if (process.env.APPDATA) {
+    localEnv=path.join(process.env.APPDATA,'Ritmika','.env');
+  } else {
+    try{ localEnv=path.join(os.homedir(),'.config','Ritmika','.env'); }catch{}
+  }
+  if (localEnv && fs.existsSync(localEnv)) {
+    const res=dotenv.config({ path: localEnv });
+    if(!res.error) console.log('[ENV] Cargado desde',localEnv);
+  }
+  // 2. Fallback a .env en repo (desarrollo) - no sobrescribe lo ya cargado
+  const repoEnv=path.join(__dirname,'../../.env');
+  if (fs.existsSync(repoEnv)) {
+    const res=dotenv.config({ path: repoEnv });
+    if(!res.error && !localEnv) console.log('[ENV] Cargado desde',repoEnv);
+  } else {
+    dotenv.config(); // fallback default cwd
+  }
+})();
 const { config: ritmikaConfig } = require('../shared/config');
 const videoCache = require('./videoCache');
 
@@ -108,7 +138,7 @@ const io = new Server(httpServer, {
 
 // ── Servir archivos estáticos del cliente ────────────────────
 const oneYear = 31536000000;
-app.use(express.static(path.join(__dirname, '../public'), {
+app.use(express.static(path.join(__dirname, '../../public'), {
   maxAge: oneYear,
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.html')) {
@@ -122,13 +152,13 @@ app.use(express.static(path.join(__dirname, '../public'), {
 // ── Ruta raíz → TV principal ─────────────────────────────────
 app.get('/', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-  res.sendFile(path.join(__dirname, '../public/tv.html'));
+  res.sendFile(path.join(__dirname, '../../public/tv.html'));
 });
 
 // ── Ruta para celulares ──────────────────────────────────────
 app.get('/join', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-  res.sendFile(path.join(__dirname, '../public/mobile.html'));
+  res.sendFile(path.join(__dirname, '../../public/mobile.html'));
 });
 
 // ── Admin: Dashboard de Modos de Juego ───────────────────────
@@ -194,6 +224,19 @@ function isDbReady() {
 }
 
 function gitCommitAndPush(callback) {
+  // Guard: solo en desarrollo con repo git y token. En instalación Program Files no hay .git y no debe intentar git.
+  const isProd = process.env.NODE_ENV === 'production';
+  const hasGit = fs.existsSync(path.join(__dirname, '../../.git'));
+  if (isProd || !hasGit) {
+    console.log('[GIT] Skipped gitCommitAndPush (production o sin repo)');
+    if (callback) callback(null);
+    return;
+  }
+  if (!process.env.GITHUB_TOKEN) {
+    console.log('[GIT] Skipped (sin GITHUB_TOKEN)');
+    if (callback) callback(null);
+    return;
+  }
   const gitDir = path.resolve(__dirname, '../..');
   const repoUrl = 'https://github.com/ChronosBVRX/Ritmika.git';
   const token = process.env.GITHUB_TOKEN;
@@ -381,8 +424,11 @@ app.get('/api/artist-map', (req, res) => {
   res.json(map);
 });
 
-// ── Bulk update modes (Admin) ──
+// ── Bulk update modes (Admin) — solo desarrollo ──
 app.put('/api/songs/bulk-mode', requireAdmin, (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Admin no disponible en producción' });
+  }
   const origin = req.headers.origin;
   if (!isLocalOrigin(origin)) return res.status(403).json({ error: 'CORS not allowed' });
   
@@ -425,7 +471,7 @@ app.get('/api/room/:code', (req, res) => {
 
 // ── Audio files listing (for preloader) ──
 app.get('/api/audio-files', (req, res) => {
-  const audioDir = path.join(__dirname, '../public/assets/audio');
+  const audioDir = path.join(__dirname, '../../public/assets/audio');
   fs.readdir(audioDir, (err, files) => {
     if (err) return res.status(500).json({ error: 'Cannot read audio directory' });
     res.json(files.filter(f => f.endsWith('.mp3')).sort());

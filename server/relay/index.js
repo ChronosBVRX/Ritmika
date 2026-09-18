@@ -180,7 +180,7 @@ io.on('connection', (socket) => {
   });
 
   // Jugador se une — soporta playerId estable
-  socket.on(EVENTS.PLAYER_JOIN, ({ roomCode, name, avatarId, playerId }) => {
+  socket.on(EVENTS.PLAYER_JOIN, ({ roomCode, name, avatarId, playerId, resumeToken }) => {
     const code = sanitizeRoomCode(roomCode);
     const room = roomManager.getRoom(code);
     if (!room) {
@@ -193,53 +193,80 @@ io.on('connection', (socket) => {
     if (typeof playerId === 'string' && playerId.length >= 8 && playerId.length <= 64) {
       cleanPlayerId = playerId.trim();
     }
-    const result = roomManager.addPlayer(room, socket.id, { name: cleanName, avatarId: cleanAvatar, playerId: cleanPlayerId });
+    let cleanResumeToken = null;
+    if (typeof resumeToken === 'string' && resumeToken.length >= 32 && resumeToken.length <= 128) {
+      cleanResumeToken = resumeToken.trim();
+    }
+    const result = roomManager.addPlayer(room, socket.id, { name: cleanName, avatarId: cleanAvatar, playerId: cleanPlayerId, resumeToken: cleanResumeToken });
     if (result.error) {
-      socket.emit(EVENTS.PLAYER_JOIN_ACK, { success: false, error: result.error });
+      socket.emit(EVENTS.PLAYER_JOIN_ACK, { success: false, error: result.error, code: result.code || 'JOIN_ERROR' });
       return;
     }
     socket.join(code);
     const players = roomManager.getPublicPlayers(room);
-    // Ack incluye playerId asignado (para que móvil lo guarde en localStorage)
+    // Ack incluye playerId y resumeToken (solo al propietario, secreto)
     socket.emit(EVENTS.PLAYER_JOIN_ACK, {
       success: true,
       roomCode: code,
       mode: room.mode,
       players,
       playerId: result.player.playerId,
+      resumeToken: result.player.resumeToken,
       isHost: room.hostPlayerId === result.player.playerId,
       reconnected: result.reconnected || false,
     });
-    // Notificar TV con player + playerId
-    io.to(room.tvSocketId).emit(EVENTS.TV_PLAYER_JOINED, { player: result.player, players });
+    // Notificar TV con player sanitizado (sin resumeToken)
+    const sanitizedPlayer = { name: result.player.name, avatarId: result.player.avatarId, socketId: result.player.socketId, playerId: result.player.playerId };
+    io.to(room.tvSocketId).emit(EVENTS.TV_PLAYER_JOINED, { player: sanitizedPlayer, players });
     // Notificar a otros jugadores (game:update PLAYER_JOINED)
     socket.to(code).emit(EVENTS.GAME_UPDATE, { event: 'PLAYER_JOINED', data: { players } });
-    console.log(`[RELAY][JOIN] ${cleanName} (${socket.id} pid:${result.player.playerId.slice(0,8)}) -> ${code}${result.reconnected ? ' (reconnect)' : ''}`);
+    console.log(`[RELAY][JOIN] ${cleanName} (${socket.id} pid:${result.player.playerId.slice(0,8)}) -> ${code}${result.reconnected ? ' (reconnect)' : ''}`); // resumeToken never logged
   });
 
-  // Jugador reconecta explícitamente con playerId
-  socket.on('player:reconnect', ({ roomCode, playerId }) => {
+  // Jugador reconecta explícitamente con playerId + resumeToken
+  socket.on('player:reconnect', ({ roomCode, playerId, resumeToken }) => {
     const room = roomManager.getRoom(sanitizeRoomCode(roomCode));
     if (!room || !playerId) {
       socket.emit('player:reconnect_ack', { success: false, error: 'Sala o playerId inválido' });
       return;
     }
-    const existing = roomManager.findPlayerByPlayerId(room, playerId);
-    if (!existing) {
-      socket.emit('player:reconnect_ack', { success: false, error: 'Jugador no encontrado, haz join de nuevo' });
-      return;
+    // Buscar en disconnected o players
+    let existing = null;
+    if (room.disconnected.has(playerId)) {
+      const saved = room.disconnected.get(playerId);
+      if (!roomManager.verifyResumeToken(saved.resumeToken, resumeToken)) {
+        socket.emit('player:reconnect_ack', { success: false, error: 'Token inválido', code: 'INVALID_RESUME_TOKEN' });
+        return;
+      }
+      // Restaurar desde disconnected
+      room.disconnected.delete(playerId);
+      existing = { ...saved, socketId: socket.id, lastSeenAt: Date.now() };
+      room.players.set(socket.id, existing);
+      room.playerIdToSocket.set(playerId, socket.id);
+      if (room.hostPlayerId === playerId) room.hostPlayerSocketId = socket.id;
+    } else {
+      existing = roomManager.findPlayerByPlayerId(room, playerId);
+      if (!existing) {
+        socket.emit('player:reconnect_ack', { success: false, error: 'Jugador no encontrado, haz join de nuevo' });
+        return;
+      }
+      if (!roomManager.verifyResumeToken(existing.resumeToken, resumeToken)) {
+        socket.emit('player:reconnect_ack', { success: false, error: 'Token inválido', code: 'INVALID_RESUME_TOKEN' });
+        return;
+      }
+      const oldSid = existing.socketId;
+      room.players.delete(oldSid);
+      existing.socketId = socket.id;
+      existing.lastSeenAt = Date.now();
+      room.players.set(socket.id, existing);
+      room.playerIdToSocket.set(playerId, socket.id);
+      if (room.hostPlayerId === playerId) room.hostPlayerSocketId = socket.id;
     }
-    const oldSid = existing.socketId;
-    room.players.delete(oldSid);
-    existing.socketId = socket.id;
-    existing.lastSeenAt = Date.now();
-    room.players.set(socket.id, existing);
-    room.playerIdToSocket.set(playerId, socket.id);
-    if (room.hostPlayerId === playerId) room.hostPlayerSocketId = socket.id;
     socket.join(room.code);
     const players = roomManager.getPublicPlayers(room);
     socket.emit('player:reconnect_ack', { success: true, roomCode: room.code, playerId, players, isHost: room.hostPlayerId === playerId });
-    io.to(room.tvSocketId).emit(EVENTS.TV_PLAYER_JOINED, { player: existing, players });
+    const sanitized = { name: existing.name, avatarId: existing.avatarId, socketId: existing.socketId, playerId: existing.playerId };
+    io.to(room.tvSocketId).emit(EVENTS.TV_PLAYER_JOINED, { player: sanitized, players });
     socket.to(room.code).emit(EVENTS.GAME_UPDATE, { event: 'PLAYER_JOINED', data: { players } });
     console.log(`[RELAY][RECONNECT] ${existing.name} ${oldSid} -> ${socket.id} sala ${room.code}`);
   });

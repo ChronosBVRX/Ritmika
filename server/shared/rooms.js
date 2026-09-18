@@ -76,27 +76,32 @@ class RoomManager {
     return null;
   }
 
-  addPlayer(room, socketId, { name, avatarId, playerId }) {
-    // Reconexión desde disconnected (mismo playerId pero socket diferente)
+  addPlayer(room, socketId, { name, avatarId, playerId, resumeToken }) {
+    // Caso 1: Reconexión desde disconnected — requiere resumeToken válido
     if (playerId && room.disconnected.has(playerId)) {
       const saved = room.disconnected.get(playerId);
+      if (!this.verifyResumeToken(saved.resumeToken, resumeToken)) {
+        return { error: 'Token de reconexión inválido', code: 'INVALID_RESUME_TOKEN' };
+      }
       room.disconnected.delete(playerId);
       const oldSocketId = saved.socketId;
       const updated = { ...saved, socketId, lastSeenAt: Date.now(), name: name || saved.name, avatarId: avatarId ?? saved.avatarId };
-      // Si sala llena, permitir reconexión aunque esté llena (no cuenta como nuevo)
       room.players.set(socketId, updated);
       room.playerIdToSocket.set(playerId, socketId);
       if (room.hostPlayerId === playerId) room.hostPlayerSocketId = socketId;
       room.lastActivityAt = Date.now();
       return { player: updated, reconnected: true, oldSocketId };
     }
-    if (room.players.size >= this.maxPlayers) {
-      return { error: 'Sala llena (máx ' + this.maxPlayers + ')' };
-    }
-    // Si playerId ya existe en players (mismo socket reconectado rápido)
+    // Caso 2: playerId ya conectado (intento de hijack) — requiere token
     if (playerId) {
       const existing = this.findPlayerByPlayerId(room, playerId);
       if (existing) {
+        if (!this.verifyResumeToken(existing.resumeToken, resumeToken)) {
+          return { error: 'playerId ya en uso, token inválido', code: 'PLAYERID_TAKEN' };
+        }
+        // Reconexión rápida (mismo player, token correcto, pero aún conectado)
+        // Permitir solo si el socket existente está desconectado o es el mismo cliente reconectando
+        // Si ya está conectado, reemplazar (caso de refresh rápido)
         const oldSocketId = existing.socketId;
         room.players.delete(oldSocketId);
         room.playerIdToSocket.set(playerId, socketId);
@@ -106,13 +111,27 @@ class RoomManager {
         room.lastActivityAt = Date.now();
         return { player: updated, reconnected: true, oldSocketId };
       }
+      // playerId no existe en players ni disconnected, pero fue proporcionado por cliente
+      // Verificar si ese playerId está en playerIdToSocket pero sin player (caso de limpieza parcial)
+      // Si el cliente inventó un playerId, lo tratamos como nuevo pero generamos nuevo resumeToken
+      // Para evitar suplantación, solo permitimos reutilizar playerId si tiene token válido;
+      // si no existe en ningún lado, es un ID nuevo del cliente — lo aceptamos pero generamos token
+      // Si el cliente intenta usar playerId de otro jugador que está en disconnected pero sin token, ya fue rechazado arriba
     }
+    // Caso 3: nuevo jugador (o playerId nuevo) — verificar límite
+    if (room.players.size >= this.maxPlayers) {
+      return { error: 'Sala llena (máx ' + this.maxPlayers + ')' };
+    }
+    // Generar credenciales
     const pid = playerId || crypto.randomUUID();
+    // Si el cliente proporcionó playerId nuevo, usarlo, pero generar nuevo resumeToken
+    const token = crypto.randomBytes(32).toString('hex'); // 64 hex, secreto
     const player = {
       name,
       avatarId,
       socketId,
       playerId: pid,
+      resumeToken: token,
       joinedAt: Date.now(),
       lastSeenAt: Date.now(),
     };
@@ -166,12 +185,25 @@ class RoomManager {
     }
   }
 
+  verifyResumeToken(stored, provided) {
+    if (!stored || !provided) return false;
+    try {
+      const a = Buffer.from(stored);
+      const b = Buffer.from(provided);
+      if (a.length !== b.length) return false;
+      return crypto.timingSafeEqual(a, b);
+    } catch {
+      return stored === provided;
+    }
+  }
+
   getPublicPlayers(room) {
     return [...room.players.values()].map(p => ({
       name: p.name,
       avatarId: p.avatarId,
       socketId: p.socketId,
       playerId: p.playerId,
+      // resumeToken NUNCA se expone aquí
     }));
   }
 
