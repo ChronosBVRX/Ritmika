@@ -1,0 +1,125 @@
+{
+  "generatedAt": "2026-09-18T16:58:57-0600",
+  "generatedDir": "/home/chronos/Ritmika-generated-assets",
+  "count": 4,
+  "items": [
+    {
+      "id": "avatar-0-taco-rockero-idle",
+      "source": "public/assets/avatars/avatar_0_taco_rockero.webp",
+      "sourceSha256": "552bec064afe1a13c75f93e62910832da322927ef571b881bd0e050f54c5dde0",
+      "type": "character-idle",
+      "outputs": {
+        "framesDir": "avatar/avatar-0-taco-rockero-idle/frames",
+        "frameCount": 60,
+        "preview": "avatar/avatar-0-taco-rockero-idle/preview.png",
+        "webp": "avatar/avatar-0-taco-rockero-idle/anim.webp",
+        "webm": "avatar/avatar-0-taco-rockero-idle/anim.webm",
+        "previewMp4": "avatar/avatar-0-taco-rockero-idle/preview.mp4",
+        "spriteSheet": "avatar/avatar-0-taco-rockero-idle/sheet.png",
+        "spriteSheetMeta": "avatar/avatar-0-taco-rockero-idle/sheet.png.json"
+      },
+      "width": 512,
+      "height": 384,
+      "fps": 24.0,
+      "duration": 2.5,
+      "loop": true,
+      "alpha": true,
+      "sha256": {
+        "webm": "253fc0ce242a7887509e4a1d946b9fa776dd91eac827da88937e62dad663e0ad",
+        "webp": "1b1c58c684b8f27a7cb6975ca51c92c25f0b882a41b5e4c222e5575cd28f9ac6",
+        "preview": "e045f5415de23b77fe56a70ffa8d361b17b296ec858c8f48b9ac61f643be7a3c",
+        "previewMp4": "f7f5e900b48846c3500a4ce409f9fcf7187de1d072aa0196b533d21a1a12bbfe",
+        "spriteSheet": "e3f1005bf0b25924d9ec5d93fd2e5813dfc115cb0d3e77627b9f2befa3989974"
+      },
+      "metadata": "avatar/avatar-0-taco-rockero-idle/metadata.json"
+    },
+    {
+      "id": "bg-neon-club-background",
+      "source": "public/assets/bg_neon_club.webp",
+      "sourceSha256": "0e2b794f0001bfb70983114982611160a58b54b3109e3033fad9dd682b357473",
+      "type": "background-loop",
+      "outputs": {
+        "framesDir": "background/bg-neon-club-background/frames",
+        "frameCount": 47,
+        "preview": "background/bg-neon-club-background/preview.png",
+        "webm": "background/bg-neon-club-background/anim.webm",
+        "previewMp4": "background/bg-neon-club-background/preview.mp4",
+        "spriteSheet": "background/bg-neon-club-background/sheet.png",
+        "spriteSheetMeta": "background/bg-neon-club-background/sheet.png.json"
+      },
+      "width": 640,
+      "height": 640,
+      "fps": 16.0,
+      "duration": 2.938,
+      "loop": true,
+      "alpha": false,
+      "sha256": {
+        "webm": "db8eb3febd2a88940647f8765d349560b25d9b8df38eba35d8b8281de6d53ed4",
+        "preview": "52c3b1cc1b5718f2b0d20b96b310e3931a17f82b4dc72bdc37f1ad41f7dbe25b",
+        "previewMp4": "408203c77b53c02be40544f63d6567bf23187859a9dda05f8916c08a6bbc1a9a",
+        "spriteSheet": "d13007ed89c1511a99bd3ebee79ec3dfda3f69cdfb6c8f1dffe209524bebe55b"
+      },
+      "metadata": "background/bg-neon-club-background/metadata.json"
+    },
+    {
+      "id": "tio-axolo-vignette-laughing-reaction",
+      "source": "public/assets/tio_axolo_vignette_laughing.webp",
+      "sourceSha256": "bf378bb8c8774ced5dd464e71c05d4024466b120b5bb267bec1b7783a672c548",
+      "type": "character-reaction",
+      "outputs": {
+        "framesDir": "axolo/tio-axolo-vignette-laughing-reaction/frames",
+        "frameCount": 27,
+        "preview": "axolo/tio-axolo-vignette-laughing-reaction/preview.png",
+        "webp": "axolo/tio-axolo-vignette-laughing-reaction/anim.webp",
+        "webm": "axolo/tio-axolo-vignette-laughing-reaction/anim.webm",
+        "previewMp4": "axolo/tio-axolo-vignette-laughing-reaction/preview.mp4",
+        "spriteSheet": "axolo/tio-axolo-vignette-laughing-reaction/sheet.png",
+        "spriteSheetMeta": "axolo/tio-axolo-vignette-laughing-reaction/sheet.png.json"
+      },
+      "width": 640,
+      "height": 640,
+      "fps": 24.0,
+      "duration": 1.125,
+      "loop": false,
+      "alpha": true,
+      "sha256": {
+        "webm": "c2543f2d723190d6e215de1eab7da9a6c9cb59545cdccf3ba9598cb9fb4c15ad",
+        "webp": "0e4992470890de306d4128cc3a9b37b75c1197b6575b047248efc896d18ff8df",
+        "preview": "cc605b48fa0f982d7e01c001129f035b69c576bc1962704fb40253d1b2a2eb34",
+        "previewMp4": "aed9a45d77b1124a3d740d8bfc90ffd6a99a93363af0a95a944d28361ffe5d73",
+        "spriteSheet": "49b1eea1cdd54a815a8f39f3c056481322180598ba858fe7e921042ae8988cde"
+      },
+      "metadata": "axolo/tio-axolo-vignette-laughing-reaction/metadata.json"
+    },
+    {
+      "id": "tio-axolo-vignette-neutral-idle",
+      "source": "public/assets/tio_axolo_vignette_neutral.webp",
+      "sourceSha256": "ec6c648c7fdae7697cf6306e8a04a0cef46d1b23e845eeb5feff575f37b51d70",
+      "type": "character-idle",
+      "outputs": {
+        "framesDir": "axolo/tio-axolo-vignette-neutral-idle/frames",
+        "frameCount": 60,
+        "preview": "axolo/tio-axolo-vignette-neutral-idle/preview.png",
+        "webp": "axolo/tio-axolo-vignette-neutral-idle/anim.webp",
+        "webm": "axolo/tio-axolo-vignette-neutral-idle/anim.webm",
+        "previewMp4": "axolo/tio-axolo-vignette-neutral-idle/preview.mp4",
+        "spriteSheet": "axolo/tio-axolo-vignette-neutral-idle/sheet.png",
+        "spriteSheetMeta": "axolo/tio-axolo-vignette-neutral-idle/sheet.png.json"
+      },
+      "width": 640,
+      "height": 640,
+      "fps": 24.0,
+      "duration": 2.5,
+      "loop": true,
+      "alpha": true,
+      "sha256": {
+        "webm": "8cc44551cb598815c6c9eaa6a40acecd6a7de8c846b91a5454e5d1d3cddb26e7",
+        "webp": "4ecfb4a256bb1c6e44f738bde40e69118cd6296bf5018cf8d7076300eab1d39d",
+        "preview": "a126a1b904847be1551691a5279c8194fa6fb865fed9652daa017b4b198c2f00",
+        "previewMp4": "beabec8eb0aaa8528bcec9e121a10fb05bb5d54cf1e05bbce612e7ded59ca4ff",
+        "spriteSheet": "9d8735761dd787d2d6b0f0969bfd6ea8d26fa505030e18665b4a5b8b87347ea2"
+      },
+      "metadata": "axolo/tio-axolo-vignette-neutral-idle/metadata.json"
+    }
+  ]
+}

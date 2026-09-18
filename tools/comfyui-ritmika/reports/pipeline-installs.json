@@ -1,0 +1,37 @@
+[
+  {
+    "type": "custom_node",
+    "name": "ComfyUI-AnimateDiff-Evolved",
+    "reason": "Temporal diffusion (motion module) for character idle/reaction/talking and ambient background loops. No equivalent was installed.",
+    "repository": "https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved",
+    "commit": "9257651221002dcba0a12f9cff37e1944e58fb60",
+    "version": "1.6.0",
+    "installedAt": "2026-09-18",
+    "installPath": "custom_nodes/ComfyUI-AnimateDiff-Evolved",
+    "dependencies": "none beyond existing torch/numpy",
+    "duplicateCheck": "No other AnimateDiff/IPAdapter/motion implementation present."
+  },
+  {
+    "type": "model",
+    "name": "mm_sd_v15_v2.ckpt",
+    "role": "AnimateDiff v2 motion module (SD1.5)",
+    "reason": "Standard, well-tested motion module for SD1.5 on 12GB VRAM.",
+    "source": "https://huggingface.co/guoyww/animatediff/resolve/main/mm_sd_v15_v2.ckpt",
+    "license": "Apache-2.0",
+    "sizeBytes": 1817888431,
+    "installPath": "models/animatediff_models/mm_sd_v15_v2.ckpt",
+    "sha256": null,
+    "note": "SHA-256 intentionally not stored in Git; recompute locally with audit_comfyui.py --hash-models."
+  },
+  {
+    "type": "model",
+    "name": "rife_v4.26.safetensors",
+    "role": "RIFE v4.26 frame interpolation (ComfyUI core FrameInterpolate)",
+    "reason": "Interpolate 8 fps diffusion output to 24 fps without extra diffusion cost.",
+    "source": "https://huggingface.co/Comfy-Org/frame_interpolation/resolve/main/frame_interpolation/rife_v4.26.safetensors",
+    "license": "MIT and Apache-2.0 (see Comfy-Org/frame_interpolation)",
+    "sizeBytes": 22674688,
+    "installPath": "models/frame_interpolation/rife_v4.26.safetensors",
+    "sha256": null
+  }
+]

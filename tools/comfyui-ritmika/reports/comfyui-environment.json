@@ -1,0 +1,459 @@
+{
+  "generated_at": "2026-09-18T16:59:28-0600",
+  "host_platform": {
+    "os": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "machine": "x86_64"
+  },
+  "comfyui": {
+    "root": "/home/chronos/Escritorio/Comfy",
+    "version": "0.36.0",
+    "server": {
+      "host": "127.0.0.1",
+      "port": 8188,
+      "url": "http://127.0.0.1:8188/system_stats",
+      "system": {
+        "os": "linux",
+        "ram_total": 33468575744,
+        "ram_free": 13165391872,
+        "comfyui_version": "0.36.0",
+        "required_frontend_version": "1.52.7",
+        "installed_templates_version": "0.11.62",
+        "required_templates_version": "0.11.62",
+        "comfy_package_versions": [
+          {
+            "name": "comfyui-frontend-package",
+            "installed": "1.52.7",
+            "required": "1.52.7"
+          },
+          {
+            "name": "comfyui-workflow-templates",
+            "installed": "0.11.62",
+            "required": "0.11.62"
+          },
+          {
+            "name": "comfyui-embedded-docs",
+            "installed": "0.5.11",
+            "required": "0.5.11"
+          },
+          {
+            "name": "comfy-kitchen",
+            "installed": "0.2.34",
+            "required": "0.2.34"
+          },
+          {
+            "name": "comfy-aimdo",
+            "installed": "0.5.5",
+            "required": "0.5.5"
+          }
+        ],
+        "python_version": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "pytorch_version": "2.14.0+cu130",
+        "embedded_python": false,
+        "deploy_environment": "local-git",
+        "argv": [
+          "main.py",
+          "--listen",
+          "127.0.0.1",
+          "--port",
+          "8188"
+        ]
+      },
+      "devices": [
+        {
+          "name": "cuda:0 NVIDIA GeForce RTX 3060 : cudaMallocAsync",
+          "type": "cuda",
+          "index": 0,
+          "vram_total": 12488343552,
+          "vram_free": 10387486416,
+          "torch_vram_total": 939524096,
+          "torch_vram_free": 17790672
+        }
+      ]
+    },
+    "object_info_node_count": 1229,
+    "queue": {
+      "queue_running": [],
+      "queue_pending": []
+    },
+    "git": {
+      "commit": "387f98aa2822f684b8597959a52a467d88cc4806",
+      "date": "2026-09-17T11:29:13+04:00",
+      "subject": "[Partner Nodes] fix(Tripo): refuse a P2 run whose linked GLB or FBX output would be empty (#16369)"
+    }
+  },
+  "custom_nodes": [
+    {
+      "name": "AIGODLIKE-ComfyUI-Translation",
+      "path": "/home/chronos/Escritorio/Comfy/custom_nodes/AIGODLIKE-ComfyUI-Translation",
+      "has_requirements": false,
+      "git": {
+        "commit": "94903b39c7c68e14151d7caf7c4f12702a3714fb",
+        "date": "2025-03-24T08:01:12+08:00",
+        "subject": "Merge pull request #320 from ComfyNodePRs/update-publish-yaml"
+      }
+    },
+    {
+      "name": "ComfyUI-AnimateDiff-Evolved",
+      "path": "/home/chronos/Escritorio/Comfy/custom_nodes/ComfyUI-AnimateDiff-Evolved",
+      "has_requirements": false,
+      "git": {
+        "commit": "9257651221002dcba0a12f9cff37e1944e58fb60",
+        "date": "2026-07-28T04:39:28-07:00",
+        "subject": "Merge pull request #579 from Kosinkadink/chore/bump-version-1.6.0"
+      }
+    },
+    {
+      "name": "ComfyUI-Custom-Scripts",
+      "path": "/home/chronos/Escritorio/Comfy/custom_nodes/ComfyUI-Custom-Scripts",
+      "has_requirements": false,
+      "git": {
+        "commit": "609f3afaa74b2f88ef9ce8d939626065e3247469",
+        "date": "2026-02-12T03:31:29-08:00",
+        "subject": "Update workflowImage.js"
+      }
+    },
+    {
+      "name": "ComfyUI-LivePortraitKJ",
+      "path": "/home/chronos/Escritorio/Comfy/custom_nodes/ComfyUI-LivePortraitKJ",
+      "has_requirements": true,
+      "git": {
+        "commit": "4d9dc6205b793ffd0fb319816136d9b8c0dbfdff",
+        "date": "2024-08-05T02:39:29+03:00",
+        "subject": "cleanup"
+      }
+    },
+    {
+      "name": "ComfyUI-Manager",
+      "path": "/home/chronos/Escritorio/Comfy/custom_nodes/ComfyUI-Manager",
+      "has_requirements": true,
+      "git": {
+        "commit": "21ab2b78c2ce74a01a11f4913b72e2e1b831cac1",
+        "date": "2026-09-15T23:48:43+09:00",
+        "subject": "update DB"
+      }
+    },
+    {
+      "name": "ComfyUI-VideoHelperSuite",
+      "path": "/home/chronos/Escritorio/Comfy/custom_nodes/ComfyUI-VideoHelperSuite",
+      "has_requirements": true,
+      "git": {
+        "commit": "4d907bee61e92c2e65af3bd6383a4e4d356126d1",
+        "date": "2026-09-01T23:48:06-07:00",
+        "subject": "Add fallback value for step"
+      }
+    },
+    {
+      "name": "comfyui_controlnet_aux",
+      "path": "/home/chronos/Escritorio/Comfy/custom_nodes/comfyui_controlnet_aux",
+      "has_requirements": true,
+      "git": {
+        "commit": "59b1fc411ede8623b2997855b8018f0b3b6cf49f",
+        "date": "2026-08-28T05:30:17+07:00",
+        "subject": "Merge pull request #622 from wasd-tech/main"
+      }
+    }
+  ],
+  "capabilities": {
+    "animatediff": {
+      "available": true,
+      "nodes": [
+        "ADE_ADBlockCombo",
+        "ADE_ADBlockIndiv",
+        "ADE_AdjustPEFullStretch",
+        "ADE_AdjustPEManual",
+        "ADE_AdjustPESweetspotStretch",
+        "ADE_AdjustWeightAllAdd",
+        "ADE_AdjustWeightAllMult",
+        "ADE_AdjustWeightIndivAdd",
+        "ADE_AdjustWeightIndivAttnAdd",
+        "ADE_AdjustWeightIndivAttnMult",
+        "ADE_AdjustWeightIndivMult",
+        "ADE_AncestralOptions",
+        "ADE_AnimateDiffCombine",
+        "ADE_AnimateDiffKeyframe",
+        "ADE_AnimateDiffLoRALoader",
+        "ADE_AnimateDiffLoaderGen1",
+        "ADE_AnimateDiffLoaderV1Advanced",
+        "ADE_AnimateDiffLoaderWithContext",
+        "ADE_AnimateDiffModelSettings",
+        "ADE_AnimateDiffModelSettingsAdvancedAttnStrengths"
+      ]
+    },
+    "video_helper_suite": {
+      "available": true,
+      "nodes": [
+        "VHS_AudioToVHSAudio",
+        "VHS_BatchManager",
+        "VHS_DuplicateImages",
+        "VHS_DuplicateLatents",
+        "VHS_DuplicateMasks",
+        "VHS_GetImageCount",
+        "VHS_GetLatentCount",
+        "VHS_GetMaskCount",
+        "VHS_LoadAudio",
+        "VHS_LoadAudioUpload",
+        "VHS_LoadImagePath",
+        "VHS_LoadImages",
+        "VHS_LoadImagesPath",
+        "VHS_LoadVideo",
+        "VHS_LoadVideoFFmpeg",
+        "VHS_LoadVideoFFmpegPath",
+        "VHS_LoadVideoPath",
+        "VHS_MergeImages",
+        "VHS_MergeLatents",
+        "VHS_MergeMasks"
+      ]
+    },
+    "controlnet_aux": {
+      "available": true,
+      "nodes": [
+        "AIO_Preprocessor",
+        "ControlNetPreprocessorSelector",
+        "DWPreprocessor"
+      ]
+    },
+    "advanced_controlnet": {
+      "available": true,
+      "nodes": [
+        "ControlNetApplyAdvanced",
+        "ControlNetLoader",
+        "DiffControlNetLoader"
+      ]
+    },
+    "ipadapter": {
+      "available": false,
+      "nodes": []
+    },
+    "rife_interpolation": {
+      "available": true,
+      "nodes": [
+        "FrameInterpolate",
+        "FrameInterpolationModelLoader"
+      ]
+    },
+    "background_removal": {
+      "available": true,
+      "nodes": [
+        "BriaAddObject",
+        "BriaEraseByText",
+        "BriaEraseForeground",
+        "BriaEraser",
+        "BriaExpandImage",
+        "BriaGenFill",
+        "BriaImageEditNode",
+        "BriaIncreaseResolution",
+        "BriaRelight",
+        "BriaRemoveImageBackground",
+        "BriaRemoveVideoBackground",
+        "BriaReplaceImageBackground",
+        "BriaReplaceObject",
+        "BriaReseason",
+        "BriaRestorePhoto",
+        "BriaTransparentVideoBackground",
+        "BriaVideoEraser",
+        "BriaVideoGreenScreen",
+        "BriaVideoReplaceBackground",
+        "LoadBackgroundRemovalModel"
+      ]
+    },
+    "liveportrait": {
+      "available": true,
+      "nodes": [
+        "DownloadAndLoadLivePortraitModels",
+        "LivePortraitComposite",
+        "LivePortraitCropper",
+        "LivePortraitLoadCropper",
+        "LivePortraitLoadFaceAlignmentCropper",
+        "LivePortraitLoadMediaPipeCropper",
+        "LivePortraitProcess",
+        "LivePortraitRetargeting"
+      ]
+    },
+    "batch_iteration": {
+      "available": true,
+      "nodes": [
+        "LoadImageDataSetFromFolder",
+        "RepeatImageBatch",
+        "VHS_LoadImagesPath"
+      ]
+    },
+    "save_animated": {
+      "available": true,
+      "nodes": [
+        "SaveAnimatedPNG",
+        "SaveAnimatedWEBP",
+        "SaveWEBM",
+        "VHS_VideoCombine"
+      ]
+    }
+  },
+  "models": {
+    "animatediff_models": [
+      {
+        "name": "mm_sd_v15_v2.ckpt",
+        "size_bytes": 1817888431,
+        "relative": "animatediff_models/mm_sd_v15_v2.ckpt",
+        "sha256": "69ed0f5fef82b110aca51bcab73b21104242bc65d6ab4b8b2a2a94d31cad1bf0"
+      }
+    ],
+    "checkpoints": [
+      {
+        "name": "juggernautXL_v9Rundiffusion.safetensors",
+        "size_bytes": 7105348188,
+        "relative": "checkpoints/juggernautXL_v9Rundiffusion.safetensors"
+      },
+      {
+        "name": "v1-5-pruned-emaonly.safetensors",
+        "size_bytes": 4265146304,
+        "relative": "checkpoints/v1-5-pruned-emaonly.safetensors"
+      }
+    ],
+    "configs": [
+      {
+        "name": "anything_v3.yaml",
+        "size_bytes": 1933,
+        "relative": "configs/anything_v3.yaml",
+        "sha256": "8d81ca32367c7b3a809e02c4259504aa8d77a2694b52e7b793f9695e6cc75107"
+      },
+      {
+        "name": "v1-inference.yaml",
+        "size_bytes": 1873,
+        "relative": "configs/v1-inference.yaml",
+        "sha256": "20b7f0acae54d1f88384a6ca15b5d62c0ee4fbbca07ff72f3761fe936083210d"
+      },
+      {
+        "name": "v1-inference_clip_skip_2.yaml",
+        "size_bytes": 1933,
+        "relative": "configs/v1-inference_clip_skip_2.yaml",
+        "sha256": "8d81ca32367c7b3a809e02c4259504aa8d77a2694b52e7b793f9695e6cc75107"
+      },
+      {
+        "name": "v1-inference_clip_skip_2_fp16.yaml",
+        "size_bytes": 1956,
+        "relative": "configs/v1-inference_clip_skip_2_fp16.yaml",
+        "sha256": "5de4cdd258908cac4d9d6d3250cdd9c6feb2f0ccff745e3e3195b25bd6a3af71"
+      },
+      {
+        "name": "v1-inference_fp16.yaml",
+        "size_bytes": 1896,
+        "relative": "configs/v1-inference_fp16.yaml",
+        "sha256": "25727b19592d3c5ab44299089bae95d6989e98a222228f4dc0ee5c6200188fc0"
+      },
+      {
+        "name": "v1-inpainting-inference.yaml",
+        "size_bytes": 1992,
+        "relative": "configs/v1-inpainting-inference.yaml",
+        "sha256": "6a180ba807940815028e48e41cdd0fb3c10d0d2b2a32249c023b2d4c9bf45c5c"
+      },
+      {
+        "name": "v2-inference-v.yaml",
+        "size_bytes": 1815,
+        "relative": "configs/v2-inference-v.yaml",
+        "sha256": "72b092aadfe146f5d3f395a720c0aa3b2354b2095e3f10dc18f0e9716d286dcb"
+      },
+      {
+        "name": "v2-inference-v_fp32.yaml",
+        "size_bytes": 1816,
+        "relative": "configs/v2-inference-v_fp32.yaml",
+        "sha256": "6b8ed358d0197cc4f631199dd7107955a0e7772aa17a140c8422f08f60042df5"
+      },
+      {
+        "name": "v2-inference.yaml",
+        "size_bytes": 1789,
+        "relative": "configs/v2-inference.yaml",
+        "sha256": "ec4094bd36ef558cd9d52c9985471ac91d2c0c5bd071717411a4ccd5adf4f311"
+      },
+      {
+        "name": "v2-inference_fp32.yaml",
+        "size_bytes": 1790,
+        "relative": "configs/v2-inference_fp32.yaml",
+        "sha256": "54c86f69043e2dda671c89bce2e8aa59d535b01ffb436faf5597ca75c85ceaff"
+      },
+      {
+        "name": "v2-inpainting-inference.yaml",
+        "size_bytes": 4450,
+        "relative": "configs/v2-inpainting-inference.yaml",
+        "sha256": "821a51ee6a8f3a62e7f2002557fcb4f4ae97a2ab3cb3fb85942897d536fa8b2c"
+      }
+    ],
+    "diffusion_models": [
+      {
+        "name": "flux-2-klein-4b-fp8.safetensors",
+        "size_bytes": 4070624520,
+        "relative": "diffusion_models/flux-2-klein-4b-fp8.safetensors"
+      }
+    ],
+    "frame_interpolation": [
+      {
+        "name": "rife_v4.26.safetensors",
+        "size_bytes": 22674688,
+        "relative": "frame_interpolation/rife_v4.26.safetensors",
+        "sha256": "151874592c877740e5db11522f4514df569eeafb0a0fcb2696f16e9e8d317c94"
+      }
+    ],
+    "text_encoders": [
+      {
+        "name": "qwen_3_4b.safetensors",
+        "size_bytes": 8044982048,
+        "relative": "text_encoders/qwen_3_4b.safetensors"
+      }
+    ],
+    "vae": [
+      {
+        "name": "flux2-vae.safetensors",
+        "size_bytes": 336213556,
+        "relative": "vae/flux2-vae.safetensors",
+        "sha256": "d64f3a68e1cc4f9f4e29b6e0da38a0204fe9a49f2d4053f0ec1fa1ca02f9c4b5"
+      }
+    ]
+  },
+  "pipeline_installed": [
+    {
+      "type": "custom_node",
+      "name": "ComfyUI-AnimateDiff-Evolved",
+      "reason": "Temporal diffusion (motion module) for character idle/reaction/talking and ambient background loops. No equivalent was installed.",
+      "repository": "https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved",
+      "commit": "9257651221002dcba0a12f9cff37e1944e58fb60",
+      "version": "1.6.0",
+      "installedAt": "2026-09-18",
+      "installPath": "custom_nodes/ComfyUI-AnimateDiff-Evolved",
+      "dependencies": "none beyond existing torch/numpy",
+      "duplicateCheck": "No other AnimateDiff/IPAdapter/motion implementation present."
+    },
+    {
+      "type": "model",
+      "name": "mm_sd_v15_v2.ckpt",
+      "role": "AnimateDiff v2 motion module (SD1.5)",
+      "reason": "Standard, well-tested motion module for SD1.5 on 12GB VRAM.",
+      "source": "https://huggingface.co/guoyww/animatediff/resolve/main/mm_sd_v15_v2.ckpt",
+      "license": "Apache-2.0",
+      "sizeBytes": 1817888431,
+      "installPath": "models/animatediff_models/mm_sd_v15_v2.ckpt",
+      "sha256": null,
+      "note": "SHA-256 intentionally not stored in Git; recompute locally with audit_comfyui.py --hash-models."
+    },
+    {
+      "type": "model",
+      "name": "rife_v4.26.safetensors",
+      "role": "RIFE v4.26 frame interpolation (ComfyUI core FrameInterpolate)",
+      "reason": "Interpolate 8 fps diffusion output to 24 fps without extra diffusion cost.",
+      "source": "https://huggingface.co/Comfy-Org/frame_interpolation/resolve/main/frame_interpolation/rife_v4.26.safetensors",
+      "license": "MIT and Apache-2.0 (see Comfy-Org/frame_interpolation)",
+      "sizeBytes": 22674688,
+      "installPath": "models/frame_interpolation/rife_v4.26.safetensors",
+      "sha256": null
+    }
+  ],
+  "nvidia_smi": {
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 3060",
+        "memory_total_mib": "12288",
+        "memory_used_mib": "2021",
+        "driver": "580.178.04",
+        "compute_cap": "8.6"
+      }
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "background_loop",
+  "description": "Ambient looping motion for static backgrounds (neon flicker, smoke drift, particles, glow). Very low denoise to protect composition, text and logos. No alpha.",
+  "animationType": "background",
+  "loop": true,
+  "alphaRequired": false,
+  "workflowFile": "workflow.api.json",
+  "defaults": {
+    "frames": 24,
+    "fps": 8,
+    "steps": 18,
+    "cfg": 6.0,
+    "sampler": "euler",
+    "scheduler": "karras",
+    "denoise": 0.28,
+    "motionScale": 0.8,
+    "contextLength": 16,
+    "contextOverlap": 4,
+    "closedLoop": true,
+    "interpMultiplier": 2,
+    "outputFps": 16,
+    "loopMode": "crossfade"
+  },
+  "positive": "subtle ambient background animation, gentle neon light flicker, soft smoke drift, floating dust particles, slow glow pulsing, atmosphere, keep composition identical, keep all text and logos unchanged, no camera movement",
+  "negative": "deformation, morphing, changing layout, moving text, changed logos, camera movement, camera zoom, camera pan, new objects, people, faces, characters, watermark, blurry, low quality, oversaturated"
+}

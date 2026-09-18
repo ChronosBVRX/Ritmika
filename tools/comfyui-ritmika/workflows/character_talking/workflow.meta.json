@@ -1,0 +1,26 @@
+{
+  "id": "character_talking",
+  "description": "Reusable talking loop for Tío Axolo. No lipsync yet: moderate mouth movement, light head motion, blinking and breathing so it can play under any existing Axolo MP3.",
+  "animationType": "talking",
+  "loop": true,
+  "alphaRequired": true,
+  "workflowFile": "workflow.api.json",
+  "defaults": {
+    "frames": 16,
+    "fps": 8,
+    "steps": 20,
+    "cfg": 7.0,
+    "sampler": "euler",
+    "scheduler": "karras",
+    "denoise": 0.46,
+    "motionScale": 1.0,
+    "contextLength": 16,
+    "contextOverlap": 4,
+    "closedLoop": true,
+    "interpMultiplier": 2,
+    "outputFps": 24,
+    "loopMode": "pingpong"
+  },
+  "positive": "character talking, moderate mouth movement, light head motion, blinking, breathing, exact same character design, same clothing, same colors, same facial features, cartoon character",
+  "negative": "deformation, extra limbs, extra fingers, changing clothes, color shift, morphing, identity change, camera movement, camera zoom, new accessories, new objects, background changes, text, watermark, logo, exaggerated motion, blurry, low quality"
+}

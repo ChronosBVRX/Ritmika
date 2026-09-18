@@ -1,0 +1,22 @@
+{
+  "comfyui": {
+    "host": "127.0.0.1",
+    "port": 8188,
+    "root": null,
+    "auto_start": false,
+    "start_command": ""
+  },
+  "paths": {
+    "generated_dir": null,
+    "assets_dir": "public/assets"
+  },
+  "generation": {
+    "checkpoint": "v1-5-pruned-emaonly.safetensors",
+    "motionModel": "mm_sd_v15_v2.ckpt",
+    "interpModel": "rife_v4.26.safetensors"
+  },
+  "runtime": {
+    "timeout_seconds": 1800,
+    "poll_interval": 1.0
+  }
+}
