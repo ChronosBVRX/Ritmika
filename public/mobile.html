@@ -1065,8 +1065,24 @@ async function fetchAndBuildCatalog(mode = null) {
 }
 fetchAndBuildCatalog();
 
+// ── Identidad estable (playerId) ────────────────────────
+function getOrCreatePlayerId(){
+  try{
+    let id = localStorage.getItem('ritmika_player_id');
+    if(!id){
+      id = (crypto.randomUUID ? crypto.randomUUID() : 'p_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36));
+      localStorage.setItem('ritmika_player_id', id);
+    }
+    return id;
+  }catch{ return 'p_'+Math.random().toString(36).slice(2,10); }
+}
+function getResumeToken(){ try{ return localStorage.getItem('ritmika_resume_token') || null; }catch{ return null; } }
+function setResumeToken(t){ try{ if(t) localStorage.setItem('ritmika_resume_token', t); }catch{} }
+
 // ── STATE ─────────────────────────────────────────────────
 const me = {
+  playerId: getOrCreatePlayerId(),
+  resumeToken: getResumeToken(),
   name: '',
   avatarId: null,
   roomCode: '',
@@ -1098,12 +1114,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 socket.on('connect', () => {
-  console.log('[MOBILE] Conectado al servidor:', socket.id);
+  console.log('[MOBILE] Conectado al servidor:', socket.id, 'playerId', me.playerId);
   if (me.roomCode && me.name && me.avatarId !== null) {
     socket.emit('player:join', {
       roomCode: me.roomCode,
       name: me.name,
       avatarId: me.avatarId,
+      playerId: me.playerId,
+      resumeToken: me.resumeToken,
     });
     setTimeout(() => {
       if (me.genres.length) socket.emit('player:select_genres', { roomCode: me.roomCode, genres: me.genres });
@@ -1116,7 +1134,8 @@ socket.on('connect_error', () => {
   showToast('⚠️ No se puede conectar al servidor');
 });
 
-socket.on('player:join_ack', ({ success, error, roomCode, mode, players }) => {
+socket.on('player:join_ack', (data) => {
+  const { success, error, roomCode, mode, players } = data;
   if (window.joinTimeout) { clearTimeout(window.joinTimeout); window.joinTimeout = null; }
   const btn = document.getElementById('btn-join-game');
   if (btn) {
@@ -1131,10 +1150,19 @@ socket.on('player:join_ack', ({ success, error, roomCode, mode, players }) => {
     return;
   }
   // Successfully joined
+  if (data && data.playerId) {
+    me.playerId = data.playerId;
+    try{ localStorage.setItem('ritmika_player_id', me.playerId); }catch{}
+  }
+  if (data && data.resumeToken) {
+    me.resumeToken = data.resumeToken;
+    setResumeToken(data.resumeToken);
+  }
   me.roomCode = roomCode;
   me.gameMode = mode || 'clasico';
   roomPlayers = players || [];
-  me.isHost = roomPlayers.length > 0 && roomPlayers[0].socketId === socket.id;
+  if (typeof data.isHost === 'boolean') me.isHost = data.isHost;
+  else me.isHost = roomPlayers.length > 0 && roomPlayers[0].socketId === socket.id;
 
   if (typeof applyMobileModeTheme === 'function') {
     applyMobileModeTheme();
@@ -1864,6 +1892,8 @@ function joinGame() {
     roomCode: me.roomCode,
     name: me.name,
     avatarId: me.avatarId,
+    playerId: me.playerId,
+    resumeToken: me.resumeToken,
   });
 
   // Send genre and artist selections after join (with slight delay)

@@ -1,0 +1,205 @@
+name: CI
+
+on:
+  push:
+    branches: [ "feat/desktop-local-online-relay", "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+          cache: 'npm'
+      - name: Install deps
+        run: npm ci
+      - name: Portability guard
+        run: node tests/portability.test.js
+      - name: Protocol tests
+        run: npm test
+      - name: Local HTTP tests
+        run: node tests/local_http.test.js
+      - name: Config tests
+        run: node tests/config.test.js
+      - name: CORS allowlist tests
+        run: node tests/cors.test.js
+      - name: Reconnect grace tests
+        run: node tests/reconnect.test.js
+      - name: Relay tests
+        run: npm run test:relay
+      - name: Identity tests
+        run: node tests/identity.test.js
+      - name: Build tests
+        run: node tests/build.test.js
+      - name: Smoke test
+        run: node tests/smoke.test.js
+      - name: Audit secrets
+        run: node scripts/audit_secrets.js
+      - name: Benchmark (no fail)
+        run: node scripts/benchmark.js || true
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+          cache: 'npm'
+      - name: Install deps
+        run: npm ci
+      - name: Build desktop (check)
+        run: |
+          npm run generate:artist-metadata
+          node -e "require('better-sqlite3')('server/songs.db').prepare('SELECT COUNT(*) as c FROM songs').get().c"
+        shell: bash
+      - name: Check installer.iss syntax
+        run: |
+          if [ ! -f "installer.iss" ]; then echo "installer.iss missing" && exit 1; fi
+          grep -q "dist\\\\desktop" installer.iss || (echo "installer must use dist/desktop" && exit 1)
+        shell: bash
+
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+          cache: 'npm'
+      - name: Install deps
+        run: npm ci
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Add Inno Setup to PATH
+        shell: pwsh
+        run: |
+          $iscc = Get-ChildItem "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" -ErrorAction SilentlyContinue
+          if (-not $iscc) { $iscc = Get-ChildItem "C:\Program Files\Inno Setup 6\ISCC.exe" -ErrorAction SilentlyContinue }
+          if (-not $iscc) { throw "ISCC.exe not found after choco install" }
+          Split-Path $iscc.FullName | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+      - name: Build desktop + installer
+        shell: cmd
+        run: build.bat < nul
+      - name: Verify installer and staging
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = "installer/output/Ritmika-Setup-x64-1.0.1.exe"
+          if (-not (Test-Path $exe)) { throw "installer not produced: $exe" }
+          $size = (Get-Item $exe).Length
+          $hash = (Get-FileHash $exe -Algorithm SHA256).Hash
+          Write-Host "INSTALLER: $exe"
+          Write-Host "SIZE_BYTES: $size"
+          Write-Host "SHA256: $hash"
+          if ($size -lt 5000000) { throw "installer suspiciously small: $size" }
+
+          $stage = "dist/desktop"
+          foreach ($forbidden in @(".env",".git",".github","server/relay","tests","docs")) {
+            if (Test-Path (Join-Path $stage $forbidden)) { throw "forbidden path in staging: $forbidden" }
+          }
+          foreach ($dev in @("nodemon","tailwindcss","socket.io-client")) {
+            if (Test-Path (Join-Path $stage "node_modules/$dev")) { throw "devDependency in staging: $dev" }
+          }
+
+          Push-Location $stage
+          $nodeVer = & "runtime/node/node.exe" --version
+          Write-Host "NODE_RUNTIME: $nodeVer"
+          if ($nodeVer.Trim() -ne "v22.18.0") { throw "unexpected bundled Node: $nodeVer" }
+          $count = & "runtime/node/node.exe" -e "const c=require('better-sqlite3')('server/songs.db').prepare('SELECT COUNT(*) c FROM songs').get().c; if(c!==3845) throw new Error('songs '+c); console.log(c)"
+          Pop-Location
+          Write-Host "SONGS: $count"
+          if (-not (Test-Path "$stage/server/songs.db")) { throw "songs.db missing in staging" }
+          if (-not (Test-Path "$stage/public/assets")) { throw "public/assets missing in staging" }
+          if (-not (Test-Path "$stage/MicrosoftEdgeWebview2Setup.exe")) { Write-Warning "WebView2 bootstrapper missing (download may have failed)" }
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ritmika-Setup-x64-1.0.1
+          path: installer/output/*.exe
+          if-no-files-found: error
+
+  windows-install-smoke:
+    needs: windows-installer
+    runs-on: windows-latest
+    steps:
+      - name: Download installer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Ritmika-Setup-x64-1.0.1
+          path: installer/output
+      - name: Silent install
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $setup = (Get-ChildItem "installer/output/*.exe" | Select-Object -First 1).FullName
+          $p = Start-Process -FilePath $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
+          Write-Host "INSTALL_EXIT: $($p.ExitCode)"
+      - name: Verify installed payload is self-contained
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $app = "C:\Program Files\Ritmika"
+          foreach ($f in @("Ritmika.exe","runtime/node/node.exe","server/songs.db","server/local/index.js","public/assets")) {
+            if (-not (Test-Path (Join-Path $app $f))) { throw "missing installed file: $f" }
+          }
+          foreach ($forbidden in @(".env",".git","server/relay","tests","docs")) {
+            if (Test-Path (Join-Path $app $forbidden)) { throw "forbidden path installed: $forbidden" }
+          }
+          foreach ($dev in @("nodemon","tailwindcss","socket.io-client")) {
+            if (Test-Path (Join-Path $app "node_modules/$dev")) { throw "devDependency installed: $dev" }
+          }
+          Write-Host "INSTALLED_FILES_OK"
+
+          # Arranca SOLO con el Node empaquetado (sin node/npm del sistema).
+          $appData = Join-Path $env:RUNNER_TEMP "RitmikaAppData"
+          New-Item -ItemType Directory -Force -Path $appData | Out-Null
+          $env:LOCALAPPDATA = $appData
+          $env:PORT = "3123"
+          $node = Join-Path $app "runtime/node/node.exe"
+          $proc = Start-Process -FilePath $node -ArgumentList "server\local\index.js" -WorkingDirectory $app -PassThru -WindowStyle Hidden
+          try {
+            $health = $null
+            for ($i = 0; $i -lt 30; $i++) {
+              Start-Sleep -Seconds 1
+              try { $health = Invoke-RestMethod "http://127.0.0.1:3123/api/health" -TimeoutSec 3; break } catch {}
+            }
+            if (-not $health) { throw "installed server did not become healthy" }
+            $songs = Invoke-RestMethod "http://127.0.0.1:3123/api/songs?limit=1" -TimeoutSec 5
+            $cfg = Invoke-RestMethod "http://127.0.0.1:3123/api/config" -TimeoutSec 5
+            Write-Host "HEALTH_OK server=$($health.server) relay=$($health.relayUrl)"
+            Write-Host "SONGS_ENDPOINT_OK count=$($songs.Count)"
+            Write-Host "CONFIG_OK mode=$($cfg.connectionMode)"
+
+            # La DB debe copiarse a un directorio escribible del usuario, no a Program Files.
+            $userDb = Join-Path $appData "Ritmika\songs.db"
+            if (-not (Test-Path $userDb)) { throw "expected writable DB copy at $userDb" }
+            Write-Host "USER_DB_OK: $userDb"
+            if (Test-Path (Join-Path $app "server/songs.db-wal")) { throw "Program Files DB was written (WAL present)" }
+          } finally {
+            if ($proc -and -not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
+          }
+      - name: Silent uninstall and cleanup check
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $app = "C:\Program Files\Ritmika"
+          $unins = (Get-ChildItem "$app\unins*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1)
+          if (-not $unins) { throw "uninstaller not found" }
+          $p = Start-Process -FilePath $unins.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "uninstall exit code $($p.ExitCode)" }
+          $deadline = (Get-Date).AddSeconds(60)
+          while ((Test-Path $app) -and ((Get-Date) -lt $deadline)) { Start-Sleep -Seconds 2 }
+          if (Test-Path $app) {
+            $left = (Get-ChildItem $app -Force | Select-Object -ExpandProperty Name) -join ', '
+            Write-Host "LEFT_AFTER_UNINSTALL: $left"
+            if (Test-Path (Join-Path $app "Ritmika.exe")) { throw "uninstall left Ritmika.exe" }
+            if (Test-Path (Join-Path $app "runtime")) { throw "uninstall left runtime/" }
+            if (Test-Path (Join-Path $app "server")) { throw "uninstall left server/" }
+          }
+          Write-Host "UNINSTALL_OK"

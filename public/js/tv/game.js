@@ -416,16 +416,24 @@ async function showRouletteResult(player) {
   const song = await pickSongForPlayer(player);
   state.currentSong = song;
 
-  // Resolve video URL (presigned from R2 or public fallback)
+  // Resolve video URL — prefer direct R2 (public) + cache progresivo
   if (song && song.id) {
-    fetch('/api/video-url?id=' + encodeURIComponent(song.id))
-      .then(r => r.json())
-      .then(data => {
-        if (data && data.url && state.currentSong && state.currentSong.id === song.id) {
-          state.currentSong._resolvedUrl = data.url;
-        }
-      })
-      .catch(() => {});
+    if (song.url && song.url.includes('media.pixelhub.party')) {
+      state.currentSong._resolvedUrl = song.url;
+      // Cache progresivo en background (no bloquea)
+      fetch('/api/video-cache/' + encodeURIComponent(song.id) + '/download', {method:'POST'}).catch(()=>{});
+    } else {
+      (song.url && song.url.includes('media.pixelhub.party') ? Promise.resolve({ json: () => Promise.resolve({ url: song.url }) }) : fetch('/api/video-url?id=' + encodeURIComponent(song.id)))
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.url && state.currentSong && state.currentSong.id === song.id) {
+            state.currentSong._resolvedUrl = data.url;
+          }
+        })
+        .catch(() => {
+          if (song.url) state.currentSong._resolvedUrl = song.url;
+        });
+    }
   }
 
   document.getElementById('selected-player-avatar-img').src = getAvatar(player.avatarId).img;
@@ -528,7 +536,7 @@ async function startKaraoke(player, song) {
 
   // Resolve video URL if not already done
   if (song && song.id && !song._resolvedUrl) {
-    fetch('/api/video-url?id=' + encodeURIComponent(song.id))
+    (song.url && song.url.includes('media.pixelhub.party') ? Promise.resolve({ json: () => Promise.resolve({ url: song.url }) }) : fetch('/api/video-url?id=' + encodeURIComponent(song.id)))
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(data => { if (data && data.url) song._resolvedUrl = data.url; })
       .catch(() => {});
@@ -602,7 +610,7 @@ async function startKaraoke(player, song) {
       videoUrl = song._resolvedUrl;
     } else {
       try {
-        const vRes = await fetch('/api/video-url?id=' + encodeURIComponent(song.id));
+        const vRes = await (song.url && song.url.includes('media.pixelhub.party') ? Promise.resolve({ json: () => Promise.resolve({ url: song.url }) }) : fetch('/api/video-url?id=' + encodeURIComponent(song.id)));
         if (vRes.ok) {
           const vData = await vRes.json();
           videoUrl = vData && vData.url ? vData.url : null;

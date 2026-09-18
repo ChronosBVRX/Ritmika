@@ -21,6 +21,23 @@ namespace RitmikaLauncher
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            if (!IsWebView2Available())
+            {
+                var res = MessageBox.Show(
+                    "Microsoft Edge WebView2 Runtime no está instalado.\n\n" +
+                    "Rítmika necesita WebView2 para mostrar la pantalla de juego.\n" +
+                    "¿Deseas abrir la página de descarga ahora?\n\n" +
+                    "(Se abrirá https://go.microsoft.com/fwlink/p/?LinkId=2124703)",
+                    "Rítmika — WebView2 requerido",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+                if (res == DialogResult.Yes)
+                {
+                    try { Process.Start("https://go.microsoft.com/fwlink/p/?LinkId=2124703"); } catch { }
+                }
+                // Continuar de todas formas — GameWindow intentará inicializar y mostrará error detallado si falla
+            }
+
             // Ensure server is killed even on crash
             Application.ApplicationExit += (s, e) => KillServer();
             AppDomain.CurrentDomain.ProcessExit += (s, e) => KillServer();
@@ -49,18 +66,26 @@ namespace RitmikaLauncher
 
             if (nodeExe == null)
             {
+                string bundledPath = Path.Combine(Application.StartupPath, "runtime", "node", "node.exe");
                 MessageBox.Show(
-                    "No se encontró Node.js instalado.\n\n" +
-                    "Rítmika requiere Node.js para funcionar.\n" +
-                    "Descárgalo desde: https://nodejs.org (versión LTS recomendada).\n\n" +
-                    "Después de instalar Node.js, abre una terminal en la carpeta del juego\n" +
-                    "y ejecuta: npm install\n",
+                    "No se encontró el runtime de Node.js.\n\n" +
+                    "Rítmika incluye Node en: runtime\\node\\node.exe\n" +
+                    "Si instalaste desde Ritmika-Setup-x64.exe, reinstala.\n" +
+                    "Si ejecutas desde código fuente, instala Node LTS desde https://nodejs.org\n" +
+                    "y asegúrate de que 'node' esté en el PATH, o coloca node.exe en:\n" + bundledPath + "\n\n" +
+                    "Después de instalar Node, ejecuta: npm install (solo para desarrollo).",
                     "Rítmika — Node.js no encontrado",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 Environment.Exit(1);
                 return;
             }
+
+            // Preparar directorios en LOCALAPPDATA para logs/cache (no requiere admin en Program Files)
+            string appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Ritmika");
+            string logDir = Path.Combine(appData, "logs");
+            string cacheDir = Path.Combine(appData, "cache", "videos");
+            try { Directory.CreateDirectory(logDir); Directory.CreateDirectory(cacheDir); } catch { }
 
             var psi = new ProcessStartInfo
             {
@@ -73,12 +98,20 @@ namespace RitmikaLauncher
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
+            // Variables para modo online y cache local
+            psi.EnvironmentVariables["PORT"] = "3000";
+            psi.EnvironmentVariables["VIDEO_CACHE_DIR"] = cacheDir;
+            psi.EnvironmentVariables["VIDEO_CACHE_MAX_MB"] = "2048";
+            // Si existe runtime/node, usarlo; si no, el sistema ya está en nodeExe
+            // No exponer R2 secrets en el instalador — solo si el usuario los configura localmente en %LOCALAPPDATA%\Ritmika\.env
+
             serverProcess = new Process { StartInfo = psi };
             try
             {
                 serverProcess.Start();
-                // Write stdout/stderr to server.log
-                var logPath = Path.Combine(Application.StartupPath, "server.log");
+                // Write stdout/stderr to LOCALAPPDATA log (y fallback a startupPath si falla)
+                string logPath = Path.Combine(logDir, "server.log");
+                try { if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir); } catch { logPath = Path.Combine(Application.StartupPath, "server.log"); }
                 var logWriter = new StreamWriter(logPath, false) { AutoFlush = true };
                 serverProcess.OutputDataReceived += (s, e) => { if (e.Data != null) logWriter.WriteLine(e.Data); };
                 serverProcess.ErrorDataReceived += (s, e) => { if (e.Data != null) logWriter.WriteLine(e.Data); };
@@ -141,6 +174,22 @@ namespace RitmikaLauncher
 
         static string FindNode()
         {
+            // 1. Prioridad: Node incluido en runtime/node/node.exe (distribución autocontenida)
+            try
+            {
+                string bundled = Path.Combine(Application.StartupPath, "runtime", "node", "node.exe");
+                if (File.Exists(bundled)) return bundled;
+                // También buscar en runtime/node-v*/node.exe por si el zip se extrajo con carpeta versionada
+                string runtimeDir = Path.Combine(Application.StartupPath, "runtime", "node");
+                if (Directory.Exists(runtimeDir))
+                {
+                    foreach (var f in Directory.GetFiles(runtimeDir, "node.exe", SearchOption.AllDirectories))
+                        if (File.Exists(f)) return f;
+                }
+            }
+            catch { }
+
+            // 2. Fallback: Node del sistema (where node)
             try
             {
                 using (var p = new Process
@@ -158,11 +207,28 @@ namespace RitmikaLauncher
                     p.Start();
                     string path = p.StandardOutput.ReadLine();
                     p.WaitForExit(2000);
-                    if (File.Exists(path)) return path;
+                    if (!string.IsNullOrEmpty(path) && File.Exists(path.Trim())) return path.Trim();
                 }
             }
             catch { }
             return null;
+        }
+
+        static bool IsWebView2Available()
+        {
+            try
+            {
+                // Check registry for WebView2 Runtime
+                using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"))
+                    if (key != null) return true;
+                using (var key2 = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"))
+                    if (key2 != null) return true;
+                // Fallback: check EdgeWebView folder
+                if (Directory.Exists(@"C:\Program Files (x86)\Microsoft\EdgeWebView\Application")) return true;
+                if (File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft\EdgeWebView\Application\msedgewebview2.exe"))) return true;
+            }
+            catch { }
+            return false;
         }
 
 
