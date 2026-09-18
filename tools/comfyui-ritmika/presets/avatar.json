@@ -1,0 +1,35 @@
+{
+  "name": "avatar",
+  "description": "Player avatar mascots. Non-square, transparent, identity-critical.",
+  "category": "avatar",
+  "model": {
+    "checkpoint": "v1-5-pruned-emaonly.safetensors",
+    "motionModel": "mm_sd_v15_v2.ckpt",
+    "interpModel": "rife_v4.26.safetensors"
+  },
+  "resolution": {
+    "maxDimension": 512,
+    "minDimension": 256,
+    "multipleOf": 8
+  },
+  "alpha": {
+    "required": true,
+    "mode": "source",
+    "method": "source-alpha-reapply",
+    "compositeBackground": "#808080"
+  },
+  "prompt": {
+    "subject": "cute 3D cartoon party mascot character, clean render, centered, full body visible",
+    "negative": "photorealistic, human, multiple characters, cropped character, cut off limbs"
+  },
+  "generation": {
+    "denoise": 0.44
+  },
+  "outputs": {
+    "webm": true,
+    "webp": true,
+    "spriteSheet": true,
+    "previewMp4": true,
+    "previewPng": true
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "background",
+  "description": "Static backgrounds and stages. Opaque, composition and text must be preserved.",
+  "category": "background",
+  "model": {
+    "checkpoint": "v1-5-pruned-emaonly.safetensors",
+    "motionModel": "mm_sd_v15_v2.ckpt",
+    "interpModel": "rife_v4.26.safetensors"
+  },
+  "resolution": {
+    "maxDimension": 640,
+    "minDimension": 320,
+    "multipleOf": 8
+  },
+  "alpha": {
+    "required": false,
+    "mode": "none",
+    "method": "none",
+    "compositeBackground": "#000000"
+  },
+  "prompt": {
+    "subject": "empty karaoke stage environment, neon lights, atmospheric",
+    "negative": "characters, people, faces, text, watermark, logo"
+  },
+  "generation": {
+    "denoise": 0.28
+  },
+  "outputs": {
+    "webm": true,
+    "webp": false,
+    "spriteSheet": true,
+    "previewMp4": true,
+    "previewPng": true
+  }
+}
