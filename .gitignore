@@ -19,3 +19,14 @@ Microsoft.Web.WebView2.WinForms.dll
 # WebView2 SDK DLLs (downloaded by build script)
 Ritmika.exe.WebView2/
 
+# Bundled Node runtime (autocontenido, no commitear)
+runtime/node/
+dist/
+*.Setup*.exe
+Ritmika-Setup*.exe
+installer/output/
+
+# LOCALAPPDATA cache/logs (runtime)
+.cache/
+logs/
+

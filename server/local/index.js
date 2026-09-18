@@ -18,6 +18,7 @@ const { exec } = require('child_process');
 const internalIp = require('internal-ip');
 require('dotenv').config();
 const { config: ritmikaConfig } = require('../shared/config');
+const videoCache = require('./videoCache');
 
 // ── Cloudflare R2 client (presigned URLs) ─────────────────────
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
@@ -509,6 +510,49 @@ app.get('/api/video-url', async (req, res) => {
     // Fallback to public URL if bucket is still public
     res.json({ url: song.url, expiresIn: 0, note: 'fallback-public' });
   }
+});
+
+// ── Video cache local (progresivo, LRU) ──────────────────
+app.get('/api/video-cache/:id', async (req, res) => {
+  const songId = req.params.id;
+  if (!songId) return res.status(400).json({ error: 'Missing id' });
+  const song = isDbReady() ? db.prepare('SELECT * FROM songs WHERE id = ?').get(songId) : null;
+  if (!song) return res.status(404).json({ error: 'Song not found' });
+  const cachePath = videoCache.getCachePath(songId, song.url);
+  if (videoCache.isCached(songId, song.url)) {
+    return res.sendFile(cachePath);
+  }
+  // Si no está cacheado, redirigir a R2 directo (streaming)
+  // El cliente puede optar por descargar en background via POST /api/video-cache/:id/download
+  return res.redirect(302, song.url);
+});
+
+app.post('/api/video-cache/:id/download', async (req, res) => {
+  const songId = req.params.id;
+  const song = isDbReady() ? db.prepare('SELECT * FROM songs WHERE id = ?').get(songId) : null;
+  if (!song) return res.status(404).json({ error: 'Song not found' });
+  if (videoCache.isCached(songId, song.url)) return res.json({ cached: true, path: videoCache.getCachePath(songId, song.url) });
+  try {
+    await videoCache.downloadToCache(songId, song.url);
+    res.json({ cached: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/video-cache/status', (req, res) => {
+  const dir = videoCache.getCacheDir();
+  let files = [];
+  let total = 0;
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    files = fs.readdirSync(dir);
+    for (const f of files) {
+      try { total += fs.statSync(path.join(dir, f)).size; } catch {}
+    }
+  } catch {}
+  res.json({ dir, files: files.length, totalBytes: total, maxBytes: videoCache.getCacheMaxBytes() });
 });
 
 // ── Estado mínimo del servidor (solo metadatos de sala) ──────
