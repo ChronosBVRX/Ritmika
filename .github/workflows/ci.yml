@@ -122,3 +122,71 @@ jobs:
           name: Ritmika-Setup-x64-1.0.1
           path: installer/output/*.exe
           if-no-files-found: error
+
+  windows-install-smoke:
+    needs: windows-installer
+    runs-on: windows-latest
+    steps:
+      - name: Download installer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Ritmika-Setup-x64-1.0.1
+          path: installer/output
+      - name: Silent install
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $setup = (Get-ChildItem "installer/output/*.exe" | Select-Object -First 1).FullName
+          $p = Start-Process -FilePath $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
+          Write-Host "INSTALL_EXIT: $($p.ExitCode)"
+      - name: Verify installed payload is self-contained
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $app = "C:\Program Files\Ritmika"
+          foreach ($f in @("Ritmika.exe","runtime/node/node.exe","server/songs.db","server/local/index.js","public/assets")) {
+            if (-not (Test-Path (Join-Path $app $f))) { throw "missing installed file: $f" }
+          }
+          foreach ($forbidden in @(".env",".git","server/relay","tests","docs")) {
+            if (Test-Path (Join-Path $app $forbidden)) { throw "forbidden path installed: $forbidden" }
+          }
+          foreach ($dev in @("nodemon","tailwindcss","socket.io-client")) {
+            if (Test-Path (Join-Path $app "node_modules/$dev")) { throw "devDependency installed: $dev" }
+          }
+          Write-Host "INSTALLED_FILES_OK"
+
+          # Arranca SOLO con el Node empaquetado (sin node/npm del sistema).
+          $appData = Join-Path $env:RUNNER_TEMP "RitmikaAppData"
+          New-Item -ItemType Directory -Force -Path $appData | Out-Null
+          $env:LOCALAPPDATA = $appData
+          $env:PORT = "3123"
+          $node = Join-Path $app "runtime/node/node.exe"
+          $proc = Start-Process -FilePath $node -ArgumentList "server\local\index.js" -WorkingDirectory $app -PassThru -WindowStyle Hidden
+          try {
+            $health = $null
+            for ($i = 0; $i -lt 30; $i++) {
+              Start-Sleep -Seconds 1
+              try { $health = Invoke-RestMethod "http://127.0.0.1:3123/api/health" -TimeoutSec 3; break } catch {}
+            }
+            if (-not $health) { throw "installed server did not become healthy" }
+            $songs = Invoke-RestMethod "http://127.0.0.1:3123/api/songs?limit=1" -TimeoutSec 5
+            $cfg = Invoke-RestMethod "http://127.0.0.1:3123/api/config" -TimeoutSec 5
+            Write-Host "HEALTH_OK server=$($health.server) relay=$($health.relayUrl)"
+            Write-Host "SONGS_ENDPOINT_OK count=$($songs.Count)"
+            Write-Host "CONFIG_OK mode=$($cfg.connectionMode)"
+          } finally {
+            if ($proc -and -not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
+          }
+      - name: Silent uninstall and cleanup check
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $app = "C:\Program Files\Ritmika"
+          $unins = (Get-ChildItem "$app\unins*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1)
+          if (-not $unins) { throw "uninstaller not found" }
+          $p = Start-Process -FilePath $unins.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "uninstall exit code $($p.ExitCode)" }
+          Start-Sleep -Seconds 3
+          if (Test-Path $app) { throw "uninstall left files in $app" }
+          Write-Host "UNINSTALL_OK"
