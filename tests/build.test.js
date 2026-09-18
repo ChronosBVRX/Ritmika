@@ -66,6 +66,14 @@ async function test(){
     }
   });
 
+  await chk('build.bat instala solo deps de produccion en staging', async()=>{
+    const bat=fs.readFileSync('build.bat','utf8');
+    assert(bat.includes('--omit=dev'), 'build.bat debe usar --omit=dev');
+    assert(bat.includes('--prefix "dist\\desktop"'), 'debe instalar en staging dist/desktop');
+    assert(!bat.includes('server\\relay'), 'build.bat no debe copiar server/relay');
+    assert(!/xcopy[^\n]*tests/i.test(bat), 'build.bat no debe copiar tests');
+  });
+
   console.log(`\n[BUILD] ${passed} passed, ${failed} failed`);
   process.exit(failed?1:0);
 }

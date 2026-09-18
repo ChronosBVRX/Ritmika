@@ -117,8 +117,21 @@ copy /y "Microsoft.Web.WebView2.Core.dll" "dist\desktop\" >nul 2>&1
 copy /y "Microsoft.Web.WebView2.WinForms.dll" "dist\desktop\" >nul 2>&1
 echo   Copiando runtime Node...
 xcopy /y /e /q "runtime\node\*" "dist\desktop\runtime\node\" >nul
-echo   Copiando node_modules (produccion)...
-xcopy /y /e /q "node_modules\*" "dist\desktop\node_modules\" >nul
+echo   Copiando manifiestos npm...
+copy /y "package.json" "dist\desktop\" >nul
+copy /y "package-lock.json" "dist\desktop\" >nul 2>&1
+echo   Instalando dependencias de produccion en staging (sin devDependencies)...
+set "STAGED_DEPS_OK="
+if exist "runtime\node\node_modules\npm\bin\npm-cli.js" (
+    runtime\node\node.exe runtime\node\node_modules\npm\bin\npm-cli.js ci --omit=dev --no-audit --no-fund --prefix "dist\desktop" >nul 2>&1
+) else (
+    call npm ci --omit=dev --no-audit --no-fund --prefix "dist\desktop" >nul 2>&1
+)
+if exist "dist\desktop\node_modules\better-sqlite3" set "STAGED_DEPS_OK=1"
+if not defined STAGED_DEPS_OK (
+    echo   [WARN] npm ci --omit=dev en staging fallo; copiando node_modules existente...
+    xcopy /y /e /q "node_modules\*" "dist\desktop\node_modules\" >nul
+)
 echo   Copiando server y public (sin relay/tests/docs)...
 copy /y "server\index.js" "dist\desktop\server\" >nul
 copy /y "server\songs.db" "dist\desktop\server\" >nul
@@ -126,7 +139,6 @@ xcopy /y /e /q "server\local\*" "dist\desktop\server\local\" >nul
 xcopy /y /e /q "server\shared\*" "dist\desktop\server\shared\" >nul
 copy /y "server\views\admin_modes.html" "dist\desktop\server\views\" >nul 2>&1
 xcopy /y /e /q "public\*" "dist\desktop\public\" >nul
-copy /y "package.json" "dist\desktop\" >nul
 echo   [OK] Staging dist/desktop listo
 for /f %%f in ('dir /s /b "dist\desktop" ^| find /c /v ""') do echo   Archivos: %%f
 echo   Descargando WebView2 Bootstrapper (Evergreen)...
