@@ -1,0 +1,41 @@
+{
+  "axolo-neutral-idle": {
+    "src": "/assets/animated/axolo/neutral-idle.webm",
+    "fallback": "/assets/tio_axolo_vignette_neutral.webp",
+    "type": "video",
+    "loop": true,
+    "muted": true,
+    "playsinline": true,
+    "alpha": true,
+    "width": 640,
+    "height": 640,
+    "fps": 24,
+    "duration": 2.5
+  },
+  "avatar-0-idle": {
+    "src": "/assets/animated/avatars/taco-rockero-idle.webm",
+    "fallback": "/assets/avatars/avatar_0_taco_rockero.webp",
+    "type": "video",
+    "loop": true,
+    "muted": true,
+    "playsinline": true,
+    "alpha": true,
+    "width": 512,
+    "height": 384,
+    "fps": 24,
+    "duration": 2.5
+  },
+  "background-neon-club": {
+    "src": "/assets/animated/backgrounds/neon-club-loop.webm",
+    "fallback": "/assets/bg_neon_club.webp",
+    "type": "video",
+    "loop": true,
+    "muted": true,
+    "playsinline": true,
+    "alpha": false,
+    "width": 640,
+    "height": 640,
+    "fps": 16,
+    "duration": 2.938
+  }
+}
