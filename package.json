@@ -5,11 +5,16 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
+    "start:local": "node server/local/index.js",
+    "start:relay": "node server/relay/index.js",
     "dev": "nodemon server/index.js",
+    "dev:relay": "nodemon server/relay/index.js",
     "linux": "./Ritmika.sh",
     "linux:no-browser": "./Ritmika.sh --no-browser",
     "test": "node tests/protocol.test.js",
+    "test:relay": "node tests/relay.test.js",
     "test:all": "node tests/protocol.test.js && node tests/relay.test.js",
+    "generate:artist-metadata": "node scripts/generate_artist_metadata.js",
     "deploy": "git add . && git commit -m \"Actualizacion automatica\" && git push origin main",
     "check:emo-audio": "node scripts/check_emo_audio.js",
     "generate:emo-audio": "node scripts/generate_missing_emo_audio.js"
