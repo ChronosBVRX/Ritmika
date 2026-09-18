@@ -79,6 +79,9 @@ class RoomManager {
   }
 
   addPlayer(room, socketId, { name, avatarId, playerId, resumeToken }) {
+    // Aplicar la gracia en el propio intento: si expiró, no debe restaurar la
+    // sesión aunque el cleanup (cada 60s) todavía no haya corrido.
+    this.expireDisconnected(room);
     // Caso 1: Reconexión desde disconnected — requiere resumeToken válido
     if (playerId && room.disconnected.has(playerId)) {
       const saved = room.disconnected.get(playerId);

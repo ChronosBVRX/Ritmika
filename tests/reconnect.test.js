@@ -21,6 +21,11 @@ function test(name, fn) {
   try { fn(); console.log('  ✓ ' + name); passed++; }
   catch (e) { console.error('  ✗ ' + name + ': ' + e.message); failed++; }
 }
+async function testAsync(name, fn) {
+  try { await fn(); console.log('  ✓ ' + name); passed++; }
+  catch (e) { console.error('  ✗ ' + name + ': ' + e.message); failed++; }
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function makeRoom(rm) {
   return rm.createRoom('tv-socket', 'clasico');
@@ -127,5 +132,24 @@ test('token inválido no secuestra playerId conectado', () => {
   assert.strictEqual(r.players.get('s1').name, 'Ana');
 });
 
-console.log(`\n[RECONNECT RESULT] ${passed} passed, ${failed} failed`);
-process.exit(failed ? 1 : 0);
+(async () => {
+  // La gracia debe aplicarse en el propio intento de reconexión, sin depender
+  // de que el cleanup (cada 60s) haya corrido. Si no, un token expirado sigue
+  // restaurando la sesión.
+  await testAsync('gracia expira en el intento de reconexión (sin cleanup)', async () => {
+    const rm2 = new RoomManager({ autoCleanup: false, playerReconnectGraceMs: 50 });
+    const r = makeRoom(rm2);
+    const a = rm2.addPlayer(r, 's1', { name: 'Ana', avatarId: 0, playerId: 'pid-grace', resumeToken: null });
+    const oldToken = a.player.resumeToken;
+    rm2.removePlayer(r, 's1');
+    assert(r.disconnected.has('pid-grace'), 'debe quedar desconectado');
+    await sleep(120); // supera la gracia; NO se llama expireDisconnected a mano
+    const res = rm2.addPlayer(r, 's2', { name: 'Ana', avatarId: 0, playerId: 'pid-grace', resumeToken: oldToken });
+    assert.notStrictEqual(res.reconnected, true, 'token viejo no debe restaurar tras expirar la gracia');
+    assert(res.player.resumeToken !== oldToken, 'debe emitir token nuevo');
+    assert(!r.disconnected.has('pid-grace'), 'disconnected debe limpiarse en el intento');
+  });
+
+  console.log(`\n[RECONNECT RESULT] ${passed} passed, ${failed} failed`);
+  process.exit(failed ? 1 : 0);
+})();

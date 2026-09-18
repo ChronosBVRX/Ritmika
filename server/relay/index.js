@@ -224,6 +224,8 @@ io.on('connection', (socket) => {
       socket.emit('player:reconnect_ack', { success: false, error: 'Sala o playerId inválido' });
       return;
     }
+    // Aplicar la gracia antes de consultar disconnected (no depender del cleanup)
+    roomManager.expireDisconnected(room);
     // Buscar en disconnected o players
     let existing = null;
     if (room.disconnected.has(playerId)) {
