@@ -125,14 +125,35 @@ for i in $(seq 1 15); do
 done
 
 TV_URL="http://localhost:$PORT"
-JOIN_URL="http://localhost:$PORT/join"
-# Intentar detectar IP LAN para móviles
-LAN_IP=""
-if command -v hostname >/dev/null 2>&1; then
-  LAN_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || true)
+# Detectar modo online vs lan via RELAY_URL
+RELAY_URL=""
+if [[ -f "$ROOT/.env" ]]; then
+  RELAY_URL=$(grep -E '^RELAY_URL=' "$ROOT/.env" | cut -d= -f2- | tr -d '\r' | xargs 2>/dev/null || true)
+  # fallback RELAY_PUBLIC_URL
+  if [[ -z "$RELAY_URL" ]]; then
+    RELAY_URL=$(grep -E '^RELAY_PUBLIC_URL=' "$ROOT/.env" | cut -d= -f2- | tr -d '\r' | xargs 2>/dev/null || true)
+  fi
 fi
-if [[ -n "$LAN_IP" && "$LAN_IP" != "127.0.0.1" ]]; then
-  JOIN_URL="http://$LAN_IP:$PORT/join"
+# También permitir env var
+if [[ -n "${RELAY_URL:-}" ]]; then
+  RELAY_URL="${RELAY_URL}"
+elif [[ -n "${RELAY_PUBLIC_URL:-}" ]]; then
+  RELAY_URL="${RELAY_PUBLIC_URL}"
+fi
+
+if [[ -n "$RELAY_URL" ]]; then
+  JOIN_URL="${RELAY_URL%/}/join"
+  info "Modo ONLINE: QR apuntará a relay $RELAY_URL"
+else
+  JOIN_URL="http://localhost:$PORT/join"
+  LAN_IP=""
+  if command -v hostname >/dev/null 2>&1; then
+    LAN_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || true)
+  fi
+  if [[ -n "$LAN_IP" && "$LAN_IP" != "127.0.0.1" ]]; then
+    JOIN_URL="http://$LAN_IP:$PORT/join"
+  fi
+  info "Modo LAN: QR usará IP local"
 fi
 
 echo ""

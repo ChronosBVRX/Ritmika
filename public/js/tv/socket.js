@@ -11,36 +11,115 @@ function onReady(fn) {
 //  SOCKET.IO
 // ════════════════════════════════════════════
 let socket;
-onReady(() => {
-  socket = io();
+let _hostToken = null;
+let _relayConnected = false;
+try { _hostToken = localStorage.getItem('ritmika_host_token'); } catch {}
 
-  socket.on('connect', () => {
-  console.log('[TV] Conectado. Preparando sala...');
-  boot.step(1, 'done');
-  boot.step(2, 'done', 'Esperando selección de modo');
-  loadCatalog();
-  // Check FFmpeg via health endpoint (step 4)
-  fetch('/api/health', { signal: AbortSignal.timeout(5000) })
-    .then(r => r.json())
-    .then(h => {
-      boot.step(4, 'done', h.ffmpeg ? 'FFmpeg disponible' : 'Sin FFmpeg (MP4 nativo OK)');
-    })
-    .catch(() => {
-      boot.step(4, 'done', 'no verificado');
-    });
-});
+function getSocketUrl() {
+  const cfg = window.RITMIKA_CONFIG || {};
+  if (cfg.CONNECTION_MODE === 'online' && cfg.RELAY_URL) return cfg.RELAY_URL;
+  return undefined; // same origin (local)
+}
 
-socket.on('connect_error', () => {
-  boot.fail(1, 'Sin conexión al servidor');
-  updateTicker('No se puede conectar al servidor. ¿Está encendido?');
-});
+function saveHostToken(token, code) {
+  _hostToken = token;
+  state.hostToken = token;
+  try {
+    if (token) localStorage.setItem('ritmika_host_token', token);
+    if (code) localStorage.setItem('ritmika_room_code', code);
+  } catch {}
+}
 
-socket.on('tv:room_created', ({ roomCode, mode, localIP, hotspotSSID, hotspotPassword }) => {
-  state.roomCode = roomCode;
-  state.gameMode = mode || 'clasico';
-  state.localIP = localIP || window.location.hostname;
-  state.hotspotSSID = hotspotSSID || 'Ritmika';
-  state.hotspotPassword = hotspotPassword || 'Ritmika2026';
+function clearHostToken() {
+  _hostToken = null;
+  state.hostToken = null;
+  try { localStorage.removeItem('ritmika_host_token'); localStorage.removeItem('ritmika_room_code'); } catch {}
+}
+
+function setupSocket(s) {
+  socket = s;
+  window._ritmikaSocket = s; // for debugging
+
+  s.on('connect', () => {
+    _relayConnected = true;
+    console.log('[TV] Conectado a', s.io.uri || 'local', 'socket', s.id);
+    const dot = document.getElementById('relay-status-dot');
+    if (dot) dot.style.background = '#22c55e';
+    const txt = document.getElementById('relay-status-text');
+    if (txt) txt.textContent = 'Relay conectado';
+    boot.step(1, 'done');
+    boot.step(2, 'done', 'Esperando selección de modo');
+    // Intentar reconexión de host si tenemos token y sala
+    const savedCode = state.roomCode || (()=>{ try{return localStorage.getItem('ritmika_room_code');}catch{return null;}})();
+    if (_hostToken && savedCode) {
+      console.log('[TV] Intentando reconectar host a sala', savedCode);
+      s.emit('tv:reconnect_host', { roomCode: savedCode, hostToken: _hostToken });
+    } else {
+      // No hay reconexión, flujo normal
+      loadCatalog();
+    }
+    fetch('/api/health', { signal: AbortSignal.timeout(5000) })
+      .then(r => r.json())
+      .then(h => {
+        boot.step(4, 'done', h.ffmpeg ? 'FFmpeg disponible' : 'Sin FFmpeg (MP4 nativo OK)');
+        const lt=document.getElementById('local-status-text');
+        if(lt) lt.textContent = 'Local: ' + (h.catalog ? h.catalogCount + ' canciones' : 'OK');
+        if(lt) lt.style.color = h.catalog ? '#22c55e' : '#eab308';
+      })
+      .catch(() => {
+        boot.step(4, 'done', 'no verificado');
+        const lt=document.getElementById('local-status-text');
+        if(lt){ lt.textContent='Local: fallo'; lt.style.color='#ef4444'; }
+      });
+  });
+
+  s.on('disconnect', (reason) => {
+    _relayConnected = false;
+    console.warn('[TV] Desconectado:', reason);
+    const dot = document.getElementById('relay-status-dot');
+    if (dot) dot.style.background = '#ef4444';
+    const txt = document.getElementById('relay-status-text');
+    if (txt) txt.textContent = 'Reconectando...';
+    // No cerrar partida, esperar reconexión (tolerancia)
+    updateTicker('Conexión al relay perdida. Reconectando... No se pierde la partida.');
+  });
+
+  s.on('connect_error', (err) => {
+    console.warn('[TV] connect_error', err && err.message);
+    boot.fail(1, 'Sin conexión al relay/servidor');
+    updateTicker('No se puede conectar al relay. Verifica Internet o RELAY_URL.');
+    const dot = document.getElementById('relay-status-dot');
+    if (dot) dot.style.background = '#eab308';
+  });
+
+  s.on('tv:reconnect_ack', ({ success, error, roomCode, mode }) => {
+    if (success) {
+      console.log('[TV] Reconexión exitosa sala', roomCode);
+      state.roomCode = roomCode;
+      state.gameMode = mode || state.gameMode || 'clasico';
+      try{ localStorage.setItem('ritmika_room_code', roomCode);}catch{}
+      renderRoomCode(roomCode);
+      inicializarQRConexion();
+      updateTicker('Reconectado a sala ' + roomCode + ' ✅');
+      loadCatalog();
+    } else {
+      console.warn('[TV] Reconexión falló:', error);
+      clearHostToken();
+      loadCatalog();
+      // Crear sala nueva será disparado por el flujo normal tras elegir modo?
+      // No auto-crear aquí, esperar a que usuario seleccione modo
+    }
+  });
+
+  s.on('tv:room_created', ({ roomCode, mode, localIP, hotspotSSID, hotspotPassword, hostToken, relayUrl }) => {
+    if (hostToken) saveHostToken(hostToken, roomCode);
+    // relayUrl puede venir del relay para QR
+    if (relayUrl) window.RITMIKA_CONFIG.RELAY_URL = relayUrl;
+    state.roomCode = roomCode;
+    state.gameMode = mode || 'clasico';
+    state.localIP = localIP || window.location.hostname;
+    state.hotspotSSID = hotspotSSID || 'Ritmika';
+    state.hotspotPassword = hotspotPassword || 'Ritmika2026';
   if (typeof applyModeTheme === 'function') applyModeTheme();
   renderRoomCode(roomCode);
   inicializarQRConexion();
@@ -72,7 +151,7 @@ function syncReconnectedPlayer(player) {
   const isPodium = podiumScreen && !podiumScreen.classList.contains('hidden');
 
   if (isPodium) {
-    socket.emit('tv:send_to_player', {
+    socket.emit('tv:send_to_player', { hostToken: _hostToken, 
       targetSocketId: player.socketId,
       event: 'GAME_OVER',
       data: { players: state.players }
@@ -81,7 +160,7 @@ function syncReconnectedPlayer(player) {
   }
 
   if (isAssign) {
-    socket.emit('tv:send_to_player', {
+    socket.emit('tv:send_to_player', { hostToken: _hostToken, 
       targetSocketId: player.socketId,
       event: 'ROUND_2_ASSIGN',
       data: {
@@ -104,13 +183,13 @@ function syncReconnectedPlayer(player) {
   if (isRoulette) {
     const spinBtnHidden = document.getElementById('spin-btn').style.display === 'none';
     if (!spinBtnHidden) {
-      socket.emit('tv:send_to_player', {
+      socket.emit('tv:send_to_player', { hostToken: _hostToken, 
         targetSocketId: player.socketId,
         event: 'ROULETTE_START',
         data: {}
       });
     } else {
-      socket.emit('tv:send_to_player', {
+      socket.emit('tv:send_to_player', { hostToken: _hostToken, 
         targetSocketId: player.socketId,
         event: 'SINGER_SELECTED',
         data: { socketId: singer.socketId, name: singer.name, song }
@@ -122,13 +201,13 @@ function syncReconnectedPlayer(player) {
   if (isVideo) {
     const isVoting = !document.getElementById('voting-overlay').classList.contains('hidden');
     if (isVoting) {
-      socket.emit('tv:send_to_player', {
+      socket.emit('tv:send_to_player', { hostToken: _hostToken, 
         targetSocketId: player.socketId,
         event: 'VOTE_PHASE_START',
         data: { performerSocketId: singer.socketId }
       });
     } else {
-      socket.emit('tv:send_to_player', {
+      socket.emit('tv:send_to_player', { hostToken: _hostToken, 
         targetSocketId: player.socketId,
         event: 'KARAOKE_START',
         data: { socketId: singer.socketId, name: singer.name, song }
@@ -142,12 +221,13 @@ socket.on('tv:player_joined', ({ player, players }) => {
   const saved = state.isRestored ? loadSavedGame() : null;
   const matchedNames = new Set();
   state.players = players.map(p => {
-    const existing = state.players.find(s => s.socketId === p.socketId);
+    // Match by playerId first (estable), then socketId
+    const existing = state.players.find(s => (p.playerId && s.playerId === p.playerId) || s.socketId === p.socketId);
     if (existing) {
-      return { ...existing, ...p, score: existing.score ?? p.score ?? 0 };
+      return { ...existing, ...p, score: existing.score ?? p.score ?? 0, playerId: p.playerId || existing.playerId };
     }
-    // Check if this player was disconnected (reconnection by name)
-    const pending = state.players.find(s => s.disconnected && s.name === p.name && !matchedNames.has(p.name));
+    // Check if this player was disconnected (reconnection by playerId or name)
+    const pending = state.players.find(s => s.disconnected && ((p.playerId && s.playerId === p.playerId) || s.name === p.name) && !matchedNames.has(p.name));
     if (pending) {
       matchedNames.add(p.name);
       return { ...p, ...pending, socketId: p.socketId, disconnected: false };
@@ -162,7 +242,7 @@ socket.on('tv:player_joined', ({ player, players }) => {
         }
       }
     }
-    return { ...p, score: 0, genres: [], artists: [], tomatazos: 0 };
+    return { ...p, score: 0, genres: [], artists: [], tomatazos: 0, playerId: p.playerId };
   });
   // Preserve unmatched pending entries (disconnected players who haven't rejoined yet)
   const previousPending = state.players.filter(s => s.disconnected && !matchedNames.has(s.name));
@@ -249,8 +329,7 @@ socket.on('tv:player_left', ({ socketId, name, players }) => {
   saveGameState();
 
   // Sync mobile clients with updated player list
-  socket.emit('tv:broadcast', {
-    roomCode: state.roomCode,
+  socket.emit('tv:broadcast', { roomCode: state.roomCode, hostToken: _hostToken,
     event: 'PLAYER_LEFT',
     data: { players: state.players },
   });
@@ -258,27 +337,27 @@ socket.on('tv:player_left', ({ socketId, name, players }) => {
   if (state.players.filter(p => !p.disconnected).length < 1) document.getElementById('start-btn').classList.add('hidden');
 });
 
-socket.on('tv:player_genres', ({ socketId, genres }) => {
-  const p = state.players.find(x => x.socketId === socketId);
+socket.on('tv:player_genres', ({ socketId, playerId, genres }) => {
+  const p = state.players.find(x => (playerId && x.playerId === playerId) || x.socketId === socketId);
   if (p) p.genres = genres;
   const name = p?.name || 'Alguien';
   updateTicker(`${name} eligió géneros: ${genres.join(', ')} 🎵`);
 });
 
-socket.on('tv:player_artists', ({ socketId, artists }) => {
-  const p = state.players.find(x => x.socketId === socketId);
+socket.on('tv:player_artists', ({ socketId, playerId, artists }) => {
+  const p = state.players.find(x => (playerId && x.playerId === playerId) || x.socketId === socketId);
   if (p) p.artists = artists;
   const name = p?.name || 'Alguien';
   updateTicker(`${name} eligió artistas: ${artists.slice(0,3).join(', ')} 🎸`);
 });
 
-socket.on('tv:tomatazo', ({ attackerName, targetName, attackerSocketId }) => {
-  const attacker = state.players.find(p => p.socketId === attackerSocketId);
+socket.on('tv:tomatazo', ({ attackerName, targetName, attackerSocketId, attackerPlayerId }) => {
+  const attacker = state.players.find(p => (attackerPlayerId && p.playerId === attackerPlayerId) || p.socketId === attackerSocketId);
   const cost = TOMATAZO_COST;
   if (attacker && attacker.score !== undefined) {
     if ((attacker.score || 0) < cost) {
       // Not enough points — send rejection to player
-      socket.emit('tv:send_to_player', {
+      socket.emit('tv:send_to_player', { hostToken: _hostToken, 
         targetSocketId: attackerSocketId,
         event: 'TOMATAZO_REJECTED',
         data: { reason: 'Puntos insuficientes', cost },
@@ -287,8 +366,7 @@ socket.on('tv:tomatazo', ({ attackerName, targetName, attackerSocketId }) => {
     }
     attacker.score = Math.max(0, (attacker.score || 0) - cost);
     updateAllPlayerCardScores();
-    socket.emit('tv:broadcast', {
-      roomCode: state.roomCode,
+    socket.emit('tv:broadcast', { roomCode: state.roomCode, hostToken: _hostToken,
       event: 'SCORE_UPDATE',
       data: { players: state.players.map(p => ({ socketId: p.socketId, score: p.score || 0, name: p.name })) },
     });
@@ -314,17 +392,23 @@ socket.on('tv:sabotage_audio', () => {
   }
 });
 
-socket.on('tv:vote', ({ voterName, performerSocketId, score, voterSocketId }) => {
-  state.votes.push({ voterName, performerSocketId, score });
+socket.on('tv:vote', ({ voterName, performerSocketId, performerPlayerId, score, voterSocketId, voterPlayerId }) => {
+  // Resolve performer by playerId if needed
+  let perfId = performerSocketId;
+  if (performerPlayerId) {
+    const perf = state.players.find(p => p.playerId === performerPlayerId);
+    if (perf) perfId = perf.socketId;
+  }
+  state.votes.push({ voterName, performerSocketId: perfId, score });
   updateTicker(`${voterName} votó: ${score} pts 🗳️`);
   
   state.votedBy = state.votedBy || new Set();
-  if (voterSocketId) state.votedBy.add(voterSocketId);
+  const voterKey = voterPlayerId || voterSocketId;
+  if (voterKey) state.votedBy.add(voterKey);
   
   // Broadcast vote count to mobiles
   const expectedCount = state.players.filter(p => p.socketId !== performerSocketId).length;
-  socket.emit('tv:broadcast', {
-    roomCode: state.roomCode,
+  socket.emit('tv:broadcast', { roomCode: state.roomCode, hostToken: _hostToken,
     event: 'VOTE_COUNT',
     data: { count: state.votedBy.size, total: expectedCount },
   });
@@ -347,8 +431,9 @@ function checkAllVotesSubmitted(performerSocketId) {
   }
 }
 
-socket.on('tv:song_assigned', ({ attackerName, attackerSocketId, targetSocketId, songId }) => {
-  state.assignedSongs[targetSocketId] = { attackerName, attackerSocketId, songId };
+socket.on('tv:song_assigned', ({ attackerName, attackerSocketId, attackerPlayerId, targetSocketId, targetPlayerId, songId }) => {
+  const targetKey = targetPlayerId ? (state.players.find(p=>p.playerId===targetPlayerId)?.socketId || targetSocketId) : targetSocketId;
+  state.assignedSongs[targetKey] = { attackerName, attackerSocketId, attackerPlayerId, songId };
   updateTicker(`⚔️ ${attackerName} asignó una canción a su rival`);
   
   if (state.round === 2) {
@@ -409,6 +494,13 @@ socket.on('tv:new_game_trigger', () => {
     btn.click();
   }
 });
+} // end setupSocket
+
+onReady(async () => {
+  try { if (window.ritmikaConfigReady) await window.ritmikaConfigReady; } catch {}
+  const url = getSocketUrl();
+  const s = url ? io(url, { transports: ['websocket'], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000 }) : io();
+  setupSocket(s);
 });
 
 // START GAME BUTTON
@@ -421,10 +513,10 @@ document.getElementById('start-btn').addEventListener('click', () => {
   state.currentSingerIdx = 0;
   if (idleInterval) { clearInterval(idleInterval); idleInterval = null; }
   socket.emit('tv:start_game', { roomCode: state.roomCode });
-  socket.emit('tv:broadcast', {
-    roomCode: state.roomCode,
+  socket.emit('tv:broadcast', { roomCode: state.roomCode, hostToken: _hostToken,
     event: 'ROUND_INFO',
     data: { round: state.round },
+    hostToken: _hostToken,
   });
   startRoulette();
 });
