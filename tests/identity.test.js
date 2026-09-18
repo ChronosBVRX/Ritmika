@@ -8,11 +8,12 @@
  */
 const assert=require('assert');
 const { spawn } = require('child_process');
+const path=require('path');
 function wait(ms){return new Promise(r=>setTimeout(r,ms));}
 async function startRelay(port){
   const env={...process.env, RELAY_PORT:String(port)};
   delete env.GITHUB_TOKEN;
-  const proc=spawn('node', ['/home/chronos/Ritmika/server/relay/index.js'], {env, stdio:'pipe'});
+  const proc=spawn('node', [path.join(__dirname,'../server/relay/index.js')], {env, stdio:'pipe'});
   for(let i=0;i<20;i++){
     await wait(300);
     try{ const r=await fetch('http://127.0.0.1:'+port+'/api/relay-health').then(r=>r.json()); if(r.relay) return proc; }catch{}
@@ -20,7 +21,7 @@ async function startRelay(port){
   throw new Error('relay not up');
 }
 function connect(url){
-  const { io } = require('/home/chronos/Ritmika/node_modules/socket.io-client');
+  const { io } = require('socket.io-client');
   return io(url,{transports:['websocket']});
 }
 function once(s,ev){return new Promise((res,rej)=>{ const t=setTimeout(()=>rej(new Error('timeout '+ev)),3000); s.once(ev,d=>{clearTimeout(t);res(d)}); });}

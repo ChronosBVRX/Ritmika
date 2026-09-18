@@ -17,6 +17,8 @@ jobs:
           cache: 'npm'
       - name: Install deps
         run: npm ci
+      - name: Portability guard
+        run: node tests/portability.test.js
       - name: Protocol tests
         run: npm test
       - name: Local HTTP tests

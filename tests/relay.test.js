@@ -3,6 +3,7 @@
  */
 const assert = require('assert');
 const { spawn } = require('child_process');
+const path = require('path');
 
 function wait(ms){return new Promise(r=>setTimeout(r,ms));}
 async function fetchJSON(url){ const r=await fetch(url); return r.json(); }
@@ -10,7 +11,7 @@ async function fetchJSON(url){ const r=await fetch(url); return r.json(); }
 async function startRelay(port){
   const env={...process.env, RELAY_PORT:String(port), ROOM_TTL_MS:'60000', MAX_PLAYERS_PER_ROOM:'4'};
   delete env.GITHUB_TOKEN;
-  const proc=spawn('node', ['/home/chronos/Ritmika/server/relay/index.js'], {env, stdio:'pipe'});
+  const proc=spawn('node', [path.join(__dirname,'../server/relay/index.js')], {env, stdio:'pipe'});
   proc.stdout.on('data',d=>process.stdout.write('[relay] '+d));
   for(let i=0;i<20;i++){
     await wait(300);
@@ -20,7 +21,7 @@ async function startRelay(port){
 }
 
 function connect(url){
-  const { io } = require('/home/chronos/Ritmika/node_modules/socket.io-client');
+  const { io } = require('socket.io-client');
   return io(url,{transports:['websocket']});
 }
 function once(s,ev,timeout=3000){ return new Promise((res,rej)=>{ const t=setTimeout(()=>rej(new Error('timeout '+ev)),timeout); s.once(ev,data=>{clearTimeout(t);res(data);}); }); }
