@@ -74,6 +74,15 @@ async function test(){
     assert(!/xcopy[^\n]*tests/i.test(bat), 'build.bat no debe copiar tests');
   });
 
+  await chk('ritmika.ico versionado y valido (instalador lo requiere)', async()=>{
+    assert(fs.existsSync('ritmika.ico'), 'ritmika.ico debe existir en el repo');
+    const buf=fs.readFileSync('ritmika.ico');
+    assert(buf.length>1000, 'ritmika.ico demasiado pequeno: '+buf.length);
+    assert(buf[0]===0 && buf[1]===0 && buf[2]===1 && buf[3]===0, 'cabecera ICO invalida');
+    const iss=fs.readFileSync('installer.iss','utf8');
+    assert(iss.includes('SetupIconFile=ritmika.ico'), 'installer.iss debe usar ritmika.ico');
+  });
+
   console.log(`\n[BUILD] ${passed} passed, ${failed} failed`);
   process.exit(failed?1:0);
 }

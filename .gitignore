@@ -10,7 +10,7 @@ server/songs.db-shm
 server/songs.db-wal
 
 # Generated build artifacts
-ritmika.ico
+# ritmika.ico se versiona (necesario para el instalador; build puede regenerarlo)
 Ritmika.exe
 WebView2Loader.dll
 Microsoft.Web.WebView2.Core.dll
