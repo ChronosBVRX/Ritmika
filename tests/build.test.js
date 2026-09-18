@@ -58,6 +58,14 @@ async function test(){
     assert(!iss.includes('Source: "server\\relay'), 'no debe incluir relay');
   });
 
+  await chk('installer.iss excluye secretos/relay/tests/docs', async()=>{
+    const iss=fs.readFileSync('installer.iss','utf8');
+    assert(iss.includes('Excludes:'), 'installer debe tener Excludes defensivo');
+    for (const needle of ['.env', '.git\\*', 'server\\relay', 'tests\\*', 'docs\\*']) {
+      assert(iss.includes(needle), 'Excludes debe cubrir '+needle);
+    }
+  });
+
   console.log(`\n[BUILD] ${passed} passed, ${failed} failed`);
   process.exit(failed?1:0);
 }

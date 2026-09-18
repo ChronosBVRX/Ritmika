@@ -34,7 +34,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Todo el staging limpio dist/desktop (autocontenido, sin relay/tests/docs/.env)
-Source: "dist\desktop\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Excludes defensivo: aunque el staging se ensucie, nunca se empaquetan secretos,
+; control de versiones, relay, tests ni docs.
+Source: "dist\desktop\*"; DestDir: "{app}"; Excludes: ".env,.env.*,.git\*,.github\*,.gitignore,server\relay\*,tests\*,docs\*,*.log,*.md"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Bootstrapper WebView2 Evergreen (descargado por build.bat, opcional)
 Source: "dist\desktop\MicrosoftEdgeWebview2Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Permissions: users-modify
 
