@@ -1,0 +1,26 @@
+{
+  "id": "character_idle",
+  "description": "Subtle breathing/blink idle loop for a single character image. Preserves design at low denoise; loop is closed via AnimateDiff closed_loop plus an optional post-process ping-pong.",
+  "animationType": "idle",
+  "loop": true,
+  "alphaRequired": true,
+  "workflowFile": "workflow.api.json",
+  "defaults": {
+    "frames": 16,
+    "fps": 8,
+    "steps": 20,
+    "cfg": 7.0,
+    "sampler": "euler",
+    "scheduler": "karras",
+    "denoise": 0.42,
+    "motionScale": 1.0,
+    "contextLength": 16,
+    "contextOverlap": 4,
+    "closedLoop": true,
+    "interpMultiplier": 2,
+    "outputFps": 24,
+    "loopMode": "pingpong"
+  },
+  "positive": "subtle natural idle animation, gentle breathing, slow blinking, tiny head and cloth motion, character stays still in place, exact same character design, same clothing, same colors, same facial features",
+  "negative": "deformation, extra limbs, extra fingers, changing clothes, color shift, morphing, identity change, camera movement, camera zoom, new accessories, new objects, background changes, text, watermark, logo, exaggerated motion, blurry, low quality"
+}
