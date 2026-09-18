@@ -1541,8 +1541,8 @@
 
   </style>
 
-  <!-- Premium Background -->
-  <div style="position:absolute;inset:0;background:url(./assets/bg_neon_club.webp) center/cover no-repeat;opacity:0.9;z-index:0;"></div>
+  <!-- Premium Background (fallback estático; el vídeo animado se monta encima si está disponible) -->
+  <div id="animated-bg-club" style="position:absolute;inset:0;background:url(./assets/bg_neon_club.webp) center/cover no-repeat;opacity:0.9;z-index:0;"></div>
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(15,23,42,0.4) 0%,rgba(10,10,26,0.85) 100%);z-index:1;"></div>
 
   <!-- Header -->
@@ -1797,7 +1797,7 @@
         <div id="empty-state" class="flex flex-col items-center justify-center flex-1 gap-4 opacity-60 py-12" style="animation: pulseBreath 4s infinite ease-in-out;">
           <div style="position:relative;">
             <div style="position:absolute;inset:0;background:#22d3ee;filter:blur(30px);opacity:0.2;border-radius:50%;"></div>
-            <img src="./assets/tio_axolo_vignette_neutral.webp" alt="Tío Axolo" class="empty-state-axolo" style="filter:drop-shadow(0 0 20px rgba(34,211,238,0.2)); width:140px; height:auto;" />
+            <img id="axolo-idle-img" src="./assets/tio_axolo_vignette_neutral.webp" alt="Tío Axolo" class="empty-state-axolo" style="filter:drop-shadow(0 0 20px rgba(34,211,238,0.2)); width:140px; height:auto;" />
           </div>
           <p class="text-sm text-center font-bold" style="color:#94a3b8; letter-spacing:1px; line-height:1.6;">Nadie aquí todavía...<br/><span style="color:#cbd5e1;">¡Comparte el código!</span></p>
         </div>
@@ -2146,6 +2146,7 @@
   <script src="/js/bootloader.js?v=1782328217"></script>
   <script src="/js/styles.js?v=1782328217"></script>
   <script src="/js/animations.js?v=1782328217"></script>
+  <script src="/js/animated-assets.js?v=1"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/libs/qrcode.min.js"></script>
 
@@ -2157,6 +2158,25 @@
   <script src="/js/tv/socket.js?v=1782328217"></script>
   <script src="/js/tv/game.js?v=1782328217"></script>
   <script src="/js/tv/lobby.js?v=1782328217"></script>
+
+<!-- Assets animados opcionales (fallback estático obligatorio; respeta prefers-reduced-motion) -->
+<script>
+(function(){
+  function mountBackground(){
+    if (!window.RitmikaAnimated) return;
+    window.RitmikaAnimated.ready.then(function(){
+      var bg = document.getElementById('animated-bg-club');
+      if (!bg || !window.RitmikaAnimated.isAvailable('background-neon-club')) return;
+      window.RitmikaAnimated.mount(bg, 'background-neon-club', {
+        className: 'animated-bg-video',
+        style: { position:'absolute', top:'0', left:'0', width:'100%', height:'100%', objectFit:'cover', opacity:'0.9' }
+      });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountBackground);
+  else mountBackground();
+})();
+</script>
 
 <!-- Unified Keyboard + Gamepad Controller System -->
 <script>

@@ -68,9 +68,10 @@ function renderPlayerList() {
     if (activePlayers.length === 0) { 
       if(emptyState) emptyState.style.display='flex'; 
       container.querySelectorAll('.player-card').forEach(c=>c.remove()); 
+      if (emptyState) mountEmptyStateAxolo(emptyState);
       return; 
     }
-    if(emptyState) emptyState.style.display = 'none';
+    if(emptyState) { emptyState.style.display = 'none'; releaseAnimatedWithin(emptyState); }
     const existingIds = new Set([...container.querySelectorAll('.player-card')].map(el=>el.dataset.socketId));
     activePlayers.forEach(player => {
       if (!existingIds.has(player.socketId)) {
@@ -81,13 +82,34 @@ function renderPlayerList() {
     });
     container.querySelectorAll('.player-card').forEach(card => {
       if (!activePlayers.find(p => p.socketId === card.dataset.socketId)) {
-        anime({ targets:card, translateX:[0,60], opacity:[1,0], duration:300, easing:'easeInCubic', complete:()=>card.remove() });
+        anime({ targets:card, translateX:[0,60], opacity:[1,0], duration:300, easing:'easeInCubic', complete:()=>{ releaseAnimatedWithin(card); card.remove(); } });
       }
     });
   };
 
   renderToContainer(lobbyContainer, 'empty-state');
   renderToContainer(modeContainer, 'mode-empty-state');
+}
+
+function releaseAnimatedWithin(root) {
+  if (window.RitmikaAnimated && root) window.RitmikaAnimated.releaseWithin(root);
+}
+
+function mountEmptyStateAxolo(emptyState) {
+  if (!window.RitmikaAnimated || !emptyState) return;
+  const img = emptyState.querySelector('#axolo-idle-img');
+  if (!img) return;
+  window.RitmikaAnimated.ready.then(() => {
+    if (!window.RitmikaAnimated.isAvailable('axolo-neutral-idle')) return;
+    if (emptyState.querySelector('video[data-animated-key="axolo-neutral-idle"]')) return;
+    const wrap = img.parentElement || emptyState;
+    const video = window.RitmikaAnimated.mount(wrap, 'axolo-neutral-idle', {
+      className: 'animated-axolo-idle',
+      style: { width: '140px', height: 'auto', display: 'block', margin: '0 auto' },
+      onFallback: () => { img.style.display = ''; }
+    });
+    if (video) img.style.display = 'none';
+  });
 }
 
 function buildPlayerCard(player) {
@@ -106,6 +128,24 @@ function buildPlayerCard(player) {
     </div>
     <div class="text-xs font-bold" style="color:#22d3ee;">${player.score||0} pts</div>
   `;
+  // A/B: avatar animado solo para el avatar 0, con fallback a la imagen estática.
+  if ((player.avatarId ?? 0) === 0 && window.RitmikaAnimated) {
+    const bubble = card.querySelector('.avatar-bubble');
+    const img = bubble && bubble.querySelector('img');
+    if (bubble && img) {
+      bubble.style.position = 'relative';
+      window.RitmikaAnimated.ready.then(() => {
+        if (!window.RitmikaAnimated.isAvailable('avatar-0-idle')) return;
+        if (bubble.querySelector('video[data-animated-key="avatar-0-idle"]')) return;
+        const video = window.RitmikaAnimated.mount(bubble, 'avatar-0-idle', {
+          className: 'animated-avatar',
+          style: { position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', objectFit: 'contain' },
+          onFallback: () => { img.style.display = ''; }
+        });
+        if (video) img.style.display = 'none';
+      });
+    }
+  }
   return card;
 }
 
