@@ -7,9 +7,9 @@
  *
  * ¿Por qué hace falta? El listener de tv.html empieza con
  * `const activeScreen = document.querySelector('.tv-screen.active'); if
- * (!activeScreen) return;`. El pre-boot y el bootloader no son `.tv-screen`,
- * así que Enter se ignoraba y el usuario quedaba atrapado en
- * "¡Entrar a Rítmika!" sin poder continuar.
+ * (!activeScreen) return;`. El pre-boot, el bootloader y el botón "INICIAR EL
+ * SHOW" no viven en un `.tv-screen`, así que Enter se ignoraba y el usuario
+ * quedaba atrapado sin poder continuar.
  *
  * El CSS del modo ligero vive en tv.html (bloque `#tv-lite-css`), activado por
  * `?native=1`. Aquí solo se deja la marca por si el HTML viene de un servidor
@@ -31,23 +31,51 @@
   markLite();
   document.addEventListener('DOMContentLoaded', markLite, { once: true });
 
-  /* Enfoca "¡Entrar a Rítmika!" para que se vea el recuadro de foco. */
-  function focusPreBoot() {
+  function hasActiveScreen() {
     try {
-      var btn = document.getElementById('enter-ritmika-btn');
-      if (!btn || btn.offsetParent === null) return false;
-      btn.focus();
-      return true;
+      return !!document.querySelector('.tv-screen.active');
     } catch (e) {
       return false;
     }
   }
 
+  /*
+   * Botones realmente pintados. No sirve `offsetParent` porque devuelve null
+   * en elementos `position:fixed` y en varios de los paneles del juego.
+   */
+  function visibleButtons() {
+    var all = document.querySelectorAll('button');
+    var out = [];
+    for (var i = 0; i < all.length; i++) {
+      if (!all[i].disabled && all[i].getClientRects().length > 0) out.push(all[i]);
+    }
+    return out;
+  }
+
+  function focusFirstButton() {
+    var active = document.activeElement;
+    if (active && active.tagName === 'BUTTON' && active.getClientRects().length > 0) {
+      return true;
+    }
+    var btns = visibleButtons();
+    if (!btns.length) return false;
+    try { btns[0].focus(); } catch (e) {}
+    return true;
+  }
+
+  /*
+   * Mientras no haya una pantalla de juego activa (pre-boot, bootloader,
+   * "INICIAR EL SHOW"), mantenemos el foco sobre el único botón disponible para
+   * que el recuadro de foco se vea y Enter funcione.
+   */
   document.addEventListener('DOMContentLoaded', function () {
-    if (focusPreBoot()) return;
     var tries = 0;
     var timer = setInterval(function () {
-      if (focusPreBoot() || ++tries > 40) clearInterval(timer);
+      if (hasActiveScreen() || ++tries > 240) {
+        clearInterval(timer);
+        return;
+      }
+      focusFirstButton();
     }, 250);
   }, { once: true });
 
@@ -57,12 +85,7 @@
    */
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
-
-    try {
-      if (document.querySelector('.tv-screen.active')) return;
-    } catch (err) {
-      return;
-    }
+    if (hasActiveScreen()) return;
 
     var active = document.activeElement;
     var isButton = active && active !== document.body &&
@@ -75,15 +98,11 @@
       return;
     }
 
-    var targets = ['enter-ritmika-btn', 'boot-retry'];
-    for (var i = 0; i < targets.length; i++) {
-      var btn = document.getElementById(targets[i]);
-      if (btn && btn.offsetParent !== null) {
-        e.preventDefault();
-        e.stopPropagation();
-        try { btn.focus(); btn.click(); } catch (err) {}
-        return;
-      }
+    var btn = visibleButtons()[0];
+    if (btn) {
+      e.preventDefault();
+      e.stopPropagation();
+      try { btn.focus(); btn.click(); } catch (err) {}
     }
   }, true);
 

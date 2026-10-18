@@ -1,5 +1,6 @@
 package party.ritmika.tv
 
+import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
@@ -29,7 +30,6 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import kotlin.math.roundToInt
 
 /**
  * Rítmika TV — host Android TV híbrido.
@@ -52,7 +52,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        val root = FrameLayout(this).apply { setBackgroundColor(Color.BLACK) }
+        val root = FrameLayout(this).apply {
+            setBackgroundColor(Color.BLACK)
+            clipChildren = false
+        }
 
         player = ExoPlayer.Builder(this).build().apply {
             playWhenReady = false
@@ -67,6 +70,19 @@ class MainActivity : AppCompatActivity() {
             setShutterBackgroundColor(Color.TRANSPARENT)
             player = this@MainActivity.player
             visibility = View.INVISIBLE
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+
+        // El juego se maqueta SIEMPRE a 1920x1080 px CSS y el StageLayout lo
+        // escala a la pantalla real. Así una TV de 720p, una de 1080p y una de
+        // 4K ven exactamente el mismo diseño (el de la version web) en lugar de
+        // uno recortado o gigante, y el raster queda acotado a 1080p aunque el
+        // panel sea 4K.
+        val stage = StageLayout(this).apply {
+            clipChildren = false
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -128,9 +144,11 @@ class MainActivity : AppCompatActivity() {
             addJavascriptInterface(Bridge(), "AndroidNative")
         }
 
-        // PlayerView detrás, WebView encima (el "hueco" transparente deja ver el video nativo).
+        // PlayerView detrás (a pantalla completa), WebView encima dentro del
+        // escenario escalado (el "hueco" transparente deja ver el video nativo).
+        stage.addView(webView)
         root.addView(playerView)
-        root.addView(webView)
+        root.addView(stage)
         setContentView(root)
 
         applyDocumentStartScript()
@@ -166,31 +184,66 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Contexto para el WebView con la densidad forzada.
+     * Contexto del WebView con densidad mdpi (1 CSS px = 1 px de layout).
      *
-     * Una TV de 1080p suele reportar 320 dpi, lo que deja el viewport CSS en
-     * ~960x540 px: el diseño (pensado para 1920x1080) no entra completo, las
-     * fuentes se ven enormes y Tailwind nunca activa sus breakpoints
-     * (lg:/xl:). Con la densidad ajustada, 1px CSS vuelve a equivaler a 1px de
-     * pantalla y el layout coincide con el de la version web.
+     * WebView calcula su viewport como tamaño_en_px / densidad. Con la
+     * densidad nativa de una TV (320 dpi) el viewport caía a ~960 px CSS y el
+     * diseño de 1920 no entraba. Fijando mdpi y maquetando sobre un escenario de
+     * 1920x1080 px, el viewport es exactamente 1920x1080 y StageLayout se
+     * encarga de escalarlo a la pantalla.
      */
-    private fun tvWebViewContext(): android.content.Context {
+    private fun tvWebViewContext(): Context {
         val config = Configuration(resources.configuration)
-        config.densityDpi = tvDensityDpi()
-        Log.i(TAG, "densityDpi forzada a ${config.densityDpi}")
+        config.densityDpi = DisplayMetrics.DENSITY_MEDIUM
         return androidx.appcompat.view.ContextThemeWrapper(
             createConfigurationContext(config),
             R.style.Theme_RitmikaTV
         )
     }
 
-    @Suppress("DEPRECATION")
-    private fun tvDensityDpi(): Int {
-        val metrics = DisplayMetrics()
-        windowManager.defaultDisplay.getRealMetrics(metrics)
-        val scale = metrics.widthPixels / TARGET_CSS_WIDTH
-        return (DisplayMetrics.DENSITY_DEFAULT * scale).roundToInt()
-            .coerceIn(DisplayMetrics.DENSITY_MEDIUM, DisplayMetrics.DENSITY_XXXHIGH)
+    /**
+     * Mide y escala a sus hijos como si la pantalla midiera 1920x1080.
+     *
+     * El diseño de Ritmika está pensado para 1920x1080 CSS px. En vez de
+     * reescribir todo el CSS para que sea fluido, el WebView se maqueta a
+     * 1920x1080 y este contenedor aplica la escala (uniforme y centrada) que
+     * hace entrar el diseño en cualquier TV.
+     */
+    private class StageLayout(context: Context) : FrameLayout(context) {
+
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            setMeasuredDimension(
+                MeasureSpec.getSize(widthMeasureSpec),
+                MeasureSpec.getSize(heightMeasureSpec)
+            )
+            val w = MeasureSpec.makeMeasureSpec(DESIGN_WIDTH, MeasureSpec.EXACTLY)
+            val h = MeasureSpec.makeMeasureSpec(DESIGN_HEIGHT, MeasureSpec.EXACTLY)
+            for (i in 0 until childCount) getChildAt(i).measure(w, h)
+        }
+
+        override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+            val availW = (r - l).toFloat()
+            val availH = (b - t).toFloat()
+            if (availW <= 0f || availH <= 0f) return
+            val scale = minOf(availW / DESIGN_WIDTH, availH / DESIGN_HEIGHT)
+            val offsetX = (availW - DESIGN_WIDTH * scale) / 2f
+            val offsetY = (availH - DESIGN_HEIGHT * scale) / 2f
+            for (i in 0 until childCount) {
+                val child = getChildAt(i)
+                child.pivotX = 0f
+                child.pivotY = 0f
+                child.scaleX = scale
+                child.scaleY = scale
+                child.translationX = offsetX
+                child.translationY = offsetY
+                child.layout(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT)
+            }
+        }
+
+        companion object {
+            const val DESIGN_WIDTH = 1920
+            const val DESIGN_HEIGHT = 1080
+        }
     }
 
     private fun injectAsset(name: String, label: String) {
@@ -397,7 +450,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "RitmikaTV"
         private const val ORIGIN = "https://ritmika.duckdns.org"
-        private const val TARGET_CSS_WIDTH = 1920f
         const val BASE_URL = "$ORIGIN/?native=1"
     }
 }

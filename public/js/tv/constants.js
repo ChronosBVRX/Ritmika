@@ -226,6 +226,12 @@ const _audioPreloader = {
   async start() {
     if (this._started) return;
     this._started = true;
+    // Android TV: descargar los ~390 MP3 al arrancar satura la red y la
+    // memoria del televisor. Los audios se cargan bajo demanda.
+    if (window.RITMIKA_LITE) {
+      console.log('[Preloader] Lite mode: precarga de audio omitida');
+      return;
+    }
     try {
       const res = await fetch('/api/audio-files');
       if (!res.ok) throw new Error('HTTP ' + res.status);

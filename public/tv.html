@@ -26,6 +26,10 @@
     html.ritmika-tv-lite #pre-boot-screen>div:first-child{animation:none!important}
     html.ritmika-tv-lite #axolo-cutin-bar,html.ritmika-tv-lite #axolo-cutin-portrait,html.ritmika-tv-lite #axolo-cutin-textbox{filter:none!important}
     html.ritmika-tv-lite .glitter-particle{display:none!important}
+    /* ── Animaciones decorativas en bucle: se ejecutan una sola vez ── */
+    html.ritmika-tv-lite *{animation-iteration-count:1!important}
+    /* ── Menos capas promovidas en la GPU (memoria limitada en TV/Chromecast) ── */
+    html.ritmika-tv-lite .jackbox-panel,html.ritmika-tv-lite .jb-card{will-change:auto!important;backface-visibility:visible!important}
     /* ── Indicador de foco para control remoto ── */
     #enter-ritmika-btn:focus,#boot-retry:focus,.boot-retry-btn:focus{outline:6px solid #00e5ff;outline-offset:8px}
   </style>
