@@ -616,7 +616,11 @@ async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt 
 
   try {
     if (interrupt) {
-      if (window.welcomePlaying) return false;
+      // interrupt = narración crítica (ceremonia, arranque, retos): tiene que
+      // sonar YA. Antes, si el welcome de modos seguía "activo" (su flag dura
+      // 45s), la narración se descartaba en silencio y la fase avanzaba sin
+      // voz: de ahí que la premiación se viera desfasada.
+      window.welcomePlaying = false;
       _stopCurrentAxolo();
       _playAxoloAudio(texto, audioFileOrMood);
       return true;
