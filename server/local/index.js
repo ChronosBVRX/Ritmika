@@ -143,6 +143,10 @@ app.use(express.static(path.join(__dirname, '../../public'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.html')) {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    } else if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+      // JS/CSS cambian con cada arreglo: revalidar con ETag en vez de cachear
+      // un año, para no dejar al WebView/iPhone con versiones viejas.
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     } else {
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     }
