@@ -81,6 +81,14 @@
     }
 
     function initCanvas() {
+        // Android TV (modo ligero): un canvas a pantalla completa con partículas
+        // y un gradiente redibujado cada frame ahoga la GPU del televisor. La
+        // CSS pinta un fondo estático equivalente.
+        if (window.RITMIKA_LITE) {
+            console.log('[Bootloader] Lite mode: canvas decorativo desactivado');
+            return;
+        }
+
         canvas = document.getElementById('boot-canvas-bg');
         if (!canvas) return;
         

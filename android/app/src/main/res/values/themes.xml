@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.RitmikaTV" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:colorBackground">@android:color/black</item>
+    </style>
+</resources>
