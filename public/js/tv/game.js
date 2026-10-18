@@ -1396,7 +1396,8 @@ function showPodium() {
       await waitForAxoloAudio(400);
       if(award.icon==='&#128019;' || award.icon==='&#127813;'){ playSfx('./assets/audio/sfx_comedy_fail.mp3'); } else { playSfx('./assets/audio/sfx_magic_reveal.mp3'); }
       anime({targets:'#'+winnerBlockId,opacity:[0,1],translateY:[24,0],scale:[0.85,1.06,1],duration:800,easing:'easeOutBack'});
-      await wait(1600);
+      // Un poco más de tiempo en pantalla: el nombre y la carrilla hay que leerlos.
+      await wait(2600);
       anime({targets:[aLabel,aCard],opacity:[1,0],translateY:[0,-40],duration:400,easing:'easeInCubic'});
       if(sp&&sp.parentNode) sp.parentNode.removeChild(sp);
       await wait(500);
