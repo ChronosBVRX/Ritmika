@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity() {
 
     private var lastWidth = 0
     private var lastHeight = 0
+    private var resumeVideoOnStart = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -163,12 +164,68 @@ class MainActivity : AppCompatActivity() {
         if (hasFocus) hideSystemUi()
     }
 
+    /*
+     * Al salir de la app (HOME, cambio de app) el WebView seguía reproduciendo
+     * audio en segundo plano (sobre todo la música de menú en bucle). Hay que
+     * silenciar el media del WebView y pausar también el ExoPlayer; al volver se
+     * reanuda lo que estaba sonando.
+     */
+    override fun onStart() {
+        super.onStart()
+        if (::webView.isInitialized) {
+            webView.onResume()
+            webView.resumeTimers()
+        }
+        if (resumeVideoOnStart) {
+            resumeVideoOnStart = false
+            runOnUiThread {
+                try {
+                    if (::player.isInitialized && player.mediaItemCount > 0) {
+                        player.playWhenReady = true
+                    }
+                } catch (_: Exception) {
+                }
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (::webView.isInitialized) {
+            pauseWebMedia()
+            webView.onPause()
+            webView.pauseTimers()
+        }
+        try {
+            if (::player.isInitialized) {
+                resumeVideoOnStart = player.isPlaying
+                player.playWhenReady = false
+            }
+        } catch (_: Exception) {
+        }
+    }
+
     override fun onDestroy() {
         try {
             player.release()
         } catch (_: Exception) {
         }
+        try {
+            if (::webView.isInitialized) {
+                (webView.parent as? ViewGroup)?.removeView(webView)
+                webView.destroy()
+            }
+        } catch (_: Exception) {
+        }
         super.onDestroy()
+    }
+
+    private fun pauseWebMedia() {
+        if (!::webView.isInitialized) return
+        try {
+            webView.evaluateJavascript(PAUSE_MEDIA_JS, null)
+        } catch (_: Exception) {
+        }
     }
 
     private fun hideSystemUi() {
@@ -211,13 +268,25 @@ class MainActivity : AppCompatActivity() {
      */
     private class StageLayout(context: Context) : FrameLayout(context) {
 
+        private var designWidth = DESIGN_WIDTH
+        private var designHeight = DESIGN_HEIGHT
+
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
             setMeasuredDimension(
                 MeasureSpec.getSize(widthMeasureSpec),
                 MeasureSpec.getSize(heightMeasureSpec)
             )
-            val w = MeasureSpec.makeMeasureSpec(DESIGN_WIDTH, MeasureSpec.EXACTLY)
-            val h = MeasureSpec.makeMeasureSpec(DESIGN_HEIGHT, MeasureSpec.EXACTLY)
+            // El viewport del WebView es tamaño_en_px / densidad, así que el
+            // escenario debe medir DESIGN * densidad para que el CSS vea
+            // exactamente 1920x1080 px. Se lee la densidad del propio WebView
+            // (no de este contenedor) para que el layout siga siendo correcto
+            // aunque el override a mdpi no se aplique.
+            val density = if (childCount > 0) getChildAt(0).resources.displayMetrics.density else 1f
+            val safeDensity = if (density > 0f) density else 1f
+            designWidth = Math.round(DESIGN_WIDTH * safeDensity)
+            designHeight = Math.round(DESIGN_HEIGHT * safeDensity)
+            val w = MeasureSpec.makeMeasureSpec(designWidth, MeasureSpec.EXACTLY)
+            val h = MeasureSpec.makeMeasureSpec(designHeight, MeasureSpec.EXACTLY)
             for (i in 0 until childCount) getChildAt(i).measure(w, h)
         }
 
@@ -225,9 +294,9 @@ class MainActivity : AppCompatActivity() {
             val availW = (r - l).toFloat()
             val availH = (b - t).toFloat()
             if (availW <= 0f || availH <= 0f) return
-            val scale = minOf(availW / DESIGN_WIDTH, availH / DESIGN_HEIGHT)
-            val offsetX = (availW - DESIGN_WIDTH * scale) / 2f
-            val offsetY = (availH - DESIGN_HEIGHT * scale) / 2f
+            val scale = minOf(availW / designWidth, availH / designHeight)
+            val offsetX = (availW - designWidth * scale) / 2f
+            val offsetY = (availH - designHeight * scale) / 2f
             for (i in 0 until childCount) {
                 val child = getChildAt(i)
                 child.pivotX = 0f
@@ -236,7 +305,7 @@ class MainActivity : AppCompatActivity() {
                 child.scaleY = scale
                 child.translationX = offsetX
                 child.translationY = offsetY
-                child.layout(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT)
+                child.layout(0, 0, designWidth, designHeight)
             }
         }
 
@@ -451,5 +520,18 @@ class MainActivity : AppCompatActivity() {
         private const val TAG = "RitmikaTV"
         private const val ORIGIN = "https://ritmika.duckdns.org"
         const val BASE_URL = "$ORIGIN/?native=1"
+
+        private const val PAUSE_MEDIA_JS = """
+            (function(){
+              try{
+                var media=document.querySelectorAll('audio,video');
+                for(var i=0;i<media.length;i++){try{media[i].pause();}catch(e){}}
+                var bootMusic=document.getElementById('boot-music');
+                if(bootMusic){try{bootMusic.pause();}catch(e){}}
+                if(window.__ritmikaPauseTrackedMedia){try{window.__ritmikaPauseTrackedMedia();}catch(e){}}
+                if(window.speechSynthesis){try{window.speechSynthesis.cancel();}catch(e){}}
+              }catch(e){}
+            })();
+        """
     }
 }

@@ -31,6 +31,40 @@
   markLite();
   document.addEventListener('DOMContentLoaded', markLite, { once: true });
 
+  /*
+   * Rastrea el media que se reproduce para poder pausarlo desde Kotlin cuando
+   * la app pasa a segundo plano (onStop). Sin esto, la música de menú y los
+   * efectos seguían sonando fuera de la app.
+   */
+  function installMediaTracker() {
+    try {
+      var proto = window.HTMLMediaElement && window.HTMLMediaElement.prototype;
+      if (!proto || proto.__ritmikaTracked) return;
+      proto.__ritmikaTracked = true;
+
+      var tracked = [];
+      var originalPlay = proto.play;
+      if (typeof originalPlay === 'function') {
+        proto.play = function () {
+          try {
+            if (tracked.indexOf(this) === -1) tracked.push(this);
+            if (tracked.length > 32) tracked.shift();
+          } catch (e) {}
+          return originalPlay.apply(this, arguments);
+        };
+      }
+
+      window.__ritmikaPauseTrackedMedia = function () {
+        for (var i = 0; i < tracked.length; i++) {
+          try { tracked[i].pause(); } catch (e) {}
+        }
+        tracked = [];
+      };
+    } catch (e) {}
+  }
+  installMediaTracker();
+  document.addEventListener('DOMContentLoaded', installMediaTracker, { once: true });
+
   function hasActiveScreen() {
     try {
       return !!document.querySelector('.tv-screen.active');
