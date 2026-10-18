@@ -765,6 +765,7 @@ async function inicializarQRConexion() {
 //  PARTICLES BACKGROUND
 // ════════════════════════════════════════════
 (function initParticles() {
+  if (window.RITMIKA_LITE) return;
   const canvas = document.getElementById('particles-canvas');
   const ctx    = canvas.getContext('2d', { alpha: true });
   let W, H;

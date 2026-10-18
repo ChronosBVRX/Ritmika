@@ -3,6 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ══ Host nativo Android TV: modo ligero (?native=1) + foco visible ══ -->
+  <script>(function(){try{if(String(location.search||"").indexOf("native=1")>-1){window.RITMIKA_TV_NATIVE=true;window.RITMIKA_LITE=true;var d=document.documentElement;if(d)d.className+=" ritmika-tv-lite";}}catch(e){}})();</script>
+  <style id="tv-lite-css">
+    /* ── Fondos a pantalla completa: repintan 1080p cada frame ── */
+    html.ritmika-tv-lite .party-bg{animation:none!important}
+    html.ritmika-tv-lite .party-bg::before{animation:none!important}
+    html.ritmika-tv-lite .scanlines::after{display:none!important}
+    html.ritmika-tv-lite #particles-canvas{display:none!important}
+    /* ── Mezcla de capas a pantalla completa (mix-blend-mode) ── */
+    html.ritmika-tv-lite #lobby-screen .lobby-glow-overlay{animation:none!important;mix-blend-mode:normal!important;opacity:.18!important}
+    html.ritmika-tv-lite .lobby-orb{animation:none!important;filter:none!important;mix-blend-mode:normal!important;background:radial-gradient(circle,rgba(0,229,255,.10) 0%,rgba(0,229,255,0) 70%)!important}
+    /* ── backdrop-filter: obliga a una pasada offscreen por elemento ── */
+    html.ritmika-tv-lite *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+    /* ── Canvas decorativos ── */
+    html.ritmika-tv-lite #boot-canvas-bg{display:none!important}
+    html.ritmika-tv-lite #bootloader-screen{background:radial-gradient(circle at 50% 45%,#1b2440 0%,#0a0a14 72%)!important}
+    html.ritmika-tv-lite .boot-checklist{background:rgba(15,23,42,.92)!important;box-shadow:none!important}
+    /* ── Blur de elementos decorativos ── */
+    html.ritmika-tv-lite .floating-shape{filter:none!important;animation:none!important;opacity:1!important;background:radial-gradient(circle,rgba(0,229,255,.16) 0%,rgba(0,229,255,0) 70%)!important}
+    html.ritmika-tv-lite #pre-boot-screen img{filter:none!important}
+    html.ritmika-tv-lite #pre-boot-screen>div:first-child{animation:none!important}
+    html.ritmika-tv-lite #axolo-cutin-bar,html.ritmika-tv-lite #axolo-cutin-portrait,html.ritmika-tv-lite #axolo-cutin-textbox{filter:none!important}
+    html.ritmika-tv-lite .glitter-particle{display:none!important}
+    /* ── Indicador de foco para control remoto ── */
+    #enter-ritmika-btn:focus,#boot-retry:focus,.boot-retry-btn:focus{outline:6px solid #00e5ff;outline-offset:8px}
+  </style>
   <title>Rítmika 🎤 — Pantalla Principal</title>
   <meta name="description" content="Rítmika: El Karaoke Party Game. Pantalla principal de TV." />
   <link rel="icon" type="image/png" href="./assets/favicon.png" />
@@ -2415,7 +2441,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Crear partículas glitter cíclicamente
         if (window.glitterInterval) clearInterval(window.glitterInterval);
-        window.glitterInterval = setInterval(() => {
+        window.glitterInterval = window.RITMIKA_LITE ? null : setInterval(() => {
           const p = document.createElement('div');
           p.className = 'glitter-particle';
           p.style.width = Math.random() * 8 + 4 + 'px';

@@ -1,8 +1,10 @@
 package party.ritmika.tv
 
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -27,6 +29,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import kotlin.math.roundToInt
 
 /**
  * Rítmika TV — host Android TV híbrido.
@@ -70,7 +73,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        webView = WebView(this).apply {
+        webView = WebView(tvWebViewContext()).apply {
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -95,7 +98,7 @@ class MainActivity : AppCompatActivity() {
                 mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
                 cacheMode = WebSettings.LOAD_DEFAULT
                 useWideViewPort = true
-                loadWithOverviewMode = true
+                loadWithOverviewMode = false
                 setSupportZoom(false)
                 builtInZoomControls = false
                 displayZoomControls = false
@@ -162,6 +165,34 @@ class MainActivity : AppCompatActivity() {
             )
     }
 
+    /**
+     * Contexto para el WebView con la densidad forzada.
+     *
+     * Una TV de 1080p suele reportar 320 dpi, lo que deja el viewport CSS en
+     * ~960x540 px: el diseño (pensado para 1920x1080) no entra completo, las
+     * fuentes se ven enormes y Tailwind nunca activa sus breakpoints
+     * (lg:/xl:). Con la densidad ajustada, 1px CSS vuelve a equivaler a 1px de
+     * pantalla y el layout coincide con el de la version web.
+     */
+    private fun tvWebViewContext(): android.content.Context {
+        val config = Configuration(resources.configuration)
+        config.densityDpi = tvDensityDpi()
+        Log.i(TAG, "densityDpi forzada a ${config.densityDpi}")
+        return androidx.appcompat.view.ContextThemeWrapper(
+            createConfigurationContext(config),
+            R.style.Theme_RitmikaTV
+        )
+    }
+
+    @Suppress("DEPRECATION")
+    private fun tvDensityDpi(): Int {
+        val metrics = DisplayMetrics()
+        windowManager.defaultDisplay.getRealMetrics(metrics)
+        val scale = metrics.widthPixels / TARGET_CSS_WIDTH
+        return (DisplayMetrics.DENSITY_DEFAULT * scale).roundToInt()
+            .coerceIn(DisplayMetrics.DENSITY_MEDIUM, DisplayMetrics.DENSITY_XXXHIGH)
+    }
+
     private fun injectAsset(name: String, label: String) {
         try {
             val js = assets.open(name).bufferedReader().use { it.readText() }
@@ -193,7 +224,7 @@ class MainActivity : AppCompatActivity() {
             Log.e(TAG, "bootstrap asset missing", e)
             return
         }
-        val candidates = listOf(setOf("*"), setOf(BASE_URL))
+        val candidates = listOf(setOf("*"), setOf(ORIGIN))
         for (rules in candidates) {
             try {
                 WebViewCompat.addDocumentStartJavaScript(webView, script, rules)
@@ -365,6 +396,8 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "RitmikaTV"
-        const val BASE_URL = "https://ritmika.duckdns.org"
+        private const val ORIGIN = "https://ritmika.duckdns.org"
+        private const val TARGET_CSS_WIDTH = 1920f
+        const val BASE_URL = "$ORIGIN/?native=1"
     }
 }
