@@ -32,6 +32,43 @@
   document.addEventListener('DOMContentLoaded', markLite, { once: true });
 
   /*
+   * Fija el viewport en 1920 px CSS.
+   *
+   * El WebView ignora la densidad del contexto y usa la del display (Chromecast
+   * HD: 320 dpi → dpr 2), así que su viewport natural es 960x540 CSS y el diseño
+   * de 1920 se ve al doble y recortado. Con <meta viewport width=1920> el
+   * viewport de maquetación pasa a ser 1920x1080 CSS y Chrome escala la página
+   * a la pantalla (page scale), sin tocar el árbol de vistas de Android.
+   *
+   * Se aplica lo antes posible y se re-aplica por si el <head> se parsea
+   * después del document-start.
+   */
+  function forceViewportWidth() {
+    try {
+      var head = document.head || document.getElementsByTagName('head')[0];
+      if (!head) return;
+
+      var metas = head.querySelectorAll('meta[name="viewport"]');
+      var keep = metas.length ? metas[0] : document.createElement('meta');
+      if (!metas.length) {
+        keep.setAttribute('name', 'viewport');
+        head.insertBefore(keep, head.firstChild);
+      }
+      keep.setAttribute('content', 'width=1920, user-scalable=no');
+      for (var i = 1; i < metas.length; i++) {
+        if (metas[i].parentNode) metas[i].parentNode.removeChild(metas[i]);
+      }
+    } catch (e) {}
+  }
+
+  forceViewportWidth();
+  document.addEventListener('DOMContentLoaded', forceViewportWidth, { once: true });
+  window.addEventListener('load', forceViewportWidth, { once: true });
+  setTimeout(forceViewportWidth, 0);
+  setTimeout(forceViewportWidth, 400);
+  setTimeout(forceViewportWidth, 1200);
+
+  /*
    * Rastrea el media que se reproduce para poder pausarlo desde Kotlin cuando
    * la app pasa a segundo plano (onStop). Sin esto, la música de menú y los
    * efectos seguían sonando fuera de la app.
@@ -64,72 +101,6 @@
   }
   installMediaTracker();
   document.addEventListener('DOMContentLoaded', installMediaTracker, { once: true });
-
-  /*
-   * Diagnóstico en pantalla (esquina superior izquierda, siempre visible).
-   * Sin acceso a logcat en la TV, esta etiqueta es la única forma de ver qué
-   * viewport/densidad tiene realmente el WebView y si el escalado es correcto.
-   */
-  function installDiagnostics() {
-    if (window.__ritmikaDiag || window.RITMIKA_DIAG === false) return;
-    window.__ritmikaDiag = true;
-
-    function bridgeString(method) {
-      try {
-        if (window.AndroidNative && typeof window.AndroidNative[method] === 'function') {
-          return window.AndroidNative[method]();
-        }
-      } catch (e) {}
-      return 'n/a';
-    }
-
-    function snapshot() {
-      try {
-        var probe = document.createElement('div');
-        probe.setAttribute('style',
-          'position:fixed;top:-20000px;left:-20000px;width:100vw;height:100vh;');
-        (document.body || document.documentElement).appendChild(probe);
-        var probeW = probe.offsetWidth;
-        var probeH = probe.offsetHeight;
-        probe.parentNode.removeChild(probe);
-
-        var vv = window.visualViewport;
-        var lines = [
-          'Ritmika ' + bridgeString('appVersion'),
-          'CSS ' + Math.round(window.innerWidth) + 'x' + Math.round(window.innerHeight) +
-            ' dpr' + (window.devicePixelRatio || 1),
-          '100vw/vh ' + probeW + 'x' + probeH,
-          'docEl ' + document.documentElement.clientWidth + 'x' +
-            document.documentElement.clientHeight,
-          'scr ' + bridgeString('screenMetrics')
-        ];
-        if (vv) {
-          lines.push('visual ' + Math.round(vv.width) + 'x' + Math.round(vv.height) +
-            ' s' + (vv.scale || 1));
-        }
-
-        var el = document.getElementById('ritmika-diag');
-        if (!el) {
-          el = document.createElement('div');
-          el.id = 'ritmika-diag';
-          el.setAttribute('style',
-            'position:fixed;top:0;left:0;z-index:2147483647;' +
-            'background:rgba(0,0,0,0.86);color:#00ff88;' +
-            'font:700 22px/1.35 monospace;padding:10px 14px;' +
-            'pointer-events:none;white-space:pre;text-align:left;');
-          (document.body || document.documentElement).appendChild(el);
-        }
-        el.textContent = lines.join('\n');
-      } catch (e) {}
-    }
-
-    if (document.body) snapshot();
-    document.addEventListener('DOMContentLoaded', snapshot, { once: true });
-    window.addEventListener('load', snapshot, { once: true });
-    setTimeout(snapshot, 2500);
-    setTimeout(snapshot, 6000);
-  }
-  installDiagnostics();
 
   function hasActiveScreen() {
     try {

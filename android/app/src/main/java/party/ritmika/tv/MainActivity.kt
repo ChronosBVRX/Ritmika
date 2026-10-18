@@ -1,11 +1,9 @@
 package party.ritmika.tv
 
 import android.content.Context
-import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -77,12 +75,13 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        // El juego se maqueta SIEMPRE a 1920x1080 px CSS y el StageLayout lo
-        // escala a la pantalla real. Así una TV de 720p, una de 1080p y una de
-        // 4K ven exactamente el mismo diseño (el de la version web) en lugar de
-        // uno recortado o gigante, y el raster queda acotado a 1080p aunque el
-        // panel sea 4K.
-        val stage = StageLayout(this).apply {
+        // El escalado NO se hace aquí. El WebView ignora la densidad del
+        // contexto y usa la del display (Chromecast HD: 320 dpi → dpr 2), así
+        // que su viewport sería 960x540 CSS. El bootstrap fija el viewport con
+        // <meta viewport width=1920> y Chrome escala la página a la pantalla.
+        // Escalar la vista por fuera NO sirve: el WebView sigue calculando su
+        // visualViewport con su altura real y "ve" solo media pantalla.
+        val stage = FrameLayout(this).apply {
             clipChildren = false
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -241,79 +240,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Contexto del WebView con densidad mdpi (1 CSS px = 1 px de layout).
+     * Contexto del WebView (solo aplica el tema).
      *
-     * WebView calcula su viewport como tamaño_en_px / densidad. Con la
-     * densidad nativa de una TV (320 dpi) el viewport caía a ~960 px CSS y el
-     * diseño de 1920 no entraba. Fijando mdpi y maquetando sobre un escenario de
-     * 1920x1080 px, el viewport es exactamente 1920x1080 y StageLayout se
-     * encarga de escalarlo a la pantalla.
+     * Ojo: forzar aquí densityDpi a mdpi NO funciona. El WebView ignora la
+     * densidad del contexto y calcula su devicePixelRatio con la del display
+     * (en un Chromecast HD: 320 dpi → dpr 2). El viewport de 1920x1080 se
+     * consigue desde el bootstrap con <meta viewport width=1920>.
      */
-    private fun tvWebViewContext(): Context {
-        val config = Configuration(resources.configuration)
-        config.densityDpi = DisplayMetrics.DENSITY_MEDIUM
-        return androidx.appcompat.view.ContextThemeWrapper(
-            createConfigurationContext(config),
-            R.style.Theme_RitmikaTV
-        )
-    }
-
-    /**
-     * Mide y escala a sus hijos como si la pantalla midiera 1920x1080.
-     *
-     * El diseño de Ritmika está pensado para 1920x1080 CSS px. En vez de
-     * reescribir todo el CSS para que sea fluido, el WebView se maqueta a
-     * 1920x1080 y este contenedor aplica la escala (uniforme y centrada) que
-     * hace entrar el diseño en cualquier TV.
-     */
-    private class StageLayout(context: Context) : FrameLayout(context) {
-
-        private var designWidth = DESIGN_WIDTH
-        private var designHeight = DESIGN_HEIGHT
-
-        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-            setMeasuredDimension(
-                MeasureSpec.getSize(widthMeasureSpec),
-                MeasureSpec.getSize(heightMeasureSpec)
-            )
-            // El viewport del WebView es tamaño_en_px / densidad, así que el
-            // escenario debe medir DESIGN * densidad para que el CSS vea
-            // exactamente 1920x1080 px. Se lee la densidad del propio WebView
-            // (no de este contenedor) para que el layout siga siendo correcto
-            // aunque el override a mdpi no se aplique.
-            val density = if (childCount > 0) getChildAt(0).resources.displayMetrics.density else 1f
-            val safeDensity = if (density > 0f) density else 1f
-            designWidth = Math.round(DESIGN_WIDTH * safeDensity)
-            designHeight = Math.round(DESIGN_HEIGHT * safeDensity)
-            val w = MeasureSpec.makeMeasureSpec(designWidth, MeasureSpec.EXACTLY)
-            val h = MeasureSpec.makeMeasureSpec(designHeight, MeasureSpec.EXACTLY)
-            for (i in 0 until childCount) getChildAt(i).measure(w, h)
-        }
-
-        override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-            val availW = (r - l).toFloat()
-            val availH = (b - t).toFloat()
-            if (availW <= 0f || availH <= 0f) return
-            val scale = minOf(availW / designWidth, availH / designHeight)
-            val offsetX = (availW - designWidth * scale) / 2f
-            val offsetY = (availH - designHeight * scale) / 2f
-            for (i in 0 until childCount) {
-                val child = getChildAt(i)
-                child.pivotX = 0f
-                child.pivotY = 0f
-                child.scaleX = scale
-                child.scaleY = scale
-                child.translationX = offsetX
-                child.translationY = offsetY
-                child.layout(0, 0, designWidth, designHeight)
-            }
-        }
-
-        companion object {
-            const val DESIGN_WIDTH = 1920
-            const val DESIGN_HEIGHT = 1080
-        }
-    }
+    private fun tvWebViewContext(): Context =
+        androidx.appcompat.view.ContextThemeWrapper(this, R.style.Theme_RitmikaTV)
 
     private fun injectAsset(name: String, label: String) {
         try {
@@ -416,26 +351,6 @@ class MainActivity : AppCompatActivity() {
     inner class Bridge {
         @JavascriptInterface
         fun isAvailable(): Boolean = true
-
-        @JavascriptInterface
-        fun appVersion(): String = try {
-            val pi = packageManager.getPackageInfo(packageName, 0)
-            val code = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                pi.longVersionCode
-            } else {
-                @Suppress("DEPRECATION") pi.versionCode.toLong()
-            }
-            "${pi.versionName} ($code)"
-        } catch (e: Exception) {
-            "?"
-        }
-
-        @JavascriptInterface
-        fun screenMetrics(): String {
-            val dm = resources.displayMetrics
-            return "{\"w\":${dm.widthPixels},\"h\":${dm.heightPixels}," +
-                "\"density\":${dm.density},\"dpi\":${dm.densityDpi}}"
-        }
 
         @JavascriptInterface
         fun setSource(url: String?) {
