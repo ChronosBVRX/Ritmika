@@ -512,6 +512,8 @@ function _playAxoloAudio(texto, audioFileOrMood) {
   const cleanName = audioFileOrMood.replace(/\.(wav|mp3)$/i, '') + '.mp3';
   const audioUrl = `./assets/audio/${cleanName}`;
   currentAxoloAudio = new Audio(audioUrl);
+  const _voiceT0 = Date.now();
+  console.log('[Voice] start ' + cleanName);
 
   const emotion = AXOLO_PRESET_MAP[audioFileOrMood] || 'talking';
   triggerTioAxolCutin(texto, 'manual', emotion);
@@ -523,6 +525,7 @@ function _playAxoloAudio(texto, audioFileOrMood) {
 
   currentAxoloAudio.addEventListener('ended', function() {
     const self = this;
+    console.log('[Voice] ended ' + cleanName + ' tras ' + ((Date.now() - _voiceT0) / 1000).toFixed(1) + 's');
     window.welcomePlaying = false;
     hideTioAxolCutin();
     unduckSfx();
@@ -548,6 +551,7 @@ function _playAxoloAudio(texto, audioFileOrMood) {
     const self = this;
     window.welcomePlaying = false;
     console.warn('[Voice] Audio not found:', audioUrl);
+    console.log('[Voice] error ' + cleanName);
     setTimeout(() => {
       if (currentAxoloAudio !== self) return;
       hideTioAxolCutin();
@@ -563,6 +567,7 @@ function _playAxoloAudio(texto, audioFileOrMood) {
 
   currentAxoloAudio.play().catch(e => {
     console.warn('[Voice] Autoplay blocked or audio load failed:', e);
+    console.log('[Voice] playrejected ' + cleanName);
     window.welcomePlaying = false;
     currentAxoloAudio = null;
     
@@ -663,6 +668,7 @@ async function axoloSay(text, moodOrDuration = 'neutral', duration = 4000, inter
   const spokeWithAudio = await hacerHablarAlAxolo(text, audioFile, interrupt);
 
   if (!spokeWithAudio) {
+    console.log('[Voice] silent fallback ' + audioFile + ' welcomePlaying=' + window.welcomePlaying);
     const emotion = AXOLO_PRESET_MAP[audioFile] || (typeof moodOrDuration === 'string' ? moodOrDuration : 'talking');
     triggerTioAxolCutin(text, bubbleDur, emotion);
   }

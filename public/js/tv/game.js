@@ -1264,6 +1264,7 @@ function showPodium() {
         const queuePending = typeof axoloQueue !== 'undefined' && axoloQueue.length > 0;
         const playing = !!currentAxoloAudio || queuePending;
         if (!playing || Date.now() - started > maxWaitMs) {
+          console.log('[Ceremony] wait resuelto tras ' + ((Date.now() - started) / 1000).toFixed(1) + 's (playing=' + playing + ')');
           setTimeout(resolve, bufferMs);
           return;
         }
@@ -1704,3 +1705,12 @@ function showPodium() {
   runCeremony();
 }
 
+
+// ── DEBUG temporal: F8 re-ejecuta la ceremonia de premiación sin rejugar ──
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'F8') return;
+  try {
+    console.log('[Debug] F8 -> showPodium()');
+    showPodium();
+  } catch (err) { console.log('[Debug] F8 error ' + err); }
+});
