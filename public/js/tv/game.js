@@ -1245,11 +1245,30 @@ function showPodium() {
 
   function wait(ms) { return new Promise(r=>setTimeout(r,ms)); }
 
+  /*
+   * Espera a que termine TODO audio de Axolo (incluida la cola) y añade el
+   * margen pedido.
+   *
+   * Antes se enganchaba a `_axoloAudioDoneResolve`, un único slot global: si la
+   * narración de la fase quedaba encolada detrás de otro audio, el visual
+   * avanzaba al terminar el audio equivocado y la voz sonaba después (de ahí
+   * que la premiación se oyera desfasada). Además, si un MP3 fallaba, el
+   * handler de error no llamaba al resolver y la ceremonia se quedaba colgada.
+   */
   function waitForAxoloAudio(bufferMs) {
     bufferMs = bufferMs || 800;
+    const started = Date.now();
+    const maxWaitMs = 60000;
     return new Promise(resolve => {
-      if (!currentAxoloAudio) { setTimeout(resolve, bufferMs); return; }
-      _axoloAudioDoneResolve = () => setTimeout(resolve, bufferMs);
+      (function poll() {
+        const queuePending = typeof axoloQueue !== 'undefined' && axoloQueue.length > 0;
+        const playing = !!currentAxoloAudio || queuePending;
+        if (!playing || Date.now() - started > maxWaitMs) {
+          setTimeout(resolve, bufferMs);
+          return;
+        }
+        setTimeout(poll, 120);
+      })();
     });
   }
 
@@ -1290,17 +1309,19 @@ function showPodium() {
     await wait(400);
     anime({targets:subtitleEl,opacity:[0,1],translateY:[20,0],duration:600,easing:'easeOutQuad'});
     anime({targets:trophyEl,scale:[1,1.08,1],duration:1800,loop:true,easing:'easeInOutSine'});
+    _stopCurrentAxolo();
     if (typeof state !== 'undefined' && state.gameMode === 'emo') {
       const p = EMO_MODE_PHRASES.podium[0];
-      axoloSay(p.text, p.file);
+      axoloSay(p.text, p.file, 4000, true);
     } else {
-      axoloSay('&#161;Bienvenidos, banda, a la Gran Premiaci&#243;n de R&#237;tmika! Lleg&#243; el momento de la verdad. Vamos a coronar al Rey del Palenque, pero tambi&#233;n vamos a dar carrilla. Premios especiales, podio de ganadores, y muchas sorpresas m&#225;s. &#161;Que empiece la ceremonia!','podium_intro_ceremony.mp3');
+      axoloSay('&#161;Bienvenidos, banda, a la Gran Premiaci&#243;n de R&#237;tmika! Lleg&#243; el momento de la verdad. Vamos a coronar al Rey del Palenque, pero tambi&#233;n vamos a dar carrilla. Premios especiales, podio de ganadores, y muchas sorpresas m&#225;s. &#161;Que empiece la ceremonia!','podium_intro_ceremony.mp3', 4000, true);
     }
     await waitForAxoloAudio(1500);
     anime({targets:[titleBlock,subtitleEl,trophyEl],opacity:[1,0],translateY:[0,-40],duration:500,easing:'easeInCubic'});
     await wait(600);
 
     // FASE 2: Premios especiales
+    let awardRevealSeq = 0;
     for (const award of awardsData) {
       if (!award.player) continue;
       const av=getAvatar(award.player.avatarId);
@@ -1332,22 +1353,26 @@ function showPodium() {
       aCard.style.boxShadow='16px 16px 0 #111827, 0 0 40px '+award.color+'88';
       aCard.style.transform='translateX('+(sideDir*130)+'%)';
       let awardGraphic = award.img ? '<img src="'+award.img+'" style="width:160px;height:160px;object-fit:contain;margin:0 auto 12px;filter:drop-shadow(0 0 18px '+award.color+');"/>' : '<div style="font-size:76px;margin-bottom:8px;filter:drop-shadow(0 0 18px '+award.color+');">'+award.icon+'</div>';
+      // La tarjeta muestra el premio durante la narración, pero el ganador se
+      // revela recién cuando el narrador termina de anunciarlo.
+      const winnerBlockId = 'award-winner-' + (awardRevealSeq++);
       aCard.innerHTML= awardGraphic 
         +'<h2 style="font-family:\'Paytone One\',sans-serif;font-size:42px;margin:6px 0;text-shadow:0 0 22px '+award.color+';color:'+award.color+';">'+award.title+'</h2>'
         +'<p style="font-family:Fredoka,sans-serif;font-size:15px;color:#94a3b8;font-weight:700;margin-bottom:16px;letter-spacing:2px;text-transform:uppercase;">'+award.subtitle+'</p>'
+        +'<div id="'+winnerBlockId+'" style="opacity:0;transform:translateY(24px) scale(0.85);">'
         +'<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0;padding:12px 20px;border-radius:0;background:'+award.color+';border:6px solid #111827;box-shadow:8px 8px 0 #111827;">'
         +'<div style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:'+av.color+';border:6px solid #111827;display:flex;align-items:center;justify-content:center;box-shadow:6px 6px 0 #111827, 0 0 20px '+av.border+'66;">'
         +'<img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
         +'<span style="font-family:\'Paytone One\',sans-serif;font-size:28px;color:#111827;">'+escapeHtml(award.player.name)+'</span></div>'
         +'<div style="background:#1e293b;border:6px solid #111827;border-radius:0;padding:14px 20px;margin-top:10px;box-shadow:8px 8px 0 #111827;">'
-        +'<p style="font-family:Fredoka,sans-serif;font-size:16px;color:#f8fafc;font-weight:900;margin:0;line-height:1.5;">&ldquo;'+award.carrilla+'&rdquo;</p></div>';
+        +'<p style="font-family:Fredoka,sans-serif;font-size:16px;color:#f8fafc;font-weight:900;margin:0;line-height:1.5;">&ldquo;'+award.carrilla+'&rdquo;</p></div>'
+        +'</div>';
       aPhase.appendChild(aLabel);
       aPhase.appendChild(aCard);
       anime({targets:aLabel,opacity:[0,1],translateY:[-20,0],duration:400,easing:'easeOutQuad'});
       await wait(200);
       anime({targets:aCard,opacity:[0,1],translateX:[sideDir*130+'%','0%'],duration:850,easing:'easeOutBack'});
       if(axoloOverlay) axoloOverlay.style.zIndex='10002';
-      if(award.icon==='&#128019;' || award.icon==='&#127813;'){ playSfx('./assets/audio/sfx_comedy_fail.mp3'); } else { playSfx('./assets/audio/sfx_magic_reveal.mp3'); }
       _stopCurrentAxolo();
       let awardCeremonyFile = award.icon==='&#128019;' ? 'podium_award_gallo.mp3' : (award.icon==='&#127813;' ? 'podium_award_tomate.mp3' : 'podium_award_vengador.mp3');
       let awardCeremonyText = award.icon==='&#128019;' ? '&#161;El primero de los premios especiales... Gallo Supremo! Para el m&#225;s valiente, el que se atrevi&#243; a cantar pareciendo gato en licuadora. Banda, el Gallo Supremo de la noche es...' : (award.icon==='&#127813;' ? '&#161;Y ahora el premio Salsa de Tomate! Para el que recibi&#243; m&#225;s tomatazos que la selecci&#243;n en el Azteca. El rey de los tomatazos de la noche es...' : '&#161;El premio al Vengador An&#243;nimo! Saboteador profesional con cara de inocente. Rob&#243; m&#225;s puntos que el SAT. El Vengador An&#243;nimo es...');
@@ -1364,8 +1389,13 @@ function showPodium() {
           awardCeremonyText = 'Último premio: Sobreviviente del Apagón. Brillaste más en la oscuridad. El premio es para...';
         }
       }
-      axoloSay(awardCeremonyText, awardCeremonyFile);
-      await waitForAxoloAudio(1500);
+      axoloSay(awardCeremonyText, awardCeremonyFile, 4000, true);
+      // El narrador presenta el premio; el nombre y la carrilla se revelan
+      // cuando termina de anunciarlo (antes se veían desde el segundo cero).
+      await waitForAxoloAudio(400);
+      if(award.icon==='&#128019;' || award.icon==='&#127813;'){ playSfx('./assets/audio/sfx_comedy_fail.mp3'); } else { playSfx('./assets/audio/sfx_magic_reveal.mp3'); }
+      anime({targets:'#'+winnerBlockId,opacity:[0,1],translateY:[24,0],scale:[0.85,1.06,1],duration:800,easing:'easeOutBack'});
+      await wait(1600);
       anime({targets:[aLabel,aCard],opacity:[1,0],translateY:[0,-40],duration:400,easing:'easeInCubic'});
       if(sp&&sp.parentNode) sp.parentNode.removeChild(sp);
       await wait(500);
@@ -1420,19 +1450,26 @@ function showPodium() {
         +'<div style="width:100%;border-radius:0;height:'+pedH+';background:'+sd.color+';border:6px solid #111827;border-bottom:none;box-shadow:8px 8px 0 #111827, inset 0 0 20px '+sd.glow+';position:relative;overflow:hidden;margin-bottom:-6px;">'
         +'<div style="position:absolute;inset:0;background:linear-gradient(to right,transparent,rgba(255,255,255,0.07),transparent);"></div>'
         +'<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:\'Paytone One\',sans-serif;font-size:3rem;font-weight:900;color:rgba(255,255,255,0.12);line-height:1;">'+sd.place+'</div></div>';
-      if(sd.place===2) p3steps.replaceChild(stepDiv,leftSlot);
-      else p3steps.replaceChild(stepDiv,rightSlot);
+      // Placeholder "?" mientras el narrador anuncia; el escalón se revela
+      // cuando termina (antes el ganador aparecía junto con la primera frase).
+      const revealSlot=document.createElement('div');
+      revealSlot.style.cssText='width:'+(sd.place===2?'240px':'220px')+';border-radius:0;height:'+pedH+';background:#0f172a;border:6px dashed #111827;border-bottom:none;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 20px rgba(0,0,0,0.5);margin-bottom:-6px;';
+      revealSlot.innerHTML='<span style="font-size:3rem;opacity:0.2;">?</span>';
+      if(sd.place===2) p3steps.replaceChild(revealSlot,leftSlot);
+      else p3steps.replaceChild(revealSlot,rightSlot);
       _stopCurrentAxolo();
       if (sd.place===3) {
-        axoloSay('&#161;Antes del gran campe&#243;n, hay que reconocer a los que llegaron al podio! En tercer lugar, con una actuaci&#243;n que ni fu ni fa... &#161;' + escapeHtml(sd.player.name) + '!', 'podium_reveal_third.mp3');
+        axoloSay('&#161;Antes del gran campe&#243;n, hay que reconocer a los que llegaron al podio! En tercer lugar, con una actuaci&#243;n que ni fu ni fa... &#161;' + escapeHtml(sd.player.name) + '!', 'podium_reveal_third.mp3', 4000, true);
       } else {
-        axoloSay('&#161;Y en segundo lugar, alguien que se la rif&#243; y casi arrebata la corona! &#161;' + escapeHtml(sd.player.name) + '!', 'podium_reveal_second.mp3');
+        axoloSay('&#161;Y en segundo lugar, alguien que se la rif&#243; y casi arrebata la corona! &#161;' + escapeHtml(sd.player.name) + '!', 'podium_reveal_second.mp3', 4000, true);
       }
+      await waitForAxoloAudio(400);
+      if(revealSlot.parentNode) revealSlot.replaceWith(stepDiv);
       UISounds.reveal();
       anime({targets:stepDiv,opacity:[0,1],translateY:['80px','0px'],duration:800,easing:'easeOutBack'});
       const scoreEl=stepDiv.querySelector('.step-score-'+sd.place);
       if(scoreEl) animatePodiumCounter(scoreEl,sd.player.score||0,1000);
-      await waitForAxoloAudio(1200);
+      await wait(1700);
     }
     await wait(400);
 
@@ -1444,11 +1481,12 @@ function showPodium() {
       anime({targets:blackout,opacity:[0,0.95],duration:600,easing:'easeInQuad'});
       await wait(400);
       _stopCurrentAxolo();
-      axoloSay('&#161;Lleg&#243; el momento que todos esperaban! Despu&#233;s de tres rondas, canciones, tomatazos, y mucha carrilla... ha llegado la hora de coronar al Rey del Palenque. El ganador de R&#237;tmika es...', 'podium_winner_buildup.mp3');
+      axoloSay('&#161;Lleg&#243; el momento que todos esperaban! Despu&#233;s de tres rondas, canciones, tomatazos, y mucha carrilla... ha llegado la hora de coronar al Rey del Palenque. El ganador de R&#237;tmika es...', 'podium_winner_buildup.mp3', 4000, true);
       await waitForAxoloAudio(500);
       blackout.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;"><p id="susp-text" style="font-family:\'Paytone One\',sans-serif;font-size:28px;color:#94a3b8;letter-spacing:10px;text-transform:uppercase;opacity:0;">Y el ganador es...</p><div id="countdown-wrap" style="display:flex;gap:30px;margin-top:10px;"></div></div>';
       anime({targets:'#susp-text',opacity:[0,1],translateY:[20,0],duration:600,easing:'easeOutQuad'});
-      await wait(4000);
+      // El narrador termina con "...es...": el suspenso empieza ya, sin 4s muertos.
+      await wait(1200);
       const cwrap=document.getElementById('countdown-wrap');
       for(const n of ['3','2','1']){
         const nd=document.createElement('div');
@@ -1502,9 +1540,9 @@ function showPodium() {
       _stopCurrentAxolo();
       if (typeof state !== 'undefined' && state.gameMode === 'emo') {
         const p = EMO_MODE_PHRASES.podium[1];
-        axoloSay(p.text, p.file);
+        axoloSay(p.text, p.file, 4000, true);
       } else {
-        axoloSay('&#161;El nuevo Rey del Palenque! &#161;' + escapeHtml(sorted[0].name) + '! El que demostr&#243; que tiene flow y que no le tiembla la voz. &#161;Felicidades, campe&#243;n, de parte del T&#237;o Axolo y de toda la banda!', 'podium_winner_reveal.mp3');
+        axoloSay('&#161;El nuevo Rey del Palenque! &#161;' + escapeHtml(sorted[0].name) + '! El que demostr&#243; que tiene flow y que no le tiembla la voz. &#161;Felicidades, campe&#243;n, de parte del T&#237;o Axolo y de toda la banda!', 'podium_winner_reveal.mp3', 4000, true);
       }
       [800,1200,1600,2000].forEach(delay=>{
         setTimeout(()=>fireworkBurst(window.innerWidth*(0.2+Math.random()*0.6),window.innerHeight*(0.1+Math.random()*0.4)),delay);
@@ -1654,7 +1692,9 @@ function showPodium() {
     } else {
       customPodiumScript='&#161;La fiesta lleg&#243; a su fin! Con '+(winner?.score||0)+' puntos, coronamos a &#161;'+(winner?.name||'alguien misterioso')+'! como el rey, abucheamos al gallo y nos divertimos como locos. &#161;Nos vemos en la pr&#243;xima ronda de R&#237;tmika! &#161;Adi&#243;s!';
     }
-    axoloSay(fVictoryChoice.text,fVictoryChoice.file);
+    // La victoria entra ya; el cierre de la noche queda encolado detrás (antes
+    // se encolaba la primera y sonaba la segunda, saltándose una frase).
+    axoloSay(fVictoryChoice.text,fVictoryChoice.file,4000,true);
     axoloSay(customPodiumScript,pClimaxChoice.file);
     ['&#127881;','&#127882;','&#127942;','&#11088;','&#128293;','&#127925;','&#128171;','&#127775;'].forEach((e,i)=>
       setTimeout(()=>floatEmoji(e),i*150)
