@@ -1264,7 +1264,6 @@ function showPodium() {
         const queuePending = typeof axoloQueue !== 'undefined' && axoloQueue.length > 0;
         const playing = !!currentAxoloAudio || queuePending;
         if (!playing || Date.now() - started > maxWaitMs) {
-          console.log('[Ceremony] wait resuelto tras ' + ((Date.now() - started) / 1000).toFixed(1) + 's (playing=' + playing + ')');
           setTimeout(resolve, bufferMs);
           return;
         }
@@ -1706,20 +1705,3 @@ function showPodium() {
   runCeremony();
 }
 
-
-// ── DEBUG temporal: F8 re-ejecuta la ceremonia de premiación sin rejugar ──
-document.addEventListener('keydown', (e) => {
-  if (e.key !== 'F8') return;
-  try {
-    if (!state.players || state.players.length < 3) {
-      state.players = [
-        { name: 'Ana Test', avatarId: 0, score: 820, tomatazos: 0, genres: ['pop'], socketId: 't1' },
-        { name: 'Beto Test', avatarId: 3, score: 540, tomatazos: 4, genres: ['rock'], socketId: 't2' },
-        { name: 'Caro Test', avatarId: 6, score: 410, tomatazos: 1, genres: ['cumbia'], socketId: 't3' },
-      ];
-      state.gameMode = 'clasico';
-    }
-    console.log('[Debug] F8 -> showPodium() players=' + state.players.length);
-    showPodium();
-  } catch (err) { console.log('[Debug] F8 error ' + err); }
-});
