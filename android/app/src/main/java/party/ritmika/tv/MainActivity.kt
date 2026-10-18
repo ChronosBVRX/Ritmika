@@ -418,6 +418,26 @@ class MainActivity : AppCompatActivity() {
         fun isAvailable(): Boolean = true
 
         @JavascriptInterface
+        fun appVersion(): String = try {
+            val pi = packageManager.getPackageInfo(packageName, 0)
+            val code = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                pi.longVersionCode
+            } else {
+                @Suppress("DEPRECATION") pi.versionCode.toLong()
+            }
+            "${pi.versionName} ($code)"
+        } catch (e: Exception) {
+            "?"
+        }
+
+        @JavascriptInterface
+        fun screenMetrics(): String {
+            val dm = resources.displayMetrics
+            return "{\"w\":${dm.widthPixels},\"h\":${dm.heightPixels}," +
+                "\"density\":${dm.density},\"dpi\":${dm.densityDpi}}"
+        }
+
+        @JavascriptInterface
         fun setSource(url: String?) {
             if (url.isNullOrBlank()) return
             runOnUiThread {
