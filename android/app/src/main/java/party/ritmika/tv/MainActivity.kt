@@ -166,23 +166,7 @@ class MainActivity : AppCompatActivity() {
         webView.loadUrl(BASE_URL)
         webView.requestFocus()
 
-        // Hook de diagnóstico: permite abrir el panel nativo por ADB sin
-        // depender del puente JS. No afecta el arranque normal.
-        if (intent?.getBooleanExtra("ritmika_open_audio", false) == true) {
-            webView.postDelayed({
-                try { startActivity(Intent(this, AudioPanelActivity::class.java)) } catch (_: Exception) {}
-            }, 700)
-        }
-
         UpdateManager.checkOnLaunch(this)
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        if (intent.getBooleanExtra("ritmika_open_audio", false)) {
-            try { startActivity(Intent(this, AudioPanelActivity::class.java)) } catch (_: Exception) {}
-        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
