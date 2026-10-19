@@ -364,7 +364,7 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
   
   // 2. Load the vignette asset and change style
   if (typeof state !== 'undefined' && state && state.gameMode === 'emo') {
-    portrait.src = `./assets/modes/emo/tio_axolo_vignette_emo_${assetName}.webp`;
+    portrait.src = `./assets/modes/emo/tio_axolo_vignette_emo_${assetName}.webp?v=2`;
     // Override bgColor for EMO mode
     if (emocion === 'laughing') bgColor = '#db2777'; // Darker pink
     else if (emocion === 'mischievous') bgColor = '#4c1d95'; // Deep purple

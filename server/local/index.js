@@ -147,6 +147,10 @@ app.use(express.static(path.join(__dirname, '../../public'), {
       // JS/CSS cambian con cada arreglo: revalidar con ETag en vez de cachear
       // un año, para no dejar al WebView/iPhone con versiones viejas.
       res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    } else if (/\.(webp|png|jpe?g|gif|svg)$/i.test(filePath)) {
+      // Las imagenes tambien se corrigen (transparencias, etc.): revalidar por
+      // ETag. Con immutable un asset arreglado seguia viendose viejo en la TV.
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     } else {
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     }
