@@ -5,6 +5,10 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 ## [Unreleased]
 
 ### Added
+- Panel nativo **Altavoz / Audio** en Android TV: lista bocinas emparejadas, descubre y empareja nuevas, muestra estado A2DP y guarda la bocina preferida.
+- Botón **🔊 ALTAVOZ** en el menú principal (solo Android) y atajo `KEYCODE_MENU` del control remoto para abrir el panel.
+- `BluetoothAudioController` con permisos para Android 7–15, discovery, `createBond`, `BluetoothA2dp` y `AudioDeviceCallback` para confirmar el audio.
+- “Reconectar” espera 15 s la reconexión automática de Android y guía al usuario; no fuerza A2DP porque requiere API privilegiada.
 - Menú principal **Palenque Arcade**: fondo y cinco portadas de modo generados localmente con ComfyUI/SDXL (Juggernaut XL), papel picado vectorial y sistema visual neo-brutalista.
 - Selección de modo tipo videojuego: riel de shows, hero cinematográfico con Axolo, ficha del modo, CTA `CREAR SALA` y datos reales del catálogo.
 - Modales de **Cómo jugar**, **Ajustes** (música, pantalla completa, movimiento reducido) y **Créditos**.
@@ -23,7 +27,7 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - La pantalla principal ya no es un dashboard de tres columnas: ahora es un menú de arcade con los modos como opciones.
 - Se eliminó el auto-creado de sala a los 2 segundos; el show se elige explícitamente con teclado, mando o mouse.
 - La lista de jugadores se movió al lobby; el menú ya no muestra un panel de jugadores vacío.
-- El lobby queda sin diálogos de Axolo: no hay cut-in ni voz mientras se muestra el código, el QR y la lista de jugadores. Los diálogos vuelven al iniciar la partida.
+- El menú principal y el lobby quedan sin diálogos de Axolo: no hay cut-in ni voz mientras se elige el show o se muestran el código, el QR y los jugadores. Los diálogos vuelven al iniciar la partida.
 - La canción ya no arranca en silencio mientras Axolo presenta: el video espera pausado en 0 y empieza cuando termina la voz.
 - El temporizador del karaoke usa `video.currentTime` (respeta buffering/pausas) en vez de un contador de pared.
 - La votación, el scoreboard y el podio esperan a la narración completa; ya no se cortan prompts ni reacciones.

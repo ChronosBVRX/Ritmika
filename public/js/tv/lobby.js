@@ -783,11 +783,16 @@ function _fadeOutCurrentAxolo(ms = 350) {
   step();
 }
 
-// El lobby debe quedar limpio: sin cut-in ni voz de Axolo. Solo cuenta el
-// código, el QR y los jugadores. En partida (round > 0) todo vuelve a sonar.
+// El menú principal y el lobby deben quedar limpios: sin cut-in ni voz de
+// Axolo. Solo cuenta la selección del show, el código, el QR y los jugadores.
+// En partida (ruleta en adelante) todo vuelve a sonar.
 function _isLobbyDialogueBlocked() {
   const lobby = document.getElementById('lobby-screen');
-  return !!(lobby && lobby.classList.contains('active'));
+  const menu = document.getElementById('mode-selection-screen');
+  return !!(
+    (lobby && lobby.classList.contains('active')) ||
+    (menu && menu.classList.contains('active'))
+  );
 }
 
 async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt = false) {

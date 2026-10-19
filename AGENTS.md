@@ -51,6 +51,14 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/assets/` — También incluye: `logo_ritmika.webp`, fondos (`bg_neon_club.webp`, `bg_neon_y2k.webp`), decoraciones de lobby, assets de podio (`podium_bg_stadium.webp`, `podium_crown.webp`), assets de ruleta, `loading_bg.mp4`, iconos de modo, favicon, tomato assets (SVG + WebP), fuentes woff2 (Fredoka, Paytone One).
 - `public/libs/` — Tailwind.js local + Anime.js local + GSAP local + QRCode.min.js (CDN evitado para rendimiento).
 
+### App Android TV (Kotlin)
+- `android/app/src/main/java/party/ritmika/tv/MainActivity.kt` — WebView (`?native=1`) + ExoPlayer + puente JS. `AndroidNative.openAudioPanel()` y `KEYCODE_MENU` abren el panel nativo.
+- `android/app/src/main/java/party/ritmika/tv/AudioPanelActivity.kt` — UI nativa neo-brutalista del panel Altavoz/Audio, navegable con D-pad.
+- `android/app/src/main/java/party/ritmika/tv/BluetoothAudioController.kt` — permisos, discovery, `createBond`, estado A2DP y `AudioDeviceCallback`.
+- La bocina preferida se guarda por MAC en `SharedPreferences` (`ritmika_audio_panel`).
+- Un APK normal **no puede forzar** `BluetoothA2dp.connect()`; “Reconectar” solo espera y refresca la reconexión automática de Android.
+- `android/scripts/publish_ota.sh` — bump de versión, build release firmado y subida del APK + `latest.json` al VPS.
+
 ### Launcher Nativo (C#)
 - `src/Launcher.cs` — 281 líneas. Arranca servidor Node.js, abre GameWindow directo (sin formulario previo). Limpia puerto 3000 antes de iniciar. Incluye `RButton` y `RPanel` custom controls (sin uso actual). Audio de inicio comentado (no reproduce nada al abrir).
 - `src/GameWindow.cs` — 132 líneas. Ventana WebView2 fullscreen sin animación de carga (va directo al servidor). F11 toggle fullscreen. Polling al servidor cada 500ms. Flags de GPU y video acelerado.
@@ -158,6 +166,14 @@ Celulares desde cualquier lugar
 - La lista de jugadores vive solo en el lobby. El menú no muestra panel de jugadores.
 - El arte del menú se genera con `tools/comfyui-ritmika/scripts/generate_menu_assets.py` (ComfyUI + SDXL) y `scripts/generate_menu_ornaments.py` (papel picado SVG).
 - Los assets finales viven en `public/assets/menu/`; los PNG de staging quedan fuera del repo.
+
+### Panel nativo Altavoz / Audio (Android TV)
+- Es una `Activity` nativa separada, no HTML: permisos, discovery y diálogos del sistema funcionan mejor con D-pad.
+- Solo se abre desde el menú principal o el lobby, nunca durante una canción.
+- El puente JS solo abre el panel; Bluetooth vive en Kotlin.
+- No se fuerza A2DP. “Reconectar” reconsulta estado y espera 15 s la decisión de Android.
+- “Abrir ajustes de Bluetooth” queda como último recurso explícito.
+- La app Android sigue cargando `tv.html` remoto; el panel nativo se actualiza con el APK/OTA.
 
 ### Lobby sin diálogos de Axolo
 - Mientras `#lobby-screen` está activa, `axoloSay()` se ignora por completo: no hay cut-in ni voz.
