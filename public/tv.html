@@ -2595,12 +2595,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       try { if(window.UISounds) UISounds.playTone(800, 0.15); } catch(e){}
 
-      const bark = AXOLO_MODE_SELECTED[selectedMode];
-      if (bark && typeof axoloSay === 'function') {
-        axoloSay(bark.text, bark.file, 4000, true);
-      }
-      
-      // Request room from server
+      // Sin bark de confirmación: la sala entra directo al lobby, que debe
+      // quedar limpio y sin diálogos de Axolo.
       if (typeof state !== 'undefined') { state.gameMode = selectedMode; }
       if (typeof applyModeTheme === 'function') applyModeTheme(selectedMode);
       socket.emit('tv:create_room', { mode: selectedMode });

@@ -149,6 +149,12 @@ Celulares desde cualquier lugar
 - **Versionado**: Si se solicita incrementar la versión, usar `npm version patch|minor|major` — esto actualiza `package.json` y crea un tag en Git automáticamente.
 - **UI**: La versión del `package.json` se emite a los clientes vía `socket.emit('server_version', ...)`. `tv.html` y `mobile.html` la muestran en `div#version-display`.
 
+### Lobby sin diálogos de Axolo
+- Mientras `#lobby-screen` está activa, `axoloSay()` se ignora por completo: no hay cut-in ni voz.
+- Al entrar al lobby se hace un fade-out de 320ms por si venía hablando desde la selección de modo.
+- Los diálogos de Axolo vuelven en cuanto empieza la partida (`state.round > 0` / pantalla de ruleta).
+- El lobby debe priorizar código de sala, QR y lista de jugadores.
+
 ### Sin launcher panel — directo a GameWindow
 - `Ritmika.exe` abre directo GameWindow (WebView2), sin formulario previo.
 - El launcher C# solo inicia servidor y abre la ventana. Audio de inicio comentado.

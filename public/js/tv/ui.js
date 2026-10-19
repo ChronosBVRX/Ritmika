@@ -53,6 +53,12 @@ function animateLobbyWelcome() {
   if (lobbyWelcomeDone) return;
   lobbyWelcomeDone = true;
 
+  // La transición desde modos puede traer una frase a medias. Se desvanece
+  // para entrar al lobby sin voz ni cut-in invadiendo la sala.
+  if (window.AxoloNarrator && typeof window.AxoloNarrator.fadeOutAndStop === 'function') {
+    window.AxoloNarrator.fadeOutAndStop(320);
+  }
+
   // Hide elements for staggered reveal (only on first load)
   document.querySelectorAll('.lobby-stagger').forEach(el => {
     el.style.opacity = '0';

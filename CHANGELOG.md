@@ -15,6 +15,7 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Índices SQLite para `LOWER(genre)`, `LOWER(mode)`, `artist` y `title`
 
 ### Changed
+- El lobby queda sin diálogos de Axolo: no hay cut-in ni voz mientras se muestra el código, el QR y la lista de jugadores. Los diálogos vuelven al iniciar la partida.
 - La canción ya no arranca en silencio mientras Axolo presenta: el video espera pausado en 0 y empieza cuando termina la voz.
 - El temporizador del karaoke usa `video.currentTime` (respeta buffering/pausas) en vez de un contador de pared.
 - La votación, el scoreboard y el podio esperan a la narración completa; ya no se cortan prompts ni reacciones.

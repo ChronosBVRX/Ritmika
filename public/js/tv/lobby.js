@@ -724,7 +724,8 @@ function _axoloWhenIdle(options) {
 window.AxoloNarrator = {
   isBusy: _axoloIsBusy,
   whenIdle: _axoloWhenIdle,
-  stop: function () { _stopCurrentAxolo(true); },
+  stop: function () { _stopCurrentAxolo(); },
+  fadeOutAndStop: function (ms) { _fadeOutCurrentAxolo(ms); },
   current: function () {
     if (!_axoloPlayback) return null;
     const now = Date.now();
@@ -762,6 +763,42 @@ function _stopCurrentAxolo() {
   }
 }
 
+// Salida suave para cuando se entra al lobby: no queremos cortar una frase
+// a media palabra, pero tampoco dejar la voz/cut-in invadiendo la sala.
+function _fadeOutCurrentAxolo(ms = 350) {
+  if (_queueDrainTimeout) { clearTimeout(_queueDrainTimeout); _queueDrainTimeout = null; }
+  axoloQueue = [];
+  const audio = currentAxoloAudio;
+  hideTioAxolCutin();
+  if (!audio) {
+    _axoloPlayback = null;
+    unduckSfx();
+    return;
+  }
+  const startVol = audio.volume;
+  const started = Date.now();
+  const step = () => {
+    const t = Math.min(1, (Date.now() - started) / ms);
+    try { audio.volume = Math.max(0, startVol * (1 - t)); } catch (e) {}
+    if (t < 1) {
+      setTimeout(step, 40);
+      return;
+    }
+    try { audio.pause(); } catch (e) {}
+    if (currentAxoloAudio === audio) currentAxoloAudio = null;
+    _axoloPlayback = null;
+    unduckSfx();
+  };
+  step();
+}
+
+// El lobby debe quedar limpio: sin cut-in ni voz de Axolo. Solo cuenta el
+// código, el QR y los jugadores. En partida (round > 0) todo vuelve a sonar.
+function _isLobbyDialogueBlocked() {
+  const lobby = document.getElementById('lobby-screen');
+  return !!(lobby && lobby.classList.contains('active'));
+}
+
 async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt = false) {
   const isAudioFile = typeof audioFileOrMood === 'string' &&
                       (audioFileOrMood.endsWith('.wav') || audioFileOrMood.endsWith('.mp3'));
@@ -795,6 +832,10 @@ async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt 
 }
 
 async function axoloSay(text, moodOrDuration = 'neutral', duration = 4000, interrupt = false) {
+  // En el lobby no hay diálogos de Axolo: ni cut-in ni voz. Entorpecen la
+  // lectura del código/QR y la lista de jugadores.
+  if (_isLobbyDialogueBlocked()) return;
+
   let audioFile = 'neutral';
   let bubbleDur = duration;
 
