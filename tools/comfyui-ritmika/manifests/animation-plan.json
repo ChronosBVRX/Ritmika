@@ -263,7 +263,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:05:32-0600"
     },
     {
       "id": "tio-axolo-vignette-emo-mischievous-reaction",

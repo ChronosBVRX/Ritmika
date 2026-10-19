@@ -197,6 +197,14 @@ function showCountdown(callback) {
 }
 
 
+
+// El cut-in de Axolo debe verse en CUALQUIER pantalla (modos, rondas, podio),
+// pero en el HTML vive dentro de #karaoke-screen. Se re-parenta al body.
+document.addEventListener('DOMContentLoaded', () => {
+  const ov = document.getElementById('axolo-cutin-overlay');
+  if (ov && ov.parentElement !== document.body) document.body.appendChild(ov);
+}, { once: true });
+
 // ════════════════════════════════════════════
 //  ASSETS ANIMADOS (pipeline ComfyUI/AnimateDiff)
 //  Los clips viven en public/assets/anim/*.webm (VP9 + alfa). Si un clip no
