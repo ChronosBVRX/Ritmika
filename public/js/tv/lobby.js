@@ -754,7 +754,7 @@ let idleInterval = setInterval(() => {
     const choice = currentPhrases[phraseIdx++ % currentPhrases.length];
     axoloSay(choice.text, choice.file);
   }
-}, 8000);
+}, 45000); // cada 45 s: antes eran 8 s y resultaba cansado
 // ════════════════════════════════════════════
 //  CONEXIÓN QR DINÁMICA
 // ════════════════════════════════════════════

@@ -296,7 +296,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:10:51-0600"
     },
     {
       "id": "tio-axolo-vignette-emo-neutral-reaction",
@@ -328,7 +329,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:14:09-0600"
     },
     {
       "id": "tio-axolo-vignette-emo-sad-reaction",
@@ -360,7 +362,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:18:21-0600"
     },
     {
       "id": "tio-axolo-vignette-emo-singing-reaction",
@@ -392,7 +395,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:21:57-0600"
     },
     {
       "id": "tio-axolo-vignette-laughing-reaction",
@@ -424,7 +428,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:25:33-0600"
     },
     {
       "id": "tio-axolo-vignette-mischievous-reaction",
@@ -456,7 +461,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "skipped",
+      "updatedAt": "2026-10-19T00:25:33-0600"
     },
     {
       "id": "tio-axolo-vignette-neutral-reaction",
@@ -488,7 +494,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:29:09-0600"
     },
     {
       "id": "tio-axolo-vignette-sad-reaction",
@@ -520,7 +527,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:33:12-0600"
     },
     {
       "id": "tio-axolo-vignette-singing-reaction",
@@ -680,7 +688,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:36:43-0600"
     },
     {
       "id": "axolo-announcing-idle",
@@ -696,7 +705,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:40:12-0600"
     },
     {
       "id": "axolo-emo-idle",
@@ -712,7 +722,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:43:22-0600"
     },
     {
       "id": "axolo-nostalgia-idle",
@@ -728,7 +739,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:46:32-0600"
     },
     {
       "id": "axolo-ranchera-idle",
@@ -744,7 +756,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:49:45-0600"
     },
     {
       "id": "tio-axolo-body-idle",
@@ -760,7 +773,8 @@
       "preset": "axolo",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "skipped",
+      "updatedAt": "2026-10-19T00:49:45-0600"
     },
     {
       "id": "tio-axolo-vignette-angry-talking",
@@ -1012,7 +1026,8 @@
       "preset": "background",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:52:57-0600"
     },
     {
       "id": "lobby-bg-premium-background",
@@ -1028,7 +1043,8 @@
       "preset": "background",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:55:45-0600"
     },
     {
       "id": "podium-bg-stadium-background",
@@ -1044,7 +1060,8 @@
       "preset": "background",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T00:58:39-0600"
     },
     {
       "id": "roulette-bg-stage-background",
@@ -1060,7 +1077,8 @@
       "preset": "background",
       "width": 1024,
       "height": 1024,
-      "status": "pending"
+      "status": "done",
+      "updatedAt": "2026-10-19T01:01:33-0600"
     },
     {
       "id": "particle-feather-background",
