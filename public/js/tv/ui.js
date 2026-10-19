@@ -235,7 +235,11 @@ function mountAnim(host, key, css) {
   v.dataset.anim = key;
   v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;' + (css || '');
   host.appendChild(v);
-  v.play().catch(() => { v.remove(); });
+  v.play().catch(() => {
+    v.remove();
+    const still = host.querySelector('img');
+    if (still) still.style.visibility = '';
+  });
   return v;
 }
 

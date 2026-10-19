@@ -414,24 +414,23 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
   bar.style.backgroundColor = bgColor;
   textBox.textContent = texto;
 
-  // Retrato animado (AnimateDiff): Axolo "habla" mientras suena la voz.
-  const wrap = document.getElementById('axolo-cutin-portrait-wrap');
-  if (wrap && typeof mountAnim === 'function') {
-    const emoKey = (typeof state !== 'undefined' && state && state.gameMode === 'emo')
-      ? 'tio-axolo-vignette-emo-' + assetName + '-talking'
-      : 'tio-axolo-vignette-' + assetName + '-talking';
-    const animated = mountAnim(wrap, emoKey);
-    if (animated) {
-      portrait.style.visibility = 'hidden';
-      animated.addEventListener('remove', () => { portrait.style.visibility = ''; });
-    } else {
-      portrait.style.visibility = '';
-    }
-  }
   
   // 3. Slide in (add active class, remove exit classes)
   bar.classList.remove('slide-out');
   bar.classList.add('active');
+
+  // Mejora progresiva: si el clip animado existe se monta ENCIMA del retrato,
+  // ya con la barra activa. Si algo falla, el cut-in estático se ve igual.
+  try {
+    const wrapEl = document.getElementById('axolo-cutin-portrait-wrap');
+    if (wrapEl && typeof mountAnim === 'function') {
+      const emoKey = (typeof state !== 'undefined' && state && state.gameMode === 'emo')
+        ? 'tio-axolo-vignette-emo-' + assetName + '-talking'
+        : 'tio-axolo-vignette-' + assetName + '-talking';
+      const animated = mountAnim(wrapEl, emoKey);
+      if (animated) portrait.style.visibility = 'hidden';
+    }
+  } catch (e) {}
   
   // 5. If a numerical duration was passed, schedule auto-hide
   if (typeof duracion === 'number') {
