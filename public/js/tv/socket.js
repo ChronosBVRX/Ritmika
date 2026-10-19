@@ -53,7 +53,7 @@ function setupSocket(s) {
     const savedCode = state.roomCode || (()=>{ try{return localStorage.getItem('ritmika_room_code');}catch{return null;}})();
     if (_hostToken && savedCode) {
       console.log('[TV] Intentando reconectar host a sala', savedCode);
-      s.emit('tv:reconnect_host', { roomCode: savedCode, hostToken: _hostToken });
+      s.emit('tv:reconnect_host', { roomCode: savedCode, hostToken: _hostToken, mode: state.gameMode || 'clasico' });
     } else {
       // No hay reconexión, flujo normal
       loadCatalog();
@@ -106,8 +106,8 @@ function setupSocket(s) {
       console.warn('[TV] Reconexión falló:', error);
       clearHostToken();
       loadCatalog();
-      // Crear sala nueva será disparado por el flujo normal tras elegir modo?
-      // No auto-crear aquí, esperar a que usuario seleccione modo
+      // Self-heal: crear sala nueva para no dejar un código muerto en pantalla
+      s.emit('tv:create_room', { mode: state.gameMode || 'clasico' });
     }
   });
 

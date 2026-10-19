@@ -10,6 +10,7 @@ const express = require('express');
 const compression = require('compression');
 const http = require('http');
 const os = require('os');
+const crypto = require('crypto');
 const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
@@ -678,6 +679,25 @@ function generateRoomCode() {
   return code;
 }
 
+// Token de host derivado de un secreto persistente: permite que la TV
+// recupere su sala (mismo código) si el servidor se reinicia o redeploya.
+const ROOM_SECRET = process.env.RITMIKA_ROOM_SECRET
+  || process.env.ADMIN_TOKEN
+  || process.env.R2_SECRET_ACCESS_KEY
+  || crypto.randomBytes(32).toString('hex');
+
+function issueHostToken(code) {
+  return crypto.createHmac('sha256', ROOM_SECRET).update('ritmika-host:' + code).digest('hex');
+}
+
+function verifyHostToken(code, token) {
+  if (typeof token !== 'string' || token.length !== 64) return false;
+  const expected = Buffer.from(issueHostToken(code));
+  const provided = Buffer.from(token);
+  if (expected.length !== provided.length) return false;
+  return crypto.timingSafeEqual(expected, provided);
+}
+
 function getRoomByTvSocket(socketId) {
   for (const [code, room] of rooms) {
     if (room.tvSocketId === socketId) return { code, room };
@@ -746,17 +766,57 @@ io.on('connection', (socket) => {
       players: new Map(),
       hostPlayerSocketId: null,
       mode: cleanMode,
+      hostToken: issueHostToken(code),
     });
 
     socket.join(code);
     socket.emit('tv:room_created', {
       roomCode: code,
       mode: cleanMode,
+      hostToken: rooms.get(code).hostToken,
       localIP: getLocalIP(),
       hotspotSSID: process.env.HOTSPOT_SSID || 'Ritmika',
       hotspotPassword: process.env.HOTSPOT_PASSWORD || 'Ritmika2026',
     });
     console.log(`[SALA] Creada: ${code} por TV ${socket.id}`);
+  });
+
+  // ──────────────────────────────────────────────────────────
+  // TV: Reconecta a su sala tras un reinicio del servidor
+  // Payload: { roomCode, hostToken, mode }
+  // Si la sala ya no existe, se recrea con el mismo código.
+  // ──────────────────────────────────────────────────────────
+  socket.on('tv:reconnect_host', ({ roomCode, hostToken, mode } = {}) => {
+    const code = typeof roomCode === 'string' ? roomCode.toUpperCase().trim() : '';
+
+    if (!/^[A-Z0-9]{4}$/.test(code) || !verifyHostToken(code, hostToken)) {
+      socket.emit('tv:reconnect_ack', { success: false, error: 'Token inválido o sala no encontrada' });
+      return;
+    }
+
+    let room = rooms.get(code);
+    if (room) {
+      if (getRoomByTvSocket(socket.id) === room) {
+        socket.emit('tv:reconnect_ack', { success: true, roomCode: code, mode: room.mode });
+        return;
+      }
+      room.tvSocketId = socket.id;
+    } else {
+      const validModes = new Set(['clasico', 'emo']);
+      const cleanMode = validModes.has(mode) ? mode : 'clasico';
+      room = {
+        tvSocketId: socket.id,
+        players: new Map(),
+        hostPlayerSocketId: null,
+        mode: cleanMode,
+        hostToken,
+      };
+      rooms.set(code, room);
+    }
+    socket.join(code);
+    socket.emit('tv:reconnect_ack', { success: true, roomCode: code, mode: room.mode });
+    socket.to(code).emit('game:update', { event: 'HOST_RECONNECTED', data: {} });
+    console.log(`[SALA] TV reconectada a ${code} (${socket.id})`);
   });
 
   socket.on('tv:close_room', () => {

@@ -1260,6 +1260,8 @@ const me = {
   artists: [],
   tomatazosLeft: 3,
   hasVoted: false,
+  hasJoinedOnce: false,
+  joinRetries: 0,
   currentSingerSocketId: null,
   score: 0,
   isHost: false,
@@ -1313,11 +1315,35 @@ socket.on('player:join_ack', (data) => {
   }
 
   if (!success) {
-    showError('join-error', error || 'Error al unirse.');
+    const roomMissing = /no encontrada/i.test(error || '');
+    if (roomMissing && me.hasJoinedOnce && me.joinRetries < 4) {
+      me.joinRetries++;
+      showToast(`Reconectando a la sala… (${me.joinRetries}/4)`);
+      setTimeout(() => {
+        socket.emit('player:join', {
+          roomCode: me.roomCode,
+          name: me.name,
+          avatarId: me.avatarId,
+          playerId: me.playerId,
+          resumeToken: me.resumeToken,
+        });
+        socket.emit('player:select_genres', { roomCode: me.roomCode, genres: me.genres });
+        socket.emit('player:select_artists', { roomCode: me.roomCode, artists: me.artists });
+      }, 2500);
+      return;
+    }
+    let msg = error || 'Error al unirse.';
+    if (roomMissing) {
+      msg = 'Sala no encontrada. Si la TV se reinició, pide que vuelva a mostrar el código.';
+    }
+    showError('join-error', msg);
     shakeElement('code-inputs');
+    if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
     goToScreen('screen-join');
     return;
   }
+  me.hasJoinedOnce = true;
+  me.joinRetries = 0;
   // Successfully joined
   if (data && data.playerId) {
     me.playerId = data.playerId;
@@ -1804,30 +1830,34 @@ document.getElementById('btn-go-to-avatar').addEventListener('click', async () =
   const name = document.getElementById('player-name-input').value.trim();
   const code = getCode();
   const btn = document.getElementById('btn-go-to-avatar');
-  
+  const btnLabel = 'Siguiente: Mi Alter Ego 😈';
+
   btn.disabled = true;
   btn.textContent = 'Verificando...';
 
   try {
     const res = await fetch(`/api/room/${code}`);
-    if (res.ok) {
-      const data = await res.json();
-      me.gameMode = data.mode || 'clasico';
-      if (typeof applyMobileModeTheme === 'function') applyMobileModeTheme();
-      await fetchAndBuildCatalog(me.gameMode);
-    } else {
-      // Si la sala no existe, dejamos el modo por defecto pero podríamos mostrar error.
-      // Por ahora continuamos para que el servidor maneje el error final en join.
-      me.gameMode = 'clasico';
-      await fetchAndBuildCatalog();
+    if (!res.ok) {
+      showError('join-error', 'Sala no encontrada. Revisa el código que muestra la TV.');
+      shakeElement('code-inputs');
+      if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+      btn.disabled = false;
+      btn.textContent = btnLabel;
+      return;
     }
+    const data = await res.json();
+    me.gameMode = data.mode || 'clasico';
+    if (typeof applyMobileModeTheme === 'function') applyMobileModeTheme();
+    await fetchAndBuildCatalog(me.gameMode);
   } catch (err) {
-    me.gameMode = 'clasico';
-    await fetchAndBuildCatalog();
+    showError('join-error', 'No se pudo verificar la sala. Revisa tu conexión e inténtalo de nuevo.');
+    btn.disabled = false;
+    btn.textContent = btnLabel;
+    return;
   }
 
   btn.disabled = false;
-  btn.textContent = 'Siguiente: Mi Alter Ego 😈';
+  btn.textContent = btnLabel;
 
   me.name = name;
   me.roomCode = code;
