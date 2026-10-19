@@ -26,6 +26,7 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 ### Changed
 - La pantalla principal ya no es un dashboard de tres columnas: ahora es un menú de arcade con los modos como opciones.
 - Se eliminó el auto-creado de sala a los 2 segundos; el show se elige explícitamente con teclado, mando o mouse.
+- El menú principal permite llegar a Cómo jugar, Ajustes, Altavoz y Créditos con el D-pad; Altavoz también se abre con la tecla MENU del control.
 - La lista de jugadores se movió al lobby; el menú ya no muestra un panel de jugadores vacío.
 - El menú principal y el lobby quedan sin diálogos de Axolo: no hay cut-in ni voz mientras se elige el show o se muestran el código, el QR y los jugadores. Los diálogos vuelven al iniciar la partida.
 - La canción ya no arranca en silencio mientras Axolo presenta: el video espera pausado en 0 y empieza cuando termina la voz.

@@ -170,6 +170,7 @@ Celulares desde cualquier lugar
 ### Panel nativo Altavoz / Audio (Android TV)
 - Es una `Activity` nativa separada, no HTML: permisos, discovery y diálogos del sistema funcionan mejor con D-pad.
 - Solo se abre desde el menú principal o el lobby, nunca durante una canción.
+- Se puede abrir con el botón “🔊 ALTAVOZ” (D-pad) o con `KEYCODE_MENU`.
 - El puente JS solo abre el panel; Bluetooth vive en Kotlin.
 - No se fuerza A2DP. “Reconectar” reconsulta estado y espera 15 s la decisión de Android.
 - “Abrir ajustes de Bluetooth” queda como último recurso explícito.
