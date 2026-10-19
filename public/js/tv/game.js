@@ -1951,7 +1951,7 @@ function showPodium() {
       socket.emit('tv:create_room');
       showScreen('lobby-screen');
       FlowDirector.enter('lobby', { label: 'Sala de espera' });
-      if (typeof bootMusic !== 'undefined' && bootMusic) {
+      if (typeof bootMusic !== 'undefined' && bootMusic && window.__RITMIKA_MENU_MUSIC !== false) {
         bootMusic.volume = 0.22;
         bootMusic.play().catch(()=>{});
       }

@@ -235,10 +235,37 @@ fps. Measured peak VRAM during the four smoke tests was ~4.8–6.6 GB. If OOM
 occurs: lower `frames`, `contextLength`, `maxDimension` or `steps` before
 reducing quality.
 
+### Menú principal · Palenque Arcade
+
+El menú de la TV usa arte estático generado con SDXL y un ornamento vectorial.
+Para reproducirlo:
+
+```bash
+python scripts/generate_menu_assets.py
+# Solo convertir PNGs ya generados:
+python scripts/generate_menu_assets.py --skip-generation
+# Regenerar un modo:
+python scripts/generate_menu_assets.py --only ranchera
+```
+
+Salidas en `public/assets/menu/`:
+
+| Archivo | Uso |
+|---|---|
+| `menu_bg_palenque.webp` | fondo general del menú |
+| `hero_clasico.webp` | portada del modo Clásico |
+| `hero_emo.webp` | portada de Fiesta Emo |
+| `hero_ranchera.webp` | portada de Dolidas & Rancheras |
+| `hero_nostalgia.webp` | portada de Nostalgia Pop |
+| `hero_anime.webp` | teaser de Fiesta Anime |
+| `papel_picado.svg` | ornamento vectorial generado por `scripts/generate_menu_ornaments.py` |
+
+Los PNG originales se guardan en `$RITMIKA_GENERATED_DIR/menu/` (por defecto
+`/tmp/ritmika-menu-assets/menu`). El repositorio solo recibe los WebP finales.
+
 ---
 
 ## 12. Models and Git hygiene
-
 * Checkpoints, motion modules, ControlNet/IPAdapter weights and ComfyUI itself
   are **never** committed.
 * Only scripts, workflows, presets, small manifests, docs and light reports are

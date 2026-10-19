@@ -30,3 +30,11 @@ installer/output/
 .cache/
 logs/
 
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Karaoke factory (audio fuente descargado, nunca se versiona)
+media/
+tools/karaoke-factory/.venv/

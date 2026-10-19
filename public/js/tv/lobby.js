@@ -88,15 +88,7 @@ function animateLobbyAvatars() {
 
 function renderPlayerList() {
   const lobbyContainer = document.getElementById('players-list');
-  const modeContainer = document.getElementById('mode-players-list');
   const activePlayers = state.players.filter(p => !p.disconnected);
-  
-  // Sync the player count badges
-  const modeCountStr = `${activePlayers.length} / 8`;
-  const mBadge = document.getElementById('mode-player-badge');
-  if (mBadge) mBadge.textContent = modeCountStr;
-  const mCount = document.getElementById('mode-player-count');
-  if (mCount) mCount.textContent = activePlayers.length;
 
   const renderToContainer = (container, emptyStateId) => {
     if (!container) return;
@@ -123,7 +115,6 @@ function renderPlayerList() {
   };
 
   renderToContainer(lobbyContainer, 'empty-state');
-  renderToContainer(modeContainer, 'mode-empty-state');
 }
 
 function buildPlayerCard(player) {

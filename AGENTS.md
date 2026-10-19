@@ -36,6 +36,9 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/tv/lobby.js` — 728 líneas. Lobby, QR, joins, sala de espera, bot system.
 - `public/js/tv/socket.js` — 463 líneas. Eventos Socket.io, rate limiting, relay TV↔Server.
 - `public/js/tv/flow.js` — Director de fases audio-aware. Espera a que termine la voz de Axolo, calcula pausas sobre audio real y transmite `PHASE_STATE` a los celulares para habilitar controles móviles (girar / listo / siguiente).
+- `public/js/tv/main-menu.js` — Menú principal Palenque Arcade: selección de show, hero, modales de ajustes/cómo jugar/créditos y transición al lobby.
+- `public/css/main-menu.css` — Estilos neo-brutalistas del menú, animaciones, modales y responsive para 1366×768 / 1920×1080.
+- `public/assets/menu/` — Fondo y portadas de modo generados con ComfyUI/SDXL + `papel_picado.svg` vectorial.
 - `public/js/tv/state.js` — 54 líneas. Estado global del juego (players, scores, round, etc.).
 - `public/js/tv/ui.js` — 301 líneas. Helpers de UI, cut-in system Axolo, DOM manipulation.
 - `public/js/bootloader.js` — 190 líneas. Bootloader de 5 pasos + preboot splash.
@@ -148,6 +151,13 @@ Celulares desde cualquier lugar
   3. `git push`
 - **Versionado**: Si se solicita incrementar la versión, usar `npm version patch|minor|major` — esto actualiza `package.json` y crea un tag en Git automáticamente.
 - **UI**: La versión del `package.json` se emite a los clientes vía `socket.emit('server_version', ...)`. `tv.html` y `mobile.html` la muestran en `div#version-display`.
+
+### Menú principal Palenque Arcade
+- La pantalla `#mode-selection-screen` es el menú principal: los modos son las opciones del menú, no un dashboard aparte.
+- Sin auto-creado de sala. El show se elige explícitamente con teclado, mando o mouse; `Enter` sobre un modo crea la sala.
+- La lista de jugadores vive solo en el lobby. El menú no muestra panel de jugadores.
+- El arte del menú se genera con `tools/comfyui-ritmika/scripts/generate_menu_assets.py` (ComfyUI + SDXL) y `scripts/generate_menu_ornaments.py` (papel picado SVG).
+- Los assets finales viven en `public/assets/menu/`; los PNG de staging quedan fuera del repo.
 
 ### Lobby sin diálogos de Axolo
 - Mientras `#lobby-screen` está activa, `axoloSay()` se ignora por completo: no hay cut-in ni voz.

@@ -41,6 +41,7 @@
 
   <link rel="stylesheet" href="/assets/fonts/fonts.css" />
   <link rel="stylesheet" href="/css/emo-theme.css?v=3" />
+  <link rel="stylesheet" href="/css/main-menu.css?v=6" />
   <script src="/libs/tailwind.js"></script>
   <script>
     tailwind.config = {
@@ -1614,172 +1615,166 @@
   </div>
 </div>
 <!-- ══════════════════════════════════════════════════════════
-     MODE SELECTION SCREEN
-═══════════════════════════════════════════════════════════ -->
-<div id="mode-selection-screen" class="tv-screen" style="z-index:15; background:#000;">
-  <style>
-    @keyframes glitchAnim {
-      0% { transform: translate(0) scale(1) translateY(1rem); filter: drop-shadow(0px 0px 25px rgba(217,70,239,0.8)) hue-rotate(0deg); }
-      2% { transform: translate(-5px, 2px) scale(1.01) translateY(1rem); filter: drop-shadow(-5px 0px 25px rgba(255,0,255,0.8)) hue-rotate(90deg); }
-      4% { transform: translate(5px, -2px) scale(0.99) translateY(1rem); filter: drop-shadow(5px 0px 25px rgba(0,255,255,0.8)) hue-rotate(-90deg); }
-      6% { transform: translate(0) scale(1) translateY(1rem); filter: drop-shadow(0px 0px 25px rgba(217,70,239,0.8)) hue-rotate(0deg); }
-      100% { transform: translate(0) scale(1) translateY(1rem); }
-    }
-    @keyframes floatGlitter {
-      0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0; }
-      20% { opacity: 1; }
-      80% { opacity: 1; }
-      100% { transform: translateY(-40px) scale(0.5) rotate(180deg); opacity: 0; }
-    }
-    .glitter-particle {
-      position: absolute;
-      background: white;
-      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-      pointer-events: none;
-      filter: drop-shadow(0 0 4px #FF71CE);
-      animation: floatGlitter linear forwards;
-    }
-    @keyframes glitchText {
-      0% { text-shadow: 0 0 10px rgba(255,255,255,0.5); transform:skewX(0deg); }
-      2% { text-shadow: -2px 0 red, 2px 0 cyan; transform:skewX(-5deg); }
-      4% { text-shadow: 2px 0 red, -2px 0 cyan; transform:skewX(5deg); }
-      6% { text-shadow: 0 0 10px rgba(255,255,255,0.5); transform:skewX(0deg); }
-      100% { text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-    }
+     MAIN MENU — PALENQUE ARCADE
+══════════════════════════════════════════════════════════ -->
+<div id="mode-selection-screen" class="tv-screen mm-screen" style="z-index:15;">
 
-  </style>
+  <!-- Fondo de escenario -->
+  <div class="mm-bg" aria-hidden="true">
+    <img class="mm-bg-img" src="./assets/menu/menu_bg_palenque.webp" alt="" />
+    <div class="mm-bg-overlay"></div>
+    <div class="mm-bg-halftone"></div>
+    <div class="mm-accent-glow"></div>
+    <div class="mm-spot mm-spot-a"></div>
+    <div class="mm-spot mm-spot-b"></div>
+  </div>
 
-  <!-- Premium Background -->
-  <div style="position:absolute;inset:0;background:url(./assets/bg_neon_club.webp) center/cover no-repeat;opacity:0.9;z-index:0;"></div>
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(15,23,42,0.4) 0%,rgba(10,10,26,0.85) 100%);z-index:1;"></div>
+  <!-- Papel picado y adornos -->
+  <img class="mm-papel" src="./assets/menu/papel_picado.svg" alt="" aria-hidden="true" />
+  <span class="mm-floating mm-f1" aria-hidden="true">♪</span>
+  <span class="mm-floating mm-f2" aria-hidden="true">✦</span>
+  <span class="mm-floating mm-f3" aria-hidden="true">★</span>
+  <span class="mm-floating mm-f4" aria-hidden="true">♫</span>
 
-  <!-- Header -->
-  <header class="flex items-center justify-between px-12 py-6 flex-shrink-0 relative z-20" style="background:linear-gradient(to bottom, rgba(10,10,26,0.9), transparent);">
-    <div class="flex items-center gap-2">
-      <img src="./assets/logo_ritmika.webp" alt="Rítmika" style="height:76px; width:auto; filter:drop-shadow(0 0 20px rgba(0,229,255,0.6));" />
+  <!-- Barra superior -->
+  <header class="mm-topbar">
+    <div class="mm-brand">
+      <img src="./assets/logo_ritmika.webp" alt="Rítmika" />
+      <span class="mm-brand-badge">PALENQUE <b>ARCADE</b></span>
     </div>
-    <div class="flex items-center gap-2 px-4 py-2 rounded-full" style="background:rgba(30,41,59,0.8); backdrop-filter:blur(8px); border:1px solid rgba(236,72,153,0.4); box-shadow:0 0 15px rgba(236,72,153,0.2);">
-      <div class="relative"><div class="w-2.5 h-2.5 rounded-full bg-neon-pink" style="box-shadow:0 0 8px #ec4899;"></div><div class="pulse-ring"></div></div>
-      <span class="text-sm font-semibold" style="color:#f9a8d4; letter-spacing:1px;">Esperando jugadores</span>
-    </div>
-    <div class="flex items-center gap-2">
-      <span class="text-2xl" style="filter:drop-shadow(0 0 8px rgba(34,211,238,0.6));">🎤</span>
-      <span id="mode-player-count" class="text-3xl font-black" style="color:#22d3ee; text-shadow:0 0 15px rgba(34,211,238,0.5);">0</span>
-      <span class="text-sm font-bold uppercase tracking-widest" style="color:#94a3b8;">jugadores</span>
+    <div class="mm-status">
+      <span class="mm-status-dot"></span>
+      <span class="mm-status-copy">
+        <strong>TV LISTA</strong>
+        <small id="mm-version">v1.0.1</small>
+      </span>
     </div>
   </header>
 
-  <!-- Content Container (3 Columns) -->
-  <div class="relative w-full flex-1 flex flex-row px-12 pb-4 gap-8 z-10 box-border items-stretch">
-    
-    <!-- Columna 1 (Selección - 30%) -->
-    <div class="w-[30%] flex flex-col gap-6 relative z-20">
-      <h1 class="text-3xl text-white tracking-wider text-center leading-tight" style="font-family:'Paytone One',sans-serif; text-shadow:0 0 10px rgba(255,255,255,0.5);">SELECCIONA TU FIESTA<br>DE RÍTMIKA</h1>
-      
-      <!-- Clásico -->
-      <button class="mode-card jackbox-button-sticker w-full text-center p-6 rounded-3xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer"
-              data-mode="clasico" tabindex="0"
-              style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:4px solid #facc15; box-shadow:8px 8px 0px rgba(250,204,21,0.5); outline:none;">
-        <img src="./assets/icon_classic.webp" class="h-24 mb-4 object-contain" style="filter:drop-shadow(0 0 10px rgba(250,204,21,0.8));" />
-        <h2 class="text-3xl transition-colors" style="font-family:'Paytone One',sans-serif; color:#facc15; text-shadow:0 0 10px rgba(250,204,21,0.5);">Modo Clásico</h2>
-      </button>
+  <!-- Contenido principal -->
+  <main class="mm-main">
 
-      <!-- Grid 2x2 para otros modos -->
-      <div class="grid grid-cols-2 gap-4 flex-1">
-        <button class="mode-card jackbox-button-sticker p-4 rounded-3xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer"
-                data-mode="anime" tabindex="0"
-                style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:4px solid #111827; box-shadow:6px 6px 0px rgba(17,24,39,0.8); outline:none;">
-          <img src="./assets/icon_anime.webp" class="h-20 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
-          <h3 class="text-xl text-white transition-colors text-center" style="font-family:'Paytone One',sans-serif;">Fiesta Anime</h3>
+    <!-- Riel de modos -->
+    <section class="mm-rail" aria-label="Selecciona tu show">
+      <div class="mm-kicker">ELIGE TU SHOW</div>
+      <nav class="mm-modes" role="tablist" aria-label="Modos de juego">
+
+        <button class="mode-card mm-mode is-selected" data-mode="clasico" tabindex="0" role="tab" aria-selected="true" style="--i:0">
+          <span class="mm-mode-index">01</span>
+          <span class="mm-mode-icon"><img src="./assets/icon_classic.webp" alt="" /></span>
+          <span class="mm-mode-copy">
+            <span class="mm-mode-name">CLÁSICO</span>
+            <span class="mm-mode-sub">Todos los éxitos</span>
+          </span>
+          <span class="mm-mode-arrow" aria-hidden="true">▶</span>
         </button>
 
-        <button class="mode-card jackbox-button-sticker p-4 rounded-3xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer"
-                data-mode="emo" tabindex="0"
-                style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:4px solid #111827; box-shadow:6px 6px 0px rgba(17,24,39,0.8); outline:none;">
-          <img src="./assets/icon_emo.webp" class="h-20 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
-          <h3 class="text-xl text-white transition-colors text-center" style="font-family:'Paytone One',sans-serif;">Fiesta Emo</h3>
+        <button class="mode-card mm-mode" data-mode="emo" tabindex="-1" role="tab" aria-selected="false" style="--i:1">
+          <span class="mm-mode-index">02</span>
+          <span class="mm-mode-icon"><img src="./assets/icon_emo.webp" alt="" /></span>
+          <span class="mm-mode-copy">
+            <span class="mm-mode-name">FIESTA EMO</span>
+            <span class="mm-mode-sub">Drama y pop punk</span>
+          </span>
+          <span class="mm-mode-arrow" aria-hidden="true">▶</span>
         </button>
 
-        <button class="mode-card jackbox-button-sticker p-4 rounded-3xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer"
-                data-mode="ranchera" tabindex="0"
-                style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:4px solid #111827; box-shadow:6px 6px 0px rgba(17,24,39,0.8); outline:none;">
-          <img src="./assets/icon_ranchera.webp" class="h-16 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
-          <h3 class="text-xl text-white transition-colors text-center" style="font-family:'Paytone One',sans-serif;">Dolidas & Rancheras</h3>
+        <button class="mode-card mm-mode" data-mode="ranchera" tabindex="-1" role="tab" aria-selected="false" style="--i:2">
+          <span class="mm-mode-index">03</span>
+          <span class="mm-mode-icon"><img src="./assets/icon_ranchera.webp" alt="" /></span>
+          <span class="mm-mode-copy">
+            <span class="mm-mode-name">RANCHERAS</span>
+            <span class="mm-mode-sub">Despecho de palenque</span>
+          </span>
+          <span class="mm-mode-arrow" aria-hidden="true">▶</span>
         </button>
 
-        <button class="mode-card jackbox-button-sticker p-4 rounded-3xl flex flex-col items-center justify-center transition-all duration-300 cursor-pointer"
-                data-mode="nostalgia" tabindex="0"
-                style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:4px solid #111827; box-shadow:6px 6px 0px rgba(17,24,39,0.8); outline:none;">
-          <img src="./assets/icon_nostalgia.webp" class="h-16 mb-2 object-contain" style="filter:drop-shadow(0 0 10px rgba(255,255,255,0.5));" />
-          <h3 class="text-xl text-white transition-colors text-center" style="font-family:'Paytone One',sans-serif;">Nostalgia Pop</h3>
+        <button class="mode-card mm-mode" data-mode="nostalgia" tabindex="-1" role="tab" aria-selected="false" style="--i:3">
+          <span class="mm-mode-index">04</span>
+          <span class="mm-mode-icon"><img src="./assets/icon_nostalgia.webp" alt="" /></span>
+          <span class="mm-mode-copy">
+            <span class="mm-mode-name">NOSTALGIA POP</span>
+            <span class="mm-mode-sub">Viaje a los 2000</span>
+          </span>
+          <span class="mm-mode-arrow" aria-hidden="true">▶</span>
         </button>
+
+        <button class="mode-card mm-mode is-locked" data-mode="anime" data-locked="true" tabindex="-1" role="tab" aria-selected="false" aria-disabled="true" style="--i:4">
+          <span class="mm-mode-index">05</span>
+          <span class="mm-mode-icon"><img src="./assets/icon_anime.webp" alt="" /></span>
+          <span class="mm-mode-copy">
+            <span class="mm-mode-name">ANIME</span>
+            <span class="mm-mode-sub">En el horno</span>
+          </span>
+          <span class="mm-mode-arrow" aria-hidden="true">🔒</span>
+        </button>
+
+      </nav>
+
+      <div class="mm-utility">
+        <button id="mm-btn-how" type="button">📖 CÓMO JUGAR</button>
+        <button id="mm-btn-settings" type="button">⚙ AJUSTES</button>
+        <button id="mm-btn-credits" type="button">★ CRÉDITOS</button>
       </div>
+    </section>
+
+    <!-- Hero del modo -->
+    <section class="mm-hero" id="mm-hero" aria-label="Vista previa del modo">
+      <img class="mm-hero-bg is-active" id="mm-hero-bg-a" src="./assets/menu/hero_clasico.webp" alt="" />
+      <img class="mm-hero-bg" id="mm-hero-bg-b" alt="" />
+      <div class="mm-hero-flash" id="mm-hero-flash" aria-hidden="true"></div>
+      <div class="mm-hero-shade"></div>
+      <div class="mm-hero-halftone"></div>
+
+      <div class="mm-hero-topline">
+        <span class="mm-tag" id="mm-mode-tag">MODO ESTRELLA</span>
+        <span class="mm-tag mm-tag-ghost" id="mm-mode-songs"><b>4,515 ROLAS</b></span>
+      </div>
+
+      <div class="mm-icon-sticker">
+        <img id="mm-mode-icon" src="./assets/icon_classic.webp" alt="Clásico" />
+      </div>
+
+      <div class="mm-axolo-wrap">
+        <img id="mm-axolo-img" src="./assets/tio_axolo_body.webp" alt="Tío Axolo" />
+      </div>
+
+      <div class="mm-hero-marquee" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <div class="mm-hero-content">
+        <p class="mm-hero-kicker" id="mm-mode-kicker">SHOW 01 · EL SHOW DE TODOS</p>
+        <h1 class="mm-hero-name" id="mm-mode-name">CLÁSICO</h1>
+        <p class="mm-hero-tagline" id="mm-mode-tagline">Todos los éxitos. Cero piedad.</p>
+        <p class="mm-hero-desc" id="mm-mode-desc">El karaoke definitivo: 4,515 canciones, retos, tomatazos y sabotajes. La fiesta que ya conoces, ahora con más carrilla.</p>
+        <div class="mm-meta" id="mm-meta">
+          <span class="mm-chip">2–8 JUGADORES</span>
+          <span class="mm-chip">3 RONDAS</span>
+          <span class="mm-chip">20–30 MIN</span>
+        </div>
+        <button class="mm-cta" id="btn-crear-sala-modo" type="button">
+          <span class="mm-cta-label" id="mm-cta-label">CREAR SALA</span>
+          <span class="mm-cta-mode" id="mm-cta-mode">CLÁSICO</span>
+          <span class="mm-cta-arrow" aria-hidden="true">→</span>
+        </button>
+        <p class="mm-hero-footnote">El QR y el código aparecen en el lobby</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Pie -->
+  <footer class="mm-footer">
+    <div class="mm-ticker"><b id="mm-ticker-songs">4,515 ROLAS</b> · <i>3 RONDAS</i> · 1 CAMPEÓN · TÍO AXOLO EN VIVO</div>
+    <div class="mm-hints">
+      <span class="mm-key">◀</span><span class="mm-key">▶</span> CAMBIAR SHOW
+      <span class="mm-key">ENTER</span> CREAR SALA
+      <span class="mm-key">🎮</span> MANDO
     </div>
-
-    <!-- Columna 2 (Holograma/Preview - 45%) -->
-    <div class="flex-1 flex flex-col h-full rounded-3xl transition-colors duration-500 relative overflow-hidden justify-end pb-8"
-         id="mode-preview-panel"
-         style="background:rgba(0,0,0,0.4); backdrop-filter:blur(8px); border:4px solid #facc15; box-shadow:0 0 30px rgba(250,204,21,0.3), inset 0 0 50px rgba(250,204,21,0.1);">
-      
-      <!-- Hologram Base Platform -->
-      <div id="mode-hologram-base" style="position:absolute; bottom:15%; left:10%; right:10%; height:20%; background:radial-gradient(ellipse at center, #facc15 0%, transparent 70%); opacity:0.6; filter:blur(15px); transform:perspective(500px) rotateX(70deg); transition:background 0.5s;"></div>
-
-      <div class="absolute inset-0 flex justify-center items-end pb-28 z-10" style="perspective: 1000px;">
-        <img id="mode-axolo-img" src="./assets/tio_axolo_body.webp" alt="Tío Axolo" class="max-h-[85vh] object-contain transition-all duration-500" style="filter: drop-shadow(0px 0px 25px rgba(250,204,21,0.8));" />
-      </div>
-
-      <!-- Translúcent Description Layer -->
-      <div class="relative z-20 w-[80%] mx-auto p-4 rounded-2xl flex flex-col gap-4 items-center" style="background:rgba(0,0,0,0.7); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1);">
-        <p id="mode-description" class="text-xl font-fredoka font-bold text-white text-center leading-snug transition-all duration-300" style="text-shadow:0 0 10px rgba(255,255,255,0.5);">
-          El modo definitivo de Jackbox Karaoke. Canciones variadas, minijuegos y sabotajes libres.
-        </p>
-        <button id="btn-crear-sala-modo" class="jackbox-button-arcade w-full py-4 rounded-xl text-3xl transition-all duration-300 cursor-pointer" tabindex="0"
-                style="font-family:'Paytone One',sans-serif; background:#facc15; color:#111827; border:4px solid #111827; box-shadow:0 0 20px rgba(250,204,21,0.6), 6px 6px 0px #111827; font-weight:900; text-shadow:0 0 10px rgba(255,255,255,0.5);">
-          CREAR SALA
-        </button>
-      </div>
-    </div>
-
-    <!-- Columna 3 (Panel de Jugadores - 25%) -->
-    <aside class="w-[25%] flex flex-col gap-4 relative z-20 h-full rounded-3xl p-6" style="background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); border:1px solid rgba(51,65,85,0.8); box-shadow:0 0 30px rgba(0,0,0,0.5);">
-      <div class="flex items-center justify-between mb-2">
-        <h2 class="text-sm tracking-widest" style="font-family:'Paytone One',sans-serif; color:#ffe600; text-shadow:0 0 10px rgba(255,230,0,0.4); letter-spacing:0.2em;">ANFITRIÓN</h2>
-      </div>
-      <!-- Host Avatar (Clásico) -->
-      <div class="flex items-center gap-4 p-3 rounded-2xl" style="background:rgba(250,204,21,0.1); border:1px solid rgba(250,204,21,0.3);">
-        <div class="w-16 h-16 rounded-full overflow-hidden" style="border:2px solid #facc15;">
-          <img src="./assets/tio_axolo_body.webp" class="w-full h-full object-cover bg-black" />
-        </div>
-        <div>
-          <p class="font-paytone text-white">Tío Axolo</p>
-          <p class="text-xs text-yellow-400">Host</p>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-between mt-4 mb-2">
-        <h2 class="text-sm tracking-widest" style="font-family:'Paytone One',sans-serif; color:#22d3ee; text-shadow:0 0 10px rgba(34,211,238,0.4); letter-spacing:0.2em;">JUGADORES</h2>
-        <span id="mode-player-badge" class="text-xs font-paytone px-3 py-1 rounded-full" style="font-family:'Paytone One',sans-serif; background:#ec4899; color:#fff; border:2px solid #be185d; box-shadow:0 0 15px rgba(236,72,153,0.5);">0 / 8</span>
-      </div>
-      <div id="mode-players-list" class="flex flex-col gap-3 overflow-y-auto flex-1 pr-2 custom-scrollbar">
-        <div id="mode-empty-state" class="flex flex-col items-center justify-center flex-1 gap-4 opacity-60 py-12" style="animation: pulseBreath 4s infinite ease-in-out;">
-          <p class="text-sm text-center font-bold" style="color:#94a3b8; letter-spacing:1px; line-height:1.6;">Nadie aquí todavía...</p>
-        </div>
-      </div>
-    </aside>
-  </div>
-
-  <!-- Footer -->
-  <footer class="flex justify-center gap-8 py-4 z-20 relative" style="background:linear-gradient(to top, rgba(10,10,26,0.9), transparent);">
-    <button class="jackbox-button-sticker jackbox-color-cyan jackbox-rot-left" style="font-size:1.2rem; padding:0.5rem 2rem;" tabindex="-1">📱 ENTRA</button>
-    <button class="jackbox-button-sticker jackbox-color-magenta jackbox-rot-right" style="font-size:1.2rem; padding:0.5rem 2rem;" tabindex="-1">🔢 CÓDIGO</button>
-    <button class="jackbox-button-sticker jackbox-color-yellow jackbox-rot-left" style="font-size:1.2rem; padding:0.5rem 2rem;" tabindex="-1">🎭 AVATAR</button>
-    <button class="jackbox-button-sticker jackbox-color-orange jackbox-rot-right" style="font-size:1.2rem; padding:0.5rem 2rem;" tabindex="-1">🎵 ¡A CANTAR!</button>
   </footer>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════
-     SCREEN A — LOBBY
-═══════════════════════════════════════════════════════════ -->
+
 <div id="lobby-screen" class="tv-screen" style="z-index:10;">
   
   <!-- Premium Background -->
@@ -2267,6 +2262,7 @@
   <script src="/js/tv/lobby.js?v=1792360195"></script>
   <script src="/js/tv/flow.js?v=1"></script>
   <script src="/js/tv/phrases_extra.js?v=1"></script>
+  <script src="/js/tv/main-menu.js?v=6"></script>
 
 <!-- Unified Keyboard + Gamepad Controller System -->
 <script>
@@ -2286,7 +2282,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('focus', () => RitmikaStyleFX.popOutOnHover(btn));
       btn.addEventListener('blur', () => RitmikaStyleFX.popInOnLeave(btn));
       
-      btn.addEventListener('mousedown', () => { RitmikaStyleFX.punchOnPress(btn); if(window.UISounds) UISounds.playTone(600, 0.1); });
+      btn.addEventListener('mousedown', () => { RitmikaStyleFX.punchOnPress(btn); if (typeof UISounds !== 'undefined') UISounds.playTone(600, 0.1); });
     });
   };
 
@@ -2314,7 +2310,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if ((e.key === 'Enter' || e.key === ' ') && el && el !== document.body && el.tagName === 'BUTTON') {
       e.preventDefault();
       RitmikaStyleFX.punchOnPress(el);
-      if(window.UISounds) UISounds.playTone(600, 0.1);
+      if (typeof UISounds !== 'undefined') UISounds.playTone(600, 0.1);
       el.click();
       return;
     }
@@ -2344,6 +2340,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isCard) {
           let idx = modeCards.indexOf(el);
           modeCards[(idx + 1) % modeCards.length].focus();
+          e.preventDefault();
+        } else if (isBtn) {
+          (activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`) || modeCards[0]).focus();
           e.preventDefault();
         }
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
@@ -2412,287 +2411,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
   // ── Mode Selection Logic ─────────────────────────────
-  const modesConfig = {
-    'clasico': {
-      title: 'Modo Clásico',
-      desc: 'El modo definitivo de Jackbox Karaoke. Canciones variadas, minijuegos y sabotajes libres.',
-      img: './assets/tio_axolo_body.webp',
-      color: '#facc15'
-    },
-    'anime': {
-      title: 'Fiesta Anime',
-      desc: '¡Saca tu nivel de poder! Solo openings, endings y mucho neón eléctrico.',
-      img: './assets/axolo_anime.webp',
-      color: '#fb923c'
-    },
-    'emo': {
-      title: 'Fiesta Emo',
-      desc: 'Porque no es una fase. Puro pop punk, delineador negro y corazones rotos.',
-      img: './assets/axolo_emo.webp',
-      color: '#d946ef'
-    },
-    'ranchera': {
-      title: 'Dolidas & Rancheras',
-      desc: 'Para cantar con sentimiento. Prepara la garganta y el pañuelo.',
-      img: './assets/axolo_ranchera.webp',
-      color: '#d97706'
-    },
-    'nostalgia': {
-      title: 'Nostalgia Pop',
-      desc: 'Saca la mezclilla y las estrellas. Un viaje a la era del playback, los celulares plegables y el pop de plástico.',
-      img: './assets/axolo_nostalgia.webp',
-      color: '#FF71CE'
-    }
-  };
+  // El menú principal (Palenque Arcade) vive en /js/tv/main-menu.js.
+  // Se inicializa solo cuando el DOM está listo; aquí no se auto-crea sala.
 
-  let selectedMode = 'clasico';
-  const modeCards = document.querySelectorAll('.mode-card');
-  const modePreviewPanel = document.getElementById('mode-preview-panel');
-  const modeAxoloImg = document.getElementById('mode-axolo-img');
-  const modeDesc = document.getElementById('mode-description');
-  const btnCrearSalaModo = document.getElementById('btn-crear-sala-modo');
-
-  const modeHologramBase = document.getElementById('mode-hologram-base');
-
-  function hexToRgbStr(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}` : '255,255,255';
-  }
-
-  function selectMode(modeId) {
-    if(!modesConfig[modeId]) return;
-    selectedMode = modeId;
-    const config = modesConfig[modeId];
-    const rgbStr = hexToRgbStr(config.color);
-
-    // Update UI
-    modeCards.forEach(card => {
-      const isSelected = card.dataset.mode === modeId;
-      if(isSelected) {
-        card.style.borderColor = config.color;
-        card.style.boxShadow = `8px 8px 0px rgba(${rgbStr},0.5)`;
-        card.style.transform = 'scale(1.02)';
-        card.style.background = 'rgba(15,23,42,0.8)';
-        const titleEl = card.querySelector('h2, h3');
-        if(titleEl) {
-          titleEl.style.color = config.color;
-          titleEl.style.textShadow = `0 0 10px rgba(${rgbStr},0.5)`;
-        }
-      } else {
-        card.style.borderColor = '#111827';
-        card.style.boxShadow = '6px 6px 0px rgba(17,24,39,0.8)';
-        card.style.transform = 'scale(1)';
-        card.style.background = 'rgba(15,23,42,0.6)';
-        const titleEl = card.querySelector('h2, h3');
-        if(titleEl) {
-          titleEl.style.color = '#fff';
-          titleEl.style.textShadow = 'none';
-        }
-      }
-    });
-
-    // Update Panel
-    if (modePreviewPanel) {
-      modePreviewPanel.style.borderColor = config.color;
-      modePreviewPanel.style.boxShadow = `0 0 30px rgba(${rgbStr},0.3), inset 0 0 50px rgba(${rgbStr},0.1)`;
-    }
-    if (modeHologramBase) {
-      modeHologramBase.style.background = `radial-gradient(ellipse at center, ${config.color} 0%, transparent 70%)`;
-    }
-    if (modeAxoloImg) {
-      modeAxoloImg.src = config.img;
-      modeAxoloImg.style.filter = `drop-shadow(0px 0px 25px rgba(${rgbStr},0.8))`;
-      
-      // Limpiar glitter si no es nostalgia
-      if (modeId !== 'nostalgia') {
-        document.querySelectorAll('.glitter-particle').forEach(el => el.remove());
-        if (window.glitterInterval) clearInterval(window.glitterInterval);
-        if (btnCrearSalaModo) {
-          btnCrearSalaModo.style.boxShadow = `0 0 20px rgba(${rgbStr},0.6), 6px 6px 0px #111827`;
-        }
-      }
-
-      if (modeId === 'emo') {
-        modeAxoloImg.style.animation = 'glitchAnim 2s infinite';
-        if (modeDesc) modeDesc.style.animation = 'glitchText 2s infinite';
-      } else if (modeId === 'nostalgia') {
-        modeAxoloImg.style.animation = 'none';
-        if (modeDesc) modeDesc.style.animation = 'none';
-        
-        if (btnCrearSalaModo) {
-          btnCrearSalaModo.style.boxShadow = `0 0 30px rgba(${rgbStr},0.8), 0 0 20px #01CDFE, 6px 6px 0px #111827`;
-        }
-
-        // Crear partículas glitter cíclicamente
-        if (window.glitterInterval) clearInterval(window.glitterInterval);
-        window.glitterInterval = window.RITMIKA_LITE ? null : setInterval(() => {
-          const p = document.createElement('div');
-          p.className = 'glitter-particle';
-          p.style.width = Math.random() * 8 + 4 + 'px';
-          p.style.height = p.width;
-          p.style.left = Math.random() * 80 + 10 + '%';
-          p.style.bottom = Math.random() * 40 + 10 + '%';
-          const dur = Math.random() * 1.5 + 1;
-          p.style.animationDuration = dur + 's';
-          modePreviewPanel.appendChild(p);
-          setTimeout(() => p.remove(), dur * 1000);
-        }, 300);
-
-      } else {
-        modeAxoloImg.style.animation = 'none';
-        if (modeDesc) modeDesc.style.animation = 'none';
-      }
-    }
-    if (modeDesc) modeDesc.textContent = config.desc;
-    if (btnCrearSalaModo) {
-      btnCrearSalaModo.style.background = config.color;
-      btnCrearSalaModo.style.boxShadow = `0 0 20px rgba(${rgbStr},0.6), 8px 8px 0px #111827`;
-    }
-  }
-
-  modeCards.forEach(card => {
-    const triggerSelect = () => {
-      if (selectedMode !== card.dataset.mode) {
-        selectMode(card.dataset.mode);
-        if (window.welcomePlaying) return;
-        const bark = AXOLO_MODE_INTROS[card.dataset.mode];
-        if (bark && typeof axoloSay === 'function') {
-          if (window.modeHoverTimeout) clearTimeout(window.modeHoverTimeout);
-          window.modeHoverTimeout = setTimeout(() => {
-            if (selectedMode === card.dataset.mode) {
-               axoloSay(bark.text, bark.file, 4000, true);
-            }
-          }, 600);
-        }
-      }
-    };
-    card.addEventListener('mouseenter', triggerSelect);
-    card.addEventListener('focus', triggerSelect);
-    card.addEventListener('click', () => {
-      triggerSelect();
-      try { if(window.UISounds) UISounds.playTone(600, 0.1); } catch(e){}
-      if (btnCrearSalaModo) btnCrearSalaModo.focus();
-    });
-  });
-
-  if (btnCrearSalaModo) {
-    btnCrearSalaModo.addEventListener('click', () => {
-      if (!['clasico', 'emo', 'ranchera', 'nostalgia'].includes(selectedMode)) {
-        try { if(window.UISounds) UISounds.playTone(150, 0.3, 'sawtooth'); } catch(e){}
-        if (typeof axoloSay === 'function') {
-          axoloSay("¡Aguanta compa! Los changos del código siguen armando este modo.", "sad", 4000, true);
-        }
-        const oldText = btnCrearSalaModo.textContent;
-        const oldBg = btnCrearSalaModo.style.background;
-        btnCrearSalaModo.textContent = '¡PRÓXIMAMENTE!';
-        btnCrearSalaModo.style.background = '#ef4444';
-        setTimeout(() => {
-          btnCrearSalaModo.textContent = oldText;
-          btnCrearSalaModo.style.background = oldBg;
-        }, 1500);
-        return;
-      }
-      
-      try { if(window.UISounds) UISounds.playTone(800, 0.15); } catch(e){}
-
-      // Sin bark de confirmación: la sala entra directo al lobby, que debe
-      // quedar limpio y sin diálogos de Axolo.
-      if (typeof state !== 'undefined') { state.gameMode = selectedMode; }
-      if (typeof applyModeTheme === 'function') applyModeTheme(selectedMode);
-      socket.emit('tv:create_room', { mode: selectedMode });
-
-      // Transition to Lobby (simulating the wipe)
-      const wipeContainer = document.createElement('div');
-      wipeContainer.style.cssText = 'position:fixed;inset:0;z-index:999999;pointer-events:none;overflow:hidden;display:flex;';
-      
-      const leftWipe = document.createElement('div');
-      leftWipe.style.cssText = 'position:absolute;top:0;left:-70%;width:70%;height:100%;background:#ffe600;transform:skewX(12deg);border-right:15px solid #111827;box-shadow:20px 0 0 #111827;';
-      
-      const rightWipe = document.createElement('div');
-      rightWipe.style.cssText = 'position:absolute;top:0;right:-70%;width:70%;height:100%;background:#ec4899;transform:skewX(12deg);border-left:15px solid #111827;box-shadow:-20px 0 0 #111827;';
-      
-      wipeContainer.appendChild(leftWipe);
-      wipeContainer.appendChild(rightWipe);
-      document.body.appendChild(wipeContainer);
-
-      try { if(typeof UISounds !== 'undefined') UISounds.whoosh(); } catch(e){}
-
-      if (typeof anime !== 'undefined') {
-        anime({ targets: leftWipe, left: '-10%', duration: 450, easing: 'easeOutExpo' });
-        anime({ targets: rightWipe, right: '-10%', duration: 450, easing: 'easeOutExpo' });
-        
-        setTimeout(() => {
-          document.getElementById('mode-selection-screen').classList.remove('active');
-          document.getElementById('lobby-screen').classList.add('active');
-          
-          if (typeof animateLobbyWelcome === 'function') animateLobbyWelcome();
-          
-          // Send mode to server if needed
-          console.log("SALA CREADA CON MODO:", selectedMode);
-
-          setTimeout(() => {
-            try { if(typeof UISounds !== 'undefined') UISounds.whoosh(); } catch(e){}
-            anime({ targets: leftWipe, left: '-110%', duration: 500, easing: 'easeInExpo', delay: 100 });
-            anime({ targets: rightWipe, right: '-110%', duration: 500, easing: 'easeInExpo', delay: 100, 
-              complete: () => { wipeContainer.remove(); }
-            });
-          }, 500);
-        }, 600);
-      } else {
-        document.getElementById('mode-selection-screen').classList.remove('active');
-        document.getElementById('lobby-screen').classList.add('active');
-        if (typeof animateLobbyWelcome === 'function') animateLobbyWelcome();
-        wipeContainer.remove();
-      }
-    });
-  }
-
-  const btnBackToModes = document.getElementById('btn-back-to-modes');
-  if (btnBackToModes) {
-    btnBackToModes.addEventListener('click', () => {
-      try { if(window.UISounds) UISounds.playTone(400, 0.15); } catch(e){}
-      
-      socket.emit('tv:close_room');
-      
-      const wipeContainer = document.createElement('div');
-      wipeContainer.style.cssText = 'position:fixed;inset:0;z-index:999999;pointer-events:none;overflow:hidden;display:flex;';
-      const leftWipe = document.createElement('div');
-      leftWipe.style.cssText = 'position:absolute;top:0;left:-70%;width:70%;height:100%;background:#ec4899;transform:skewX(-12deg);border-right:15px solid #111827;box-shadow:20px 0 0 #111827;';
-      const rightWipe = document.createElement('div');
-      rightWipe.style.cssText = 'position:absolute;top:0;right:-70%;width:70%;height:100%;background:#00e5ff;transform:skewX(-12deg);border-left:15px solid #111827;box-shadow:-20px 0 0 #111827;';
-      
-      wipeContainer.appendChild(leftWipe);
-      wipeContainer.appendChild(rightWipe);
-      document.body.appendChild(wipeContainer);
-      
-      if (typeof anime !== 'undefined') {
-        anime({ targets: leftWipe, left: '-10%', duration: 450, easing: 'easeOutExpo' });
-        anime({ targets: rightWipe, right: '-10%', duration: 450, easing: 'easeOutExpo' });
-        setTimeout(() => {
-          document.getElementById('lobby-screen').classList.remove('active');
-          document.getElementById('mode-selection-screen').classList.add('active');
-          
-          setTimeout(() => {
-            anime({ targets: leftWipe, left: '-110%', duration: 500, easing: 'easeInExpo' });
-            anime({ targets: rightWipe, right: '-110%', duration: 500, easing: 'easeInExpo', complete: () => wipeContainer.remove() });
-          }, 300);
-        }, 600);
-      } else {
-        document.getElementById('lobby-screen').classList.remove('active');
-        document.getElementById('mode-selection-screen').classList.add('active');
-        wipeContainer.remove();
-      }
-    });
-  }
-
-  // Auto-create room after 2 seconds to make the game completely hands-off on the PC
-  setTimeout(() => {
-    const btnCrear = document.getElementById('btn-crear-sala-modo');
-    if (btnCrear && document.getElementById('mode-selection-screen').classList.contains('active')) {
-      console.log("[AUTO-BOOT] Creando sala automáticamente...");
-      btnCrear.click();
-    }
-  }, 2000);
 // ── Debug Panel (Ctrl+Shift+D) ─────────────────────────────
 (function() {
   let debugVisible = false;

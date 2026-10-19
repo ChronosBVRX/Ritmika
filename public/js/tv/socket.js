@@ -40,8 +40,24 @@ function setupSocket(s) {
   socket = s;
   window._ritmikaSocket = s; // for debugging
 
+  const setMenuStatus = (text, color) => {
+    const strong = document.querySelector('.mm-status-copy strong');
+    if (strong) strong.textContent = text;
+    const dot = document.querySelector('.mm-status-dot');
+    if (dot) {
+      dot.style.background = color;
+      dot.style.boxShadow = `0 0 0 4px ${color}22, 0 0 14px ${color}`;
+    }
+  };
+
+  s.on('server_version', (v) => {
+    const el = document.getElementById('mm-version');
+    if (el) el.textContent = 'v' + v;
+  });
+
   s.on('connect', () => {
     _relayConnected = true;
+    setMenuStatus('TV LISTA', '#22c55e');
     console.log('[TV] Conectado a', s.io.uri || 'local', 'socket', s.id);
     const dot = document.getElementById('relay-status-dot');
     if (dot) dot.style.background = '#22c55e';
@@ -75,6 +91,7 @@ function setupSocket(s) {
 
   s.on('disconnect', (reason) => {
     _relayConnected = false;
+    setMenuStatus('RECONECTANDO', '#eab308');
     console.warn('[TV] Desconectado:', reason);
     const dot = document.getElementById('relay-status-dot');
     if (dot) dot.style.background = '#ef4444';
@@ -85,6 +102,7 @@ function setupSocket(s) {
   });
 
   s.on('connect_error', (err) => {
+    setMenuStatus('SIN CONEXIÓN', '#ef4444');
     console.warn('[TV] connect_error', err && err.message);
     boot.fail(1, 'Sin conexión al relay/servidor');
     updateTicker('No se puede conectar al relay. Verifica Internet o RELAY_URL.');
