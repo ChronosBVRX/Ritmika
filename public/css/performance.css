@@ -1,0 +1,81 @@
+/* ═══════════════════════════════════════════════════════════
+   RÍTMIKA · MODO RENDIMIENTO
+   Se activa con html.ritmika-perf. Prioriza fluidez en Android TV
+   y GPUs modestas: sin loops, filtros grandes ni transiciones.
+   ═══════════════════════════════════════════════════════════ */
+
+html.ritmika-perf *,
+html.ritmika-perf *::before,
+html.ritmika-perf *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}
+
+html.ritmika-perf * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Capas decorativas que no aportan información */
+html.ritmika-perf #particles-canvas,
+html.ritmika-perf #boot-canvas-bg,
+html.ritmika-perf #ritmika-confetti,
+html.ritmika-perf #podium-screen canvas,
+html.ritmika-perf .lobby-particles,
+html.ritmika-perf .lobby-glow-overlay,
+html.ritmika-perf .lobby-orb,
+html.ritmika-perf .glitter-particle,
+html.ritmika-perf .mm-spot,
+html.ritmika-perf .mm-floating,
+html.ritmika-perf .mm-bg-halftone,
+html.ritmika-perf .mm-hero-halftone,
+html.ritmika-perf .mm-hero-marquee,
+html.ritmika-perf .ks-sweep {
+  display: none !important;
+}
+
+/* El arte se queda; los filtros grandes se van */
+html.ritmika-perf .mm-bg-img,
+html.ritmika-perf .mm-hero-bg,
+html.ritmika-perf .lobby-bg-img,
+html.ritmika-perf .mm-papel {
+  filter: none !important;
+  animation: none !important;
+}
+
+html.ritmika-perf .mm-brand img,
+html.ritmika-perf .mm-axolo-wrap,
+html.ritmika-perf .mm-icon-sticker img,
+html.ritmika-perf #roulette-axolo-img,
+html.ritmika-perf .empty-state-axolo,
+html.ritmika-perf #axolo-cutin-portrait {
+  filter: none !important;
+  animation: none !important;
+}
+
+html.ritmika-perf .mm-hero-bg {
+  transition: none !important;
+  transform: none !important;
+}
+
+html.ritmika-perf .mm-cta {
+  animation: none !important;
+}
+
+/* Mantener el foco y la selección legibles sin glow */
+html.ritmika-perf .mm-mode.is-selected,
+html.ritmika-perf .mm-mode:hover,
+html.ritmika-perf .mm-mode:focus-visible,
+html.ritmika-perf .mm-cta:hover,
+html.ritmika-perf .mm-cta:focus-visible {
+  box-shadow: 8px 8px 0 #111827 !important;
+}
+
+/* El escenario del karaoke se conserva; solo quitamos el sweep */
+html.ritmika-perf #ks-vig {
+  opacity: 0.85;
+}

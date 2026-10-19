@@ -59,6 +59,14 @@ function animateLobbyWelcome() {
     window.AxoloNarrator.fadeOutAndStop(320);
   }
 
+  if (window.RITMIKA_PERF_MODE === 'performance') {
+    document.querySelectorAll('.lobby-stagger, .lobby-slide, .lobby-fade, .lobby-reveal').forEach(el => {
+      el.style.opacity = '';
+      el.style.transform = '';
+    });
+    return;
+  }
+
   // Hide elements for staggered reveal (only on first load)
   document.querySelectorAll('.lobby-stagger').forEach(el => {
     el.style.opacity = '0';
@@ -287,6 +295,20 @@ function showScreen(id, transitionType, onComplete) {
   if (!next || (current && current.id === id)) return;
 
   if (!current) {
+    next.style.display = '';
+    next.style.opacity = '';
+    next.style.transform = '';
+    next.classList.add('active');
+    if (onComplete) onComplete();
+    return;
+  }
+
+  // Rendimiento: cambio de pantalla instantáneo, sin animación de 380-500ms.
+  if (window.RITMIKA_PERF_MODE === 'performance') {
+    current.classList.remove('active');
+    current.style.display = '';
+    current.style.opacity = '';
+    current.style.transform = '';
     next.style.display = '';
     next.style.opacity = '';
     next.style.transform = '';

@@ -100,6 +100,19 @@ const UISounds = (() => {
 const RitmikaStyleFX = (() => {
   let confettiCanvas = null, confettiCtx = null, confettiPieces = [], confettiFrame = null;
 
+  function perfMode() {
+    return window.RITMIKA_PERF_MODE === 'performance';
+  }
+
+  function finalState(selector, scale) {
+    const els = typeof selector === 'string' ? document.querySelectorAll(selector) : [selector];
+    els.forEach((el) => {
+      if (!el || !el.style) return;
+      el.style.opacity = '1';
+      el.style.transform = scale && scale !== 1 ? `scale(${scale})` : '';
+    });
+  }
+
   function initConfettiCanvas() {
     if (confettiCanvas) return;
     confettiCanvas = document.createElement('canvas');
@@ -120,6 +133,7 @@ const RitmikaStyleFX = (() => {
   return {
     // ── Jackbox Pop-Art Animations ──
     popOutOnHover: (el) => {
+      if (perfMode()) return;
       if(typeof anime !== 'undefined') {
         anime({
           targets: el,
@@ -132,6 +146,7 @@ const RitmikaStyleFX = (() => {
       }
     },
     popInOnLeave: (el) => {
+      if (perfMode()) { el.style.transform = ''; return; }
       if(typeof anime !== 'undefined') {
         anime({
           targets: el,
@@ -144,6 +159,7 @@ const RitmikaStyleFX = (() => {
       }
     },
     punchOnPress: (el) => {
+      if (perfMode()) return;
       if(typeof anime !== 'undefined') {
         anime({
           targets: el,
@@ -156,6 +172,7 @@ const RitmikaStyleFX = (() => {
     },
     
     popIn(selector, opts = {}) {
+      if (perfMode()) { finalState(selector, 1); return; }
       anime({
         targets: selector,
         scale: [0, opts.scale ?? 1.08, 1],
@@ -167,6 +184,7 @@ const RitmikaStyleFX = (() => {
     },
 
     dropIn(selector, opts = {}) {
+      if (perfMode()) { finalState(selector, 1); return; }
       const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
       if (el) el.style.opacity = '0';
       anime({
@@ -180,6 +198,7 @@ const RitmikaStyleFX = (() => {
     },
 
     slideUp(selector, opts = {}) {
+      if (perfMode()) { finalState(selector, 1); return; }
       anime({
         targets: selector,
         translateY: [60, 0],
@@ -191,6 +210,10 @@ const RitmikaStyleFX = (() => {
     },
 
     counter(el, start, end, opts = {}) {
+      if (perfMode()) {
+        if (el) el.textContent = (opts.prefix ?? '') + Math.round(end) + (opts.suffix ?? '');
+        return;
+      }
       anime({
         targets: { val: start },
         val: [start, end],
@@ -205,6 +228,7 @@ const RitmikaStyleFX = (() => {
     },
 
     confettiBurst(x, y, opts = {}) {
+      if (perfMode()) return;
       const count = opts.count ?? 40;
       const colors = opts.colors ?? ['#ec4899','#22d3ee','#facc15','#a855f7','#f97316','#22c55e','#ef4444','#3b82f6'];
       initConfettiCanvas();
@@ -248,6 +272,7 @@ const RitmikaStyleFX = (() => {
     },
 
     flashBang(color = '#ffffff', duration = 250) {
+      if (perfMode()) return;
       const flash = document.createElement('div');
       flash.style.cssText = `position:fixed; inset:0; background:${color}; opacity:0; pointer-events:none; z-index:9998;`;
       document.body.appendChild(flash);
@@ -258,6 +283,7 @@ const RitmikaStyleFX = (() => {
     },
 
     screenShake(intensity = 8, duration = 400) {
+      if (perfMode()) return;
       const target = '.tv-screen.active, .screen.active';
       anime({
         targets: target,
@@ -268,6 +294,7 @@ const RitmikaStyleFX = (() => {
     },
 
     staggerGroup(selector, staggerMs = 100, opts = {}) {
+      if (perfMode()) { finalState(selector, 1); return; }
       anime({
         targets: selector,
         scale: [0, 1.06, 1],
@@ -279,6 +306,7 @@ const RitmikaStyleFX = (() => {
     },
 
     glowPulse(selector, color = '#ec4899', duration = 1500) {
+      if (perfMode()) return;
       anime.remove(selector);
       anime({
         targets: selector,
@@ -288,6 +316,7 @@ const RitmikaStyleFX = (() => {
     },
 
     axoloNod(count = 2) {
+      if (perfMode()) return;
       anime({
         targets: '#axolo-container',
         translateY: [
@@ -300,6 +329,7 @@ const RitmikaStyleFX = (() => {
     },
 
     bigReveal(selector, opts = {}) {
+      if (perfMode()) { finalState(selector, 1); return; }
       anime({
         targets: selector,
         scale: [0.3, 1.05, 1],

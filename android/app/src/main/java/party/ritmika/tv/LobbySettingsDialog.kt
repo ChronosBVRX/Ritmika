@@ -26,13 +26,16 @@ import android.widget.TextView
 class LobbySettingsDialog(
     private val host: MainActivity,
     initialMusic: Boolean,
-    initialMotion: Boolean
+    initialMotion: Boolean,
+    initialPerfMode: String
 ) : Dialog(host, R.style.Theme_RitmikaTV_Dialog) {
 
     private var music = initialMusic
     private var motion = initialMotion
+    private var perfMode = normalizePerf(initialPerfMode)
     private lateinit var musicButton: Button
     private lateinit var motionButton: Button
+    private lateinit var perfButton: Button
     private lateinit var audioButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,6 +84,19 @@ class LobbySettingsDialog(
         }
         panel.addView(motionButton)
 
+        perfButton = actionButton(perfText(), tag = "lobby:perf") {
+            perfMode = nextPerf(perfMode)
+            perfButton.text = perfText()
+            host.applyPerfMode(perfMode)
+        }
+        panel.addView(perfButton)
+
+        panel.addView(label(
+            "Rendimiento reduce animaciones, filtros y loops para TVs con poca GPU. Calidad restaura todos los efectos.",
+            12f,
+            MUTED
+        ).apply { setPadding(0, dp(4), 0, dp(12)) })
+
         panel.addView(label(
             "La TV decide cuándo reconectar una bocina A2DP. Si no aparece, enciéndela y usa Altavoz/Audio.",
             12f,
@@ -106,6 +122,24 @@ class LobbySettingsDialog(
 
     private fun toggleText(label: String, enabled: Boolean): String =
         "$label: ${if (enabled) "ACTIVADO" else "DESACTIVADO"}"
+
+    private fun normalizePerf(mode: String): String =
+        if (mode == "performance" || mode == "quality") mode else "auto"
+
+    private fun nextPerf(mode: String): String = when (mode) {
+        "auto" -> "performance"
+        "performance" -> "quality"
+        else -> "auto"
+    }
+
+    private fun perfText(): String {
+        val label = when (perfMode) {
+            "performance" -> "RENDIMIENTO"
+            "quality" -> "CALIDAD"
+            else -> "AUTOMÁTICO"
+        }
+        return "⚡ MODO: $label"
+    }
 
     private fun actionButton(
         text: String,

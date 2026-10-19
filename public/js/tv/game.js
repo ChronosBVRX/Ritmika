@@ -1488,7 +1488,7 @@ function showPodium() {
   starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight;
   ceremonyRoot.appendChild(starCanvas);
   const starCtx = starCanvas.getContext('2d');
-  const STAR_COUNT = (typeof window !== 'undefined' && window.RITMIKA_LITE) ? 50 : 120;
+  const STAR_COUNT = (window.RITMIKA_PERF_MODE === 'performance') ? 0 : ((typeof window !== 'undefined' && window.RITMIKA_LITE) ? 50 : 120);
   const stars = Array.from({length: STAR_COUNT}, () => ({
     x:Math.random()*starCanvas.width, y:Math.random()*starCanvas.height,
     r:0.5+Math.random()*2, a:Math.random(), da:0.005+Math.random()*0.015,
@@ -1508,7 +1508,7 @@ function showPodium() {
     starCtx.globalAlpha=1;
     starFrameId = requestAnimationFrame(drawStars);
   }
-  drawStars();
+  if (STAR_COUNT > 0) drawStars();
 
   function fireworkBurst(x,y) {
     RitmikaStyleFX.confettiBurst(x,y,{count:60,colors:['#facc15','#ec4899','#22d3ee','#a855f7','#f97316','#ffffff','#22c55e']});

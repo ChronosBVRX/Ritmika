@@ -115,6 +115,12 @@ class MainActivity : AppCompatActivity() {
             // animaciones se vean lentas y cortadas en el televisor.
             setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
+            // Mantiene el renderer de Chromium en prioridad alta mientras la
+            // TV está visible. Ayuda en Chromecast HD / GPUs modestas.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, true)
+            }
+
             settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
@@ -412,10 +418,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
-        fun openSettings(musicEnabled: Boolean, reducedMotion: Boolean): Boolean {
+        fun openSettings(musicEnabled: Boolean, reducedMotion: Boolean, perfMode: String): Boolean {
             return try {
                 runOnUiThread {
-                    LobbySettingsDialog(this@MainActivity, musicEnabled, reducedMotion).show()
+                    LobbySettingsDialog(
+                        this@MainActivity,
+                        musicEnabled,
+                        reducedMotion,
+                        perfMode
+                    ).show()
                 }
                 true
             } catch (e: Exception) {
@@ -557,6 +568,20 @@ class MainActivity : AppCompatActivity() {
         try {
             webView.evaluateJavascript(
                 "window.__ritmikaSetReducedMotion&&window.__ritmikaSetReducedMotion($enabled)",
+                null
+            )
+        } catch (_: Exception) {
+        }
+    }
+
+    fun applyPerfMode(mode: String) {
+        val safe = when (mode) {
+            "performance", "quality", "auto" -> mode
+            else -> "auto"
+        }
+        try {
+            webView.evaluateJavascript(
+                "window.__ritmikaSetPerfMode&&window.__ritmikaSetPerfMode('$safe')",
                 null
             )
         } catch (_: Exception) {

@@ -198,7 +198,7 @@ const MainMenu = (function () {
   }
 
   function bumpIcon() {
-    if (!els.icon) return;
+    if (!els.icon || window.RITMIKA_PERF_MODE === 'performance') return;
     if (typeof anime !== 'undefined') {
       anime.remove(els.icon);
       anime({ targets: els.icon, scale: [0.42, 1.14, 1], rotate: [-14, 4, 0], duration: 520, easing: 'easeOutElastic(1, .5)' });
@@ -206,7 +206,7 @@ const MainMenu = (function () {
   }
 
   function bumpAxolo() {
-    if (!els.axolo) return;
+    if (!els.axolo || window.RITMIKA_PERF_MODE === 'performance') return;
     if (typeof anime !== 'undefined') {
       anime.remove(els.axolo);
       anime({ targets: els.axolo, opacity: [0, 1], translateY: [60, 0], scale: [0.92, 1], duration: 560, easing: 'easeOutBack' });
@@ -214,7 +214,7 @@ const MainMenu = (function () {
   }
 
   function sweepFlash() {
-    if (!els.bgFlash) return;
+    if (!els.bgFlash || window.RITMIKA_PERF_MODE === 'performance') return;
     els.bgFlash.classList.remove('is-flashing');
     void els.bgFlash.offsetWidth;
     els.bgFlash.classList.add('is-flashing');
@@ -259,7 +259,7 @@ const MainMenu = (function () {
       sweepFlash();
       bumpIcon();
       bumpAxolo();
-      if (typeof anime !== 'undefined') {
+      if (typeof anime !== 'undefined' && window.RITMIKA_PERF_MODE !== 'performance') {
         anime.remove(els.kicker.parentElement);
         anime({
           targets: els.kicker.parentElement,
@@ -375,8 +375,11 @@ const MainMenu = (function () {
   function openNativeSettings() {
     const native = window.AndroidNative;
     if (!native || typeof native.openSettings !== 'function') return false;
+    const perf = (window.RitmikaPerf && typeof window.RitmikaPerf.getMode === 'function')
+      ? window.RitmikaPerf.getMode()
+      : 'auto';
     try {
-      return native.openSettings(!!musicOn, !!reducedMotion);
+      return native.openSettings(!!musicOn, !!reducedMotion, perf);
     } catch {
       return false;
     }
@@ -456,6 +459,12 @@ const MainMenu = (function () {
   function transitionTo(target) {
     if (window._mmTransitioning) return;
     window._mmTransitioning = true;
+
+    if (window.RITMIKA_PERF_MODE === 'performance') {
+      applyTransition(target, null);
+      window._mmTransitioning = false;
+      return;
+    }
 
     const overlay = document.createElement('div');
     overlay.className = 'mm-transition';
@@ -620,6 +629,7 @@ const MainMenu = (function () {
           ${settingRow('music', 'Música del menú', 'Ambiente para elegir el show', musicOn)}
           ${settingRow('fullscreen', 'Pantalla completa', 'Para que nadie vea el escritorio', !!document.fullscreenElement)}
           ${settingRow('motion', 'Movimiento reducido', 'Menos animaciones para TVs lentas', reducedMotion)}
+          ${perfRow(window.RitmikaPerf ? window.RitmikaPerf.getMode() : 'auto')}
         </div>
         <div class="mm-note" style="margin-top:16px;">Los ajustes se guardan en esta TV. La música se detiene sola en la partida para no pelear con Axolo ni con las canciones.</div>
       `;
@@ -647,7 +657,27 @@ const MainMenu = (function () {
     return `<div class="mm-setting-row"><div class="mm-setting-copy"><strong>${title}</strong><small>${sub}</small></div><button class="mm-toggle" data-mm-toggle="${key}" aria-pressed="${value ? 'true' : 'false'}">${value ? 'ACTIVADO' : 'DESACTIVADO'}</button></div>`;
   }
 
+  function perfLabel(mode) {
+    if (mode === 'performance') return 'RENDIMIENTO';
+    if (mode === 'quality') return 'CALIDAD';
+    return 'AUTOMÁTICO';
+  }
+
+  function perfRow(mode) {
+    return `<div class="mm-setting-row"><div class="mm-setting-copy"><strong>Rendimiento</strong><small>Animaciones, filtros y loops</small></div><button class="mm-toggle" data-mm-perf="1">${perfLabel(mode)}</button></div>`;
+  }
+
   function onModalBodyClick(event) {
+    const perfBtn = event.target.closest('[data-mm-perf]');
+    if (perfBtn) {
+      const order = ['auto', 'performance', 'quality'];
+      const current = window.RitmikaPerf ? window.RitmikaPerf.getMode() : 'auto';
+      const next = order[(order.indexOf(current) + 1) % order.length];
+      if (window.RitmikaPerf) window.RitmikaPerf.setMode(next);
+      perfBtn.textContent = perfLabel(next);
+      return;
+    }
+
     const btn = event.target.closest('[data-mm-toggle]');
     if (!btn) return;
     const key = btn.dataset.mmToggle;

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- ══ Host nativo Android TV: modo ligero (?native=1) + foco visible ══ -->
   <script>(function(){try{if(String(location.search||"").indexOf("native=1")>-1){window.RITMIKA_TV_NATIVE=true;window.RITMIKA_LITE=true;var d=document.documentElement;if(d)d.className+=" ritmika-tv-lite";}}catch(e){}})();</script>
+  <script src="/js/tv/performance.js?v=1"></script>
   <style id="tv-lite-css">
     /* ── Fondos a pantalla completa: repintan 1080p cada frame ── */
     html.ritmika-tv-lite .party-bg{animation:none!important}
@@ -42,6 +43,7 @@
   <link rel="stylesheet" href="/assets/fonts/fonts.css" />
   <link rel="stylesheet" href="/css/emo-theme.css?v=3" />
   <link rel="stylesheet" href="/css/main-menu.css?v=8" />
+  <link rel="stylesheet" href="/css/performance.css?v=1" />
   <script src="/libs/tailwind.js"></script>
   <script>
     tailwind.config = {
@@ -2250,21 +2252,21 @@
   <script src="/libs/gsap.min.js"></script>
   <script src="/js/bootloader.js?v=1792360195"></script>
   <script src="/js/styles.js?v=1792360195"></script>
-  <script src="/js/animations.js?v=1792360195"></script>
+  <script src="/js/animations.js?v=2"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/libs/qrcode.min.js"></script>
 
 <!-- ═══ Módulos JS de Rítmika TV ═══ -->
   <script src="/js/tv/constants.js?v=1792360195"></script>
   <script src="/js/tv/state.js?v=1792360195"></script>
-  <script src="/js/tv/ui.js?v=1792360195"></script>
+  <script src="/js/tv/ui.js?v=2"></script>
   <script src="/js/tv/config.js?v=1792360195"></script>
   <script src="/js/tv/socket.js?v=1792360195"></script>
-  <script src="/js/tv/game.js?v=1792360195"></script>
-  <script src="/js/tv/lobby.js?v=2"></script>
+  <script src="/js/tv/game.js?v=3"></script>
+  <script src="/js/tv/lobby.js?v=3"></script>
   <script src="/js/tv/flow.js?v=1"></script>
   <script src="/js/tv/phrases_extra.js?v=1"></script>
-  <script src="/js/tv/main-menu.js?v=9"></script>
+  <script src="/js/tv/main-menu.js?v=10"></script>
 
 <!-- Unified Keyboard + Gamepad Controller System -->
 <script>

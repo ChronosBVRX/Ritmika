@@ -269,6 +269,7 @@ function fireTomatazo(attackerName, targetName, cost) {
 }
 
 function floatEmoji(emoji) {
+  if (window.RITMIKA_PERF_MODE === 'performance') return;
   const el = document.createElement('div');
   el.className = 'emoji-float'; el.textContent = emoji;
   el.style.left = (20 + Math.random() * 60) + 'vw'; el.style.bottom = '80px'; el.style.opacity = '1';
