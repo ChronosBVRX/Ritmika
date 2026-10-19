@@ -69,9 +69,45 @@ muestra los 5 candidatos por pista para poder auditar la decisión.
   funciona mucho mejor contra el mix original. El instrumental sale después con
   Demucs.
 
-## Siguiente etapa (no implementada)
+## Siguiente etapa — videos de karaoke
 
-1. `demucs --two-stems=vocals` → instrumental
-2. letras de LRCLIB → fallback a texto y alineación forzada con WhisperX
-3. render de fondo + letras con ffmpeg
-4. subida a R2 + upsert en `server/songs.db` con `mode='emo'`
+`render_karaoke.py` hace las tres etapas siguientes, cada una cacheable:
+
+```bash
+python3 tools/karaoke-factory/render_karaoke.py --lyrics          # LRCLIB → media/karaoke-build/lyrics
+python3 tools/karaoke-factory/render_karaoke.py --stems           # Demucs → instrumental
+python3 tools/karaoke-factory/render_karaoke.py --stems --render  # todo
+python3 tools/karaoke-factory/render_karaoke.py --render --only pxndx-01
+```
+
+Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 + AAC).
+
+### Cómo se arma el video
+
+1. **Letras**: se elige el LRC de LRCLIB que mejor puntúa por cercanía de duración,
+   completitud contra la letra plana y ausencia de huecos mayores a 35 s. Hay hasta
+   16 versiones por canción y muchas tienen los timestamps corridos.
+2. **Instrumental**: `demucs --two-stems=vocals`. Se conserva `vocals.wav` por si
+   luego se quiere una pista guía.
+3. **Karaoke**: cada línea se parte en palabras y se le asigna un `\k` proporcional
+   a sus sílabas. El barrido se corta si el hueco hasta la siguiente línea es muy
+   largo, para que no se arrastre durante un solo de guitarra.
+4. **Fondo**: `bg_neon_club.webp` con blur y oscurecido, más un zoom lento.
+
+### Requisitos extra
+
+- `demucs` en un venv con PyTorch. La ruta se detecta sola en
+  `/home/chronos/Escritorio/Comfy/venv/bin/demucs` o se define con
+  `RITMIKA_DEMUCS`; el dispositivo con `RITMIKA_DEMUCS_DEVICE` (`cuda` por defecto).
+- Fuentes: `fonts/Fredoka-Bold.ttf` es una instancia estática generada desde la
+  variable de Google Fonts (fontconfig no resuelve la variable y libass caía a
+  Noto Sans). `PaytoneOne-Regular.ttf` viene directo del repo de Google Fonts.
+  Ambas son OFL.
+
+### Limitaciones conocidas
+
+- Dos pistas del lote (`thermo-02`, `delux-02`) no tienen LRC sincronizado en
+  LRCLIB. Se omiten del render hasta resolverlas.
+- La sincronía es por línea (LRC), no por palabra real. El barrido por sílabas es
+  una aproximación: se ve bien, pero no es un `forced alignment`.
+- El video no trae barra de progreso ni cuenta atrás.
