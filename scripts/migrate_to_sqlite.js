@@ -2,21 +2,19 @@ const fs = require('fs');
 const path = require('path');
 const Database = require('better-sqlite3');
 
-const dbPath = path.join(__dirname, '..', 'server', 'songs.db');
-const jsonPath = path.join(__dirname, '..', 'server', 'r2_db.json');
+const dbPath = process.argv[2] ? path.resolve(process.argv[2]) : path.join(__dirname, '..', 'server', 'songs.db');
+const jsonPath = process.argv[3] ? path.resolve(process.argv[3]) : path.join(__dirname, '..', 'server', 'r2_db.json');
 
 if (!fs.existsSync(jsonPath)) {
   console.error('r2_db.json not found at', jsonPath);
   process.exit(1);
 }
 
-// Remove existing DB if present
-if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
-
 const db = new Database(dbPath);
+db.pragma('journal_mode = WAL');
 
 db.exec(`
-  CREATE TABLE songs (
+  CREATE TABLE IF NOT EXISTS songs (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     artist TEXT NOT NULL,
@@ -24,23 +22,46 @@ db.exec(`
     url TEXT NOT NULL,
     duration INTEGER DEFAULT 180
   );
-  CREATE INDEX idx_genre ON songs(genre);
-  CREATE INDEX idx_artist ON songs(artist);
+`);
+
+const columns = db.prepare('PRAGMA table_info(songs)').all().map((column) => column.name);
+if (!columns.includes('mode')) db.exec("ALTER TABLE songs ADD COLUMN mode TEXT DEFAULT ''");
+
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_genre ON songs(genre);
+  CREATE INDEX IF NOT EXISTS idx_artist ON songs(artist);
 `);
 
 const raw = fs.readFileSync(jsonPath, 'utf8');
 const songs = JSON.parse(raw);
 
-const insert = db.prepare('INSERT INTO songs (id, title, artist, genre, url, duration) VALUES (?, ?, ?, ?, ?, ?)');
+const upsert = db.prepare(`
+  INSERT INTO songs (id, title, artist, genre, url, duration)
+  VALUES (@id, @title, @artist, @genre, @url, @duration)
+  ON CONFLICT(id) DO UPDATE SET
+    title = excluded.title,
+    artist = excluded.artist,
+    genre = excluded.genre,
+    url = excluded.url,
+    duration = excluded.duration
+`);
 
 const tx = db.transaction((items) => {
-  for (const s of items) {
-    insert.run(s.id, s.title, s.artist, s.genre || 'pop', s.url, s.duration || 180);
+  for (const song of items) {
+    upsert.run({
+      id: song.id,
+      title: song.title,
+      artist: song.artist,
+      genre: song.genre || 'pop',
+      url: song.url,
+      duration: song.duration || 180,
+    });
   }
 });
 
 tx(songs);
+db.pragma('wal_checkpoint(TRUNCATE)');
 
 const count = db.prepare('SELECT COUNT(*) as cnt FROM songs').get().cnt;
-console.log(`Migrated ${count} songs to ${dbPath}`);
+console.log(`Upserted ${songs.length} songs (${count} total) to ${dbPath}`);
 db.close();

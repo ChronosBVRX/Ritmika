@@ -1,0 +1,1429 @@
+{
+  "generated_at": "2026-10-19T13:20:27.988Z",
+  "mode": "dry-run",
+  "options": {
+    "skip_same_title": false,
+    "replace_duplicates": false,
+    "include_probable": false,
+    "overwrite": false,
+    "use_ffprobe": true
+  },
+  "scan": {
+    "roots": [
+      "/media/chronos/Disco Duro/Nueva Carpeta/PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025",
+      "/media/chronos/Disco Duro/Nueva Carpeta/PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!"
+    ],
+    "total_files": 732,
+    "total_bytes": 8877862479,
+    "songs": 731,
+    "promos": 1
+  },
+  "library": {
+    "source": "local-r2-db",
+    "count": 3845
+  },
+  "counts": {
+    "SKIP_DUPLICATE": 58,
+    "ADD": 670,
+    "SKIP_PROMO": 1,
+    "REVIEW": 3
+  },
+  "add": {
+    "tracks": 670,
+    "bytes": 8064744306,
+    "genres": {
+      "reggaeton": 4,
+      "pop": 8,
+      "cumbia": 2,
+      "banda": 86,
+      "balada": 43,
+      "ranchera": 527
+    },
+    "artists": {
+      "Bad Bunny": 1,
+      "Bad Bunny & Sech": 1,
+      "Camilo": 1,
+      "Carlos Vives": 1,
+      "El Komander": 1,
+      "Floricienta": 1,
+      "La Arrolladora Banda El Limon": 1,
+      "La Bandononona Clave Nueva De Max Peraza": 1,
+      "Los Dareyes De La Sierra": 1,
+      "Los Tigres Del Norte": 1,
+      "Mau Y Ricky": 1,
+      "Mike Bahía": 1,
+      "Prince Royce": 2,
+      "Proyecto Uno": 1,
+      "Sebastian Yatra": 1,
+      "Sebastian Yatra & Ricky Martin": 1,
+      "The Black Eyed Peas X J Balvin": 1,
+      "Tito El Bambino & Nicky Jam": 1,
+      "Yandel": 1,
+      "Alejandro Fernandez": 150,
+      "Alejandro Fernandez & Beyonce": 1,
+      "Alejandro Fernandez & Julio Iglesias": 1,
+      "Alejandro Fernandez & Los Tigres Del Norte": 1,
+      "Alejandro Fernandez & Morat": 1,
+      "Alejandro Fernandez & Rod Stewart": 1,
+      "Alejandro Fernandez & Vicente Fernandez": 1,
+      "Alejandro Sanz & Alejandro Fernandez": 1,
+      "Gloria Trevi": 38,
+      "Gloria Trevi & Beatriz Adriana": 1,
+      "Gloria Trevi & Los Baby's": 1,
+      "Javier Solis": 105,
+      "Jenni Rivera": 77,
+      "Jenni Rivera & Diana Reyes": 1,
+      "Jenni Rivera & La Arrolladora Banda El Limon": 1,
+      "Jenni Rivera & Lupillo Rivera": 1,
+      "Jenni Rivera & Shaila Durcal": 1,
+      "Olga Tañon & Jenni Rivera": 1,
+      "Pedro Infante": 47,
+      "Vicente Fernandez": 212,
+      "Vicente Fernandez & Alejandro Fernandez": 2,
+      "Vicente Fernandez & Angelica Maria": 2,
+      "Vicente Fernandez & Roberto Carlos": 1,
+      "Vicente Fernandez & Vicente Fernandez Jr.": 1,
+      "Vicente Fernandez Jr.": 1
+    },
+    "collections": {
+      "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!": 20,
+      "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025": 650
+    }
+  },
+  "duplicates": [
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/6ix9ine & Anuel AA - BEBE (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "6ix9ine & Anuel AA",
+      "title": "BEBE",
+      "matched_key": "6ix9ine & Anuel AA - BEBE.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Bad Bunny & Tainy - Callaita (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Bad Bunny & Tainy",
+      "title": "Callaita",
+      "matched_key": "Bad Bunny & Tainy - Callaita.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Camila - Mientes (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Camila",
+      "title": "Mientes",
+      "matched_key": "Camila - Mientes.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Carlos Vives & Sebastian Yatra - Robarte Un Beso (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Carlos Vives & Sebastian Yatra",
+      "title": "Robarte Un Beso",
+      "matched_key": "Carlos Vives & Sebastian Yatra - Robarte Un Beso.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Christian Nodal - Adios Amor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Christian Nodal",
+      "title": "Adios Amor",
+      "matched_key": "Christian Nodal - Adios Amor.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Greeicy & Mike Bahia - Amantes (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Greeicy & Mike Bahia",
+      "title": "Amantes",
+      "matched_key": "Greeicy & Mike Bahia - Amantes.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/J Balvin & Bad Bunny - Que Pretendes (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "J Balvin & Bad Bunny",
+      "title": "Que Pretendes",
+      "matched_key": "J Balvin & Bad Bunny - Que Pretendes.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/J. Balvin & Farruko - 6 AM (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "J. Balvin & Farruko",
+      "title": "6 AM",
+      "matched_key": "J. Balvin & Farruko - 6 AM.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Jhay Cortez, J Balvin & Bad Bunny - No Me Conoce (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jhay Cortez, J Balvin & Bad Bunny",
+      "title": "No Me Conoce",
+      "matched_key": "Jhay Cortez, J Balvin & Bad Bunny - No Me Conoce.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Maluma - El Perdedor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Maluma",
+      "title": "El Perdedor",
+      "matched_key": "Maluma - El Perdedor.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Maluma & Nego Do Borel - Corazon (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Maluma & Nego Do Borel",
+      "title": "Corazon",
+      "matched_key": "Maluma & Nego Do Borel - Corazon.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Nicky Jam - Chambonea (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Nicky Jam",
+      "title": "Chambonea",
+      "matched_key": "Nicky Jam - Chambonea.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Nicky Jam - El Amante (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Nicky Jam",
+      "title": "El Amante",
+      "matched_key": "Nicky Jam - El Amante.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Nicky Jam - Hasta El Amanecer (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Nicky Jam",
+      "title": "Hasta El Amanecer",
+      "matched_key": "Nicky Jam - Hasta El Amanecer.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Nicky Jam - Travesuras (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Nicky Jam",
+      "title": "Travesuras",
+      "matched_key": "Nicky Jam - Travesuras.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Nicky Jam - Voy A Beber (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Nicky Jam",
+      "title": "Voy A Beber",
+      "matched_key": "Nicky Jam - Voy A Beber.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Nicky Jam & Enrique Iglesias - El Perdon (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Nicky Jam & Enrique Iglesias",
+      "title": "El Perdon",
+      "matched_key": "Nicky Jam & Enrique Iglesias - El Perdon.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Pedro Capo & Farruko - Calma (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Capo & Farruko",
+      "title": "Calma",
+      "matched_key": "Pedro Capo & Farruko - Calma.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Prince Royce - Darte Un Beso (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Prince Royce",
+      "title": "Darte Un Beso",
+      "matched_key": "Prince Royce - Darte Un Beso low.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Raymix - Oye Mujer (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Raymix",
+      "title": "Oye Mujer",
+      "matched_key": "Raymix - Oye Mujer.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Sech ft. Darrell - Otro Trago (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Sech ft. Darrell",
+      "title": "Otro Trago",
+      "matched_key": "Sech ft. Darrell - Otro Trago.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - A Pesar De Todo (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "A Pesar De Todo",
+      "matched_key": "Alejandro Fernandez - A Pesar De Todo.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Abrazame (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Abrazame",
+      "matched_key": "Alejandro Fernandez - Alejandro Fernández - Abrázame.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Canta Corazon (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Canta Corazon",
+      "matched_key": "Alejandro Fernandez - Canta corazon.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Como Quien Pierde Una Estrella (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Como Quien Pierde Una Estrella",
+      "matched_key": "Alejandro Fernandez - Como quien pierde un estrella.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Matalas (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Matalas",
+      "matched_key": "Alejandro Fernandez - Matalas.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Me Dedique A Perderte (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Me Dedique A Perderte",
+      "matched_key": "Alejandro Fernandez - Me Dedique a Perderte.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Niña Amada Mia (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Niña Amada Mia",
+      "matched_key": "Alejandro Fernandez - Niña amada mia.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Que Lastima (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Que Lastima",
+      "matched_key": "Alejandro Fernandez - Multi - Que Lastima.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Que Voy A Hacer Con Mi Amor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Que Voy A Hacer Con Mi Amor",
+      "matched_key": "Alejandro Fernandez - Multi - Que Voy A Hacer Con Mi Amor.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Si Tu No Vuelves (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Si Tu No Vuelves",
+      "matched_key": "Alejandro Fernandez - Alejandro Fernández Si tú no vuelves.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - Dr. Psiquiatra (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "Dr. Psiquiatra",
+      "matched_key": "Gloria Trevi - Dr. Psiquiatra.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - En Medio De La Tempestad (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "En Medio De La Tempestad",
+      "matched_key": "Gloria Trevi - En Medio De La Tempestad.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - Hoy Me Ire De Casa (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "Hoy Me Ire De Casa",
+      "matched_key": "Gloria Trevi - Hoy Me Ire De Casa.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - Me Siento Tan Sola (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "Me Siento Tan Sola",
+      "matched_key": "Gloria Trevi - Me Siento Tan Sola.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - Que Voy A Hacer Sin El¿ (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "Que Voy A Hacer Sin El¿",
+      "matched_key": "Gloria Trevi - Que Voy A Hacer Sin El¿.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - Todos Me Miran (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "Todos Me Miran",
+      "matched_key": "Gloria Trevi - todos me miran.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - Tu Angel De La Guarda (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "Tu Angel De La Guarda",
+      "matched_key": "Gloria Trevi - Tu Angel De La Guarda.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - A Escondidas (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "A Escondidas",
+      "matched_key": "Jenni Rivera - A Escondidas.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Imbecil (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Imbecil",
+      "matched_key": "Jenni Rivera - Imbecil.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Inolvidable (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Inolvidable",
+      "matched_key": "Jenni Rivera - Inolvidable.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Mirame (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Mirame",
+      "matched_key": "Jenni Rivera - Mirame.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Paloma Negra (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Paloma Negra",
+      "matched_key": "Jenni Rivera - Paloma negra ( ).mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Querida Socia (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Querida Socia",
+      "matched_key": "Jenni Rivera - Querida Socia.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Cuando Sale La Luna (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Cuando Sale La Luna",
+      "matched_key": "Pedro Infante - Cuando Sale La Luna.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Mi Cariñito (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Mi Cariñito",
+      "matched_key": "Pedro Infante - Mi Cariñito.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Que Seas Feliz (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Que Seas Feliz",
+      "matched_key": "Pedro Infante - Que Seas Feliz.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Serenata Sin Luna (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Serenata Sin Luna",
+      "matched_key": "Pedro Infante - Serenata Sin Luna.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Tu Enamorado (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Tu Enamorado",
+      "matched_key": "Pedro Infante - Tu Enamorado.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Yo Soy Quien Soy (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Yo Soy Quien Soy",
+      "matched_key": "Pedro Infante - Yo Soy Quien Soy.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Aca Entre Nos (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Aca Entre Nos",
+      "matched_key": "Vicente Fernandez - Aca Entre Nos low.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Amor De Los Dos (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Amor De Los Dos",
+      "matched_key": "Vicente Fernandez - Vicente Fernández - Amor de los dos low.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - El Hombre Que Mas Te Amo (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "El Hombre Que Mas Te Amo",
+      "matched_key": "Vicente Fernandez - El hombre que mas te amo.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - El Ultimo Beso (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "El Ultimo Beso",
+      "matched_key": "Vicente Fernandez - El ultimo beso.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Estos Celos (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Estos Celos",
+      "matched_key": "Vicente Fernandez - Estos celos.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Hermoso Cariño (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Hermoso Cariño",
+      "matched_key": "Vicente Fernandez - Vicente Fernández - Hermoso cariño.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Millon De Primaveras (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Millon De Primaveras",
+      "matched_key": "Vicente Fernandez - Un millon de primaveras.mp4",
+      "score": 1
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Yo Quiero Ser (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Yo Quiero Ser",
+      "matched_key": "Vicente Fernandez - Yo Quiero Ser.mp4",
+      "score": 1
+    }
+  ],
+  "probable": [
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - Esta Hembra Es Mala  (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "Esta Hembra Es Mala",
+      "matched_key": "Gloria Trevi - ESA HEMBRA ES MALA.mp4",
+      "matched_artist": "Gloria Trevi",
+      "score": 0.903125,
+      "reason": "artist=1.00 title=0.94 cover=0.75 db=0.75"
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Amaneciste Conmigo (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Amaneciste Conmigo",
+      "matched_key": "Jenni Rivera - Amanecistes Conmigo.mp4",
+      "matched_artist": "Jenni Rivera",
+      "score": 0.8444444444444446,
+      "reason": "artist=1.00 title=0.94 cover=0.50 db=0.50"
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Lastima Que Seas Ajena (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Lastima Que Seas Ajena",
+      "matched_key": "Vicente Fernandez - LASTIMA QUE SEAS AJENA VICENTE FERNANDEZ s low.mp4",
+      "matched_artist": "Vicente Fernandez",
+      "score": 0.9724999999999999,
+      "reason": "artist=1.00 title=0.95 cover=1.00 db=0.57"
+    }
+  ],
+  "same_title": [
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Carlos Vives - Corazon Espinado (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Carlos Vives",
+      "title": "Corazon Espinado",
+      "matched_key": "Santana & Mana - Corazon Espinado.mp4",
+      "matched_artist": "Santana & Mana",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Agridulce (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Agridulce",
+      "matched_key": "Danna Paola - Agridulce.mp4",
+      "matched_artist": "Danna Paola",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Ay Amor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Ay Amor",
+      "matched_key": "Ana Gabriel - Ay Amor ( ).mp4",
+      "matched_artist": "Ana Gabriel",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Besame Mucho (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Besame Mucho",
+      "matched_key": "Vicente Fernandez - Besame mucho low.mp4",
+      "matched_artist": "Vicente Fernandez",
+      "score": 0.9
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Como Yo Te Ame (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Como Yo Te Ame",
+      "matched_key": "Armando Manzanero - Como yo te ame.mp4",
+      "matched_artist": "Armando Manzanero",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Concavo Y Convexo (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Concavo Y Convexo",
+      "matched_key": "Roberto Carlos - Concavo y Convexo low.mp4",
+      "matched_artist": "Roberto Carlos",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - El Reloj (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "El Reloj",
+      "matched_key": "Los Panchos - El reloj ( ) low.mp4",
+      "matched_artist": "Los Panchos",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Eres (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Eres",
+      "matched_key": "Cafe Tacuba - Eres.mp4",
+      "matched_artist": "Cafe Tacuba",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Ingrato Amor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Ingrato Amor",
+      "matched_key": "Pesado - Ingrato Amor.mp4",
+      "matched_artist": "Pesado",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Me Dueles (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Me Dueles",
+      "matched_key": "La 5ª Estacion - Me Dueles.mp4",
+      "matched_artist": "La 5ª Estacion",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Mi Viejo (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Mi Viejo",
+      "matched_key": "Vicente Fernandez - Vicente Fernández - Mi Viejo.mp4",
+      "matched_artist": "Vicente Fernandez",
+      "score": 0.9
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - No (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "No",
+      "matched_key": "Ednita Nazario & Natalia Jimenez (La 5ta Estacion) - No.mp4",
+      "matched_artist": "Ednita Nazario & Natalia Jimenez (La 5ta Estacion)",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - No Lo Beses (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "No Lo Beses",
+      "matched_key": "Rio Roma - No lo beses low.mp4",
+      "matched_artist": "Rio Roma",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Noche De Ronda (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Noche De Ronda",
+      "matched_key": "Blanca Rosa Gil - Noche De Ronda.mp4",
+      "matched_artist": "Blanca Rosa Gil",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Olvidarte (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Olvidarte",
+      "matched_key": "Ricardo Arjona - Olvidarte low.mp4",
+      "matched_artist": "Ricardo Arjona",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Perfume De Gardenias (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Perfume De Gardenias",
+      "matched_key": "La Arrolladora Banda el Limon - La Arrolladora Banda El Limón - Perfume De Gardenias.mp4",
+      "matched_artist": "La Arrolladora Banda el Limon",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Si Te Vas (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Si Te Vas",
+      "matched_key": "Marc Anthony - Si Te Vas.mp4",
+      "matched_artist": "Marc Anthony",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Tanto Amor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez",
+      "title": "Tanto Amor",
+      "matched_key": "Manolo Galvan - Tanto Amor.mp4",
+      "matched_artist": "Manolo Galvan",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez & Vicente Fernandez - Perdon (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Alejandro Fernandez & Vicente Fernandez",
+      "title": "Perdon",
+      "matched_key": "Camila - Perdon.mp4",
+      "matched_artist": "Camila",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - El Amor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "El Amor",
+      "matched_key": "Cristian - Amor.mp4",
+      "matched_artist": "Cristian",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - El Ultimo Beso (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "El Ultimo Beso",
+      "matched_key": "Los Doltons - El Ultimo Beso.mp4",
+      "matched_artist": "Los Doltons",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - Te Quiero (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "Te Quiero",
+      "matched_key": "Flex - Te Quiero.mp4",
+      "matched_artist": "Flex",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Gloria Trevi - Y Ahora Quien (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Gloria Trevi",
+      "title": "Y Ahora Quien",
+      "matched_key": "Marc Anthony - Ahora Quien.mp4",
+      "matched_artist": "Marc Anthony",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - A La Orilla Del Mar (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "A La Orilla Del Mar",
+      "matched_key": "Bienvenido Granda - En La Orilla Del Mar.mp4",
+      "matched_artist": "Bienvenido Granda",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - A Pesar De Todo (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "A Pesar De Todo",
+      "matched_key": "Alejandro Fernandez - A Pesar De Todo.mp4",
+      "matched_artist": "Alejandro Fernandez",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Angustia (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Angustia",
+      "matched_key": "Bienvenido Granda - Angustia.mp4",
+      "matched_artist": "Bienvenido Granda",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Asi (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Asi",
+      "matched_key": "Sandro - Asi.mp4",
+      "matched_artist": "Sandro",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Bonita (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Bonita",
+      "matched_key": "Pedro Fernandez - Bonita.mp4",
+      "matched_artist": "Pedro Fernandez",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Cuando Calienta El Sol (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Cuando Calienta El Sol",
+      "matched_key": "Luis Miguel - Cuando calienta el sol.mp4",
+      "matched_artist": "Luis Miguel",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - De Que Manera Te Olvido (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "De Que Manera Te Olvido",
+      "matched_key": "Luis Miguel - De que manera te olvido.mp4",
+      "matched_artist": "Luis Miguel",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Echame A Mi La Culpa (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Echame A Mi La Culpa",
+      "matched_key": "Guarana - Echame A Mi La Culpa.mp4",
+      "matched_artist": "Guarana",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Granada (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Granada",
+      "matched_key": "Alejandro Fernandez - Granada.mp4",
+      "matched_artist": "Alejandro Fernandez",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - La Mentira (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "La Mentira",
+      "matched_key": "Ana Belen - La Mentira.mp4",
+      "matched_artist": "Ana Belen",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Media Vuelta (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Media Vuelta",
+      "matched_key": "Luis Miguel - La media vuelta.mp4",
+      "matched_artist": "Luis Miguel",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Nuestro Juramento (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Nuestro Juramento",
+      "matched_key": "Julio Jaramillo - Nuestro Juramento ' Versión' low.mp4",
+      "matched_artist": "Julio Jaramillo",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Payaso (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Payaso",
+      "matched_key": "El Cholo Berrocal - Payaso.mp4",
+      "matched_artist": "El Cholo Berrocal",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Que Seas Feliz (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Que Seas Feliz",
+      "matched_key": "Pedro Infante - Que Seas Feliz.mp4",
+      "matched_artist": "Pedro Infante",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Sabor A Mi (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Sabor A Mi",
+      "matched_key": "Los Panchos - Sabor a Mi - low.mp4",
+      "matched_artist": "Los Panchos",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Se Te Olvida (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Se Te Olvida",
+      "matched_key": "Bolero - Se Te Olvida.mp4",
+      "matched_artist": "Bolero",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Solamente Una Vez (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Solamente Una Vez",
+      "matched_key": "Andrea Bocelli - Solamente Una Vez.mp4",
+      "matched_artist": "Andrea Bocelli",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Sombras (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Sombras",
+      "matched_key": "Julio Jaramillo - ..Sombras.. . low.mp4",
+      "matched_artist": "Julio Jaramillo",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Te Sigo Esperando (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Te Sigo Esperando",
+      "matched_key": "Ednita Nazario - Te Sigo Esperando.mp4",
+      "matched_artist": "Ednita Nazario",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Javier Solis - Tu Enamorado (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Javier Solis",
+      "title": "Tu Enamorado",
+      "matched_key": "Pedro Infante - Tu Enamorado.mp4",
+      "matched_artist": "Pedro Infante",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Asi Fue (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Asi Fue",
+      "matched_key": "Juan Gabriel - Asi fue.mp4",
+      "matched_artist": "Juan Gabriel",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Basta Ya (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Basta Ya",
+      "matched_key": "Conjunto Primavera - Basta ya.mp4",
+      "matched_artist": "Conjunto Primavera",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Como Tu Mujer (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Como Tu Mujer",
+      "matched_key": "Rocio Durcal - Rocío Dúrcal - Como tu mujer low.mp4",
+      "matched_artist": "Rocio Durcal",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - El Ultimo Adios (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "El Ultimo Adios",
+      "matched_key": "Paulina Rubio - El Ultimo Adios.mp4",
+      "matched_artist": "Paulina Rubio",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Ese Hombre (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Ese Hombre",
+      "matched_key": "Pimpinela - Ese Hombre low.mp4",
+      "matched_artist": "Pimpinela",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Fue Un Placer Conocerte (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Fue Un Placer Conocerte",
+      "matched_key": "Juan Gabriel - Fue Un Placer Conocerte.mp4",
+      "matched_artist": "Juan Gabriel",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Hacer El Amor Con Otro (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Hacer El Amor Con Otro",
+      "matched_key": "Alejandra Guzman - Hacer El Amor Con Otro.mp4",
+      "matched_artist": "Alejandra Guzman",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Sufriendo A Solas (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera",
+      "title": "Sufriendo A Solas",
+      "matched_key": "Lupillo Rivera - SUFRIENDO A SOLAS low.mp4",
+      "matched_artist": "Lupillo Rivera",
+      "score": 0.9
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera & Shaila Durcal - Amor Eterno (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Jenni Rivera & Shaila Durcal",
+      "title": "Amor Eterno",
+      "matched_key": "Rocio Durcal - Rocío Dúrcal - Amor eterno low.mp4",
+      "matched_artist": "Rocio Durcal",
+      "score": 0.8500000000000001
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Olga Tañon & Jenni Rivera - Cosas Del Amor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Olga Tañon & Jenni Rivera",
+      "title": "Cosas Del Amor",
+      "matched_key": "Enrique Iglesias - Cosas Del Amor.mp4",
+      "matched_artist": "Enrique Iglesias",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Amorcito Corazon (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Amorcito Corazon",
+      "matched_key": "Los Panchos - AMORCITO CORAZON - low.mp4",
+      "matched_artist": "Los Panchos",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Cielito Lindo (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Cielito Lindo",
+      "matched_key": "Mariachi Vargas - Cielito Lindo.mp4",
+      "matched_artist": "Mariachi Vargas",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Corazon (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Corazon",
+      "matched_key": "Los Autenticos Decadentes - Corazon.mp4",
+      "matched_artist": "Los Autenticos Decadentes",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Ella (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Ella",
+      "matched_key": "El Poder Del Norte - A Ella.mp4",
+      "matched_artist": "El Poder Del Norte",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Flor Sin Retoño (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Flor Sin Retoño",
+      "matched_key": "Charlie Zaa - Flor Sin Retono.mp4",
+      "matched_artist": "Charlie Zaa",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Historia De Un Amor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Historia De Un Amor",
+      "matched_key": "Los Panchos - Historia de un amor.mp4",
+      "matched_artist": "Los Panchos",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - La Que Se Fue (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "La Que Se Fue",
+      "matched_key": "Elefante - La Que Se Fue.mp4",
+      "matched_artist": "Elefante",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Te Quiero Asi (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Te Quiero Asi",
+      "matched_key": "Valentin Elizalde - Te Quiero Asi.mp4",
+      "matched_artist": "Valentin Elizalde",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Tu Recuerdo Y Yo (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Tu Recuerdo Y Yo",
+      "matched_key": "Lupillo Rivera - Tu Recuerdo Y Yo.mp4",
+      "matched_artist": "Lupillo Rivera",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Pedro Infante - Yo No Fui (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Pedro Infante",
+      "title": "Yo No Fui",
+      "matched_key": "Pedro Fernandez - YO NO FUI ( ) low.mp4",
+      "matched_artist": "Pedro Fernandez",
+      "score": 0.9
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - A Pesar De Todo (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "A Pesar De Todo",
+      "matched_key": "Alejandro Fernandez - A Pesar De Todo.mp4",
+      "matched_artist": "Alejandro Fernandez",
+      "score": 0.9
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Amor Eterno (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Amor Eterno",
+      "matched_key": "Rocio Durcal - Rocío Dúrcal - Amor eterno low.mp4",
+      "matched_artist": "Rocio Durcal",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Cada Manana (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Cada Manana",
+      "matched_key": "Benny Ibarra - Cada mañana.mp4",
+      "matched_artist": "Benny Ibarra",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Ingrato Amor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Ingrato Amor",
+      "matched_key": "Pesado - Ingrato Amor.mp4",
+      "matched_artist": "Pesado",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - La Misma (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "La Misma",
+      "matched_key": "Lupillo Rivera - La Misma ( ). low.mp4",
+      "matched_artist": "Lupillo Rivera",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Mala (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Mala",
+      "matched_key": "6ix9ine ft. Anuel AA - Mala.mp4",
+      "matched_artist": "6ix9ine ft. Anuel AA",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Mi Cariñito (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Mi Cariñito",
+      "matched_key": "Pedro Infante - Mi Cariñito.mp4",
+      "matched_artist": "Pedro Infante",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Morena (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Morena",
+      "matched_key": "Ilegales - La Morena.mp4",
+      "matched_artist": "Ilegales",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Muchas Gracias (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Muchas Gracias",
+      "matched_key": "La Adictiva Banda San Jose de Mesillas - La Adictiva Banda San José De Mesillas - Muchas gracias.mp4",
+      "matched_artist": "La Adictiva Banda San Jose de Mesillas",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Negrura (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Negrura",
+      "matched_key": "Rolando Laserie - Negrura.mp4",
+      "matched_artist": "Rolando Laserie",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - No Me Quieras Tanto (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "No Me Quieras Tanto",
+      "matched_key": "Los Panchos - No Me Quieras Tanto.mp4",
+      "matched_artist": "Los Panchos",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - No Que No (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "No Que No",
+      "matched_key": "Control - No Que No.mp4",
+      "matched_artist": "Control",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Nuestro Juramento (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Nuestro Juramento",
+      "matched_key": "Julio Jaramillo - Nuestro Juramento ' Versión' low.mp4",
+      "matched_artist": "Julio Jaramillo",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Paloma Negra (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Paloma Negra",
+      "matched_key": "Jenni Rivera - Paloma negra ( ).mp4",
+      "matched_artist": "Jenni Rivera",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Para Que Seas Feliz (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Para Que Seas Feliz",
+      "matched_key": "Pedro Infante - Que Seas Feliz.mp4",
+      "matched_artist": "Pedro Infante",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Parece Que Fue Ayer (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Parece Que Fue Ayer",
+      "matched_key": "Armando Manzanero - Parece que fue ayer.mp4",
+      "matched_artist": "Armando Manzanero",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Payaso (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Payaso",
+      "matched_key": "El Cholo Berrocal - Payaso.mp4",
+      "matched_artist": "El Cholo Berrocal",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Perdon (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Perdon",
+      "matched_key": "Camila - Perdon.mp4",
+      "matched_artist": "Camila",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Perfume De Gardenia (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Perfume De Gardenia",
+      "matched_key": "La Sonora Santanera - Perfume De Gardenias.mp4",
+      "matched_artist": "La Sonora Santanera",
+      "score": 0.6444444444444445
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Por Un Amor (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Por Un Amor",
+      "matched_key": "Cristian - Amor.mp4",
+      "matched_artist": "Cristian",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Que Sepan Todos (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Que Sepan Todos",
+      "matched_key": "Pepe Aguilar - Que Sepan Todos low.mp4",
+      "matched_artist": "Pepe Aguilar",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Si Tu Te Vas (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Si Tu Te Vas",
+      "matched_key": "Camilo Sesto - Si Tu Te Vas.mp4",
+      "matched_artist": "Camilo Sesto",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Tarde (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Tarde",
+      "matched_key": "Rocio Durcal - Tarde.mp4",
+      "matched_artist": "Rocio Durcal",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Te Solte La Rienda (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Te Solte La Rienda",
+      "matched_key": "Mana - Te Solte La Rienda.mp4",
+      "matched_artist": "Mana",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Tengo (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Tengo",
+      "matched_key": "Sandro - Tengo.mp4",
+      "matched_artist": "Sandro",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Una Copa Mas (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Una Copa Mas",
+      "matched_key": "Los Panchos - Una Copa Mas.mp4",
+      "matched_artist": "Los Panchos",
+      "score": 0.8
+    },
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Urge (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4",
+      "artist": "Vicente Fernandez",
+      "title": "Urge",
+      "matched_key": "La Sonora Santanera - Urge.mp4",
+      "matched_artist": "La Sonora Santanera",
+      "score": 0.8
+    }
+  ],
+  "promos": [
+    {
+      "file": "PARTY TYME KARAOKE EN ESPAÑOL - ¡TRENDING!/Watch Party Tyme TV this Friday on Amazon Prime! (720p_30fps_H264-128kbit_AAC).mp4",
+      "duration": 14
+    }
+  ],
+  "edition_variants": [
+    [
+      {
+        "artist": "Alejandro Fernandez",
+        "title": "Besame Mucho (En Vivo) (Mariachi)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Besame Mucho (En Vivo) (Mariachi) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Alejandro Fernandez",
+        "title": "Besame Mucho",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Besame Mucho (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Alejandro Fernandez",
+        "title": "Caballero (Banda)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Caballero (Banda) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Alejandro Fernandez",
+        "title": "Caballero (Mariachi)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Caballero (Mariachi) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Alejandro Fernandez",
+        "title": "Nube Viajera (Balada)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Nube Viajera (Balada) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Alejandro Fernandez",
+        "title": "Nube Viajera",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Nube Viajera (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Alejandro Fernandez",
+        "title": "Unas Nalgadas (Norteña)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Unas Nalgadas (Norteña) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Alejandro Fernandez",
+        "title": "Unas Nalgadas",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Alejandro Fernandez - Unas Nalgadas (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Jenni Rivera",
+        "title": "Aparentemente Bien (Banda)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Aparentemente Bien (Banda) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Jenni Rivera",
+        "title": "Aparentemente Bien (Mariachi)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Aparentemente Bien (Mariachi) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Jenni Rivera",
+        "title": "Aparentemente Bien (Pop)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Aparentemente Bien (Pop) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Jenni Rivera",
+        "title": "Asi Fue (Banda)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Asi Fue (Banda) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Jenni Rivera",
+        "title": "Asi Fue (Pop)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Asi Fue (Pop) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Jenni Rivera",
+        "title": "Asi Fue",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Asi Fue (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Jenni Rivera",
+        "title": "Basta Ya (Banda)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Basta Ya (Banda) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Jenni Rivera",
+        "title": "Basta Ya (Pop)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Basta Ya (Pop) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Jenni Rivera",
+        "title": "Basta Ya",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Basta Ya (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Jenni Rivera",
+        "title": "Como Tu Mujer (Banda)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Como Tu Mujer (Banda) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Jenni Rivera",
+        "title": "Como Tu Mujer (Pop)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Como Tu Mujer (Pop) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Jenni Rivera",
+        "title": "Como Tu Mujer",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Como Tu Mujer (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Jenni Rivera",
+        "title": "De Contrabando (Bachata)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - De Contrabando (Bachata) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Jenni Rivera",
+        "title": "De Contrabando",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - De Contrabando (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Jenni Rivera",
+        "title": "Que Ganas De No Verte Nunca Mas (Pop)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Que Ganas De No Verte Nunca Mas (Pop) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Jenni Rivera",
+        "title": "Que Ganas De No Verte Nunca Mas",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Jenni Rivera - Que Ganas De No Verte Nunca Mas (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Vicente Fernandez",
+        "title": "La Ley Del Monte (Bachata)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - La Ley Del Monte (Bachata) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Vicente Fernandez",
+        "title": "La Ley Del Monte",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - La Ley Del Monte (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ],
+    [
+      {
+        "artist": "Vicente Fernandez",
+        "title": "Para Siempre (Bachata)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Para Siempre (Bachata) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      },
+      {
+        "artist": "Vicente Fernandez",
+        "title": "Para Siempre (Cumbia)",
+        "file": "PARTY TYME KARAOKE EN ESPAÑOL - Mejores artistas - febrero de 2025/Vicente Fernandez - Para Siempre (Cumbia) (Versión Karaoke) (1080p_25fps_H264-128kbit_AAC).mp4"
+      }
+    ]
+  ],
+  "warnings": [
+    "3 duplicados probables quedaron en REVIEW; revisar el CSV.",
+    "58 duplicados exactos serán omitidos.",
+    "1 video(s) promocionales serán omitidos."
+  ]
+}
