@@ -30,6 +30,11 @@ if (!columns.includes('mode')) db.exec("ALTER TABLE songs ADD COLUMN mode TEXT D
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_genre ON songs(genre);
   CREATE INDEX IF NOT EXISTS idx_artist ON songs(artist);
+  CREATE INDEX IF NOT EXISTS idx_genre_lower ON songs(LOWER(genre));
+  CREATE INDEX IF NOT EXISTS idx_genre_lower_artist ON songs(LOWER(genre), artist);
+  CREATE INDEX IF NOT EXISTS idx_artist_lower ON songs(LOWER(artist));
+  CREATE INDEX IF NOT EXISTS idx_mode_lower ON songs(LOWER(mode));
+  CREATE INDEX IF NOT EXISTS idx_title ON songs(title);
 `);
 
 const raw = fs.readFileSync(jsonPath, 'utf8');
@@ -60,6 +65,8 @@ const tx = db.transaction((items) => {
 });
 
 tx(songs);
+db.exec('ANALYZE');
+db.pragma('optimize');
 db.pragma('wal_checkpoint(TRUNCATE)');
 
 const count = db.prepare('SELECT COUNT(*) as cnt FROM songs').get().cnt;

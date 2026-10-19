@@ -1,0 +1,19 @@
+{
+  "exact": {
+    "emmanuel": "balada",
+    "nicky jam": "reggaeton",
+    "maluma": "reggaeton",
+    "j balvin": "reggaeton",
+    "sech darrell": "reggaeton",
+    "rihanna": "pop",
+    "paquita la del barrio": "ranchera",
+    "pedro infante": "ranchera",
+    "christian nodal": "banda",
+    "raymix": "cumbia",
+    "proyecto uno": "cumbia"
+  },
+  "prefix": {
+    "6ix9ine": "reggaeton",
+    "sech": "reggaeton"
+  }
+}

@@ -172,7 +172,7 @@ Cada acción del celular (voto, tomatazo, emoji, sabotaje) pasa por el server y 
 - **4,515 canciones** con URLs legacy de Cloudflare R2 (`media.pixelhub.party`); el servidor entrega presigned URLs desde el endpoint R2
 - **Schema**: Tabla `songs` con columnas `id`, `title`, `artist`, `genre`, `url`, `duration`, `mode`. Índices en `genre` y `artist`.
 - **WAL mode** activado para mejor concurrencia de lectura
-- **Distribución**: pop domina (2,213), ranchera (746), balada (496), banda (413), rock (250), reggaeton (205), cumbia (189), electrónica (3)
+- **Distribución**: pop domina (2,180), ranchera (775), balada (520), banda (407), rock (250), cumbia (191), reggaeton (189), electrónica (3)
 
 ### Endpoints de consulta
 

@@ -2,15 +2,15 @@
   "total_songs": 4515,
   "r2_files": 4515,
   "updated_at": "2026-10-19",
-  "updated_by": "scripts/import_party_tyme.js",
+  "updated_by": "scripts/import_party_tyme.js + scripts/apply_genre_overrides.js",
   "genres": {
-    "pop": 2213,
-    "ranchera": 746,
-    "balada": 496,
-    "banda": 413,
+    "pop": 2180,
+    "ranchera": 775,
+    "balada": 520,
+    "banda": 407,
     "rock": 250,
-    "reggaeton": 205,
-    "cumbia": 189,
+    "cumbia": 191,
+    "reggaeton": 189,
     "electronica": 3
   }
 }

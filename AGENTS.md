@@ -55,6 +55,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 - `build.bat` — 62 líneas. Un solo paso: icono → dependencias → compilar → copiar DLLs.
 - `scripts/migrate_to_sqlite.js` — Upsert seguro de `r2_db.json` a `server/songs.db`; preserva la columna `mode`.
 - `scripts/import_party_tyme.js` — Audita/importa colecciones Party Tyme: dry-run, deduplicación contra R2, manifest CSV, subida y upsert en SQLite.
+- `scripts/apply_genre_overrides.js` — Aplica correcciones de género por artista desde `server/genre_overrides.json` a `r2_db.json` y `songs.db`.
 - `scripts/generate_icon.ps1` — Crea `ritmika.ico` desde `tio_axolo_body.webp`.
 - `scripts/download_deps.ps1` — Descarga WebView2 SDK de NuGet, extrae DLLs.
 - `scripts/generate_all_audio.js` — Genera voces con ElevenLabs API. Lee API key de `.env`. 172+ frases definidas. Soporta skip si el MP3 ya existe.
@@ -125,7 +126,7 @@ Celulares desde cualquier lugar
 
 ### Géneros musicales (8 en frontend)
 - Frontend (tv.html + mobile.html): reggaeton, banda, ranchera, rock, pop, cumbia, balada, **electronica**
-- SQLite: 4,515 canciones (pop 2,213; ranchera 746; balada 496; banda 413; rock 250; reggaeton 205; cumbia 189; electrónica 3)
+- SQLite: 4,515 canciones (pop 2,180; ranchera 775; balada 520; banda 407; rock 250; cumbia 191; reggaeton 189; electrónica 3)
 - Si un jugador selecciona "electronica", el backend puede tener muy pocas canciones
 
 ---
