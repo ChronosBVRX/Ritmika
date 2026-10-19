@@ -37,6 +37,8 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/tv/socket.js` — 463 líneas. Eventos Socket.io, rate limiting, relay TV↔Server.
 - `public/js/tv/flow.js` — Director de fases audio-aware. Espera a que termine la voz de Axolo, calcula pausas sobre audio real y transmite `PHASE_STATE` a los celulares para habilitar controles móviles (girar / listo / siguiente).
 - `public/js/tv/main-menu.js` — Menú principal Palenque Arcade: selección de show, hero, modales de ajustes/cómo jugar/créditos y transición al lobby.
+- `public/js/tv/performance.js` — Perfiles Automático/Rendimiento/Calidad; en nativo usa Rendimiento por defecto.
+- `public/css/performance.css` — Apaga loops, filtros, halftones y capas decorativas en modo Rendimiento.
 - `public/css/main-menu.css` — Estilos neo-brutalistas del menú, animaciones, modales y responsive para 1366×768 / 1920×1080.
 - `public/assets/menu/` — Fondo y portadas de modo generados con ComfyUI/SDXL + `papel_picado.svg` vectorial.
 - `public/js/tv/state.js` — 54 líneas. Estado global del juego (players, scores, round, etc.).
@@ -167,6 +169,13 @@ Celulares desde cualquier lugar
 - La lista de jugadores vive solo en el lobby. El menú no muestra panel de jugadores.
 - El arte del menú se genera con `tools/comfyui-ritmika/scripts/generate_menu_assets.py` (ComfyUI + SDXL) y `scripts/generate_menu_ornaments.py` (papel picado SVG).
 - Los assets finales viven en `public/assets/menu/`; los PNG de staging quedan fuera del repo.
+
+### Perfiles de rendimiento (Android TV)
+- `performance.js` corre en `<head>` antes del primer paint y aplica `html.ritmika-perf` o `html.ritmika-quality`.
+- En nativo, `auto` resuelve a **Rendimiento**; Calidad es una elección manual.
+- Rendimiento apaga loops CSS, filtros grandes, halftones, confetti, screen-shake y transiciones de pantalla; el arte y la lógica se conservan.
+- El APK usa `WebView.RENDERER_PRIORITY_IMPORTANT` mientras la TV está visible.
+- El selector está en el modal nativo del lobby y también en el modal HTML de Ajustes para web.
 
 ### Panel nativo Altavoz / Audio (Android TV)
 - Es una `Activity` nativa separada, no HTML: permisos, discovery y diálogos del sistema funcionan mejor con D-pad.

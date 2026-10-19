@@ -5,6 +5,9 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 ## [Unreleased]
 
 ### Added
+- Modos de rendimiento **Automático / Rendimiento / Calidad** para Android TV, seleccionables desde Ajustes del lobby.
+- `performance.js` + `performance.css`: en Rendimiento se apagan loops, filtros grandes, halftones, confetti, screen-shake y transiciones de pantalla; el arte y los flujos se conservan.
+- Prioridad de renderer `IMPORTANT` para el WebView de Android TV.
 - Modal nativo **Ajustes del lobby** en Android TV: Altavoz/Audio, música del menú y movimiento reducido, sin pausar la sala.
 - Botón **⚙ AJUSTES** en la cabecera del lobby, visible solo en Android y alcanzable con D-pad.
 - Botón **🔊 ALTAVOZ** en el menú principal (solo Android) y atajo `KEYCODE_MENU` del control remoto para abrir el panel.
@@ -30,6 +33,7 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Se eliminó el auto-creado de sala a los 2 segundos; el show se elige explícitamente con teclado, mando o mouse.
 - El menú principal permite llegar a Cómo jugar, Ajustes, Altavoz y Créditos con el D-pad; Altavoz también se abre con la tecla MENU del control.
 - El botón Ajustes del menú principal abre el modal nativo en Android; en web se conserva el modal HTML.
+- En Android TV el modo Automático usa Rendimiento por defecto; Calidad restaura todos los efectos visuales.
 - Los botones decorativos Entra/Código/Avatar/A cantar del lobby dejan de ser focusables para que el D-pad no se pierda en acciones falsas.
 - La lista de jugadores se movió al lobby; el menú ya no muestra un panel de jugadores vacío.
 - El menú principal y el lobby quedan sin diálogos de Axolo: no hay cut-in ni voz mientras se elige el show o se muestran el código, el QR y los jugadores. Los diálogos vuelven al iniciar la partida.
