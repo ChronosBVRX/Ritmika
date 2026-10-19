@@ -13,7 +13,7 @@
 
 Rítmika es un juego de karaoke para fiestas donde un grupo de jugadores se conecta desde sus celulares a una PC que hace de servidor y pantalla grande. Un anfitrión virtual — el **Tío Axolo** — guía la partida con bromas, reacciones y premiaciones al estilo Persona 5 / Jackbox.
 
-**Funciona local y en la nube.** Modo local: PC con Windows + hotspot WiFi. Modo online: deploy en Render, jugadores desde cualquier lugar con internet.
+**Funciona local y en la nube.** Modo local: PC con Windows + hotspot WiFi. Modo online: servidor en un VPS de Oracle Cloud Infrastructure (OCI), jugadores desde cualquier lugar con internet.
 
 ## Características
 

@@ -85,22 +85,18 @@ O usar el botón de debug si está habilitado.
 
 ---
 
-## Despliegue en Render.com
+## Despliegue en VPS (Oracle Cloud Infrastructure)
 
-Rítmika puede desplegarse en [Render.com](https://render.com) como servicio web.
+Rítmika se despliega en un VPS de Oracle Cloud Infrastructure (OCI) con Node.js y `npm start` (o el proceso administrador que uses: systemd/pm2).
 
 ### Configuración
 
-1. Conectar el repositorio de GitHub
-2. Crear un servicio Web con:
-   - **Build Command**: `npm install`
-   - **Start Command**: `node server/index.js`
-   - **Environment**: `NODE_ENV=production`
-
-3. Variables de entorno en Render:
+1. Clonar el repositorio en el VPS e instalar dependencias: `npm install`
+2. Arrancar con `node server/index.js` (o `npm start`) detrás de tu proxy/HTTPS
+3. Variables de entorno en el VPS:
    ```
    PORT=3000
-   RENDER_EXTERNAL_URL=https://tu-app.onrender.com
+   PUBLIC_URL=https://tu-dominio-o-ip-publica
    ```
 
 ### Limitaciones del modo online
@@ -109,6 +105,7 @@ Rítmika puede desplegarse en [Render.com](https://render.com) como servicio web
 - Sin pantalla nativa (la TV se ve desde el navegador)
 - Latencia adicional por el servidor en la nube
 - El video proxy funciona igual (Cloudflare R2)
+- Las salas viven en memoria: un reinicio del proceso las borra. La TV las recupera con el mismo código al reconectar (hostToken) si el secreto es estable (`RITMIKA_ROOM_SECRET` o `R2_SECRET_ACCESS_KEY`).
 
 ---
 
@@ -135,8 +132,11 @@ R2_ACCESS_KEY_ID=tu_access_key
 R2_SECRET_ACCESS_KEY=tu_secret_key
 R2_ENDPOINT=https://tu_account_id.r2.cloudflarestorage.com
 
-# URL externa (solo para deploy en la nube)
-RENDER_EXTERNAL_URL=https://tu-app.onrender.com
+# URL externa (solo para deploy en la nube: VPS OCI)
+PUBLIC_URL=https://tu-dominio-o-ip-publica
+
+# Secreto estable para recuperar salas tras un reinicio (opcional: cae a R2_SECRET_ACCESS_KEY)
+RITMIKA_ROOM_SECRET=una_clave_segura_aqui
 
 # Admin token (protege /admin y bulk-mode)
 ADMIN_TOKEN=una_clave_segura_aqui
@@ -152,8 +152,9 @@ ADMIN_TOKEN=una_clave_segura_aqui
 | `R2_ACCESS_KEY_ID` | No | — | Cloudflare R2 access key |
 | `R2_SECRET_ACCESS_KEY` | No | — | Cloudflare R2 secret key |
 | `R2_ENDPOINT` | No | `https://...r2.cloudflarestorage.com` | Endpoint de R2 |
-| `RENDER_EXTERNAL_URL` | No | — | URL pública (para Render) |
-| `PUBLIC_URL` | No | — | Override de URL base |
+| `RENDER_EXTERNAL_URL` | No | — | Legacy: URL pública (usar `PUBLIC_URL`) |
+| `PUBLIC_URL` | No | — | URL base pública del VPS (QR y CORS) |
+| `RITMIKA_ROOM_SECRET` | No | — | Secreto estable para recuperar salas tras reinicio |
 | `ADMIN_TOKEN` | No | — | Token para proteger rutas admin (`/admin`, `PUT /api/songs/bulk-mode`) |
 
 ---

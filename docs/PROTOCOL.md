@@ -16,7 +16,7 @@ Al conectar, el servidor emite inmediatamente:
 |---|---|---|---|
 | `server_version` | `server → tv, player` | `string` (`package.json.version` = `1.0.1`) | Al `socket` recién conectado |
 
-CORS: `isLocalOrigin()` — permite `localhost`, `127.0.0.1`, `192.168.*`, `10.*`, `172.16-31.*`, `*.local`, `RENDER_EXTERNAL_URL` hostname. Rechaza otros orígenes con `403` en REST y `Error('Origin not allowed by CORS')` en Socket.IO.
+CORS: `isLocalOrigin()` — permite `localhost`, `127.0.0.1`, `192.168.*`, `10.*`, `172.16-31.*`, `*.local`, y el hostname público del VPS (`PUBLIC_URL`). Rechaza otros orígenes con `403` en REST y `Error('Origin not allowed by CORS')` en Socket.IO.
 
 ---
 

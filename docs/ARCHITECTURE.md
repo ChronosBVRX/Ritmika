@@ -222,11 +222,11 @@ Cada acción del celular (voto, tomatazo, emoji, sabotaje) pasa por el server y 
 
 ---
 
-## Render.com (deploy en la nube)
+## VPS OCI (deploy en la nube)
 
-- El servidor soporta deploy en Render.com
-- Detección automática via `RENDER_EXTERNAL_URL`
-- Origin whitelist incluye `*.onrender.com`
+- El servidor se despliega en un VPS de Oracle Cloud Infrastructure (OCI)
+- Detección automática via `PUBLIC_URL` (o `SERVER_URL`/`RENDER_EXTERNAL_URL` legacy)
+- Origin whitelist incluye el hostname público configurado
 - Sin hotspot WiFi (jugadores necesitan internet)
 - Sin pantalla nativa (TV se ve desde navegador)
 

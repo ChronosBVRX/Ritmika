@@ -1,6 +1,6 @@
 # Rítmika — Project Context
 
-Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores se conectan desde cualquier lugar con internet. Sin hotspot local, sin WiFi de PC.
+Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud Infrastructure (OCI), los jugadores se conectan desde cualquier lugar con internet. Sin hotspot local, sin WiFi de PC. Render queda descartado.
 
 ---
 
@@ -88,14 +88,14 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 - `.env` — `PORT=3000`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `ADMIN_TOKEN`, `GITHUB_TOKEN`
 - `server/genre_overrides.json` / `server/artist_overrides.json` — Correcciones curadas de género y nombres de artista.
 - `server/game_modes_config.json` — Modos y filtros para el panel admin y futuros modos.
-- `.gitignore` — Excluye `.env`, EXEs, DLLs de WebView2, `libs/webview2/`, `server/songs.db-shm`, `server/songs.db-wal`, `*.log`. Nota: `server/songs.db` **sí está trackeado** (se deploya con el código a Render).
+- `.gitignore` — Excluye `.env`, EXEs, DLLs de WebView2, `libs/webview2/`, `server/songs.db-shm`, `server/songs.db-wal`, `*.log`. Nota: `server/songs.db` **sí está trackeado** (se deploya con el código al VPS OCI).
 
 ---
 
 ## Arquitectura del juego
 
 ```
-Servidor en la nube (Render)
+Servidor en la nube (VPS OCI)
   └── Node.js :3000
 
 PC (TV)
@@ -109,7 +109,7 @@ Celulares desde cualquier lugar
 ```
 
 ### Flujo
-1. Servidor Node.js arranca (local en la PC o en Render)
+1. Servidor Node.js arranca (local en la PC o en el VPS OCI)
 2. GameWindow (WebView2) carga `http://localhost:3000` directo (sin pantalla de carga)
 3. La TV muestra pantalla pre-boot → bootloader de 5 pasos → selección de modo
 4. Se crea la sala → QR o link de invitación para compartir

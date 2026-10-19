@@ -297,8 +297,8 @@ Cuando la TV llama a `tv:add_bot`, el servidor:
 | Variable | Default | Uso |
 |----------|---------|-----|
 | `PORT` | `3000` | Puerto del servidor |
-| `RENDER_EXTERNAL_URL` | — | Override de URL para QR (deploy en Render) |
-| `PUBLIC_URL` | — | Override de URL base |
+| `RENDER_EXTERNAL_URL` | — | Legacy: override de URL para QR (usar `PUBLIC_URL`) |
+| `PUBLIC_URL` | — | URL base pública del VPS OCI (QR y CORS) |
 | `R2_ACCESS_KEY_ID` | — | Cloudflare R2 (presigned URLs) |
 | `R2_SECRET_ACCESS_KEY` | — | Cloudflare R2 |
 | `R2_ENDPOINT` | `https://...r2.cloudflarestorage.com` | Endpoint R2 |
