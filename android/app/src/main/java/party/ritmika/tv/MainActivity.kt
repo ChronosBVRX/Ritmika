@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -73,6 +74,14 @@ class MainActivity : AppCompatActivity() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
+        }
+
+        // El video vive dentro de una "ventana" (marco premium del karaoke), no a
+        // pantalla completa: el WebView pinta el escenario alrededor y deja el
+        // hueco transparente. Estas medidas deben coincidir con KS_WIN de
+        // public/js/tv/game.js.
+        root.addOnLayoutChangeListener { _, _, _, r, b, _, _, _, _ ->
+            layoutVideoWindow(r, b)
         }
 
         // El escalado NO se hace aquí. El WebView ignora la densidad del
@@ -225,6 +234,27 @@ class MainActivity : AppCompatActivity() {
             webView.evaluateJavascript(PAUSE_MEDIA_JS, null)
         } catch (_: Exception) {
         }
+    }
+
+    /**
+     * Coloca el PlayerView en la ventana del video (marco premium del karaoke).
+     *
+     * Se calcula con la misma escala/letterbox que aplica Chrome al diseno de
+     * 1920x1080, para que el hueco transparente del WebView coincida exactamente
+     * con la superficie del video.
+     */
+    private fun layoutVideoWindow(width: Int, height: Int) {
+        if (width <= 0 || height <= 0 || !::playerView.isInitialized) return
+        val scale = minOf(width / DESIGN_W, height / DESIGN_H)
+        val offX = (width - DESIGN_W * scale) / 2f
+        val offY = (height - DESIGN_H * scale) / 2f
+        val lp = playerView.layoutParams as FrameLayout.LayoutParams
+        lp.gravity = Gravity.TOP or Gravity.LEFT
+        lp.leftMargin = (offX + VIDEO_X * scale).toInt()
+        lp.topMargin = (offY + VIDEO_Y * scale).toInt()
+        lp.width = (VIDEO_W * scale).toInt()
+        lp.height = (VIDEO_H * scale).toInt()
+        playerView.layoutParams = lp
     }
 
     private fun hideSystemUi() {
@@ -452,6 +482,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
+        // Ventana del video (marco premium). Debe coincidir con KS_WIN en
+        // public/js/tv/game.js.
+        private const val DESIGN_W = 1920f
+        private const val DESIGN_H = 1080f
+        private const val VIDEO_X = 200f
+        private const val VIDEO_Y = 112f
+        private const val VIDEO_W = 1520f
+        private const val VIDEO_H = 855f
+
         private const val TAG = "RitmikaTV"
         private const val ORIGIN = "https://ritmika.duckdns.org"
         const val BASE_URL = "$ORIGIN/?native=1"

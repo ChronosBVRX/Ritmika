@@ -521,6 +521,158 @@ function stopAllSfx() {
   activeSfx.length = 0;
 }
 
+// ════════════════════════════════════════════
+//  KARAOKE PREMIUM STAGE
+//  El video ya no ocupa la pantalla completa: va dentro de una "ventana" con
+//  marco, y alrededor se pinta un escenario. Así un MP4 4:3 de karaoke viejo
+//  con marca de agua deja de verse como un video crudo y pasa a verse como
+//  parte del show.
+// ════════════════════════════════════════════
+const KS_WIN = { x: 200, y: 112, w: 1520, h: 855 };
+const KS_DESIGN = { w: 1920, h: 1080 };
+let ksVideoPoll = null;
+
+function ksFit(vw, vh) {
+  if (!vw || !vh) return { x: KS_WIN.x, y: KS_WIN.y, w: KS_WIN.w, h: KS_WIN.h };
+  const s = Math.min(KS_WIN.w / vw, KS_WIN.h / vh);
+  const w = Math.round(vw * s), h = Math.round(vh * s);
+  return {
+    x: Math.round(KS_WIN.x + (KS_WIN.w - w) / 2),
+    y: Math.round(KS_WIN.y + (KS_WIN.h - h) / 2),
+    w, h,
+  };
+}
+
+function ksEnsureStage() {
+  if (document.getElementById('ks-bg')) return;
+  const st = document.createElement('style');
+  st.id = 'ks-css';
+  st.textContent = [
+    '#ks-bg,#ks-fg{position:fixed;inset:0;pointer-events:none;}',
+    '#ks-bg{z-index:0;}',
+    '#ks-fg{z-index:2;}',
+    '.ks-region{position:absolute;background-image:url("./assets/karaoke_stage_bg.webp?v=1");background-size:1920px 1080px;background-repeat:no-repeat;}',
+    '#ks-frame{position:absolute;border:6px solid #111827;box-shadow:inset 0 0 0 2px rgba(255,230,0,.22),0 0 40px rgba(0,229,255,.16);}',
+    '#ks-vig{position:absolute;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 52%,rgba(0,0,0,.62) 100%);}',
+    '.ks-bracket{position:absolute;width:46px;height:46px;border:5px solid #ffe600;filter:drop-shadow(2px 2px 0 #111827);}',
+    '.ks-live{position:absolute;display:flex;align-items:center;gap:9px;background:rgba(17,24,39,.94);border:3px solid #111827;box-shadow:5px 5px 0 #111827;padding:7px 15px;font-family:"Paytone One",sans-serif;font-size:15px;letter-spacing:2px;color:#f8fafc;}',
+    '.ks-live i{width:11px;height:11px;border-radius:50%;background:#ef4444;box-shadow:0 0 10px #ef4444;animation:ks-pulse 1.1s ease-in-out infinite;}',
+    '@keyframes ks-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.78)}}',
+    '.ks-sweep{position:absolute;top:0;bottom:0;width:38%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.32),transparent);transform:skewX(-14deg);filter:blur(7px);}',
+    '#karaoke-screen #karaoke-video{left:' + KS_WIN.x + 'px !important;top:' + KS_WIN.y + 'px !important;right:auto !important;bottom:auto !important;width:' + KS_WIN.w + 'px !important;height:' + KS_WIN.h + 'px !important;background:transparent !important;}',
+    '#karaoke-screen #audio-only-placeholder{inset:' + KS_WIN.y + 'px ' + (KS_DESIGN.w - KS_WIN.x - KS_WIN.w) + 'px ' + (KS_DESIGN.h - KS_WIN.y - KS_WIN.h) + 'px ' + KS_WIN.x + 'px !important;}',
+    '#karaoke-screen #lyrics-overlay{position:absolute !important;left:' + (KS_WIN.x + 36) + 'px !important;top:' + (KS_WIN.y + KS_WIN.h - 118) + 'px !important;bottom:auto !important;transform:none !important;z-index:4 !important;}',
+    '#now-playing-card{background:rgba(17,24,39,.94) !important;border:4px solid #111827 !important;box-shadow:7px 7px 0 #111827 !important;border-radius:0 !important;padding:12px 20px !important;}',
+    '#lyrics-text{font-family:"Paytone One",sans-serif !important;font-size:22px !important;}',
+    '#np-artist{font-size:14px !important;letter-spacing:1px !important;}',
+  ].join('\n');
+  document.head.appendChild(st);
+
+  const host = document.getElementById('karaoke-screen') || document.body;
+  const bg = document.createElement('div'); bg.id = 'ks-bg';
+  const fg = document.createElement('div'); fg.id = 'ks-fg';
+  host.appendChild(bg);
+  host.appendChild(fg);
+
+  ['ks-out-t', 'ks-out-b', 'ks-out-l', 'ks-out-r',
+   'ks-bar-l', 'ks-bar-r', 'ks-bar-t', 'ks-bar-b'].forEach(id => {
+    const d = document.createElement('div');
+    d.className = 'ks-region';
+    d.id = id;
+    bg.appendChild(d);
+  });
+
+  const frame = document.createElement('div'); frame.id = 'ks-frame'; fg.appendChild(frame);
+  const vig = document.createElement('div'); vig.id = 'ks-vig'; fg.appendChild(vig);
+  const live = document.createElement('div'); live.id = 'ks-live'; live.className = 'ks-live';
+  live.innerHTML = '<i></i><span>EN VIVO</span>';
+  fg.appendChild(live);
+
+  [['tl', '#ffe600'], ['tr', '#00e5ff'], ['bl', '#00e5ff'], ['br', '#f0047f']].forEach(([pos, color]) => {
+    const b = document.createElement('div');
+    b.className = 'ks-bracket';
+    b.dataset.pos = pos;
+    b.style.borderColor = color;
+    if (pos === 'tl') { b.style.borderRight = 'none'; b.style.borderBottom = 'none'; }
+    if (pos === 'tr') { b.style.borderLeft = 'none'; b.style.borderBottom = 'none'; }
+    if (pos === 'bl') { b.style.borderRight = 'none'; b.style.borderTop = 'none'; }
+    if (pos === 'br') { b.style.borderLeft = 'none'; b.style.borderTop = 'none'; }
+    fg.appendChild(b);
+  });
+}
+
+function ksLayout(vw, vh) {
+  const r = ksFit(vw, vh);
+  const place = (id, x, y, w, h) => {
+    const d = document.getElementById(id);
+    if (!d) return;
+    d.style.left = x + 'px';
+    d.style.top = y + 'px';
+    d.style.width = Math.max(0, w) + 'px';
+    d.style.height = Math.max(0, h) + 'px';
+    d.style.backgroundPosition = '-' + x + 'px -' + y + 'px';
+  };
+  const winB = KS_WIN.y + KS_WIN.h, winR = KS_WIN.x + KS_WIN.w;
+  place('ks-out-t', 0, 0, KS_DESIGN.w, KS_WIN.y);
+  place('ks-out-b', 0, winB, KS_DESIGN.w, KS_DESIGN.h - winB);
+  place('ks-out-l', 0, KS_WIN.y, KS_WIN.x, KS_WIN.h);
+  place('ks-out-r', winR, KS_WIN.y, KS_DESIGN.w - winR, KS_WIN.h);
+  place('ks-bar-l', KS_WIN.x, r.y, r.x - KS_WIN.x, r.h);
+  place('ks-bar-r', r.x + r.w, r.y, winR - (r.x + r.w), r.h);
+  place('ks-bar-t', r.x, KS_WIN.y, r.w, r.y - KS_WIN.y);
+  place('ks-bar-b', r.x, r.y + r.h, r.w, winB - (r.y + r.h));
+
+  const frame = document.getElementById('ks-frame');
+  if (frame) Object.assign(frame.style, { left: KS_WIN.x + 'px', top: KS_WIN.y + 'px', width: KS_WIN.w + 'px', height: KS_WIN.h + 'px' });
+  const vig = document.getElementById('ks-vig');
+  if (vig) Object.assign(vig.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+  const live = document.getElementById('ks-live');
+  if (live) Object.assign(live.style, { left: (winR - 205) + 'px', top: (KS_WIN.y + 20) + 'px' });
+  document.querySelectorAll('.ks-bracket').forEach(b => {
+    const pos = b.dataset.pos;
+    const top = (pos === 'tl' || pos === 'tr') ? KS_WIN.y : winB;
+    const left = (pos === 'tl' || pos === 'bl') ? KS_WIN.x : winR;
+    b.style.left = (pos === 'tl' || pos === 'bl' ? left - 8 : left - 38) + 'px';
+    b.style.top = (pos === 'tl' || pos === 'tr' ? top - 8 : top - 38) + 'px';
+  });
+}
+
+function karaokeStageInfo(song, player) {
+  const card = document.getElementById('now-playing-card');
+  if (!card) return;
+  let av = document.getElementById('np-avatar');
+  if (!av) {
+    av = document.createElement('img');
+    av.id = 'np-avatar';
+    av.style.cssText = 'width:44px;height:44px;object-fit:contain;border:3px solid #111827;background:#0f172a;flex-shrink:0;';
+    card.insertBefore(av, card.firstChild);
+  }
+  if (player) {
+    const a = getAvatar(player.avatarId);
+    av.src = a.img;
+    av.style.background = a.color;
+  }
+}
+
+function karaokeStageEnter() {
+  const fg = document.getElementById('ks-fg');
+  const bg = document.getElementById('ks-bg');
+  if (!fg || !bg) return;
+  anime({ targets: [fg, bg], opacity: [0, 1], duration: 380, easing: 'easeOutQuad' });
+  const sweep = document.createElement('div');
+  sweep.className = 'ks-sweep';
+  sweep.style.left = '-40%';
+  fg.appendChild(sweep);
+  anime({
+    targets: sweep,
+    translateX: ['0%', '420%'],
+    opacity: [0, 0.6, 0],
+    duration: 640,
+    easing: 'easeInOutQuad',
+    complete: () => { if (sweep.parentNode) sweep.parentNode.removeChild(sweep); },
+  });
+}
+
 async function startKaraoke(player, song) {
   if (document.getElementById('karaoke-screen').classList.contains('active')) return;
   karaokeGeneration++;
@@ -528,6 +680,18 @@ async function startKaraoke(player, song) {
   currentSongPerformer = player;
   const myGeneration = karaokeGeneration;
   showScreen('karaoke-screen', 'flash');
+
+  // Marco premium: escenario + ventana del video + lower-third + wipe
+  ksEnsureStage();
+  ksLayout(0, 0);
+  karaokeStageInfo(song, player);
+  karaokeStageEnter();
+  if (ksVideoPoll) clearInterval(ksVideoPoll);
+  ksVideoPoll = setInterval(() => {
+    if (myGeneration !== karaokeGeneration) { clearInterval(ksVideoPoll); ksVideoPoll = null; return; }
+    const v = document.getElementById('karaoke-video');
+    if (v) ksLayout(v.videoWidth, v.videoHeight);
+  }, 400);
 
   // Resolve video URL if not already done (presignada desde R2)
   if (song && song.id && !song._resolvedUrl) {
@@ -1078,9 +1242,10 @@ document.getElementById('continue-btn').addEventListener('click', () => {
 });
 
 function nextTurn() {
-  if (typeof bootMusic !== 'undefined' && bootMusic && bootMusic.paused) {
-    bootMusic.volume = 0.06;
-    bootMusic.play().catch(()=>{});
+  // Sin cama musical durante la partida: el loop de menu competia con el
+  // narrador y con la cancion. Solo suena en lobby/menus.
+  if (typeof bootMusic !== 'undefined' && bootMusic && !bootMusic.paused) {
+    bootMusic.pause();
   }
   _stopCurrentAxolo();
   stopAllSfx();
@@ -1673,6 +1838,10 @@ function showPodium() {
       state.singerQueue=[];state.audioSabotageCount=0;state.tomatazoCounts={};
       socket.emit('tv:create_room');
       showScreen('lobby-screen');
+      if (typeof bootMusic !== 'undefined' && bootMusic) {
+        bootMusic.volume = 0.22;
+        bootMusic.play().catch(()=>{});
+      }
       const newGameChoice=NEW_GAMES[Math.floor(Math.random()*NEW_GAMES.length)];
       axoloSay(newGameChoice.text,newGameChoice.file,4000,true);
     });

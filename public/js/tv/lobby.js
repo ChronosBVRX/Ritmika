@@ -558,7 +558,7 @@ function _playAxoloAudio(texto, audioFileOrMood) {
       } else {
         currentAxoloAudio = null;
       }
-    }, 3000);
+    }, 800);
   }, { once: true });
 
   currentAxoloAudio.play().catch(e => {
