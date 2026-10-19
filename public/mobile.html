@@ -272,9 +272,12 @@ function applyMobileModeTheme() {
     .genre-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
+      grid-auto-rows: max-content;
+      align-content: start;
       gap: 0.65rem;
     }
     .genre-btn {
+      position: relative;
       padding: 0.875rem 0.5rem;
       border-radius: 1rem;
       border: 2px solid #334155;
@@ -284,17 +287,30 @@ function applyMobileModeTheme() {
       align-items: center;
       gap: 0.3rem;
       cursor: pointer;
+      overflow: hidden;
       transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s, background 0.12s;
       -webkit-appearance: none;
     }
-    .genre-btn .genre-icon { font-size: 1.6rem; }
-    .genre-btn .genre-name { font-size: 0.8rem; font-weight: 700; color: #94a3b8; }
+    .genre-btn .genre-icon { font-size: 1.6rem; transition: transform 0.18s; }
+    .genre-btn .genre-name { font-size: 0.8rem; font-weight: 700; color: #94a3b8; transition: color 0.15s; }
     .genre-btn.selected {
       transform: scale(1.04) rotate(0.8deg);
-      background: #ffe600;
+      background: linear-gradient(145deg, #ffe600 0%, #ffc400 100%);
       border-color: #111827;
       border-width: 3px;
       box-shadow: 3px 3px 0px #111827;
+    }
+    .genre-btn.selected .genre-icon { transform: scale(1.12); }
+    .genre-btn.selected .genre-name { color: #111827; }
+    .genre-btn.selected .artist-count { color: #713f12 !important; }
+    .genre-btn.selected::after {
+      content: '✓';
+      position: absolute; top: 0.35rem; right: 0.4rem;
+      width: 1.2rem; height: 1.2rem; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: #111827; color: #ffe600;
+      font-size: 0.65rem; font-weight: 900;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
     }
     .genre-btn:active { transform: scale(0.95); }
 
@@ -302,9 +318,12 @@ function applyMobileModeTheme() {
     .artist-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
+      grid-auto-rows: max-content;
+      align-content: start;
       gap: 0.5rem;
     }
     .artist-chip {
+      position: relative;
       padding: 0.6rem 0.5rem;
       border-radius: 0.75rem;
       border: 2px solid #334155;
@@ -314,17 +333,26 @@ function applyMobileModeTheme() {
       color: #94a3b8;
       cursor: pointer;
       text-align: center;
-      transition: all 0.12s;
-      -webkit-appearance: none;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s, background 0.12s, color 0.12s;
+      -webkit-appearance: none;
     }
     .artist-chip.selected {
+      padding-right: 1.5rem;
       border-color: #22d3ee;
-      color: #22d3ee;
-      background: #22d3ee18;
-      box-shadow: 0 0 10px #22d3ee33;
+      color: #67e8f9;
+      background: linear-gradient(145deg, #164e63 0%, #0e7490 100%);
+      box-shadow: 0 0 0 1px #22d3ee55, 0 4px 14px #22d3ee33;
+    }
+    .artist-chip.selected::after {
+      content: '✓';
+      position: absolute; right: 0.35rem; top: 50%; transform: translateY(-50%);
+      width: 1.05rem; height: 1.05rem; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: #22d3ee; color: #083344;
+      font-size: 0.6rem; font-weight: 900;
     }
     .artist-chip:active { transform: scale(0.95); }
 
@@ -388,6 +416,7 @@ function applyMobileModeTheme() {
     .artist-more:active { border-color: #22d3ee; color: #22d3ee; }
 
     /* ── Selection screens: shell fija, listas con scroll ──── */
+    /* ── Selection screens: shell fija, listas con scroll ──── */
     #screen-genres, #screen-artists {
       height: 100dvh;
       max-height: 100dvh;
@@ -396,14 +425,56 @@ function applyMobileModeTheme() {
     #screen-genres .scroll-area, #screen-artists .scroll-area {
       min-height: 0;
       flex: 1 1 0;
+      padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
       overscroll-behavior: contain;
     }
     .picker-footer {
-      flex: 0 0 auto;
-      padding-top: 0.5rem;
-      padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
-      background: linear-gradient(to top, #0a0a14 70%, rgba(10,10,20,0));
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0.6rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+      background: rgba(10, 10, 20, 0.94);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      border-top: 1px solid #1e293b;
+      box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.5);
     }
+    .picker-status {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.75rem; padding: 0 0.15rem;
+    }
+    .picker-status-text {
+      font-size: 0.68rem; font-weight: 900; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #94a3b8;
+      transition: color 0.2s;
+    }
+    .picker-status-text.ready { color: #22d3ee; }
+    .picker-dots { display: flex; gap: 0.35rem; }
+    .picker-dot {
+      width: 0.55rem; height: 0.55rem; border-radius: 999px;
+      background: #334155; transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .picker-dot.filled {
+      background: linear-gradient(135deg, #ffe600, #f59e0b);
+      box-shadow: 0 0 8px #ffe60099;
+      transform: scale(1.15);
+    }
+    .picker-dots.cyan .picker-dot.filled {
+      background: linear-gradient(135deg, #22d3ee, #a855f7);
+      box-shadow: 0 0 8px #22d3ee99;
+    }
+    .picker-footer .btn-primary { padding: 0.9rem; font-size: 1rem; }
+    .picker-footer .btn-primary:not(:disabled) {
+      animation: ctaReady 2.4s ease-in-out infinite;
+    }
+    @keyframes ctaReady {
+      0%, 100% { box-shadow: 4px 4px 0px #111827; }
+      50% { box-shadow: 4px 4px 0px #111827, 0 0 24px rgba(255, 230, 0, 0.45); }
+    }
+    body.picking #version-display { display: none; }
 
     /* ── Waiting room ───────────────────────────────────────── */
     .player-pip {
@@ -795,7 +866,7 @@ function applyMobileModeTheme() {
     <button id="back-to-avatar" class="text-2xl" aria-label="Regresar" style="color:#475569;">‹</button>
     <div class="flex-1">
       <h2 class="text-xl font-black" style="color:#f1f5f9;">Mis 3 Venenos</h2>
-      <p class="text-xs" style="color:#64748b;">Géneros que dominas</p>
+      <p class="text-xs" style="color:#64748b;">Elige exactamente 3 géneros</p>
     </div>
     <span id="genres-count-badge" class="selection-badge">0/3</span>
   </div>
@@ -811,8 +882,14 @@ function applyMobileModeTheme() {
   </div>
 
   <div class="picker-footer">
+    <div class="picker-status">
+      <span id="genres-status-text" class="picker-status-text">Elige 3 géneros</span>
+      <div id="genres-dots" class="picker-dots" aria-hidden="true">
+        <span class="picker-dot"></span><span class="picker-dot"></span><span class="picker-dot"></span>
+      </div>
+    </div>
     <button id="btn-go-to-artists" class="btn-primary" disabled>
-      Siguiente: Mis Gallos 🎸
+      Elige 3 géneros
     </button>
   </div>
 </section>
@@ -826,9 +903,9 @@ function applyMobileModeTheme() {
     <button id="back-to-genres" class="text-2xl" aria-label="Regresar" style="color:#475569;">‹</button>
     <div class="flex-1">
       <h2 class="text-xl font-black" style="color:#f1f5f9;">Mis Gallos</h2>
-      <p class="text-xs" style="color:#64748b;">Artistas que puedes cantar</p>
+      <p class="text-xs" style="color:#64748b;">Elige exactamente 3 artistas</p>
     </div>
-    <span id="artists-count-badge" class="selection-badge">0</span>
+    <span id="artists-count-badge" class="selection-badge">0/3</span>
   </div>
 
   <!-- Filter by selected genres -->
@@ -849,8 +926,14 @@ function applyMobileModeTheme() {
   </div>
 
   <div class="picker-footer">
+    <div class="picker-status">
+      <span id="artists-status-text" class="picker-status-text">Elige 3 artistas</span>
+      <div id="artists-dots" class="picker-dots cyan" aria-hidden="true">
+        <span class="picker-dot"></span><span class="picker-dot"></span><span class="picker-dot"></span>
+      </div>
+    </div>
     <button id="btn-join-game" class="btn-primary" disabled>
-      🎤 ¡Entrar a la fiesta!
+      Elige 3 artistas
     </button>
   </div>
 </section>
@@ -1623,6 +1706,8 @@ function goToScreen(id) {
   const next = document.getElementById(id);
   if (!next || (current && current.id === id)) return;
 
+  document.body.classList.toggle('picking', id === 'screen-genres' || id === 'screen-artists');
+
   if (!current) {
     next.classList.add('active');
     return;
@@ -1835,7 +1920,7 @@ function buildGenreGrid() {
     const artistCount = (ARTISTS_BY_GENRE[g.id] && Array.isArray(ARTISTS_BY_GENRE[g.id])) ? ARTISTS_BY_GENRE[g.id].length : 0;
 
     const btn = document.createElement('button');
-    btn.className = 'genre-btn';
+    btn.className = 'genre-btn' + (me.genres.includes(g.id) ? ' selected' : '');
     btn.dataset.id = g.id;
     btn.innerHTML = `
       <span class="genre-icon">${g.icon}</span>
@@ -1855,17 +1940,21 @@ function toggleGenre(id, btn, color) {
     btn.classList.remove('selected');
     btn.style.borderColor = '';
     btn.style.boxShadow = '';
+    if (navigator.vibrate) navigator.vibrate(8);
   } else {
     if (me.genres.length >= MAX_GENRES) {
       shakeElement('genres-count-badge');
-      showToast('Máximo 3 géneros 🎵');
+      showToast('Solo puedes elegir 3 géneros 🎵');
+      if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
       return;
     }
     me.genres.push(id);
     btn.classList.add('selected');
-    btn.style.borderColor = color;
-    btn.style.boxShadow = `0 0 15px ${color}55`;
+    btn.style.borderColor = '';
+    btn.style.boxShadow = '';
 
+    try { UISounds.tick(); } catch (e) {}
+    if (navigator.vibrate) navigator.vibrate(12);
     anime({
       targets: btn,
       scale: [1, 1.08, 1],
@@ -1876,16 +1965,40 @@ function toggleGenre(id, btn, color) {
   updateGenresUI();
 }
 
+function updatePickerProgress(dotsId, textId, count, max, singular, plural) {
+  const dots = document.getElementById(dotsId);
+  if (dots) {
+    [...dots.children].forEach((dot, i) => dot.classList.toggle('filled', i < count));
+  }
+  const text = document.getElementById(textId);
+  if (!text) return;
+  text.classList.toggle('ready', count >= max);
+  if (count >= max) {
+    text.textContent = `¡${max} ${plural} listos!`;
+  } else if (count === 0) {
+    text.textContent = `Elige ${max} ${plural}`;
+  } else {
+    const left = max - count;
+    text.textContent = `Te falta${left === 1 ? '' : 'n'} ${left} ${left === 1 ? singular : plural}`;
+  }
+}
+
 function updateGenresUI() {
   const n = me.genres.length;
-  document.getElementById('genres-count-badge').textContent = `${n}/3`;
-  document.getElementById('genres-progress').style.width = `${(n / MAX_GENRES) * 100}%`;
-  document.getElementById('btn-go-to-artists').disabled = n === 0;
+  const max = MAX_GENRES;
+  document.getElementById('genres-count-badge').textContent = `${n}/${max}`;
+  document.getElementById('genres-progress').style.width = `${(n / max) * 100}%`;
+  updatePickerProgress('genres-dots', 'genres-status-text', n, max, 'género', 'géneros');
+  const btn = document.getElementById('btn-go-to-artists');
+  btn.disabled = n !== max;
+  btn.textContent = n === max ? 'Siguiente: Mis Gallos 🎸' : `Elige ${max - n} ${max - n === 1 ? 'género' : 'géneros'} más`;
 }
 
 document.getElementById('back-to-avatar').addEventListener('click', () => goToScreen('screen-avatar'));
 
 document.getElementById('btn-go-to-artists').addEventListener('click', () => {
+  const validArtists = new Set(me.genres.flatMap(gid => ARTISTS_BY_GENRE[gid] || []));
+  me.artists = me.artists.filter(name => validArtists.has(name));
   buildArtistGrid();
   goToScreen('screen-artists');
 });
@@ -1994,18 +2107,29 @@ if (artistSearchClear) {
   });
 }
 
+const MAX_ARTISTS = 3;
+
 function toggleArtist(name, chip) {
   const idx = me.artists.indexOf(name);
   if (idx >= 0) {
     me.artists.splice(idx, 1);
     chip.classList.remove('selected');
+    if (navigator.vibrate) navigator.vibrate(8);
   } else {
+    if (me.artists.length >= MAX_ARTISTS) {
+      shakeElement('artists-count-badge');
+      showToast('Solo puedes elegir 3 artistas 🎸');
+      if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+      return;
+    }
     me.artists.push(name);
     chip.classList.add('selected');
+    try { UISounds.tick(); } catch (e) {}
+    if (navigator.vibrate) navigator.vibrate(12);
     anime({
       targets: chip,
-      scale: [1, 1.06, 1],
-      duration: 200,
+      scale: [1, 1.08, 1],
+      duration: 220,
       easing: 'easeOutBack',
     });
   }
@@ -2014,8 +2138,12 @@ function toggleArtist(name, chip) {
 
 function updateArtistsUI() {
   const n = me.artists.length;
-  document.getElementById('artists-count-badge').textContent = n;
-  document.getElementById('btn-join-game').disabled = n === 0;
+  const max = MAX_ARTISTS;
+  document.getElementById('artists-count-badge').textContent = `${n}/${max}`;
+  updatePickerProgress('artists-dots', 'artists-status-text', n, max, 'artista', 'artistas');
+  const btn = document.getElementById('btn-join-game');
+  btn.disabled = n !== max;
+  btn.textContent = n === max ? '🎤 ¡Entrar a la fiesta!' : `Elige ${max - n} ${max - n === 1 ? 'artista' : 'artistas'} más`;
 }
 
 document.getElementById('back-to-genres').addEventListener('click', () => goToScreen('screen-genres'));
@@ -2024,6 +2152,14 @@ document.getElementById('btn-join-game').addEventListener('click', joinGame);
 
 function joinGame() {
   if (!me.name || me.avatarId === null || !me.roomCode) return;
+  if (me.gameMode !== 'emo' && me.genres.length !== MAX_GENRES) {
+    showToast(`Elige tus ${MAX_GENRES} géneros 🎵`);
+    return;
+  }
+  if (me.artists.length !== MAX_ARTISTS) {
+    showToast(`Elige tus ${MAX_ARTISTS} artistas 🎸`);
+    return;
+  }
   UISounds.click();
 
   const btn = document.getElementById('btn-join-game');
