@@ -35,6 +35,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/tv/game.js` — 1354 líneas. Lógica core: rondas, karaoke, votación, podio, ruleta, song selection server-side.
 - `public/js/tv/lobby.js` — 728 líneas. Lobby, QR, joins, sala de espera, bot system.
 - `public/js/tv/socket.js` — 463 líneas. Eventos Socket.io, rate limiting, relay TV↔Server.
+- `public/js/tv/flow.js` — Director de fases audio-aware. Espera a que termine la voz de Axolo, calcula pausas sobre audio real y transmite `PHASE_STATE` a los celulares para habilitar controles móviles (girar / listo / siguiente).
 - `public/js/tv/state.js` — 54 líneas. Estado global del juego (players, scores, round, etc.).
 - `public/js/tv/ui.js` — 301 líneas. Helpers de UI, cut-in system Axolo, DOM manipulation.
 - `public/js/bootloader.js` — 190 líneas. Bootloader de 5 pasos + preboot splash.

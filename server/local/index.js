@@ -867,8 +867,8 @@ io.on('connection', (socket) => {
 
     const playerInfo = { name: cleanName, avatarId: cleanAvatarId, socketId: socket.id };
     room.players.set(socket.id, playerInfo);
-    // First player to join becomes host
-    if (room.players.size === 1 && !room.hostPlayerSocketId) {
+    // Primer humano en entrar es host, aunque ya existan bots de prueba.
+    if (!room.hostPlayerSocketId) {
       room.hostPlayerSocketId = socket.id;
     }
     socket.join(code);
@@ -876,7 +876,13 @@ io.on('connection', (socket) => {
     const players = getPublicPlayerList(room);
 
     // Confirmar al jugador
-    socket.emit('player:join_ack', { success: true, roomCode: code, mode: room.mode || 'clasico', players });
+    socket.emit('player:join_ack', {
+      success: true,
+      roomCode: code,
+      mode: room.mode || 'clasico',
+      players,
+      isHost: room.hostPlayerSocketId === socket.id,
+    });
 
     // Notificar a la TV
     io.to(room.tvSocketId).emit('tv:player_joined', { player: playerInfo, players });
@@ -1095,19 +1101,33 @@ io.on('connection', (socket) => {
 
   socket.on('player:start_song', ({ roomCode }) => {
     const room = rooms.get(roomCode);
-    if (!room || room.hostPlayerSocketId !== socket.id) return;
+    // El cantante (no solo el host) puede dar "¡Estoy listo!". La TV valida
+    // que la fase sea la correcta antes de arrancar el video.
+    if (!room || !room.players.has(socket.id)) return;
+    if (!canAct(socket.id, 800)) return;
     io.to(room.tvSocketId).emit('tv:start_song_trigger');
+  });
+
+  socket.on('player:spin_roulette', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.hostPlayerSocketId !== socket.id) return;
+    if (!canAct(socket.id, 900)) return;
+    io.to(room.tvSocketId).emit('tv:spin_roulette_trigger');
   });
 
   socket.on('player:next_turn', ({ roomCode }) => {
     const room = rooms.get(roomCode);
     if (!room || room.hostPlayerSocketId !== socket.id) return;
+    if (!canAct(socket.id, 900)) return;
     io.to(room.tvSocketId).emit('tv:next_turn_trigger');
   });
 
   socket.on('player:new_game', ({ roomCode }) => {
     const room = rooms.get(roomCode);
-    if (!room || room.hostPlayerSocketId !== socket.id) return;
+    // Al terminar la partida cualquier celular puede reiniciar; la TV solo
+    // acepta la orden cuando el podio final ya está listo.
+    if (!room || !room.players.has(socket.id)) return;
+    if (!canAct(socket.id, 1500)) return;
     io.to(room.tvSocketId).emit('tv:new_game_trigger');
   });
 

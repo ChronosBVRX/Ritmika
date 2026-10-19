@@ -18,7 +18,7 @@ const ROULETTE_INTROS = [
   { text: '¡Nadie se escapa! ¡La ruleta del Tío Axolo todo lo ve! 👁️', file: 'roulette_intro_3.mp3' },
 ];
 
-async function startRoulette() {
+async function startRoulette(skipIntro = false) {
   showScreen('roulette-screen', 'flash');
 
   const remaining = state.singerQueue.slice(state.currentSingerIdx);
@@ -28,11 +28,17 @@ async function startRoulette() {
     const player = remaining[0];
     buildRouletteWheel([player]);
     document.getElementById('spin-btn').style.display = 'none';
-    
+
     // Auto-select and show result immediately without spin
     showRouletteResult(player).catch(()=>{});
     return;
   }
+
+  FlowDirector.enter('roulette_wait', {
+    action: 'spin',
+    run: () => spinRoulette(),
+    label: state.round === 2 ? 'Asignación de canciones' : 'Ruleta',
+  });
 
   // Otherwise, build wheel for all remaining
   buildRouletteWheel(remaining);
@@ -43,8 +49,14 @@ async function startRoulette() {
     document.getElementById('spin-btn').style.display = 'block';
   }
 
-  const intro = ROULETTE_INTROS[Math.floor(Math.random() * ROULETTE_INTROS.length)];
-  axoloSay(intro.text, intro.file);
+  if (!skipIntro) {
+    // Una sola presentación por entrada a la ruleta. Antes se encolaban la
+    // intro genérica y la de Ronda 2, alargando la espera sin necesidad.
+    const introChoice = state.round === 2
+      ? { text: '¡Fuego cruzado activado! Asignen canciones a sus rivales 🔥', file: `round_2_start_${Math.floor(Math.random() * 2)}.mp3` }
+      : ROULETTE_INTROS[Math.floor(Math.random() * ROULETTE_INTROS.length)];
+    axoloSay(introChoice.text, introChoice.file);
+  }
 
   // Notify phones: roulette is spinning
   socket.emit('tv:broadcast', {
@@ -56,6 +68,7 @@ async function startRoulette() {
   // Ronda 2: pedir a los jugadores que asignen canciones (Fuego Cruzado)
   if (state.round === 2) {
     state.assignedBy = new Set();
+
     
     // Gather all genres selected by active players for relevance filtering
     const activeR2Players = state.players.filter(p => !p.disconnected);
@@ -110,7 +123,7 @@ async function startRoulette() {
         const botDelay = 1500 + Math.random() * 2500; // 1.5 - 4 seconds delay
         setTimeout(async () => {
           const lobbyScreen = document.getElementById('roulette-screen');
-          if (state.round === 2 && lobbyScreen && lobbyScreen.classList.contains('active') && !state.assignedBy.has(p.socketId)) {
+          if (state.round === 2 && !isSpinning && FlowDirector.getPhase() === 'roulette_wait' && lobbyScreen && lobbyScreen.classList.contains('active') && !state.assignedBy.has(p.socketId)) {
             // Pick a random target (not the bot itself, only active players)
             const targets = activeR2Players.filter(t => t.socketId !== p.socketId);
             const target = targets[Math.floor(Math.random() * targets.length)] || activeR2Players[0];
@@ -158,20 +171,17 @@ async function startRoulette() {
             // Check if all active players have submitted
             if (state.assignedBy.size >= activeR2Players.length) {
               console.log("[AUTO-FLOW] ¡Todos los jugadores asignaron canción (con bots)! Girando ruleta...");
-              if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+              if (rouletteAutoSpinTimeout) { clearTimeout(rouletteAutoSpinTimeout); rouletteAutoSpinTimeout = null; }
               document.getElementById('spin-btn').style.display = 'block';
               document.getElementById('roulette-heading').textContent = '¡Todas las asignaciones recibidas!';
-              setTimeout(() => { spinRoulette(); }, 1200);
+              FlowDirector.hasten(0, 1200);
             }
           }
         }, botDelay);
       }
     });
-
-    const r2Idx = Math.floor(Math.random() * 2);
-    const r2Text = r2Idx === 0 ? "¡Fuego cruzado activado! Asignen canciones a sus rivales 🔥" : "¡Ronda 2: Fuego Cruzado! Es hora de vengarse y darles la peor canción posible. 😈";
-    axoloSay(r2Text, `round_2_start_${r2Idx}.mp3`);
   }
+
 
   // Update round badge and heading
   const labels = typeof getModeRoundLabels === 'function' ? getModeRoundLabels() : null;
@@ -217,17 +227,21 @@ async function startRoulette() {
   document.getElementById('selected-player-banner').style.transform = 'scale(0.8)';
   document.getElementById('spin-btn').disabled = false;
 
-  // Auto-spin after 4 seconds (Ronda 2: 30s para que asignen canciones)
+  // La ruleta avanza sola. El director espera a que Axolo termine de hablar
+  // antes de girar; en Ronda 2 da 30s para que todos asignen.
   if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+  rouletteAutoSpinTimeout = null;
   const autoSpinDelay = state.round === 2 ? 30000 : 4000;
-  rouletteAutoSpinTimeout = setTimeout(() => {
-    if (state.round === 2) {
+  if (state.round === 2) {
+    rouletteAutoSpinTimeout = setTimeout(() => {
       document.getElementById('spin-btn').style.display = 'block';
       document.getElementById('roulette-heading').textContent = '¡Tiempo agotado!';
-    }
-    spinRoulette();
-  }, autoSpinDelay);
+      rouletteAutoSpinTimeout = null;
+    }, autoSpinDelay);
+  }
+  FlowDirector.armAuto({ minMs: autoSpinDelay, holdMs: 1000 });
 }
+
 
 function buildRouletteWheel(playersToDraw) {
   const wheel = document.getElementById('roulette-wheel');
@@ -342,16 +356,18 @@ function buildRouletteWheel(playersToDraw) {
 
 document.getElementById('spin-btn').addEventListener('click', () => {
   UISounds.click();
-  if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
-  spinRoulette();
+  if (!FlowDirector.request('spin')) {
+    updateTicker('La ruleta girará sola en un momento…');
+  }
 });
 
 function spinRoulette() {
-  sting('sting_roulette_spin', 0.42);
   if (isSpinning) return;
+  FlowDirector.enter('roulette_spin', { label: 'Girando la ruleta' });
+  sting('sting_roulette_spin', 0.42);
   isSpinning = true;
   if (state.round === 2) state.assignedBy = new Set();
-  if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+  if (rouletteAutoSpinTimeout) { clearTimeout(rouletteAutoSpinTimeout); rouletteAutoSpinTimeout = null; }
   document.getElementById('spin-btn').disabled = true;
   document.getElementById('selected-player-banner').style.opacity = '0';
 
@@ -469,19 +485,23 @@ async function showRouletteResult(player) {
     data: {},
   });
 
-  // Auto-start karaoke after 8 seconds
-  if (rouletteResultTimeout) clearTimeout(rouletteResultTimeout);
-  rouletteResultTimeout = setTimeout(() => {
-    startKaraoke(player, state.currentSong);
-  }, 8000);
+  // La canción arranca sola cuando Axolo termina de anunciar al cantante.
+  // El cantante puede adelantar con "¡Estoy listo!" desde su celular.
+  FlowDirector.enter('singer_result', {
+    action: 'start_song',
+    run: () => startKaraoke(player, state.currentSong),
+    singerSocketId: player.socketId,
+    label: 'Turno de ' + player.name,
+  });
+  if (rouletteResultTimeout) { clearTimeout(rouletteResultTimeout); rouletteResultTimeout = null; }
+  FlowDirector.armAuto({ minMs: 4500, holdMs: 1200 });
 }
 
 document.getElementById('go-karaoke-btn').addEventListener('click', () => {
   UISounds.click();
-  if (rouletteResultTimeout) clearTimeout(rouletteResultTimeout);
-  const singerQueue = state.singerQueue.length ? state.singerQueue : state.players.filter(p => !p.disconnected);
-  const player = singerQueue[state.currentSingerIdx % singerQueue.length] || singerQueue[0];
-  startKaraoke(player, state.currentSong);
+  if (!FlowDirector.request('start_song')) {
+    updateTicker('La canción empezará cuando termine la presentación…');
+  }
 });
 
 // ════════════════════════════════════════════
@@ -503,7 +523,10 @@ const SFX_VOLUME = 0.35;
 const SFX_DUCKED = 0.10;
 function playSfx(url, vol) {
   const a = new Audio(url);
-  a.volume = vol ?? (currentAxoloAudio ? SFX_DUCKED : SFX_VOLUME);
+  const voiceActive = (window.AxoloNarrator && typeof window.AxoloNarrator.isBusy === 'function')
+    ? window.AxoloNarrator.isBusy()
+    : !!currentAxoloAudio;
+  a.volume = vol ?? (voiceActive ? SFX_DUCKED : SFX_VOLUME);
   activeSfx.push(a);
   a.addEventListener('ended', () => {
     const idx = activeSfx.indexOf(a);
@@ -518,9 +541,28 @@ function duckSfx() {
 function unduckSfx() {
   activeSfx.forEach(a => { try { a.volume = SFX_VOLUME; } catch(e){} });
 }
-function stopAllSfx() {
-  activeSfx.forEach(a => { try { a.pause(); a.src=''; } catch(e){} });
-  activeSfx.length = 0;
+function stopAllSfx(fadeMs = 0) {
+  const toStop = activeSfx.splice(0);
+  toStop.forEach(a => {
+    if (!fadeMs) {
+      try { a.pause(); a.src = ''; } catch (e) {}
+      return;
+    }
+    try {
+      const startVol = a.volume;
+      const started = Date.now();
+      const step = () => {
+        const t = Math.min(1, (Date.now() - started) / fadeMs);
+        try { a.volume = Math.max(0, startVol * (1 - t)); } catch (e) {}
+        if (t < 1) {
+          setTimeout(step, 40);
+        } else {
+          try { a.pause(); a.src = ''; } catch (e) {}
+        }
+      };
+      step();
+    } catch (e) {}
+  });
 }
 // Loop de ambiente (público). Se registra en activeSfx para que duck/unduck y
 // stopAllSfx lo manejen junto con el resto de la capa sonora.
@@ -697,6 +739,11 @@ async function startKaraoke(player, song) {
   const myGeneration = karaokeGeneration;
   showScreen('karaoke-screen', 'flash');
 
+  FlowDirector.enter('karaoke_intro', {
+    singerSocketId: player.socketId,
+    label: 'Preparando a ' + player.name,
+  });
+
   // Marco premium: escenario + ventana del video + lower-third + wipe
   ksEnsureStage();
   ksLayout(0, 0);
@@ -718,38 +765,6 @@ async function startKaraoke(player, song) {
   }
 
   state.votedBy = new Set();
-  
-  // Automate voting for bot players
-  state.players.forEach(p => {
-    if (p.socketId.startsWith('bot_') && p.socketId !== player.socketId) {
-      const botDelay = 4000 + Math.random() * 8000; // 4 - 12 seconds delay
-      setTimeout(() => {
-        const karaokeScreen = document.getElementById('karaoke-screen');
-        // Ensure we are still playing this song and the bot hasn't voted yet
-        if (karaokeScreen && karaokeScreen.classList.contains('active') && !state.votedBy.has(p.socketId)) {
-          const scores = [30, 60, 100];
-          const botScore = scores[Math.floor(Math.random() * scores.length)];
-          
-          state.votes.push({ voterName: p.name, performerSocketId: player.socketId, score: botScore });
-          updateTicker(`${p.name} votó: ${botScore} pts 🗳️`);
-          
-          state.votedBy.add(p.socketId);
-          if (typeof checkAllVotesSubmitted === 'function') {
-            checkAllVotesSubmitted(player.socketId);
-          } else {
-            // Fallback inline check
-            const expectedVoters = (state.players || []).filter(p2 => p2.socketId !== player.socketId);
-            if (votePhaseActive && (state.votedBy || new Set()).size >= expectedVoters.length) {
-              if (votePhaseTimeout) clearTimeout(votePhaseTimeout);
-              votePhaseActive = false;
-              songEnded = false;
-              endSong(player);
-            }
-          }
-        }
-      }, botDelay);
-    }
-  });
 
   const av = getAvatar(player.avatarId);
   document.getElementById('hud-singer-avatar-img').src = av.img;
@@ -769,8 +784,9 @@ async function startKaraoke(player, song) {
   const video = document.createElement('video');
   video.id = 'karaoke-video';
   video.playsinline = true;
+  video.preload = 'auto';
   video.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1; background:#000;';
-  
+
   if (oldVideo) {
     oldVideo.parentNode.replaceChild(video, oldVideo);
   } else {
@@ -795,36 +811,66 @@ async function startKaraoke(player, song) {
   }
   if (!videoUrl && song && song.url) videoUrl = song.url;
 
-  // Set video src IMMEDIATELY so the compositor sees a valid source from frame 1
+  // Dejar el video precargado, pero PAUSADO. Antes se reproducía en silencio
+  // mientras Axolo hablaba y el cantante perdía el inicio de la canción.
   if (song && videoUrl) {
     document.getElementById('lyrics-text').textContent = song.title;
     document.getElementById('np-artist').textContent = song.artist;
     video.muted = true;
     video.src = videoUrl;
+    try { video.load(); } catch (e) {}
     if (typeof bootMusic !== 'undefined' && bootMusic) bootMusic.pause();
   } else {
     document.getElementById('lyrics-text').textContent = '¡Canta lo que quieras!';
     document.getElementById('np-artist').textContent = '🎤';
   }
 
-  // Notify phones and play Axolo intro immediately
+  // Los celulares preparan la pantalla, pero la canción aún no empieza.
   socket.emit('tv:broadcast', {
     roomCode: state.roomCode,
-    event: 'KARAOKE_START',
+    event: 'KARAOKE_PREP',
     data: { socketId: player.socketId, name: player.name, song: song },
   });
-
-  // Ambiente de público: hace que el show se sienta en vivo.
-  if (crowdAmbience) { try { crowdAmbience.pause(); } catch(e){} }
-  crowdAmbience = playLoop('./assets/audio/loop_crowd_karaoke.mp3', 0.16);
-
-  const choice = AXOLO_SINGER_INTROS[Math.floor(Math.random() * AXOLO_SINGER_INTROS.length)];
-  const introMsg = choice.text;
-  axoloSay(introMsg, choice.file);
 
   if (timerInterval) {
     clearInterval(timerInterval);
     timerInterval = null;
+  }
+
+  let karaokeStarted = false;
+
+  function scheduleBotVotes() {
+    state.players.forEach(p => {
+      if (!p.socketId.startsWith('bot_') || p.socketId === player.socketId) return;
+      const botDelay = 4000 + Math.random() * 8000; // 4 - 12 segundos de canción
+      setTimeout(() => {
+        const karaokeScreen = document.getElementById('karaoke-screen');
+        if (!karaokeScreen || !karaokeScreen.classList.contains('active')) return;
+        if (myGeneration !== karaokeGeneration) return;
+        if (state.votedBy.has(p.socketId)) return;
+        const scores = [30, 60, 100];
+        const botScore = scores[Math.floor(Math.random() * scores.length)];
+        state.votes.push({ voterName: p.name, performerSocketId: player.socketId, score: botScore });
+        updateTicker(`${p.name} votó: ${botScore} pts 🗳️`);
+        state.votedBy.add(p.socketId);
+        checkAllVotesSubmitted(player.socketId);
+      }, botDelay);
+    });
+  }
+
+  function markKaraokeStarted() {
+    if (karaokeStarted || myGeneration !== karaokeGeneration) return;
+    karaokeStarted = true;
+    FlowDirector.enter('karaoke', {
+      singerSocketId: player.socketId,
+      label: 'En vivo: ' + player.name,
+    });
+    socket.emit('tv:broadcast', {
+      roomCode: state.roomCode,
+      event: 'KARAOKE_START',
+      data: { socketId: player.socketId, name: player.name, song: song },
+    });
+    scheduleBotVotes();
   }
 
   const proceedWithKaraoke = () => {
@@ -839,6 +885,7 @@ async function startKaraoke(player, song) {
           const errBanner = document.getElementById('video-error-banner');
           if (errBanner) errBanner.classList.remove('visible');
           if (!timerInterval) startKaraokeTimer(video, song);
+          markKaraokeStarted();
           if (video.videoWidth === 0 || video.videoHeight === 0) {
             setTimeout(() => {
               if (video.videoWidth === 0 || video.videoHeight === 0) {
@@ -847,95 +894,98 @@ async function startKaraoke(player, song) {
             }, 500);
           }
         };
-        
+
         video.onerror = () => {
           if (myGeneration !== karaokeGeneration) return;
           console.error("Video load error, starting timer manually.");
           const errBanner = document.getElementById('video-error-banner');
           if (errBanner) errBanner.classList.add('visible');
-          if (!timerInterval) startKaraokeTimer(null, song || { duration: 120 });
+          if (!timerInterval) startKaraokeTimer(null, song);
+          markKaraokeStarted();
         };
-        
+
         video.onended = () => {
           if (myGeneration !== karaokeGeneration) return;
           startVotePhase(player, song);
         };
 
+        // Ambiente de público: empieza junto con la canción, no durante la presentación.
+        if (crowdAmbience) { try { crowdAmbience.pause(); } catch (e) {} }
+        crowdAmbience = playLoop('./assets/audio/loop_crowd_karaoke.mp3', 0.16);
+
         if (videoUrl) {
-          video.play().then(() => {
-            if (myGeneration !== karaokeGeneration) return;
-            const unmuteWhenReady = setInterval(() => {
-              if (myGeneration !== karaokeGeneration || !currentAxoloAudio) {
-                clearInterval(unmuteWhenReady);
-                video.muted = false;
-              }
-            }, 200);
-          }).catch(e => {
+          video.muted = false;
+          video.play().catch(e => {
             console.warn("Autoplay block or explicit play failed:", e);
-            if (!timerInterval) startKaraokeTimer(null, song);
+            // Reintento silencioso y unmute inmediato: el audio no se solapa con Axolo.
+            video.muted = true;
+            video.play().then(() => {
+              setTimeout(() => {
+                if (myGeneration === karaokeGeneration) video.muted = false;
+              }, 250);
+            }).catch(() => {
+              if (!timerInterval) startKaraokeTimer(null, song);
+              markKaraokeStarted();
+            });
           });
         } else {
           startKaraokeTimer(null, song || { duration: 120 });
+          markKaraokeStarted();
         }
+
+        // Watchdog: si el compositor no dispara `playing`, la partida no se
+        // queda congelada en "Preparando canción".
+        setTimeout(() => {
+          if (myGeneration !== karaokeGeneration || karaokeStarted) return;
+          console.warn('[Karaoke] Video sin evento playing; arrancando respaldo.');
+          if (!timerInterval) startKaraokeTimer(videoUrl ? video : null, song);
+          markKaraokeStarted();
+        }, 8000);
       });
     });
   };
 
-  // EMO MODE: Diario Secreto (Round 1) y Dedicatoria (Round 2)
-  if (state.gameMode === 'emo') {
-    if (state.round === 1) {
-      const overlay = document.getElementById('emo-diary-overlay');
-      const textEl = document.getElementById('emo-diary-text');
-      if (overlay && textEl) {
-        const selected = EMO_DIARY_LINES[Math.floor(Math.random() * EMO_DIARY_LINES.length)];
-        const diaryText = selected.text || selected;
-        const file = selected.file || null;
-        textEl.textContent = `"${diaryText}"`;
-        overlay.style.display = 'flex';
-        
-        if (file && typeof axoloSay === 'function') {
-          axoloSay(diaryText, file, 5000, true);
-        }
-        
-        setTimeout(() => {
-          overlay.style.display = 'none';
-          proceedWithKaraoke();
-        }, 5000);
-      } else {
-        console.warn('[EMO] Diary overlay missing, continuing karaoke');
-        proceedWithKaraoke();
+  // ── Presentación de Axolo (una sola voz, sin solapar con el video) ──
+  let introDone = Promise.resolve();
+  if (state.gameMode === 'emo' && (state.round === 1 || state.round === 2)) {
+    const isDiary = state.round === 1;
+    const overlay = document.getElementById(isDiary ? 'emo-diary-overlay' : 'emo-dedication-overlay');
+    const textEl = document.getElementById(isDiary ? 'emo-diary-text' : 'emo-dedication-text');
+    if (overlay && textEl) {
+      const selected = (isDiary ? EMO_DIARY_LINES : EMO_DEDICATIONS)[
+        Math.floor(Math.random() * (isDiary ? EMO_DIARY_LINES : EMO_DEDICATIONS).length)
+      ];
+      const lineText = selected.text || selected;
+      const file = selected.file || null;
+      textEl.textContent = `"${lineText}"`;
+      overlay.style.display = 'flex';
+      if (file && typeof axoloSay === 'function') {
+        axoloSay(lineText, file, 5000, true);
       }
-    } else if (state.round === 2) {
-      const overlay = document.getElementById('emo-dedication-overlay');
-      const textEl = document.getElementById('emo-dedication-text');
-      if (overlay && textEl) {
-        const selected = EMO_DEDICATIONS[Math.floor(Math.random() * EMO_DEDICATIONS.length)];
-        const dedicationText = selected.text || selected;
-        const file = selected.file || null;
-        textEl.textContent = `"${dedicationText}"`;
-        overlay.style.display = 'flex';
-        
-        if (file && typeof axoloSay === 'function') {
-          axoloSay(dedicationText, file, 5000, true);
-        }
-        
-        setTimeout(() => {
-          overlay.style.display = 'none';
-          proceedWithKaraoke();
-        }, 5000);
-      } else {
-        console.warn('[EMO] Dedication overlay missing, continuing karaoke');
-        proceedWithKaraoke();
-      }
-    } else {
-      proceedWithKaraoke();
+      introDone = Promise.all([
+        new Promise(resolve => setTimeout(resolve, 5000)),
+        FlowDirector.whenVoiceIdle(20000),
+      ]).then(() => {
+        overlay.style.display = 'none';
+      });
     }
   } else {
-    proceedWithKaraoke();
+    const choice = AXOLO_SINGER_INTROS[Math.floor(Math.random() * AXOLO_SINGER_INTROS.length)];
+    axoloSay(choice.text, choice.file);
+    introDone = FlowDirector.whenVoiceIdle(20000);
   }
+
+  await introDone;
+  if (myGeneration !== karaokeGeneration) return;
+  // Salvavidas: si un MP3 se quedó colgado, no solapamos voz con la canción.
+  if (window.AxoloNarrator.isBusy()) {
+    console.warn('[Karaoke] Introducción excedió la espera; liberando audio para no solapar.');
+    _stopCurrentAxolo();
+  }
+  proceedWithKaraoke();
 }
 
-function startVotePhase(player, song) {
+async function startVotePhase(player, song) {
   if (songEnded) return;
   songEnded = true;
   votePhaseActive = true;
@@ -943,8 +993,7 @@ function startVotePhase(player, song) {
   clearInterval(timerInterval);
   timerInterval = null;
   if (blackoutTimeout) { clearTimeout(blackoutTimeout); blackoutTimeout = null; }
-  _stopCurrentAxolo();
-  stopAllSfx();
+
   const mouthCss = document.getElementById('axolo-mouth-css');
   if (mouthCss) mouthCss.classList.remove('open');
   document.getElementById('lyrics-text').classList.remove('blackout');
@@ -959,6 +1008,24 @@ function startVotePhase(player, song) {
   video.style.filter = '';
   video.pause();
   video.removeAttribute('src');
+  stopAllSfx(450);
+
+  FlowDirector.enter('vote_pending', {
+    singerSocketId: player.socketId,
+    label: 'Cerrando actuación',
+  });
+
+  // Si un reto o apagón estaba narrando, se deja terminar. Antes se cortaba
+  // la voz a la mitad para abrir la votación.
+  await FlowDirector.whenVoiceIdle(15000);
+  if (!votePhaseActive) return;
+
+  FlowDirector.enter('vote', {
+    action: 'end_vote',
+    run: () => { songEnded = false; endSong(player); },
+    singerSocketId: player.socketId,
+    label: 'Votación',
+  });
 
   socket.emit('tv:broadcast', {
     roomCode: state.roomCode,
@@ -975,13 +1042,9 @@ function startVotePhase(player, song) {
   }
   axoloSay(votePrompt.text, votePrompt.file);
 
-  if (votePhaseTimeout) clearTimeout(votePhaseTimeout);
-  votePhaseTimeout = setTimeout(() => {
-    if (!votePhaseActive) return;
-    votePhaseActive = false;
-    songEnded = false;
-    endSong(player);
-  }, VOTE_PHASE_DURATION);
+  // La votación cierra sola. El mínimo cuenta desde que termina la voz de
+  // Axolo, así el prompt nunca se corta.
+  FlowDirector.armAuto({ minMs: VOTE_PHASE_DURATION, holdMs: 500 });
 }
 
 function showAudioOnlyPlaceholder(song) {
@@ -996,33 +1059,49 @@ function showAudioOnlyPlaceholder(song) {
 
 function startKaraokeTimer(video, song) {
   if (timerInterval) clearInterval(timerInterval);
-  const duration = Math.floor((video && video.duration) || song?.duration || 120);
-  let elapsed = 0;
-  let timerBcastTick = 0;
+  const fallbackDuration = Math.floor(song?.duration || 120);
+  let wallElapsed = 0;
+  let lastBroadcastSecond = -1;
 
+  // El reloj se basa en video.currentTime, no en un contador de pared.
+  // Si el video se bufferea o se pausa, la letra y los retos respetan el
+  // tiempo real de la canción.
   timerInterval = setInterval(() => {
-    elapsed++;
-    timerBcastTick++;
+    wallElapsed += 0.5;
+    let elapsed;
+    let duration;
+    const hasVideoClock = video && !video.error && isFinite(video.duration) && video.duration > 0;
+    if (hasVideoClock) {
+      elapsed = video.currentTime || 0;
+      duration = video.duration;
+    } else {
+      elapsed = wallElapsed;
+      duration = fallbackDuration;
+    }
+
     const remaining = Math.max(0, Math.floor(duration - elapsed));
     const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
     const ss = String(remaining % 60).padStart(2, '0');
-    document.getElementById('hud-timer').textContent = `${mm}:${ss}`;
+    const timerEl = document.getElementById('hud-timer');
+    if (timerEl) timerEl.textContent = `${mm}:${ss}`;
 
-    if (timerBcastTick % 3 === 0 && state.roomCode) {
+    const wholeElapsed = Math.floor(elapsed);
+    if (wholeElapsed !== lastBroadcastSecond && (wholeElapsed % 3 === 0) && state.roomCode) {
+      lastBroadcastSecond = wholeElapsed;
       socket.emit('tv:broadcast', {
         roomCode: state.roomCode,
         event: 'SONG_TIMER',
-        data: { active: true, elapsed, duration },
+        data: { active: true, elapsed: wholeElapsed, duration },
       });
     }
 
-    // Ronda 1: fire challenge at halfway
+    // Ronda 1: reto a la mitad de la canción
     if (state.round === 1 && !challengeFired && elapsed >= duration * 0.5) {
       challengeFired = true;
       fireChallenge();
     }
 
-    // Ronda 3: blackout at random point between 40-60%
+    // Ronda 3: blackout entre 40-60%
     if (state.round === 3 && !blackoutFired && elapsed >= duration * 0.4) {
       blackoutFired = true;
       if (state.gameMode === 'emo') {
@@ -1034,10 +1113,11 @@ function startKaraokeTimer(video, song) {
 
     if (remaining <= 0) {
       clearInterval(timerInterval);
+      timerInterval = null;
       const fallbackSinger = currentSongPerformer || state.singerQueue[state.currentSingerIdx % state.singerQueue.length] || state.players.find(p => !p.disconnected);
       startVotePhase(fallbackSinger, song);
     }
-  }, 1000);
+  }, 500);
 }
 
 function fireChallenge() {
@@ -1090,7 +1170,7 @@ function fireEmoRain() {
 
   if (typeof axoloSay === 'function') {
     if (file) {
-      axoloSay(reto, file, 5000, true);
+      axoloSay(reto, file, 5000);
     } else {
       const p = EMO_MODE_PHRASES.blackout ? EMO_MODE_PHRASES.blackout[Math.floor(Math.random() * EMO_MODE_PHRASES.blackout.length)] : { text: "Lluvia dramática. Sufre." };
       axoloSay(p.text, p.file);
@@ -1146,12 +1226,12 @@ function fireBlackout() {
 function endSong(player) {
   if (songEnded) return;
   songEnded = true;
+  votePhaseActive = false;
   clearInterval(timerInterval);
   timerInterval = null;
   const errBanner = document.getElementById('video-error-banner');
   if (errBanner) errBanner.classList.remove('visible');
   if (blackoutTimeout) { clearTimeout(blackoutTimeout); blackoutTimeout = null; }
-  _stopCurrentAxolo();
   const mouthCss = document.getElementById('axolo-mouth-css');
   if (mouthCss) mouthCss.classList.remove('open');
   document.getElementById('lyrics-text').classList.remove('blackout');
@@ -1240,6 +1320,13 @@ function endSong(player) {
   saveGameState();
   overlay.classList.add('visible');
 
+  FlowDirector.enter('scoreboard', {
+    action: 'next',
+    run: () => nextTurn(),
+    singerSocketId: player.socketId,
+    label: 'Resultados de ' + player.name,
+  });
+
   socket.emit('tv:broadcast', {
     roomCode: state.roomCode,
     event: 'SHOW_SCOREBOARD',
@@ -1252,15 +1339,21 @@ function endSong(player) {
   const endMsg = avgScore > 70 ? voteReact : genreBark;
   axoloSay(endMsg.text, endMsg.file);
 
-  if (scoreboardTimeout) clearTimeout(scoreboardTimeout);
+  if (scoreboardTimeout) { clearTimeout(scoreboardTimeout); scoreboardTimeout = null; }
   const ceremonyDuration = 300 + singerVotes.length * 250 + 900;
-  scoreboardTimeout = setTimeout(() => { nextTurn(); }, Math.max(ceremonyDuration + 4000, 12000));
+  // El siguiente turno avanza solo, pero nunca antes de que Axolo termine su
+  // reacción ni antes de que la tabla termine de animarse.
+  FlowDirector.armAuto({
+    minMs: Math.max(ceremonyDuration + 2500, 5000),
+    holdMs: 3000,
+  });
 }
 
 document.getElementById('continue-btn').addEventListener('click', () => {
   UISounds.click();
-  if (scoreboardTimeout) clearTimeout(scoreboardTimeout);
-  nextTurn();
+  if (!FlowDirector.request('next')) {
+    updateTicker('El siguiente turno avanza solo en un momento…');
+  }
 });
 
 function nextTurn() {
@@ -1269,11 +1362,11 @@ function nextTurn() {
   if (typeof bootMusic !== 'undefined' && bootMusic && !bootMusic.paused) {
     bootMusic.pause();
   }
-  _stopCurrentAxolo();
-  stopAllSfx();
-  if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
-  if (rouletteResultTimeout) clearTimeout(rouletteResultTimeout);
-  if (scoreboardTimeout) clearTimeout(scoreboardTimeout);
+  FlowDirector.enter('round_transition', { label: 'Cambio de turno' });
+  stopAllSfx(450);
+  if (rouletteAutoSpinTimeout) { clearTimeout(rouletteAutoSpinTimeout); rouletteAutoSpinTimeout = null; }
+  if (rouletteResultTimeout) { clearTimeout(rouletteResultTimeout); rouletteResultTimeout = null; }
+  if (scoreboardTimeout) { clearTimeout(scoreboardTimeout); scoreboardTimeout = null; }
   if (blackoutTimeout) { clearTimeout(blackoutTimeout); blackoutTimeout = null; }
 
   document.getElementById('scoreboard-overlay').classList.remove('visible');
@@ -1301,7 +1394,7 @@ function nextTurn() {
         state.singerQueue = [...state.players.filter(p => !p.disconnected)].sort(() => Math.random() - 0.5);
     saveGameState();
 
-    showRoundSplash(state.round, () => { startRoulette(); });
+    showRoundSplash(state.round, () => { startRoulette(true); });
     const rStartIdx = Math.floor(Math.random() * 2);
     let rStartText = '';
     let barkFile = `round_${state.round}_start_${rStartIdx}.mp3`;
@@ -1345,6 +1438,7 @@ let podiumBgm = null;
 
 function showPodium() {
   if (typeof bootMusic !== 'undefined' && bootMusic) { bootMusic.pause(); }
+  FlowDirector.enter('podium', { label: 'Premiación' });
   sting('sting_podium', 0.5);
   clearSavedGame();
   if (podiumBgm) { podiumBgm.pause(); podiumBgm.currentTime = 0; podiumBgm = null; }
@@ -1445,19 +1539,12 @@ function showPodium() {
    */
   function waitForAxoloAudio(bufferMs) {
     bufferMs = bufferMs || 800;
-    const started = Date.now();
-    const maxWaitMs = 60000;
-    return new Promise(resolve => {
-      (function poll() {
-        const queuePending = typeof axoloQueue !== 'undefined' && axoloQueue.length > 0;
-        const playing = !!currentAxoloAudio || queuePending;
-        if (!playing || Date.now() - started > maxWaitMs) {
-          setTimeout(resolve, bufferMs);
-          return;
-        }
-        setTimeout(poll, 120);
-      })();
-    });
+    // Espera a que termine la voz Y la cola. El límite de 60s evita que un
+    // MP3 corrupto congele la ceremonia.
+    const waitVoice = (window.AxoloNarrator && typeof window.AxoloNarrator.whenIdle === 'function')
+      ? window.AxoloNarrator.whenIdle({ maxMs: 60000 })
+      : Promise.resolve(true);
+    return waitVoice.then(() => new Promise(resolve => setTimeout(resolve, bufferMs)));
   }
 
   async function runCeremony() {
@@ -1848,10 +1935,10 @@ function showPodium() {
     setTimeout(()=>{RitmikaStyleFX.confettiBurst(window.innerWidth/2,0,{count:80});},500);
     setTimeout(()=>{RitmikaStyleFX.confettiBurst(window.innerWidth*0.2,0,{count:40});},1200);
     setTimeout(()=>{RitmikaStyleFX.confettiBurst(window.innerWidth*0.8,0,{count:40});},1800);
-    restartBtn.addEventListener('click',()=>{
+    const restartGame = () => {
       stopMouthAnimation();
       _stopCurrentAxolo();
-      stopAllSfx();
+      stopAllSfx(300);
       if(starFrameId) cancelAnimationFrame(starFrameId);
       if(axoloOverlay) axoloOverlay.style.zIndex='';
       const podiumToRemove=document.getElementById('podium-screen');
@@ -1861,13 +1948,25 @@ function showPodium() {
       state.singerQueue=[];state.audioSabotageCount=0;state.tomatazoCounts={};
       socket.emit('tv:create_room');
       showScreen('lobby-screen');
+      FlowDirector.enter('lobby', { label: 'Sala de espera' });
       if (typeof bootMusic !== 'undefined' && bootMusic) {
         bootMusic.volume = 0.22;
         bootMusic.play().catch(()=>{});
       }
       const newGameChoice=NEW_GAMES[Math.floor(Math.random()*NEW_GAMES.length)];
       axoloSay(newGameChoice.text,newGameChoice.file,4000,true);
+    };
+    restartBtn.addEventListener('click',()=>{
+      if (!FlowDirector.request('new_game')) {
+        updateTicker('La nueva partida se habilita al terminar el podio…');
+      }
     });
+    FlowDirector.enter('podium_final', {
+      action: 'new_game',
+      run: restartGame,
+      label: 'Podio final',
+    });
+    FlowDirector.makeReady();
     socket.emit('tv:broadcast',{
       roomCode:state.roomCode,event:'GAME_OVER',
       data:{results:sorted.map((p,i)=>({socketId:p.socketId,name:p.name,score:p.score,

@@ -5,6 +5,9 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 ## [Unreleased]
 
 ### Added
+- Director de fases (`public/js/tv/flow.js`) que espera a que termine la voz de Axolo antes de avanzar, calcula pausas sobre el audio real y transmite `PHASE_STATE` a los celulares.
+- Controles móviles de flujo: girar ruleta, iniciar canción y siguiente turno, habilitados solo cuando la TV confirma que el audio terminó.
+- Indicador de avance automático en la TV y cuenta regresiva de la fase.
 - 670 pistas Party Tyme importadas a R2 y SQLite (catálogo en 4.515 canciones)
 - Modos Dolidas & Rancheras y Nostalgia Pop habilitados en TV con temas visuales y rondas temáticas
 - Etiquetado de modos: 1.057 ranchera, 299 nostalgia, 58 emo, 1 anime
@@ -12,10 +15,22 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Índices SQLite para `LOWER(genre)`, `LOWER(mode)`, `artist` y `title`
 
 ### Changed
+- La canción ya no arranca en silencio mientras Axolo presenta: el video espera pausado en 0 y empieza cuando termina la voz.
+- El temporizador del karaoke usa `video.currentTime` (respeta buffering/pausas) en vez de un contador de pared.
+- La votación, el scoreboard y el podio esperan a la narración completa; ya no se cortan prompts ni reacciones.
+- El cantante puede iniciar su canción desde el celular (antes el servidor solo aceptaba al host).
+- El primer humano en entrar es host aunque existan bots de prueba.
+- `stopAllSfx` hace fade-out en vez de cortar el ambiente de golpe.
 - Limpieza de 1.933 títulos legacy (`low`, `multi`, `estilo de`, `pista y letra`, etc.)
 - Normalización de 84 artistas duplicados (Wisin & Yandel, Los Tigres del Norte, Paquita, etc.)
 - Corrección de 96 canciones con género mal etiquetado (Emmanuel, Rihanna, Nicky Jam, etc.)
 - Regenerado `artist-metadata.json` (643 artistas únicos)
+
+### Fixed
+- Audios de Axolo cortados por tiempos fijos de 8s/10s/12s.
+- Video del karaoke empezando antes que la presentación, con letra desfasada.
+- Botón "¡Estoy listo!" del cantante que el servidor rechazaba por no ser host.
+- Cola de voz que descartaba frases completas al llegar una nueva.
 
 ## [1.0.1] - 2026-06-20
 

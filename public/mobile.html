@@ -1113,6 +1113,7 @@ function applyMobileModeTheme() {
     <span class="text-5xl">🎯</span>
     <h2 class="text-2xl font-black mt-2" style="color:#facc15;">Fuego Cruzado</h2>
     <p class="text-sm mt-1" style="color:#64748b;">Elige a quién atacar y con qué canción</p>
+    <p id="assign-flow-status" class="text-xs mt-2" style="color:#94a3b8;"></p>
   </div>
 
   <!-- Target player -->
@@ -1268,6 +1269,19 @@ const me = {
 };
 
 let roomPlayers = [];
+
+// Estado de fase que transmite la TV. Permite que los botones del celular se
+// habiliten exactamente cuando el audio de Axolo terminó, sin cortar voces.
+const flowState = {
+  phase: 'lobby',
+  label: '',
+  hint: '',
+  action: null,
+  canAct: false,
+  singerSocketId: null,
+  autoAtLocal: 0,
+  narration: false,
+};
 
 function isVip() {
   return me.isHost === true;
@@ -1432,6 +1446,17 @@ function handleGameEvent(event, data) {
       showToast('🗳️ ¡Vota ahora!');
       break;
 
+    case 'PHASE_STATE':
+      applyPhaseState(data);
+      break;
+
+    case 'KARAOKE_PREP':
+      me.currentSingerSocketId = data.socketId;
+      me.hasVoted = false;
+      updateContextCard('KARAOKE_PREP', data);
+      goToScreen('screen-controls');
+      break;
+
     case 'KARAOKE_START':
       me.currentSingerSocketId = data.socketId;
       me.hasVoted = false;
@@ -1449,6 +1474,7 @@ function handleGameEvent(event, data) {
     case 'ROUND_2_ASSIGN':
       renderAssignScreen(data.players, data.songs);
       goToScreen('screen-assign');
+      if (typeof renderFlowControls === 'function') renderFlowControls();
       break;
 
     case 'GAME_OVER':
@@ -1458,13 +1484,11 @@ function handleGameEvent(event, data) {
 
     case 'PLAYER_JOINED':
       roomPlayers = data.players || [];
-      me.isHost = roomPlayers.length > 0 && roomPlayers[0].socketId === socket.id;
       updateWaitingRoomPlayers(data.players);
       break;
     
     case 'PLAYER_LEFT':
       roomPlayers = data.players || [];
-      me.isHost = roomPlayers.length > 0 && roomPlayers[0].socketId === socket.id;
       updateWaitingRoomPlayers(data.players);
       break;
 
@@ -1538,10 +1562,13 @@ function updateContextCard(event, data) {
   const attachStartSongListener = () => {
     const btn = document.getElementById('btn-action-start-song');
     if (btn) {
+      // Se habilita cuando la TV confirma que la voz de Axolo terminó.
+      btn.disabled = true;
+      btn.textContent = '⏳ Un momento…';
       btn.onclick = () => {
         socket.emit('player:start_song', { roomCode: me.roomCode });
         btn.disabled = true;
-        btn.textContent = 'Enviando...';
+        btn.textContent = 'Iniciando…';
       };
     }
   };
@@ -1552,14 +1579,25 @@ function updateContextCard(event, data) {
       if (emojiBar) emojiBar.classList.add('hidden');
       if (sabotageSec) sabotageSec.classList.add('hidden');
       if (voteSec) voteSec.classList.add('hidden');
-      
+
+      const spinHost = isVip();
       card.innerHTML = `
         <div class="text-center py-2">
           <span class="text-3xl inline-block animate-bounce mb-2">🎰</span>
           <p class="font-bold text-slate-200">La ruleta está girando en la TV...</p>
           <p class="text-xs text-slate-500 mt-1">¡Prepárate para la acción!</p>
+          ${spinHost ? `<button id="btn-action-spin" class="btn-primary mt-3 w-full" disabled style="background:linear-gradient(135deg,#22c55e,#16a34a); color:white; border:3px solid #111827; box-shadow:3px 3px 0px #111827;">⏳ Un momento…</button>` : ''}
+          <p id="flow-status-line" class="text-xs mt-3 text-slate-500 italic"></p>
         </div>
       `;
+      const spinBtn = document.getElementById('btn-action-spin');
+      if (spinBtn) {
+        spinBtn.onclick = () => {
+          socket.emit('player:spin_roulette', { roomCode: me.roomCode });
+          spinBtn.disabled = true;
+          spinBtn.textContent = 'Girando…';
+        };
+      }
       break;
 
     case 'SINGER_SELECTED':
@@ -1579,6 +1617,7 @@ function updateContextCard(event, data) {
             <button id="btn-action-start-song" class="btn-primary mt-3 w-full" style="background:linear-gradient(135deg,#ffe600,#facc15); color:#111827; border:3px solid #111827; box-shadow:3px 3px 0px #111827;">
               🚀 ¡Estoy listo!
             </button>
+            <p id="flow-status-line" class="text-xs mt-2 text-slate-500 italic"></p>
           </div>
         `;
         attachStartSongListener();
@@ -1590,6 +1629,7 @@ function updateContextCard(event, data) {
             <button id="btn-action-start-song" class="btn-primary mt-3 w-full" style="background:linear-gradient(135deg,#ffe600,#facc15); color:#111827; border:3px solid #111827; box-shadow:3px 3px 0px #111827;">
               Iniciar Canción ➔
             </button>
+            <p id="flow-status-line" class="text-xs mt-2 text-slate-500 italic"></p>
           </div>
         `;
         attachStartSongListener();
@@ -1599,9 +1639,26 @@ function updateContextCard(event, data) {
             <p class="text-lg font-black text-slate-200">Turno de: ${data.name}</p>
             <p class="text-sm mt-1 text-slate-400">Canción: <b>${data.song ? data.song.title : 'Elección Libre'}</b></p>
             <p class="text-xs mt-3 text-slate-500 italic">Esperando inicio de canción...</p>
+            <p id="flow-status-line" class="text-xs mt-2 text-slate-500 italic"></p>
           </div>
         `;
       }
+      break;
+
+    case 'KARAOKE_PREP':
+      document.getElementById('current-singer-name').textContent = data.name;
+      if (emojiBar) emojiBar.classList.add('hidden');
+      if (sabotageSec) sabotageSec.classList.add('hidden');
+      if (voteSec) voteSec.classList.add('hidden');
+      card.classList.remove('hidden');
+      card.innerHTML = `
+        <div class="text-center py-3">
+          <span class="text-3xl inline-block animate-bounce mb-2">🎬</span>
+          <p class="text-lg font-black" style="color:#22d3ee;">Preparando el escenario</p>
+          <p class="text-sm mt-1 text-slate-200">${escapeHtml(data.name || '')} va a cantar: <b>${data.song ? escapeHtml(data.song.title) : 'Elección Libre'}</b></p>
+          <p id="flow-status-line" class="text-xs mt-3 text-slate-500 italic"></p>
+        </div>
+      `;
       break;
 
     case 'KARAOKE_START':
@@ -1647,6 +1704,7 @@ function updateContextCard(event, data) {
         <div class="text-center py-2">
           <p class="text-lg font-black text-yellow-500">🗳️ ¡VOTA AHORA!</p>
           <p class="text-xs text-slate-400 mt-1">¿Cómo le fue a ${data.performerName || 'el cantante'}?</p>
+          <p id="flow-status-line" class="text-xs mt-2 text-slate-500 italic"></p>
         </div>
       `;
       break;
@@ -1667,9 +1725,10 @@ function updateContextCard(event, data) {
           <div class="text-center py-2">
             <p class="text-lg font-black text-yellow-500">📊 Resultados en TV</p>
             <p class="text-xs text-slate-400 mt-1">Viendo la tabla de puntuaciones...</p>
-            <button id="btn-action-next-turn" class="btn-primary mt-3 w-full" style="background:linear-gradient(135deg,#ec4899,#a855f7); color:white; border:3px solid #111827; box-shadow:3px 3px 0px #111827;">
-              Siguiente Turno ➔
+            <button id="btn-action-next-turn" class="btn-primary mt-3 w-full" disabled style="background:linear-gradient(135deg,#ec4899,#a855f7); color:white; border:3px solid #111827; box-shadow:3px 3px 0px #111827;">
+              ⏳ Cerrando ronda…
             </button>
+            <p id="flow-status-line" class="text-xs mt-2 text-slate-500 italic"></p>
           </div>
         `;
         const btnNext = document.getElementById('btn-action-next-turn');
@@ -1686,6 +1745,7 @@ function updateContextCard(event, data) {
             <p class="text-lg font-black text-slate-200">📊 Fin de la canción</p>
             <p class="text-xs text-slate-400 mt-1">Viendo la tabla de puntuaciones en la TV...</p>
             <p class="text-xs mt-3 text-slate-500 italic">El presentador avanzará la ronda en breve.</p>
+            <p id="flow-status-line" class="text-xs mt-1 text-slate-500 italic"></p>
           </div>
         `;
       }
@@ -1694,10 +1754,125 @@ function updateContextCard(event, data) {
     default:
       card.classList.add('hidden');
   }
+
+  // Refrescar textos/botones con el último PHASE_STATE recibido.
+  if (typeof renderFlowControls === 'function') renderFlowControls();
 }
+
+// ── ESTADO DE FASE (control móvil sin tocar la TV) ────────
+function applyPhaseState(data) {
+  if (!data) return;
+  flowState.phase = data.phase || flowState.phase;
+  flowState.label = data.label || '';
+  flowState.hint = data.hint || '';
+  flowState.action = data.action || null;
+  flowState.canAct = data.canAct === true;
+  flowState.singerSocketId = data.singerSocketId || null;
+  flowState.narration = data.narration === true;
+  flowState.autoAtLocal = (data.canAct && data.autoInMs) ? Date.now() + data.autoInMs : 0;
+  renderFlowControls();
+}
+
+function setFlowLine(text) {
+  const line = document.getElementById('flow-status-line');
+  if (line) line.textContent = text;
+  const assignLine = document.getElementById('assign-flow-status');
+  if (assignLine) assignLine.textContent = text;
+}
+
+function renderFlowControls() {
+  const isHost = isVip();
+  const isSinger = me.currentSingerSocketId && me.currentSingerSocketId === socket.id;
+
+  // Botón de ruleta (solo host)
+  const spinBtn = document.getElementById('btn-action-spin');
+  if (spinBtn) {
+    if (!isHost) {
+      spinBtn.classList.add('hidden');
+    } else if (flowState.action === 'spin') {
+      spinBtn.classList.remove('hidden');
+      spinBtn.disabled = !flowState.canAct;
+      spinBtn.textContent = flowState.canAct ? '🎰 Girar ahora' : '⏳ Axolo está presentando…';
+    } else {
+      spinBtn.classList.add('hidden');
+    }
+  }
+
+  // Botones de "empezar canción" (cantante y host)
+  document.querySelectorAll('#btn-action-start-song').forEach(btn => {
+    if (flowState.action !== 'start_song') return;
+    const canUse = isHost || isSinger;
+    btn.disabled = !canUse || !flowState.canAct;
+    if (!canUse) {
+      btn.classList.add('hidden');
+    } else {
+      btn.classList.remove('hidden');
+      const base = isSinger ? '🚀 ¡Estoy listo!' : '▶️ Iniciar canción';
+      btn.textContent = flowState.canAct ? base : '⏳ Escuchando a Axolo…';
+    }
+  });
+
+  // Botón de siguiente turno (solo host)
+  const nextBtn = document.getElementById('btn-action-next-turn');
+  if (nextBtn) {
+    nextBtn.disabled = !isHost || !flowState.canAct;
+    nextBtn.textContent = flowState.canAct ? 'Siguiente Turno ➔' : '⏳ Cerrando ronda…';
+    if (!isHost) nextBtn.classList.add('hidden');
+  }
+
+  // Reinicio en el podio: solo cuando la ceremonia terminó.
+  const playAgainBtn = document.getElementById('btn-play-again');
+  if (playAgainBtn && isHost) {
+    playAgainBtn.disabled = !(flowState.action === 'new_game' && flowState.canAct);
+  }
+
+  // Texto de estado según la fase
+  let text = '';
+  if (flowState.phase === 'roulette_wait') {
+    text = flowState.canAct
+      ? 'La ruleta puede girar ya. Si no haces nada, avanza sola.'
+      : 'Axolo está presentando la ronda…';
+  } else if (flowState.phase === 'singer_result') {
+    text = flowState.canAct
+      ? 'Todo listo. La canción empieza sola o pulsa el botón.'
+      : 'Escuchando la presentación de Axolo…';
+  } else if (flowState.phase === 'karaoke_intro') {
+    text = 'Preparando la canción. En cuanto Axolo termine, empieza el video.';
+  } else if (flowState.phase === 'karaoke') {
+    text = 'En vivo. La votación se abre cuando termine la canción.';
+  } else if (flowState.phase === 'vote_pending') {
+    text = 'Cerrando la actuación…';
+  } else if (flowState.phase === 'vote') {
+    text = 'Votación abierta. Cierra automáticamente.';
+  } else if (flowState.phase === 'scoreboard') {
+    text = flowState.canAct
+      ? 'Resultados listos. El siguiente turno avanza solo.'
+      : 'Mostrando resultados y reacción de Axolo…';
+  } else if (flowState.phase === 'round_transition') {
+    text = 'Preparando la siguiente ronda…';
+  } else if (flowState.phase === 'podium' || flowState.phase === 'podium_final') {
+    text = 'Premiación en curso.';
+  }
+  if (text) setFlowLine(text);
+}
+
+function updateFlowCountdown() {
+  if (!flowState.canAct || !flowState.autoAtLocal) return;
+  const secs = Math.ceil((flowState.autoAtLocal - Date.now()) / 1000);
+  if (secs < 0) return;
+  const line = document.getElementById('flow-status-line');
+  if (line && flowState.phase !== 'vote') {
+    line.textContent = `Avanza solo en ${secs}s · también puedes usar el botón`;
+  }
+}
+setInterval(updateFlowCountdown, 500);
 
 function handlePrivateEvent(event, data) {
   switch (event) {
+    case 'PHASE_STATE':
+      applyPhaseState(data);
+      break;
+
     case 'YOUR_TURN':
       showToast('🎤 ¡Es tu turno! ¡A cantar!');
       document.getElementById('current-singer-name').textContent = '¡TÚ! 🎤';
@@ -2567,6 +2742,7 @@ function renderPodium(data) {
       };
     }
   }
+  if (typeof renderFlowControls === 'function') renderFlowControls();
 }
 
 // ── TOAST SYSTEM ─────────────────────────────────────────

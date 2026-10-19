@@ -432,9 +432,17 @@ io.on('connection', (socket) => {
     });
   }
   forwardHostTrigger(EVENTS.PLAYER_START_GAME, EVENTS.TV_START_GAME_TRIGGER);
-  forwardHostTrigger(EVENTS.PLAYER_START_SONG, EVENTS.TV_START_SONG_TRIGGER);
+  forwardHostTrigger(EVENTS.PLAYER_SPIN_ROULETTE, EVENTS.TV_SPIN_ROULETTE_TRIGGER);
   forwardHostTrigger(EVENTS.PLAYER_NEXT_TURN, EVENTS.TV_NEXT_TURN_TRIGGER);
   forwardHostTrigger(EVENTS.PLAYER_NEW_GAME, EVENTS.TV_NEW_GAME_TRIGGER);
+
+  // El cantante (no solo el host) puede dar "¡Estoy listo!".
+  socket.on(EVENTS.PLAYER_START_SONG, ({ roomCode }) => {
+    const room = roomManager.getRoom(sanitizeRoomCode(roomCode));
+    if (!room || !room.players.has(socket.id)) return;
+    roomManager.touch(room);
+    io.to(room.tvSocketId).emit(EVENTS.TV_START_SONG_TRIGGER);
+  });
 
   socket.on('disconnect', () => {
     rateLimiter.clear(socket.id + ':' + EVENTS.PLAYER_TOMATAZO);

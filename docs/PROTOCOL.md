@@ -37,7 +37,7 @@ CORS: `isLocalOrigin()` — permite `localhost`, `127.0.0.1`, `192.168.*`, `10.*
 
 | Evento | Payload | Cooldown | Validación | Relay → TV |
 |---|---|---|---|---|
-| `player:join` | `{ roomCode, name, avatarId }` | — | `room` existe, `name` trim ≤15 sanitizado `<>` fallback `Jugador N`, `avatarId` clamp 0-7 | `player:join_ack` a jugador `{success, roomCode, mode, players}` + `tv:player_joined` a TV `{player, players}`; asigna `hostPlayerSocketId` al primero |
+| `player:join` | `{ roomCode, name, avatarId }` | — | `room` existe, `name` trim ≤15 sanitizado `<>` fallback `Jugador N`, `avatarId` clamp 0-7 | `player:join_ack` a jugador `{success, roomCode, mode, players, isHost}` + `tv:player_joined` a TV `{player, players}`; asigna `hostPlayerSocketId` al primer humano |
 | `player:select_genres` | `{ roomCode, genres:string[] }` | — | `players.has(socket.id)` | `tv:player_genres {socketId, genres}` |
 | `player:select_artists` | `{ roomCode, artists:string[] }` | — | igual | `tv:player_artists {socketId, artists}` |
 | `player:tomatazo` | `{ roomCode, targetName }` | 2000ms (`canAct`) | `players.has` | `tv:tomatazo {attackerName, attackerSocketId, targetName}` (coste descontado en TV) |
@@ -46,9 +46,10 @@ CORS: `isLocalOrigin()` — permite `localhost`, `127.0.0.1`, `192.168.*`, `10.*
 | `player:vote` | `{ roomCode, score, performerSocketId }` | — | `players.has`, `score` clamp `[10,30,60,100]` default 10, `performerSocketId` existe en sala | `tv:vote {voterName, voterSocketId, performerSocketId, score}` |
 | `player:assign_song` | `{ roomCode, targetSocketId, songId }` | — | `players.has(socket.id)` + `players.has(targetSocketId)` + `songId` string ≤100 + existe en `songs.db` si DB ready | `tv:song_assigned {attackerName, attackerSocketId, targetSocketId, songId}` |
 | `player:start_game` | `{ roomCode }` | — | `hostPlayerSocketId === socket.id` | `tv:start_game_trigger` a TV |
-| `player:start_song` | `{ roomCode }` | — | host only | `tv:start_song_trigger` |
-| `player:next_turn` | `{ roomCode }` | — | host only | `tv:next_turn_trigger` |
-| `player:new_game` | `{ roomCode }` | — | host only | `tv:new_game_trigger` |
+| `player:start_song` | `{ roomCode }` | 800ms | cualquier jugador de la sala; la TV valida la fase | `tv:start_song_trigger` |
+| `player:spin_roulette` | `{ roomCode }` | 900ms | host only; la TV valida la fase | `tv:spin_roulette_trigger` |
+| `player:next_turn` | `{ roomCode }` | 900ms | host only; la TV valida la fase | `tv:next_turn_trigger` |
+| `player:new_game` | `{ roomCode }` | 1500ms | host only (local acepta cualquier jugador al final) | `tv:new_game_trigger` |
 
 ---
 
@@ -67,7 +68,8 @@ CORS: `isLocalOrigin()` — permite `localhost`, `127.0.0.1`, `192.168.*`, `10.*
 | `tv:vote` | `{ voterName, voterSocketId, performerSocketId, score }` | `player:vote` |
 | `tv:song_assigned` | `{ attackerName, attackerSocketId, targetSocketId, songId }` | `player:assign_song` |
 | `tv:start_game_trigger` | `{}` | `player:start_game` (host) |
-| `tv:start_song_trigger` | `{}` | `player:start_song` (host) |
+| `tv:start_song_trigger` | `{}` | `player:start_song` (cantante u host) |
+| `tv:spin_roulette_trigger` | `{}` | `player:spin_roulette` (host) |
 | `tv:next_turn_trigger` | `{}` | `player:next_turn` (host) |
 | `tv:new_game_trigger` | `{}` | `player:new_game` (host) |
 
@@ -77,7 +79,7 @@ CORS: `isLocalOrigin()` — permite `localhost`, `127.0.0.1`, `192.168.*`, `10.*
 
 | Evento | Payload | Origen |
 |---|---|---|
-| `player:join_ack` | `{ success:boolean, roomCode?, mode?, players?, error? }` | `player:join` (éxito o `Sala no encontrada`) |
+| `player:join_ack` | `{ success:boolean, roomCode?, mode?, players?, isHost?, error? }` | `player:join` (éxito o `Sala no encontrada`) |
 | `game:started` | `{ message }` | `tv:start_game` (broadcast a sala) |
 | `game:update` | `{ event:string, data:object }` | `tv:broadcast` (re-emitido a jugadores) |
 | `game:private` | `{ event:string, data:object }` | `tv:send_to_player` (sub-eventos abajo) |

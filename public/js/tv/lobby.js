@@ -319,6 +319,10 @@ let axoloQueue = [];
 let _axoloAudioDoneResolve = null;
 let cutinTimeout = null;
 let _queueDrainTimeout = null;
+// Estado real de reproducción de la voz. No dependemos de `currentAxoloAudio`
+// porque el objeto queda vivo (pausado o terminado) y los temporizadores de
+// fase creían que Axolo seguía hablando.
+let _axoloPlayback = null;
 
 // Programmatic Web Audio Synthesizer — singleton AudioContext to avoid leaks
 let _swooshCtx = null;
@@ -568,88 +572,189 @@ function setAxoloPreset() {}
 function _playAxoloAudio(texto, audioFileOrMood) {
   const cleanName = audioFileOrMood.replace(/\.(wav|mp3)$/i, '') + '.mp3';
   const audioUrl = `./assets/audio/${cleanName}`;
-  currentAxoloAudio = new Audio(audioUrl);
+  const audio = new Audio(audioUrl);
+  currentAxoloAudio = audio;
+  _axoloPlayback = {
+    audio,
+    file: cleanName,
+    durationMs: null,
+    startedAt: null,
+    active: true,
+  };
 
   const emotion = AXOLO_PRESET_MAP[audioFileOrMood] || 'talking';
   triggerTioAxolCutin(texto, 'manual', emotion);
   duckSfx();
 
-  currentAxoloAudio.addEventListener('play', () => {
+  audio.addEventListener('loadedmetadata', function () {
+    if (_axoloPlayback && _axoloPlayback.audio === audio && isFinite(audio.duration)) {
+      _axoloPlayback.durationMs = Math.round(audio.duration * 1000);
+    }
+  }, { once: true });
+
+  audio.addEventListener('playing', function () {
+    if (_axoloPlayback && _axoloPlayback.audio === audio) {
+      _axoloPlayback.startedAt = Date.now();
+      _axoloPlayback.active = true;
+    }
     duckSfx();
   }, { once: true });
 
-  currentAxoloAudio.addEventListener('ended', function() {
+  audio.addEventListener('ended', function () {
     const self = this;
     window.welcomePlaying = false;
-    hideTioAxolCutin();
-    unduckSfx();
+    if (_axoloPlayback && _axoloPlayback.audio === audio) {
+      _axoloPlayback.active = false;
+      _axoloPlayback.endedAt = Date.now();
+    }
     if (_axoloAudioDoneResolve) {
       const cb = _axoloAudioDoneResolve;
       _axoloAudioDoneResolve = null;
       cb();
     }
     if (axoloQueue.length > 0) {
+      // Mantener el cut-in visible entre frases para que no parpadee.
       const next = axoloQueue.shift();
-      _queueDrainTimeout = setTimeout(() => { _queueDrainTimeout = null; _playAxoloAudio(next.text, next.audioFile); }, 400);
+      _queueDrainTimeout = setTimeout(() => {
+        _queueDrainTimeout = null;
+        _playAxoloAudio(next.text, next.audioFile);
+      }, 400);
     } else {
+      hideTioAxolCutin();
+      unduckSfx();
       if (currentAxoloAudio === self) currentAxoloAudio = null;
+      _axoloPlayback = null;
     }
   }, { once: true });
 
-  currentAxoloAudio.addEventListener('pause', () => {
-    hideTioAxolCutin();
-    unduckSfx();
+  audio.addEventListener('pause', function () {
+    window.welcomePlaying = false;
+    if (_axoloPlayback && _axoloPlayback.audio === audio) {
+      _axoloPlayback.active = false;
+    }
+    if (axoloQueue.length === 0) {
+      hideTioAxolCutin();
+      unduckSfx();
+    }
+    if (currentAxoloAudio === audio) currentAxoloAudio = null;
+    _axoloPlayback = null;
   }, { once: true });
 
-  currentAxoloAudio.addEventListener('error', function() {
+  audio.addEventListener('error', function () {
     const self = this;
     window.welcomePlaying = false;
     console.warn('[Voice] Audio not found:', audioUrl);
     setTimeout(() => {
-      if (currentAxoloAudio !== self) return;
-      hideTioAxolCutin();
-      unduckSfx();
+      if (currentAxoloAudio !== self && _axoloPlayback && _axoloPlayback.audio !== self) return;
+      _axoloPlayback = null;
       if (axoloQueue.length > 0) {
         const next = axoloQueue.shift();
-        _queueDrainTimeout = setTimeout(() => { _queueDrainTimeout = null; _playAxoloAudio(next.text, next.audioFile); }, 400);
+        _queueDrainTimeout = setTimeout(() => {
+          _queueDrainTimeout = null;
+          _playAxoloAudio(next.text, next.audioFile);
+        }, 400);
       } else {
+        hideTioAxolCutin();
+        unduckSfx();
         currentAxoloAudio = null;
-      }
-    }, 800);
-  }, { once: true });
-
-  currentAxoloAudio.play().catch(e => {
-    console.warn('[Voice] Autoplay blocked or audio load failed:', e);
-    window.welcomePlaying = false;
-    currentAxoloAudio = null;
-    
-    // Fallback: hide the cutin after a few seconds if audio failed
-    setTimeout(() => {
-      hideTioAxolCutin();
-      unduckSfx();
-      if (axoloQueue.length > 0) {
-        const next = axoloQueue.shift();
-        _queueDrainTimeout = setTimeout(() => { _queueDrainTimeout = null; _playAxoloAudio(next.text, next.audioFile); }, 400);
       }
       if (_axoloAudioDoneResolve) {
         const cb = _axoloAudioDoneResolve;
         _axoloAudioDoneResolve = null;
         cb();
       }
-    }, 3000);
+    }, 800);
+  }, { once: true });
+
+  audio.play().catch(e => {
+    console.warn('[Voice] Autoplay blocked or audio load failed:', e);
+    window.welcomePlaying = false;
+    _axoloPlayback = null;
+    currentAxoloAudio = null;
+
+    // Fallback: liberar la fase después de un margen corto si el audio falló.
+    setTimeout(() => {
+      if (axoloQueue.length > 0) {
+        const next = axoloQueue.shift();
+        _queueDrainTimeout = setTimeout(() => {
+          _queueDrainTimeout = null;
+          _playAxoloAudio(next.text, next.audioFile);
+        }, 400);
+      } else {
+        hideTioAxolCutin();
+        unduckSfx();
+      }
+      if (_axoloAudioDoneResolve) {
+        const cb = _axoloAudioDoneResolve;
+        _axoloAudioDoneResolve = null;
+        cb();
+      }
+    }, 1200);
   });
 }
 
+// ── Narración: API pública para el director de flujo ─────────
+// Permite esperar a que termine TODA la cola de voz antes de avanzar de fase.
+function _axoloIsBusy() {
+  if (axoloQueue.length > 0 || _queueDrainTimeout) return true;
+  if (_axoloPlayback && _axoloPlayback.active) return true;
+  return !!(currentAxoloAudio && !currentAxoloAudio.paused && !currentAxoloAudio.ended);
+}
+
+function _axoloWhenIdle(options) {
+  const opts = options || {};
+  const maxMs = opts.maxMs || 30000;
+  const settleMs = opts.settleMs == null ? 150 : opts.settleMs;
+  const started = Date.now();
+  let idleSince = null;
+  return new Promise(resolve => {
+    (function poll() {
+      if (!_axoloIsBusy()) {
+        if (idleSince == null) idleSince = Date.now();
+        if (Date.now() - idleSince >= settleMs) return resolve(true);
+      } else {
+        idleSince = null;
+      }
+      if (Date.now() - started > maxMs) return resolve(false);
+      setTimeout(poll, 100);
+    })();
+  });
+}
+
+window.AxoloNarrator = {
+  isBusy: _axoloIsBusy,
+  whenIdle: _axoloWhenIdle,
+  stop: function () { _stopCurrentAxolo(true); },
+  current: function () {
+    if (!_axoloPlayback) return null;
+    const now = Date.now();
+    return {
+      file: _axoloPlayback.file,
+      durationMs: _axoloPlayback.durationMs,
+      startedAt: _axoloPlayback.startedAt,
+      remainingMs: _axoloPlayback.durationMs && _axoloPlayback.startedAt
+        ? Math.max(0, _axoloPlayback.durationMs - (now - _axoloPlayback.startedAt))
+        : null,
+      active: !!_axoloPlayback.active,
+      queued: axoloQueue.length,
+    };
+  },
+  queue: function (text, file) {
+    axoloQueue.push({ text, audioFile: file });
+  },
+};
+
 function _stopCurrentAxolo() {
-  if (window.welcomePlaying) return;
   if (_queueDrainTimeout) { clearTimeout(_queueDrainTimeout); _queueDrainTimeout = null; }
   if (currentAxoloAudio) {
-    currentAxoloAudio.pause();
+    try { currentAxoloAudio.pause(); } catch (e) {}
     currentAxoloAudio = null;
   }
+  _axoloPlayback = null;
   hideTioAxolCutin();
   unduckSfx();
   axoloQueue = [];
+  window.welcomePlaying = false;
   if (_axoloAudioDoneResolve) {
     const cb = _axoloAudioDoneResolve;
     _axoloAudioDoneResolve = null;
@@ -668,24 +773,19 @@ async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt 
 
   try {
     if (interrupt) {
-      // interrupt = narración crítica (ceremonia, arranque, retos): tiene que
-      // sonar YA. Antes, si el welcome de modos seguía "activo" (su flag dura
-      // 45s), la narración se descartaba en silencio y la fase avanzaba sin
-      // voz: de ahí que la premiación se viera desfasada.
-      window.welcomePlaying = false;
+      // Narración crítica (ceremonia, arranque, retos): tiene que sonar YA.
       _stopCurrentAxolo();
       _playAxoloAudio(texto, audioFileOrMood);
       return true;
     }
 
-    if (currentAxoloAudio) {
-      if (window.welcomePlaying) return false;
-      axoloQueue.length = 0;
+    // Si ya hay una voz sonando, la nueva frase se encola. Antes se borraba
+    // la cola y se perdían anuncios completos (premiación desfasada).
+    if (_axoloIsBusy()) {
       axoloQueue.push({ text: texto, audioFile: audioFileOrMood });
       return true;
     }
 
-    if (window.welcomePlaying) return false;
     _playAxoloAudio(texto, audioFileOrMood);
     return true;
   } catch (err) {

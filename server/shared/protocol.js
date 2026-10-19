@@ -25,6 +25,7 @@ const EVENTS = {
   PLAYER_ASSIGN_SONG: 'player:assign_song',
   PLAYER_START_GAME: 'player:start_game',
   PLAYER_START_SONG: 'player:start_song',
+  PLAYER_SPIN_ROULETTE: 'player:spin_roulette',
   PLAYER_NEXT_TURN: 'player:next_turn',
   PLAYER_NEW_GAME: 'player:new_game',
   // Relay -> TV
@@ -40,6 +41,7 @@ const EVENTS = {
   TV_SONG_ASSIGNED: 'tv:song_assigned',
   TV_START_GAME_TRIGGER: 'tv:start_game_trigger',
   TV_START_SONG_TRIGGER: 'tv:start_song_trigger',
+  TV_SPIN_ROULETTE_TRIGGER: 'tv:spin_roulette_trigger',
   TV_NEXT_TURN_TRIGGER: 'tv:next_turn_trigger',
   TV_NEW_GAME_TRIGGER: 'tv:new_game_trigger',
   // Relay -> Player

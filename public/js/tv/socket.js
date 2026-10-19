@@ -123,6 +123,9 @@ function setupSocket(s) {
   if (typeof applyModeTheme === 'function') applyModeTheme();
   renderRoomCode(roomCode);
   inicializarQRConexion();
+  if (state.round === 0) {
+    FlowDirector.enter('lobby', { label: 'Sala de espera' });
+  }
   const st = document.getElementById('status-text');
   st.textContent = 'Esperando jugadores';
   anime({ targets: st, scale: [0.9, 1], opacity: [0.5, 1], duration: 300, easing: 'easeOutBack' });
@@ -144,17 +147,32 @@ function setupSocket(s) {
 function syncReconnectedPlayer(player) {
   if (state.round === 0) return;
 
-  const isAssign = !document.getElementById('round2-assignment-screen').classList.contains('hidden');
-  const isVideo = !document.getElementById('video-screen').classList.contains('hidden');
-  const isRoulette = !document.getElementById('roulette-screen').classList.contains('hidden');
+  // El celular que se reconecta recibe el estado de fase actual para que sus
+  // botones (girar / listo / siguiente) funcionen sin tocar la TV.
+  FlowDirector.sendToPlayer(player.socketId);
+
+  const phase = FlowDirector.getPhase();
+  const isAssign = phase === 'roulette_wait' && state.round === 2;
+  const isVideo = phase === 'karaoke_intro' || phase === 'karaoke' || phase === 'vote_pending' || phase === 'vote' || phase === 'scoreboard';
+  const isRoulette = phase === 'roulette_wait' || phase === 'roulette_spin' || phase === 'singer_result';
   const podiumScreen = document.getElementById('podium-screen');
-  const isPodium = podiumScreen && !podiumScreen.classList.contains('hidden');
+  const isPodium = phase === 'podium' || phase === 'podium_final' || !!podiumScreen;
 
   if (isPodium) {
-    socket.emit('tv:send_to_player', { hostToken: _hostToken, 
+    const sorted = [...state.players].sort((a, b) => (b.score || 0) - (a.score || 0));
+    socket.emit('tv:send_to_player', { hostToken: _hostToken,
       targetSocketId: player.socketId,
       event: 'GAME_OVER',
-      data: { players: state.players }
+      data: {
+        results: sorted.map((p, i) => ({
+          socketId: p.socketId,
+          name: p.name,
+          score: p.score || 0,
+          award: i === 0 ? '👑 Rey del Palenque'
+            : i === sorted.length - 1 ? '🐔 Gallo Supremo'
+            : '🎤 Participante',
+        })),
+      }
     });
     return;
   }
@@ -177,42 +195,47 @@ function syncReconnectedPlayer(player) {
     return;
   }
 
-  const singer = state.singerQueue[state.currentSingerIdx] || {};
+  const queueSinger = state.singerQueue[state.currentSingerIdx] || {};
+  const singer = (phase === 'roulette_wait' || phase === 'roulette_spin' || phase === 'singer_result')
+    ? queueSinger
+    : (currentSongPerformer || queueSinger);
   const song = state.currentSong;
 
   if (isRoulette) {
     const spinBtnHidden = document.getElementById('spin-btn').style.display === 'none';
-    if (!spinBtnHidden) {
-      socket.emit('tv:send_to_player', { hostToken: _hostToken, 
-        targetSocketId: player.socketId,
-        event: 'ROULETTE_START',
-        data: {}
-      });
-    } else {
-      socket.emit('tv:send_to_player', { hostToken: _hostToken, 
+    if (phase === 'singer_result' || spinBtnHidden) {
+      socket.emit('tv:send_to_player', { hostToken: _hostToken,
         targetSocketId: player.socketId,
         event: 'SINGER_SELECTED',
         data: { socketId: singer.socketId, name: singer.name, song }
+      });
+    } else {
+      socket.emit('tv:send_to_player', { hostToken: _hostToken,
+        targetSocketId: player.socketId,
+        event: 'ROULETTE_START',
+        data: {}
       });
     }
     return;
   }
 
   if (isVideo) {
-    const isVoting = !document.getElementById('voting-overlay').classList.contains('hidden');
-    if (isVoting) {
-      socket.emit('tv:send_to_player', { hostToken: _hostToken, 
-        targetSocketId: player.socketId,
-        event: 'VOTE_PHASE_START',
-        data: { performerSocketId: singer.socketId }
-      });
-    } else {
-      socket.emit('tv:send_to_player', { hostToken: _hostToken, 
-        targetSocketId: player.socketId,
-        event: 'KARAOKE_START',
-        data: { socketId: singer.socketId, name: singer.name, song }
-      });
+    let event = 'KARAOKE_START';
+    let data = { socketId: singer.socketId, name: singer.name, song };
+    if (phase === 'karaoke_intro') {
+      event = 'KARAOKE_PREP';
+    } else if (phase === 'vote' || phase === 'vote_pending') {
+      event = 'VOTE_PHASE_START';
+      data = { performerSocketId: singer.socketId, performerName: singer.name };
+    } else if (phase === 'scoreboard') {
+      event = 'SHOW_SCOREBOARD';
+      data = { performerSocketId: singer.socketId, performerName: singer.name };
     }
+    socket.emit('tv:send_to_player', { hostToken: _hostToken,
+      targetSocketId: player.socketId,
+      event,
+      data
+    });
     return;
   }
 }
@@ -399,15 +422,16 @@ socket.on('tv:vote', ({ voterName, performerSocketId, performerPlayerId, score, 
     const perf = state.players.find(p => p.playerId === performerPlayerId);
     if (perf) perfId = perf.socketId;
   }
-  state.votes.push({ voterName, performerSocketId: perfId, score });
-  updateTicker(`${voterName} votó: ${score} pts 🗳️`);
-  
   state.votedBy = state.votedBy || new Set();
   const voterKey = voterPlayerId || voterSocketId;
+  if (voterKey && state.votedBy.has(voterKey)) return;
+  state.votes.push({ voterName, performerSocketId: perfId, score });
+  updateTicker(`${voterName} votó: ${score} pts 🗳️`);
+
   if (voterKey) state.votedBy.add(voterKey);
   
   // Broadcast vote count to mobiles
-  const expectedCount = state.players.filter(p => p.socketId !== performerSocketId).length;
+  const expectedCount = state.players.filter(p => !p.disconnected && p.socketId !== performerSocketId).length;
   socket.emit('tv:broadcast', { roomCode: state.roomCode, hostToken: _hostToken,
     event: 'VOTE_COUNT',
     data: { count: state.votedBy.size, total: expectedCount },
@@ -418,16 +442,14 @@ socket.on('tv:vote', ({ voterName, performerSocketId, performerPlayerId, score, 
 });
 
 function checkAllVotesSubmitted(performerSocketId) {
-  const expectedVoters = state.players.filter(p => p.socketId !== performerSocketId);
+  const expectedVoters = state.players.filter(p => !p.disconnected && p.socketId !== performerSocketId);
   const expectedCount = expectedVoters.length;
   state.votedBy = state.votedBy || new Set();
 
   if (votePhaseActive && state.votedBy.size >= expectedCount) {
-    if (votePhaseTimeout) clearTimeout(votePhaseTimeout);
-    votePhaseActive = false;
-    songEnded = false;
-    const performer = state.players.find(p => p.socketId === performerSocketId) || state.players[0];
-    endSong(performer);
+    // Ya votaron todos: se cierra la votación en cuanto Axolo termine de
+    // hablar. Antes se cortaba el prompt de voto a la mitad.
+    FlowDirector.hasten(2500, 500);
   }
 }
 
@@ -439,30 +461,34 @@ socket.on('tv:song_assigned', ({ attackerName, attackerSocketId, attackerPlayerI
   if (state.round === 2) {
     state.assignedBy = state.assignedBy || new Set();
     state.assignedBy.add(attackerSocketId);
-    
-    // Update visual status indicator on the player chip
-    const statusEl = document.getElementById(`astatus-${attackerSocketId}`);
-    if (statusEl) {
-      statusEl.textContent = '✅';
-      statusEl.className = 'assignment-status done';
-    }
-    
-    // Update progress text
-    const progEl = document.getElementById('roulette-assign-progress');
-    if (progEl) {
-      const activeR2Players = state.players.filter(p => !p.disconnected);
-      const doneCount = [...state.assignedBy].filter(id => activeR2Players.some(p => p.socketId === id)).length;
-      progEl.textContent = `Asignaciones: ${doneCount}/${activeR2Players.length}`;
-    }
-    
-    // Check if all active players have submitted
-    if (state.assignedBy.size >= state.players.filter(p => !p.disconnected).length) {
-      console.log("[AUTO-FLOW] ¡Todos los jugadores asignaron canción! Girando ruleta...");
-      if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
-      // Show spin button briefly before spinning
-      document.getElementById('spin-btn').style.display = 'block';
-      document.getElementById('roulette-heading').textContent = '¡Todas las asignaciones recibidas!';
-      setTimeout(() => { spinRoulette(); }, 1200);
+
+    // Actualizar indicadores solo si seguimos en la fase de asignación.
+    const inAssignPhase = FlowDirector.getPhase() === 'roulette_wait' && !isSpinning;
+    if (inAssignPhase) {
+      // Update visual status indicator on the player chip
+      const statusEl = document.getElementById(`astatus-${attackerSocketId}`);
+      if (statusEl) {
+        statusEl.textContent = '✅';
+        statusEl.className = 'assignment-status done';
+      }
+
+      // Update progress text
+      const progEl = document.getElementById('roulette-assign-progress');
+      if (progEl) {
+        const activeR2Players = state.players.filter(p => !p.disconnected);
+        const doneCount = [...state.assignedBy].filter(id => activeR2Players.some(p => p.socketId === id)).length;
+        progEl.textContent = `Asignaciones: ${doneCount}/${activeR2Players.length}`;
+      }
+
+      // Check if all active players have submitted
+      if (state.assignedBy.size >= state.players.filter(p => !p.disconnected).length) {
+        console.log("[AUTO-FLOW] ¡Todos los jugadores asignaron canción! Girando ruleta...");
+        if (rouletteAutoSpinTimeout) { clearTimeout(rouletteAutoSpinTimeout); rouletteAutoSpinTimeout = null; }
+        // Mostrar el botón brevemente y girar en cuanto termine la voz.
+        document.getElementById('spin-btn').style.display = 'block';
+        document.getElementById('roulette-heading').textContent = '¡Todas las asignaciones recibidas!';
+        FlowDirector.hasten(0, 1200);
+      }
     }
   }
 });
@@ -475,23 +501,26 @@ socket.on('tv:start_game_trigger', () => {
 });
 
 socket.on('tv:start_song_trigger', () => {
-  const btn = document.getElementById('go-karaoke-btn');
-  if (btn) {
-    btn.click();
+  if (!FlowDirector.request('start_song')) {
+    updateTicker('La canción empezará cuando termine la presentación…');
+  }
+});
+
+socket.on('tv:spin_roulette_trigger', () => {
+  if (!FlowDirector.request('spin')) {
+    updateTicker('Espera a que termine la presentación para girar…');
   }
 });
 
 socket.on('tv:next_turn_trigger', () => {
-  const btn = document.getElementById('continue-btn');
-  if (btn) {
-    btn.click();
+  if (!FlowDirector.request('next')) {
+    updateTicker('El siguiente turno avanza solo en un momento…');
   }
 });
 
 socket.on('tv:new_game_trigger', () => {
-  const btn = document.getElementById('restart-btn-final');
-  if (btn) {
-    btn.click();
+  if (!FlowDirector.request('new_game')) {
+    updateTicker('La nueva partida se habilita al terminar el podio…');
   }
 });
 } // end setupSocket
@@ -506,8 +535,10 @@ onReady(async () => {
 // START GAME BUTTON
 document.getElementById('start-btn').addEventListener('click', () => {
   if (!state.roomCode) return;
+  if (state.round > 0) return;
   UISounds.stinger();
   clearSavedGame();
+  FlowDirector.enter('starting', { label: 'Iniciando partida' });
   state.round = 1;
   state.singerQueue = [...state.players].sort(() => Math.random() - 0.5);
   state.currentSingerIdx = 0;
