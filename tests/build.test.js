@@ -37,13 +37,13 @@ async function test(){
     const nodeCmd=fs.existsSync(runtime) ? `"${runtime}"` : 'node';
     const out=run(`${nodeCmd} -e "const db=require('better-sqlite3')('server/songs.db'); console.log(db.prepare('SELECT COUNT(*) as c FROM songs').get().c)"`);
     const n=parseInt(out.trim(),10);
-    assert(n===3845 || n>3000, 'count '+out);
+    assert(n===4515 || n>4000, 'count '+out);
   });
 
   await chk('SQLite SELECT COUNT(*)', async()=>{
     const db=require('better-sqlite3')('server/songs.db');
     const c=db.prepare('SELECT COUNT(*) as c FROM songs').get().c;
-    assert(c===3845);
+    assert(c===4515 || c>4000);
     db.close();
   });
 

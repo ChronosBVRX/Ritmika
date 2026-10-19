@@ -660,22 +660,37 @@ async function uploadApproved(rows, options, report) {
   const approved = rows.filter((row) => row.action === 'ADD' || row.action === 'REPLACE');
   const uploaded = [];
   const skipped = [];
+  const failed = [];
+  let completed = 0;
   await mapLimit(approved, options.concurrency, async (row) => {
     const key = row.r2Key;
     if (existingKeys.has(key) && !options.overwrite && row.action === 'ADD') {
       skipped.push({ ...row, reason: 'object-exists' });
+      completed++;
+      if (completed % 25 === 0 || completed === approved.length) {
+        console.log(`[upload] ${completed}/${approved.length}`);
+      }
       return;
     }
-    await client.send(new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: fs.createReadStream(row.absolutePath),
-      ContentLength: row.sizeBytes,
-      ContentType: 'video/mp4',
-      CacheControl: 'public, max-age=31536000, immutable',
-    }));
-    const head = await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
-    uploaded.push({ ...row, etag: head.ETag, uploaded: true });
+    try {
+      const body = fs.readFileSync(row.absolutePath);
+      await client.send(new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: body,
+        ContentLength: body.length,
+        ContentType: 'video/mp4',
+        CacheControl: 'public, max-age=31536000, immutable',
+      }));
+      const head = await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+      uploaded.push({ ...row, etag: head.ETag, uploaded: true });
+    } catch (error) {
+      failed.push({ ...row, reason: error.message });
+    }
+    completed++;
+    if (completed % 25 === 0 || completed === approved.length) {
+      console.log(`[upload] ${completed}/${approved.length}`);
+    }
   });
   const entries = JSON.parse(fs.readFileSync(R2_DB_PATH, 'utf8'));
   const byId = new Map(entries.map((entry, index) => [entry.id, index]));
@@ -721,7 +736,9 @@ async function uploadApproved(rows, options, report) {
     enabled: true,
     uploaded: uploaded.length,
     skipped: skipped.length,
+    failed: failed.length,
     skippedObjects: skipped.map((row) => ({ file: row.relative, key: row.r2Key, reason: row.reason })),
+    failedObjects: failed.map((row) => ({ file: row.relative, key: row.r2Key, reason: row.reason })),
     r2DbCount: entries.length,
     sqliteCount,
   };
@@ -954,6 +971,14 @@ async function main() {
   console.log(`Manifest: ${options.manifestPath}`);
   console.log(`Reporte: ${options.reportPath}`);
   if (warnings.length) warnings.forEach((warning) => console.log(`Aviso: ${warning}`));
+  if (report.upload?.enabled) {
+    console.log(`Subidos: ${report.upload.uploaded}, omitidos: ${report.upload.skipped}, fallidos: ${report.upload.failed}`);
+    console.log(`R2 DB: ${report.upload.r2DbCount} canciones, SQLite: ${report.upload.sqliteCount}`);
+    if (report.upload.failed) {
+      console.error('Revisa failedObjects en el reporte y vuelve a ejecutar la subida.');
+      process.exitCode = 1;
+    }
+  }
 }
 
 main().catch((error) => {

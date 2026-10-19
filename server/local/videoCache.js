@@ -1,7 +1,7 @@
 /**
  * Video cache local — Rítmika Desktop
  * Ubicación: %LOCALAPPDATA%\Ritmika\cache\videos  (o VIDEO_CACHE_DIR env)
- * Política: LRU con límite configurable (default 2048 MB), descarga progresiva, no precarga 3845 canciones.
+ * Política: LRU con límite configurable (default 2048 MB), descarga progresiva, no precarga 4515 canciones.
  */
 const fs = require('fs');
 const path = require('path');

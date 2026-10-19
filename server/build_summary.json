@@ -1,25 +1,16 @@
 {
-  "total_songs": 3845,
-  "r2_files": 3845,
-  "matched_exact": 2683,
-  "matched_artist": 605,
-  "deezer_artists": 329,
-  "defaulted_pop": 28,
+  "total_songs": 4515,
+  "r2_files": 4515,
+  "updated_at": "2026-10-19",
+  "updated_by": "scripts/import_party_tyme.js",
   "genres": {
-    "reggaeton": 201,
-    "pop": 2205,
-    "cumbia": 187,
-    "banda": 327,
-    "balada": 453,
+    "pop": 2213,
+    "ranchera": 746,
+    "balada": 496,
+    "banda": 413,
     "rock": 250,
-    "ranchera": 219,
+    "reggaeton": 205,
+    "cumbia": 189,
     "electronica": 3
-  },
-  "sources": {
-    "artist_match": 605,
-    "exact_match": 1773,
-    "partial_match": 910,
-    "deezer": 529,
-    "default_pop": 28
   }
 }

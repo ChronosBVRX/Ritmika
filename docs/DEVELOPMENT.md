@@ -56,7 +56,7 @@ npm run dev
 Ritmika/
 ├── server/
 │   ├── index.js              # Servidor Express + Socket.io (~825 líneas)
-│   ├── songs.db              # DB principal: SQLite con 3,845 canciones
+│   ├── songs.db              # DB principal: SQLite con 4,515 canciones
 │   ├── game_modes_config.json # Config de modos de juego
 │   └── deezer_audit.json     # Auditoría de géneros
 │

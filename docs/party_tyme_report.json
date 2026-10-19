@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-19T13:20:27.988Z",
-  "mode": "dry-run",
+  "generated_at": "2026-10-19T13:26:15.490Z",
+  "mode": "upload",
   "options": {
     "skip_same_title": false,
     "replace_duplicates": false,
@@ -19,7 +19,7 @@
     "promos": 1
   },
   "library": {
-    "source": "local-r2-db",
+    "source": "r2-list:3845",
     "count": 3845
   },
   "counts": {
@@ -1425,5 +1425,15 @@
     "3 duplicados probables quedaron en REVIEW; revisar el CSV.",
     "58 duplicados exactos serán omitidos.",
     "1 video(s) promocionales serán omitidos."
-  ]
+  ],
+  "upload": {
+    "enabled": true,
+    "uploaded": 670,
+    "skipped": 0,
+    "failed": 0,
+    "skippedObjects": [],
+    "failedObjects": [],
+    "r2DbCount": 4515,
+    "sqliteCount": 4515
+  }
 }

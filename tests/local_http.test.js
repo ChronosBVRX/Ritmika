@@ -61,7 +61,7 @@ async function run(){
     await test('GET /api/health -> catalogCount esperado', async()=>{
       const r=await fetch(base+'/api/health').then(r=>r.json());
       assert(r.server===true);
-      assert(r.catalogCount===3845 || r.catalogCount>3000, 'catalogCount '+r.catalogCount);
+      assert(r.catalogCount===4515 || r.catalogCount>4000, 'catalogCount '+r.catalogCount);
     });
     await test('GET /api/songs?limit=1 -> resultado', async()=>{
       const j=await fetch(base+'/api/songs?limit=1').then(r=>r.json());

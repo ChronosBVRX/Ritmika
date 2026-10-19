@@ -11,7 +11,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 | Servidor | Node.js + Express + Socket.io + better-sqlite3 + qrcode + compression (puerto 3000) |
 | TV (pantalla grande) | HTML/JS vanilla + Tailwind + Anime.js + GSAP + SVG, ~2566 líneas HTML + 9 módulos JS en `public/js/` (~4310 líneas) |
 | Control móvil | HTML/JS vanilla + Tailwind, ~1960 líneas en `public/mobile.html` |
-| Base de datos | SQLite (`better-sqlite3`, ~0.5MB, 3,845 canciones en `server/songs.db`) |
+| Base de datos | SQLite (`better-sqlite3`, ~1.1MB, 4,515 canciones en `server/songs.db`) |
 | Launcher nativo | C# WinForms (.NET Framework 4.x), compilado con csc.exe (sin dependencias externas) |
 | Ventana de juego | WebView2 (Edge runtime incluido en Windows 10/11) |
 | Build | `build.bat` — genera icono, descarga WebView2, compila C#, copia DLLs |
@@ -25,7 +25,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 
 ### Servidor
 - `server/index.js` — ~800 líneas. Express + Socket.io + SQLite. Pasarela de eventos JSON entre TV y celulares + endpoints de datos con filtros dinámicos. Compresión gzip. QR con `qrcode` (npm). Presigned URLs de Cloudflare R2 para video. Endpoints: `/`, `/join`, `/qr-game`, `/qr-wifi`, `/api/network-config`, `/api/songs`, `/api/artists`, `/api/artist-map`, `/api/audio-files`, `/api/health`, `/api/video-url`, `/api/game-modes`.
-- `server/songs.db` — Base de datos SQLite con 3,845 canciones (generada desde `r2_db.json` via `scripts/migrate_to_sqlite.js`). Columnas: `id`, `title`, `artist`, `genre`, `url`, `duration`. Índices en genre y artist.
+- `server/songs.db` — Base de datos SQLite con 4,515 canciones (generada desde `r2_db.json` via `scripts/migrate_to_sqlite.js`). Columnas: `id`, `title`, `artist`, `genre`, `url`, `duration`, `mode`. Índices en genre y artist.
 - `server/game_modes_config.json` — Configuración de 7 modos de juego estructurados con filtros de género.
 - `server/deezer_audit.json` — Auditoría de la API de Deezer para resolución de géneros de artistas.
 
@@ -53,7 +53,8 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 
 ### Build
 - `build.bat` — 62 líneas. Un solo paso: icono → dependencias → compilar → copiar DLLs.
-- `scripts/migrate_to_sqlite.js` — Lee `r2_db.json` y genera `server/songs.db` con schema SQLite.
+- `scripts/migrate_to_sqlite.js` — Upsert seguro de `r2_db.json` a `server/songs.db`; preserva la columna `mode`.
+- `scripts/import_party_tyme.js` — Audita/importa colecciones Party Tyme: dry-run, deduplicación contra R2, manifest CSV, subida y upsert en SQLite.
 - `scripts/generate_icon.ps1` — Crea `ritmika.ico` desde `tio_axolo_body.webp`.
 - `scripts/download_deps.ps1` — Descarga WebView2 SDK de NuGet, extrae DLLs.
 - `scripts/generate_all_audio.js` — Genera voces con ElevenLabs API. Lee API key de `.env`. 172+ frases definidas. Soporta skip si el MP3 ya existe.
@@ -124,7 +125,7 @@ Celulares desde cualquier lugar
 
 ### Géneros musicales (8 en frontend)
 - Frontend (tv.html + mobile.html): reggaeton, banda, ranchera, rock, pop, cumbia, balada, **electronica**
-- SQLite: 3,845 canciones (pop domina con 2,205, electrónica solo 3)
+- SQLite: 4,515 canciones (pop 2,213; ranchera 746; balada 496; banda 413; rock 250; reggaeton 205; cumbia 189; electrónica 3)
 - Si un jugador selecciona "electronica", el backend puede tener muy pocas canciones
 
 ---
@@ -156,15 +157,15 @@ Celulares desde cualquier lugar
 - 400×400px, visibles desde lejos.
 
 ### Cloudflare R2 (Video Storage)
-- Videos alojados en Cloudflare R2 (bucket `ritmika`, endpoint `media.pixelhub.party`).
+- Videos alojados en Cloudflare R2 (bucket `ritmika`). Las URLs legacy usan `media.pixelhub.party`, que ya no resuelve; el servidor entrega presigned URLs desde el endpoint R2.
 - El servidor genera presigned URLs con expiración de 30 minutos vía AWS SDK.
 - TV llama a `GET /api/video-url?id=<songId>` para obtener URL firmada.
 - Fallback a URL pública si R2 no está configurado.
-- Base de datos de canciones: SQLite (`server/songs.db`, 3,845 canciones).
+- Base de datos de canciones: SQLite (`server/songs.db`, 4,515 canciones).
 
 ### SQLite — Base de Datos de Canciones
 - **Driver**: `better-sqlite3` (síncrono, nativo, rápido).
-- **Schema**: Tabla `songs` con columnas `id`, `title`, `artist`, `genre`, `url`, `duration`. Índices en `genre` y `artist`.
+- **Schema**: Tabla `songs` con columnas `id`, `title`, `artist`, `genre`, `url`, `duration`, `mode`. Índices en `genre` y `artist`.
 - **Origen**: Migrada desde `r2_db.json` (~1MB JSON) a `songs.db` (~0.5MB SQLite).
 - **Endpoints**:
   - `GET /api/songs?id=X` — canción individual por ID
@@ -319,7 +320,7 @@ node scripts/migrate_to_sqlite.js   # Genera server/songs.db desde r2_db.json
 8. **tio_axolo_vignette_*.webp deben ser RGBA** — Generadas con IA sobre verde plano, procesadas con Pillow floodfill.
 9. **Origen de rotación SVG (transform-origin)** — Usar valores absolutos en px (ej: `250px 250px`), nunca `center`.
 10. **Colapso de altura en video por Tailwind Preflight** — Forzar dimensiones en contenedor `.tv-screen` y `position: absolute` en `<video>`.
-11. **Electrónica sin canciones en DB** — SQLite tiene solo 3 canciones de electrónica de 3,845. Fallback a otros géneros.
+11. **Electrónica sin canciones en DB** — SQLite tiene solo 3 canciones de electrónica de 4,515. Fallback a otros géneros.
 12. **Podio no se veía (fixed)** — Eliminar `#podium-screen` antiguo del DOM y recrear elemento nuevo con CSS inline.
 13. **Entidades HTML (`textContent` vs `innerHTML`)** — Usar `.innerHTML` al inyectar entidades como `&#127942;`.
 14. **Assets de Premiación Premium** — Procesados con floodfill para transparencia perfecta.
@@ -350,6 +351,7 @@ node scripts/migrate_to_sqlite.js   # Genera server/songs.db desde r2_db.json
 - [ ] **Probar Ronda 2 (Fuego Cruzado)** completa
 - [ ] **Probar con 4+ jugadores simultáneos**
 - [x] Implementar modo de juego Fiesta Emo (No es una fase)
+- [x] Importar colección Party Tyme (670 pistas nuevas, catálogo en 4,515)
 - [ ] Implementar otros modos de juego (Anime, Ranchera, Nostalgia)
 
 ---
@@ -367,7 +369,7 @@ node scripts/migrate_to_sqlite.js   # Genera server/songs.db desde r2_db.json
 | Audio Assets | **COMPLETO** | 392 MP3s (180 genre barks + 60 vote reactions + 152 outros) |
 | Avatar Assets | **COMPLETO** | 8 WebP presentes |
 | Axolo Assets | **COMPLETO** | 6 vignettes WebP + body + variantes por modo |
-| Karaoke DB | **COMPLETO** | 3,845 canciones en SQLite (songs.db), endpoints filtrados |
+| Karaoke DB | **COMPLETO** | 4,515 canciones en SQLite (songs.db), endpoints filtrados |
 | menu_music.mp3 | **EXISTE** | Archivo presente en public/assets/audio/ |
 | Audio de inicio | **DESACTIVADO** | new_game.mp3 comentado en Launcher.cs |
 

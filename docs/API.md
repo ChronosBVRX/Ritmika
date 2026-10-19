@@ -112,7 +112,7 @@ Verifica que el servidor esté operativo. Usado por el bootloader de la TV.
 {
   "server": true,
   "catalog": true,
-  "catalogCount": 3845,
+  "catalogCount": 4515,
   "videoSource": "cloudflare-r2"
 }
 ```

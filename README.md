@@ -102,7 +102,7 @@ PC (servidor + TV)
 Ritmika/
 ├── server/
 │   ├── index.js              # Servidor Express + Socket.io (~825 líneas)
-│   ├── songs.db              # DB principal: SQLite con 3,845 canciones
+│   ├── songs.db              # DB principal: SQLite con 4,515 canciones
 │   ├── game_modes_config.json # Config de modos de juego
 │   └── deezer_audit.json     # Auditoría de géneros
 ├── public/
@@ -144,7 +144,7 @@ Ritmika/
 | Móvil | HTML/JS vanilla + Tailwind CSS |
 | Launcher | C# WinForms (.NET 4.x) |
 | WebView2 | Edge runtime (incluido en Windows 10/11) |
-| DB | SQLite (better-sqlite3, ~0.5MB, 3,845 canciones) |
+| DB | SQLite (better-sqlite3, ~1.1MB, 4,515 canciones) |
 | Video | Cloudflare R2 (presigned URLs via AWS SDK) |
 | Audio | Web Audio API (sintetizado) + ElevenLabs (grabado) |
 | Build | `build.bat` — csc.exe + descarga WebView2 |

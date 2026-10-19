@@ -76,7 +76,7 @@ Para modo LAN sin Internet, dejar `RELAY_URL` vacío. Para modo online, configur
 
 ### Logs y diagnóstico
 
-- `Ctrl+Shift+D` en TV muestra panel debug + estado: `Local: 3845 canciones` (verde) / `Relay: conectado` (verde) / `Reconectando...` (amarillo/rojo)
+- `Ctrl+Shift+D` en TV muestra panel debug + estado: `Local: 4515 canciones` (verde) / `Relay: conectado` (verde) / `Reconectando...` (amarillo/rojo)
 - Logs: `%LOCALAPPDATA%\Ritmika\logs\server.log`
 - DevTools deshabilitados en producción (`AreDevToolsEnabled=false` en GameWindow)
 
@@ -94,9 +94,9 @@ No rompe el trabajo reciente de `Ritmika.sh`/`build.sh`.
 
 ## Video
 
-- Directo `R2 → PC` (`https://media.pixelhub.party/...`), no pasa por relay.
-- Si `R2` es público, TV usa `song.url` directo (evita presign). Si requiere firma, `GET /api/video-url?id=` genera presigned 30 min (fallback a público).
-- Cache progresiva: primer uso descarga a `%LOCALAPPDATA%\Ritmika\cache\videos/<id>.mp4` vía `POST /api/video-cache/:id/download`, siguientes lecturas desde disco. No descarga 3845 canciones al instalar.
+- Directo `R2 → PC` vía presigned URL (`GET /api/video-url?id=`), no pasa por relay. El dominio legacy `media.pixelhub.party` ya no resuelve.
+- Si `R2` está configurado, el servidor local genera presigned URLs de 30 min; si no, cae a `song.url` (legacy).
+- Cache progresiva: primer uso descarga a `%LOCALAPPDATA%\Ritmika\cache\videos/<id>.mp4` vía `POST /api/video-cache/:id/download`, siguientes lecturas desde disco. No descarga 4515 canciones al instalar.
 
 ## Seguridad
 

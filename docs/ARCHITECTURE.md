@@ -169,10 +169,10 @@ Cada acción del celular (voto, tomatazo, emoji, sabotaje) pasa por el server y 
 ### DB principal: SQLite (`server/songs.db`)
 
 - **Driver**: `better-sqlite3` (síncrono, nativo, rápido)
-- **3,845 canciones** con URLs de Cloudflare R2 (`media.pixelhub.party`)
-- **Schema**: Tabla `songs` con columnas `id`, `title`, `artist`, `genre`, `url`, `duration`. Índices en `genre` y `artist`.
+- **4,515 canciones** con URLs legacy de Cloudflare R2 (`media.pixelhub.party`); el servidor entrega presigned URLs desde el endpoint R2
+- **Schema**: Tabla `songs` con columnas `id`, `title`, `artist`, `genre`, `url`, `duration`, `mode`. Índices en `genre` y `artist`.
 - **WAL mode** activado para mejor concurrencia de lectura
-- **Distribución**: pop domina (2,205), balada (453), banda (327), rock (250), ranchera (219), reggaeton (201), cumbia (187), electrónica (3)
+- **Distribución**: pop domina (2,213), ranchera (746), balada (496), banda (413), rock (250), reggaeton (205), cumbia (189), electrónica (3)
 
 ### Endpoints de consulta
 
@@ -183,7 +183,7 @@ Cada acción del celular (voto, tomatazo, emoji, sabotaje) pasa por el server y 
 ### Migración desde JSON
 
 - **Origen**: `server/r2_db.json` (migrado via `scripts/migrate_to_sqlite.js`)
-- **Script**: `node scripts/migrate_to_sqlite.js` — Lee JSON, crea tabla, inserta registros
+- **Script**: `node scripts/migrate_to_sqlite.js` — Lee JSON y hace upsert en SQLite preservando la columna `mode`
 - Los archivos JSON viejos (`r2_db.json`, `karaoke_db.json`) siguen en disco pero ya no se usan
 
 ---
@@ -198,7 +198,7 @@ Cada acción del celular (voto, tomatazo, emoji, sabotaje) pasa por el server y 
 
 ### En disco (server)
 
-- `server/songs.db`: SQLite con 3,845 canciones (persistente, WAL mode)
+- `server/songs.db`: SQLite con 4,515 canciones (persistente, WAL mode)
 
 ### En el cliente (TV)
 
