@@ -1,12 +1,23 @@
 {
- "generatedAt": "2026-10-18T23:20:54",
+ "generatedAt": "2026-10-19T00:10:00",
  "avatars": {
-  "0": "avatar-0-taco-rockero-idle"
+  "0": "avatar-0-taco-rockero-idle",
+  "1": "avatar-1-chile-enmascarado-idle",
+  "2": "avatar-2-tequila-fiestero-idle",
+  "3": "avatar-3-estrella-rock-idle",
+  "4": "avatar-4-loro-cumbiambero-idle",
+  "5": "avatar-5-guitarra-magica-idle",
+  "6": "avatar-6-rey-palenque-idle",
+  "7": "avatar-7-pulpo-salsero-idle"
  },
  "vignettes": {
+  "angry-idle": "tio-axolo-vignette-angry-idle",
   "angry-talking": "tio-axolo-vignette-angry-talking",
+  "emo-angry-idle": "tio-axolo-vignette-emo-angry-idle",
   "emo-angry-talking": "tio-axolo-vignette-emo-angry-talking",
+  "emo-laughing-idle": "tio-axolo-vignette-emo-laughing-idle",
   "emo-laughing-talking": "tio-axolo-vignette-emo-laughing-talking",
+  "emo-mischievous-idle": "tio-axolo-vignette-emo-mischievous-idle",
   "emo-mischievous-talking": "tio-axolo-vignette-emo-mischievous-talking",
   "emo-neutral-talking": "tio-axolo-vignette-emo-neutral-talking",
   "emo-sad-talking": "tio-axolo-vignette-emo-sad-talking",
@@ -22,5 +33,7 @@
  "backgrounds": {
   "bg-neon-club-background": "bg-neon-club-background"
  },
- "misc": {}
+ "misc": {
+  "tio-axolo-body-idle": "tio-axolo-body-idle"
+ }
 }
