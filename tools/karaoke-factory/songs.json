@@ -1,0 +1,52 @@
+{
+  "batch": "emo-mx-01",
+  "tracks": [
+    { "id": "pxndx-01", "artist": "PXNDX", "title": "Cita en el quirófano", "search": "Panda Cita en el quirofano" },
+    { "id": "pxndx-02", "artist": "PXNDX", "title": "Narcisista por excelencia", "search": "Panda Narcisista por Excelencia" },
+    { "id": "pxndx-03", "artist": "PXNDX", "title": "Procedimientos para llegar a un común acuerdo", "search": "Panda Procedimientos para llegar a un comun acuerdo" },
+    { "id": "pxndx-04", "artist": "PXNDX", "title": "Disculpa los malos pensamientos", "search": "Panda Disculpa los Malos Pensamientos" },
+    { "id": "pxndx-05", "artist": "PXNDX", "title": "Solo a terceros", "search": "Panda Solo a Terceros" },
+    { "id": "pxndx-06", "artist": "PXNDX", "title": "Nuestra aflicción", "search": "Panda Nuestra Afliccion" },
+
+    { "id": "division-01", "artist": "División Minúscula", "title": "Sismo" },
+    { "id": "division-02", "artist": "División Minúscula", "title": "Sognare" },
+    { "id": "division-03", "artist": "División Minúscula", "title": "Cursi" },
+    { "id": "division-04", "artist": "División Minúscula", "title": "Cada martes" },
+    { "id": "division-05", "artist": "División Minúscula", "title": "Veneno es antídoto", "search": "División Minúscula Veneno es antídoto S.O.S." },
+
+    { "id": "allison-01", "artist": "Allison", "title": "Frágil" },
+    { "id": "allison-02", "artist": "Allison", "title": "Memorama" },
+    { "id": "allison-03", "artist": "Allison", "title": "Baby Please" },
+    { "id": "allison-04", "artist": "Allison", "title": "Aquí" },
+    { "id": "allison-05", "artist": "Allison", "title": "Me cambió" },
+
+    { "id": "insite-01", "artist": "Insite", "title": "Cielos que lloran" },
+    { "id": "insite-02", "artist": "Insite", "title": "Sola" },
+    { "id": "insite-03", "artist": "Insite", "title": "RojoAzul", "search": "Insite Rojo Azul" },
+    { "id": "insite-04", "artist": "Insite", "title": "Siempre me dejas" },
+
+    { "id": "thermo-01", "artist": "Thermo", "title": "¿Dónde estás?", "search": "Thermo Donde estas banda" },
+    { "id": "thermo-02", "artist": "Thermo", "title": "Zombies y breakdance" },
+
+    { "id": "delux-01", "artist": "Delux", "title": "Más de lo que te imaginas" },
+    { "id": "delux-02", "artist": "Delux", "title": "Entre la guerra y el amor" },
+
+    { "id": "tolidos-01", "artist": "Tolidos", "title": "Verano" },
+    { "id": "tolidos-02", "artist": "Tolidos", "title": "El mundo puede esperar" },
+
+    { "id": "finde-01", "artist": "Finde", "title": "Más de cien palabras para ti", "search": "Finde Mas de Cien Palabras Para Ti", "note": "tu lista decía 'Más de 100 palabras para el desamor'" },
+    { "id": "finde-02", "artist": "Finde", "title": "G.A.L.", "search": "Finde G.A.L. cancion", "note": "título no confirmado" },
+
+    { "id": "ellinoise-01", "artist": "Elli Noise", "title": "Aire frío" },
+
+    { "id": "canseco-01", "artist": "Canseco", "title": "Me salvaré" },
+
+    { "id": "kudai-01", "artist": "Kudai", "title": "Sin despertar" },
+    { "id": "kudai-02", "artist": "Kudai", "title": "Déjame gritar" },
+    { "id": "kudai-03", "artist": "Kudai", "title": "Ya nada queda" },
+    { "id": "kudai-04", "artist": "Kudai", "title": "Escapar" },
+
+    { "id": "dontetto-01", "artist": "Don Tetto", "title": "Ha vuelto a suceder", "search": "Don Tetto Ha vuelto a suceder", "note": "tu lista decía 'Ha vuelto a ver'" },
+    { "id": "dontetto-02", "artist": "Don Tetto", "title": "Adicto al dolor" }
+  ]
+}
