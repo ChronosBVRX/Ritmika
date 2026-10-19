@@ -54,6 +54,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 ### App Android TV (Kotlin)
 - `android/app/src/main/java/party/ritmika/tv/MainActivity.kt` — WebView (`?native=1`) + ExoPlayer + puente JS. `AndroidNative.openAudioPanel()` y `KEYCODE_MENU` abren el panel nativo.
 - `android/app/src/main/java/party/ritmika/tv/AudioPanelActivity.kt` — UI nativa neo-brutalista del panel Altavoz/Audio, navegable con D-pad.
+- `android/app/src/main/java/party/ritmika/tv/LobbySettingsDialog.kt` — modal nativo de Ajustes sobre el lobby: Altavoz/Audio, música y movimiento reducido.
 - `android/app/src/main/java/party/ritmika/tv/BluetoothAudioController.kt` — permisos, discovery, `createBond`, estado A2DP y `AudioDeviceCallback`.
 - La bocina preferida se guarda por MAC en `SharedPreferences` (`ritmika_audio_panel`).
 - Un APK normal **no puede forzar** `BluetoothA2dp.connect()`; “Reconectar” solo espera y refresca la reconexión automática de Android.
@@ -171,6 +172,9 @@ Celulares desde cualquier lugar
 - Es una `Activity` nativa separada, no HTML: permisos, discovery y diálogos del sistema funcionan mejor con D-pad.
 - Solo se abre desde el menú principal o el lobby, nunca durante una canción.
 - Se puede abrir con el botón “🔊 ALTAVOZ” (D-pad) o con `KEYCODE_MENU`.
+- El lobby tiene un botón **⚙ AJUSTES** (solo Android) que abre `LobbySettingsDialog`, un modal nativo sobre el WebView sin pausar la sala.
+- El modal del lobby ofrece Altavoz/Audio, música del menú y movimiento reducido; también es alcanzable con D-pad.
+- Los botones decorativos “Entra/Código/Avatar/A cantar” del lobby tienen `tabindex=-1` para no romper el orden de foco.
 - El puente JS solo abre el panel; Bluetooth vive en Kotlin.
 - No se fuerza A2DP. “Reconectar” reconsulta estado y espera 15 s la decisión de Android.
 - “Abrir ajustes de Bluetooth” queda como último recurso explícito.

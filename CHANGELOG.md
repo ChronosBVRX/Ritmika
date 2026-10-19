@@ -5,8 +5,10 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 ## [Unreleased]
 
 ### Added
-- Panel nativo **Altavoz / Audio** en Android TV: lista bocinas emparejadas, descubre y empareja nuevas, muestra estado A2DP y guarda la bocina preferida.
+- Modal nativo **Ajustes del lobby** en Android TV: Altavoz/Audio, música del menú y movimiento reducido, sin pausar la sala.
+- Botón **⚙ AJUSTES** en la cabecera del lobby, visible solo en Android y alcanzable con D-pad.
 - Botón **🔊 ALTAVOZ** en el menú principal (solo Android) y atajo `KEYCODE_MENU` del control remoto para abrir el panel.
+- Panel nativo **Altavoz / Audio** en Android TV: lista bocinas emparejadas, descubre y empareja nuevas, muestra estado A2DP y guarda la bocina preferida.
 - `BluetoothAudioController` con permisos para Android 7–15, discovery, `createBond`, `BluetoothA2dp` y `AudioDeviceCallback` para confirmar el audio.
 - “Reconectar” espera 15 s la reconexión automática de Android y guía al usuario; no fuerza A2DP porque requiere API privilegiada.
 - Menú principal **Palenque Arcade**: fondo y cinco portadas de modo generados localmente con ComfyUI/SDXL (Juggernaut XL), papel picado vectorial y sistema visual neo-brutalista.
@@ -27,6 +29,8 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - La pantalla principal ya no es un dashboard de tres columnas: ahora es un menú de arcade con los modos como opciones.
 - Se eliminó el auto-creado de sala a los 2 segundos; el show se elige explícitamente con teclado, mando o mouse.
 - El menú principal permite llegar a Cómo jugar, Ajustes, Altavoz y Créditos con el D-pad; Altavoz también se abre con la tecla MENU del control.
+- El botón Ajustes del menú principal abre el modal nativo en Android; en web se conserva el modal HTML.
+- Los botones decorativos Entra/Código/Avatar/A cantar del lobby dejan de ser focusables para que el D-pad no se pierda en acciones falsas.
 - La lista de jugadores se movió al lobby; el menú ya no muestra un panel de jugadores vacío.
 - El menú principal y el lobby quedan sin diálogos de Axolo: no hay cut-in ni voz mientras se elige el show o se muestran el código, el QR y los jugadores. Los diálogos vuelven al iniciar la partida.
 - La canción ya no arranca en silencio mientras Axolo presenta: el video espera pausado en 0 y empieza cuando termina la voz.
