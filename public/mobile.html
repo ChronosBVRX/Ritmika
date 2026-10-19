@@ -328,6 +328,83 @@ function applyMobileModeTheme() {
     }
     .artist-chip:active { transform: scale(0.95); }
 
+    .artist-search-wrap { position: relative; margin-bottom: 0.75rem; flex: 0 0 auto; }
+    .artist-search {
+      width: 100%;
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 0.875rem;
+      padding: 0.7rem 2.5rem 0.7rem 2.5rem;
+      font-size: 0.9rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      color: #f1f5f9;
+      outline: none;
+      -webkit-appearance: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .artist-search::placeholder { color: #64748b; font-weight: 500; }
+    .artist-search::-webkit-search-cancel-button { display: none; }
+    .artist-search:focus { border-color: #22d3ee; box-shadow: 0 0 0 3px #22d3ee28; }
+    .artist-search-icon {
+      position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
+      font-size: 0.9rem; pointer-events: none; opacity: 0.7;
+    }
+    .artist-search-clear {
+      position: absolute; right: 0.35rem; top: 50%; transform: translateY(-50%);
+      width: 2rem; height: 2rem; border: none; border-radius: 50%;
+      background: #334155; color: #e2e8f0; font-size: 0.85rem; font-weight: 700;
+      display: none; align-items: center; justify-content: center; cursor: pointer;
+      -webkit-appearance: none;
+    }
+    .artist-search-clear.show { display: flex; }
+    .artist-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 1.5rem 1rem;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .artist-empty span {
+      display: block;
+      margin-top: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #64748b;
+    }
+    .artist-more {
+      grid-column: 1 / -1;
+      padding: 0.7rem;
+      border-radius: 0.75rem;
+      border: 2px dashed #334155;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+    .artist-more:active { border-color: #22d3ee; color: #22d3ee; }
+
+    /* ── Selection screens: shell fija, listas con scroll ──── */
+    #screen-genres, #screen-artists {
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
+    }
+    #screen-genres .scroll-area, #screen-artists .scroll-area {
+      min-height: 0;
+      flex: 1 1 0;
+      overscroll-behavior: contain;
+    }
+    .picker-footer {
+      flex: 0 0 auto;
+      padding-top: 0.5rem;
+      padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(to top, #0a0a14 70%, rgba(10,10,20,0));
+    }
+
     /* ── Waiting room ───────────────────────────────────────── */
     .player-pip {
       display: flex;
@@ -729,13 +806,15 @@ function applyMobileModeTheme() {
   </div>
 
   <!-- Genre grid -->
-  <div class="genre-grid mb-4 scroll-area flex-1" id="genre-grid" role="group" aria-label="Selecciona hasta 3 géneros">
+  <div class="genre-grid mb-2 scroll-area flex-1" id="genre-grid" role="group" aria-label="Selecciona hasta 3 géneros">
     <!-- Populated by JS -->
   </div>
 
-  <button id="btn-go-to-artists" class="btn-primary" disabled>
-    Siguiente: Mis Gallos 🎸
-  </button>
+  <div class="picker-footer">
+    <button id="btn-go-to-artists" class="btn-primary" disabled>
+      Siguiente: Mis Gallos 🎸
+    </button>
+  </div>
 </section>
 
 <!-- ══════════════════════════════════════════════════════════
@@ -753,23 +832,27 @@ function applyMobileModeTheme() {
   </div>
 
   <!-- Filter by selected genres -->
-  <div id="genre-filter-chips" class="flex gap-2 flex-wrap mb-3">
+  <div id="genre-filter-chips" class="flex gap-2 flex-wrap mb-3 flex-shrink-0">
     <!-- Populated by JS based on genre selection -->
   </div>
 
+  <!-- Artist search -->
+  <div class="artist-search-wrap">
+    <span class="artist-search-icon" aria-hidden="true">🔍</span>
+    <input id="artist-search" class="artist-search" type="search" inputmode="search" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Buscar artista..." aria-label="Buscar artista" />
+    <button id="artist-search-clear" class="artist-search-clear" type="button" aria-label="Limpiar búsqueda">✕</button>
+  </div>
+
   <!-- Artist grid -->
-  <div class="artist-grid scroll-area flex-1 mb-4 pb-16" id="artist-grid" role="group" aria-label="Selecciona tus artistas" style="scroll-behavior:smooth; -webkit-overflow-scrolling:touch;">
+  <div class="artist-grid scroll-area flex-1 mb-2 pb-4" id="artist-grid" role="group" aria-label="Selecciona tus artistas" style="scroll-behavior:smooth; -webkit-overflow-scrolling:touch;">
     <!-- Populated by JS -->
   </div>
 
-  <button id="btn-join-game" class="btn-primary" disabled>
-    🎤 ¡Entrar a la fiesta!
-  </button>
-
-  <!-- Floating continue button (appears when 3+ artists selected) -->
-  <button id="btn-floating-continue" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-8 py-4 rounded-2xl font-paytone text-lg" style="background:linear-gradient(135deg,#ffe600,#f59e0b); color:#111827; border:3px solid #111827; box-shadow:4px 4px 0px #111827, 0 8px 25px rgba(245,158,11,0.4); text-transform:uppercase; letter-spacing:1px; transition:transform 0.15s, box-shadow 0.15s;">
-    🎤 ¡Entrar a la fiesta!
-  </button>
+  <div class="picker-footer">
+    <button id="btn-join-game" class="btn-primary" disabled>
+      🎤 ¡Entrar a la fiesta!
+    </button>
+  </div>
 </section>
 
 <!-- ══════════════════════════════════════════════════════════
@@ -1808,10 +1891,23 @@ document.getElementById('btn-go-to-artists').addEventListener('click', () => {
 });
 
 // ── SCREEN 4: ARTISTAS ────────────────────────────────────
+const ARTIST_PAGE_SIZE = 60;
+let artistSearchQuery = '';
+let artistRenderLimit = ARTIST_PAGE_SIZE;
+
+const artistSearchInput = document.getElementById('artist-search');
+const artistSearchClear = document.getElementById('artist-search-clear');
+
+function normalizeArtistSearch(value) {
+  return (value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function updateArtistSearchClear() {
+  if (artistSearchClear) artistSearchClear.classList.toggle('show', artistSearchQuery.length > 0);
+}
+
 function buildArtistGrid() {
-  const grid = document.getElementById('artist-grid');
   const filterChips = document.getElementById('genre-filter-chips');
-  grid.innerHTML = '';
   filterChips.innerHTML = '';
 
   // Build filter chips
@@ -1825,19 +1921,77 @@ function buildArtistGrid() {
     filterChips.appendChild(chip);
   });
 
-  // Collect unique artists from selected genres
-  const uniqueArtists = [...new Set(me.genres.flatMap(gid => ARTISTS_BY_GENRE[gid] || []))];
+  artistSearchQuery = '';
+  if (artistSearchInput) artistSearchInput.value = '';
+  artistRenderLimit = ARTIST_PAGE_SIZE;
+  updateArtistSearchClear();
+  renderArtistGrid();
+  updateArtistsUI();
+}
 
-  uniqueArtists.forEach(name => {
+function renderArtistGrid() {
+  const grid = document.getElementById('artist-grid');
+  const uniqueArtists = [...new Set(me.genres.flatMap(gid => ARTISTS_BY_GENRE[gid] || []))]
+    .sort((a, b) => a.localeCompare(b, 'es'));
+  const query = normalizeArtistSearch(artistSearchQuery);
+  const filtered = query
+    ? uniqueArtists.filter(name => normalizeArtistSearch(name).includes(query))
+    : uniqueArtists;
+  const visible = filtered.slice(0, artistRenderLimit);
+
+  grid.innerHTML = '';
+
+  if (!filtered.length) {
+    const empty = document.createElement('div');
+    empty.className = 'artist-empty';
+    empty.innerHTML = `🙈 Sin resultados para “${escapeHtml(artistSearchQuery)}”<span>Prueba con otro nombre</span>`;
+    grid.appendChild(empty);
+    return;
+  }
+
+  visible.forEach(name => {
     const chip = document.createElement('button');
-    chip.className = 'artist-chip';
+    chip.type = 'button';
+    chip.className = 'artist-chip' + (me.artists.includes(name) ? ' selected' : '');
     chip.dataset.name = name;
     chip.textContent = name;
     chip.addEventListener('click', () => toggleArtist(name, chip));
     grid.appendChild(chip);
   });
 
-  updateArtistsUI();
+  if (filtered.length > visible.length) {
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'artist-more';
+    more.textContent = `Mostrar más (${filtered.length - visible.length} restantes)`;
+    more.addEventListener('click', () => {
+      artistRenderLimit += ARTIST_PAGE_SIZE;
+      renderArtistGrid();
+    });
+    grid.appendChild(more);
+  }
+}
+
+if (artistSearchInput) {
+  artistSearchInput.addEventListener('input', () => {
+    artistSearchQuery = artistSearchInput.value.trim();
+    artistRenderLimit = ARTIST_PAGE_SIZE;
+    updateArtistSearchClear();
+    renderArtistGrid();
+    document.getElementById('artist-grid').scrollTop = 0;
+  });
+}
+
+if (artistSearchClear) {
+  artistSearchClear.addEventListener('click', () => {
+    artistSearchQuery = '';
+    artistSearchInput.value = '';
+    artistRenderLimit = ARTIST_PAGE_SIZE;
+    updateArtistSearchClear();
+    renderArtistGrid();
+    document.getElementById('artist-grid').scrollTop = 0;
+    artistSearchInput.focus();
+  });
 }
 
 function toggleArtist(name, chip) {
@@ -1862,22 +2016,11 @@ function updateArtistsUI() {
   const n = me.artists.length;
   document.getElementById('artists-count-badge').textContent = n;
   document.getElementById('btn-join-game').disabled = n === 0;
-  // Show floating continue button when 3+ artists selected
-  const floatingBtn = document.getElementById('btn-floating-continue');
-  if (floatingBtn) {
-    if (n >= 3 && floatingBtn.classList.contains('hidden')) {
-      floatingBtn.classList.remove('hidden');
-      floatingBtn.style.animation = 'fadeSlideIn 0.35s ease forwards';
-    } else if (n < 3 && !floatingBtn.classList.contains('hidden')) {
-      floatingBtn.classList.add('hidden');
-    }
-  }
 }
 
 document.getElementById('back-to-genres').addEventListener('click', () => goToScreen('screen-genres'));
 
 document.getElementById('btn-join-game').addEventListener('click', joinGame);
-document.getElementById('btn-floating-continue').addEventListener('click', joinGame);
 
 function joinGame() {
   if (!me.name || me.avatarId === null || !me.roomCode) return;
