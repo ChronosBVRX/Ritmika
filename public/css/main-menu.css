@@ -1227,8 +1227,7 @@ html.mm-reduced-motion *::after {
 }
 
 /* ── Ajustes para TV 1366×768 y pantallas bajas ───────────── */
-@media (max-height: 820px) {
-  .mm-topbar { flex-basis: 84px; padding-top: 10px; }
+@media (max-height: 820px) {  .mm-topbar { flex-basis: 84px; padding-top: 10px; }
   .mm-brand img { height: 48px; }
   .mm-brand-badge { padding: 5px 10px; font-size: 10px; }
   .mm-papel { height: 82px; }
@@ -1257,4 +1256,21 @@ html.mm-reduced-motion *::after {
   .mm-brand-badge { display: none; }
   .mm-hero-content { width: 64%; }
   .mm-utility button { padding: 5px 7px; letter-spacing: 0.8px; }
+}
+
+/* ── Modo Android TV / lite: menos capas y cero blur grande ── */
+html.ritmika-tv-lite .mm-spot,
+html.ritmika-tv-lite .mm-floating {
+  display: none;
+}
+html.ritmika-tv-lite .mm-bg-img,
+html.ritmika-tv-lite .mm-papel,
+html.ritmika-tv-lite .mm-axolo-wrap {
+  animation: none;
+}
+html.ritmika-tv-lite .mm-hero-bg {
+  transition: opacity 0.2s ease;
+}
+html.ritmika-tv-lite .mm-papel {
+  filter: none;
 }
