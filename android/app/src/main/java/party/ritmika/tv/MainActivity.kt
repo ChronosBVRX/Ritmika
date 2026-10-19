@@ -248,12 +248,23 @@ class MainActivity : AppCompatActivity() {
         val scale = minOf(width / DESIGN_W, height / DESIGN_H)
         val offX = (width - DESIGN_W * scale) / 2f
         val offY = (height - DESIGN_H * scale) / 2f
+        val left = (offX + VIDEO_X * scale).toInt()
+        val top = (offY + VIDEO_Y * scale).toInt()
+        val w = (VIDEO_W * scale).toInt()
+        val h = (VIDEO_H * scale).toInt()
         val lp = playerView.layoutParams as FrameLayout.LayoutParams
+        // Solo tocar layoutParams si cambia de verdad: asignarlo siempre
+        // provoca un bucle de relayout que impide que el video pinte frames.
+        if (lp.gravity == (Gravity.TOP or Gravity.LEFT) && lp.leftMargin == left &&
+            lp.topMargin == top && lp.width == w && lp.height == h
+        ) {
+            return
+        }
         lp.gravity = Gravity.TOP or Gravity.LEFT
-        lp.leftMargin = (offX + VIDEO_X * scale).toInt()
-        lp.topMargin = (offY + VIDEO_Y * scale).toInt()
-        lp.width = (VIDEO_W * scale).toInt()
-        lp.height = (VIDEO_H * scale).toInt()
+        lp.leftMargin = left
+        lp.topMargin = top
+        lp.width = w
+        lp.height = h
         playerView.layoutParams = lp
     }
 
