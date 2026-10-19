@@ -122,6 +122,7 @@ function showRoundSplash(round, callback) {
   splash.style.pointerEvents = 'all';
 
   UISounds.playChime();
+  playSfx('./assets/audio/sting_round_start.mp3', 0.5);
   RitmikaStyleFX.bigReveal('#splash-number-text', { delay: 200, rotate: true });
   setTimeout(() => { RitmikaStyleFX.slideUp('#splash-title-text'); }, 600);
   setTimeout(() => { RitmikaStyleFX.popIn('#splash-subtitle-text'); }, 1000);
@@ -193,6 +194,70 @@ function showCountdown(callback) {
   }
 
   showStep();
+}
+
+
+// ════════════════════════════════════════════
+//  ASSETS ANIMADOS (pipeline ComfyUI/AnimateDiff)
+//  Los clips viven en public/assets/anim/*.webm (VP9 + alfa). Si un clip no
+//  existe o falla, se conserva la imagen estática: nunca se rompe la UI.
+// ════════════════════════════════════════════
+const ANIM_DIR = './assets/anim/';
+const _animProto = {};
+const _animFailed = {};
+
+function animProto(key) {
+  if (_animFailed[key]) return null;
+  if (_animProto[key]) return _animProto[key];
+  const v = document.createElement('video');
+  v.src = ANIM_DIR + key + '.webm';
+  v.autoplay = true;
+  v.loop = true;
+  v.muted = true;
+  v.playsInline = true;
+  v.setAttribute('muted', '');
+  v.setAttribute('playsinline', '');
+  v.preload = 'auto';
+  v.addEventListener('error', () => { _animFailed[key] = true; }, { once: true });
+  _animProto[key] = v;
+  return v;
+}
+
+/* Monta la animación dentro de `host` (cubre `cover`, tamaño 100%). */
+function mountAnim(host, key, css) {
+  if (!host) return null;
+  const proto = animProto(key);
+  if (!proto) return null;
+  const prev = host.querySelector('video[data-anim]');
+  if (prev && prev.dataset.anim === key) { prev.play().catch(()=>{}); return prev; }
+  if (prev) prev.remove();
+  const v = proto.cloneNode(false);
+  v.dataset.anim = key;
+  v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;' + (css || '');
+  host.appendChild(v);
+  v.play().catch(() => { v.remove(); });
+  return v;
+}
+
+/* Cambia una <img> por su versión animada (per-evento, con respaldo). */
+function animateImg(imgEl, key, css) {
+  if (!imgEl || !imgEl.parentNode) return null;
+  if (imgEl.dataset.animMounted === key) return null;
+  const proto = animProto(key);
+  if (!proto) return null;
+  const v = proto.cloneNode(false);
+  v.dataset.anim = key;
+  v.style.cssText = imgEl.style.cssText + ';' + (css || '');
+  v.className = imgEl.className;
+  if (imgEl.dataset.animMounted) {
+    const old = imgEl.parentNode.querySelector('video[data-anim]');
+    if (old) old.remove();
+  }
+  imgEl.dataset.animMounted = key;
+  imgEl.style.visibility = 'hidden';
+  imgEl.parentNode.insertBefore(v, imgEl.nextSibling);
+  v.play().catch(() => { v.remove(); imgEl.style.visibility = ''; imgEl.dataset.animMounted = ''; });
+  return v;
 }
 
 // ════════════════════════════════════════════

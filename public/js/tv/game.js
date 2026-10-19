@@ -347,6 +347,7 @@ document.getElementById('spin-btn').addEventListener('click', () => {
 });
 
 function spinRoulette() {
+  sting('sting_roulette_spin', 0.42);
   if (isSpinning) return;
   isSpinning = true;
   if (state.round === 2) state.assignedBy = new Set();
@@ -497,6 +498,7 @@ let votePhaseActive = false;
 let votePhaseTimeout = null;
 const VOTE_PHASE_DURATION = 10000;
 const activeSfx = [];
+let crowdAmbience = null;
 const SFX_VOLUME = 0.35;
 const SFX_DUCKED = 0.10;
 function playSfx(url, vol) {
@@ -519,6 +521,20 @@ function unduckSfx() {
 function stopAllSfx() {
   activeSfx.forEach(a => { try { a.pause(); a.src=''; } catch(e){} });
   activeSfx.length = 0;
+}
+// Loop de ambiente (público). Se registra en activeSfx para que duck/unduck y
+// stopAllSfx lo manejen junto con el resto de la capa sonora.
+function playLoop(url, vol) {
+  const a = new Audio(url);
+  a.loop = true;
+  a.volume = vol ?? 0.18;
+  activeSfx.push(a);
+  a.play().catch(()=>{});
+  return a;
+}
+// Sting musical corto (entradas de ronda, podio, ganador...)
+function sting(name, vol) {
+  return playSfx('./assets/audio/' + name + '.mp3', vol ?? 0.5);
 }
 
 // ════════════════════════════════════════════
@@ -797,6 +813,10 @@ async function startKaraoke(player, song) {
     event: 'KARAOKE_START',
     data: { socketId: player.socketId, name: player.name, song: song },
   });
+
+  // Ambiente de público: hace que el show se sienta en vivo.
+  if (crowdAmbience) { try { crowdAmbience.pause(); } catch(e){} }
+  crowdAmbience = playLoop('./assets/audio/loop_crowd_karaoke.mp3', 0.16);
 
   const choice = AXOLO_SINGER_INTROS[Math.floor(Math.random() * AXOLO_SINGER_INTROS.length)];
   const introMsg = choice.text;
@@ -1094,6 +1114,8 @@ function fireBlackout() {
   const video = document.getElementById('karaoke-video');
   const lyrics = document.getElementById('lyrics-text');
 
+  sting('sting_blackout', 0.55);
+
   // Show blackout banner
   anime({
     targets: '#blackout-banner',
@@ -1323,6 +1345,7 @@ let podiumBgm = null;
 
 function showPodium() {
   if (typeof bootMusic !== 'undefined' && bootMusic) { bootMusic.pause(); }
+  sting('sting_podium', 0.5);
   clearSavedGame();
   if (podiumBgm) { podiumBgm.pause(); podiumBgm.currentTime = 0; podiumBgm = null; }
 
@@ -1696,7 +1719,7 @@ function showPodium() {
         +'<div id="winner-score-display" style="font-family:\'Paytone One\',sans-serif;font-size:42px;color:#facc15;margin-top:18px;text-shadow:6px 6px 0 #111827, 0 0 20px #facc15;opacity:0;background:#0f172a;border:6px solid #111827;padding:4px 30px;box-shadow:10px 10px 0 #111827;">0 pts</div>';
       winnerScreen.appendChild(winnerContent);
       anime({targets:'#winner-reveal-content',opacity:[0,1],scale:[0.6,1.05,1],duration:900,easing:'easeOutBack'});
-      playSfx('./assets/audio/sfx_tada.mp3');
+      sting('sting_winner', 0.55);
       setTimeout(()=>{playSfx('./assets/audio/sfx_applause.mp3');}, 500);
       await wait(400);
       anime({targets:'#winner-crown',translateY:[0,-18,0],duration:1200,loop:true,easing:'easeInOutSine'});

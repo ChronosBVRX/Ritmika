@@ -50,6 +50,42 @@ function renderRoomCode(code) {
   }
 }
 
+/* Carga el índice de animaciones disponibles (lo escribe sync_generated_anim). */
+(function loadAnimIndex() {
+  fetch('./assets/anim/index.json', { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : null))
+    .then(idx => {
+      if (!idx) return;
+      window.__RITMIKA_ANIM_INDEX = idx;
+      window.__RITMIKA_AVATAR_ANIM = idx.avatars || {};
+      animateLobbyAvatars();
+    })
+    .catch(() => {});
+})();
+
+/* La lista se re-renderiza por varios caminos: observamos el contenedor. */
+document.addEventListener('DOMContentLoaded', () => {
+  const list = document.getElementById('players-list');
+  if (list && window.MutationObserver) {
+    let t = null;
+    new MutationObserver(() => {
+      clearTimeout(t);
+      t = setTimeout(animateLobbyAvatars, 120);
+    }).observe(list, { childList: true, subtree: true });
+  }
+  animateLobbyAvatars();
+}, { once: true });
+
+function animateLobbyAvatars() {
+  if (typeof animateImg !== 'function') return;
+  document.querySelectorAll('#players-list .avatar-bubble img, #players-list img.avatar-img').forEach(img => {
+    const m = (img.getAttribute('src') || '').match(/avatar_(\d+)_/);
+    if (!m) return;
+    const key = window.__RITMIKA_AVATAR_ANIM && window.__RITMIKA_AVATAR_ANIM[m[1]];
+    if (key) animateImg(img, key);
+  });
+}
+
 function renderPlayerList() {
   const lobbyContainer = document.getElementById('players-list');
   const modeContainer = document.getElementById('mode-players-list');
@@ -377,6 +413,21 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
   }
   bar.style.backgroundColor = bgColor;
   textBox.textContent = texto;
+
+  // Retrato animado (AnimateDiff): Axolo "habla" mientras suena la voz.
+  const wrap = document.getElementById('axolo-cutin-portrait-wrap');
+  if (wrap && typeof mountAnim === 'function') {
+    const emoKey = (typeof state !== 'undefined' && state && state.gameMode === 'emo')
+      ? 'tio-axolo-vignette-emo-' + assetName + '-talking'
+      : 'tio-axolo-vignette-' + assetName + '-talking';
+    const animated = mountAnim(wrap, emoKey);
+    if (animated) {
+      portrait.style.visibility = 'hidden';
+      animated.addEventListener('remove', () => { portrait.style.visibility = ''; });
+    } else {
+      portrait.style.visibility = '';
+    }
+  }
   
   // 3. Slide in (add active class, remove exit classes)
   bar.classList.remove('slide-out');
@@ -393,6 +444,13 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
 // Exit transition logic
 function hideTioAxolCutin() {
   const bar = document.getElementById('axolo-cutin-bar');
+  const wrap = document.getElementById('axolo-cutin-portrait-wrap');
+  if (wrap) {
+    const v = wrap.querySelector('video[data-anim]');
+    if (v) v.remove();
+  }
+  const p = document.getElementById('axolo-cutin-portrait');
+  if (p) p.style.visibility = '';
   if (!bar || !bar.classList.contains('active')) return;
   
   if (cutinTimeout) {

@@ -1,0 +1,26 @@
+{
+ "generatedAt": "2026-10-18T23:20:54",
+ "avatars": {
+  "0": "avatar-0-taco-rockero-idle"
+ },
+ "vignettes": {
+  "angry-talking": "tio-axolo-vignette-angry-talking",
+  "emo-angry-talking": "tio-axolo-vignette-emo-angry-talking",
+  "emo-laughing-talking": "tio-axolo-vignette-emo-laughing-talking",
+  "emo-mischievous-talking": "tio-axolo-vignette-emo-mischievous-talking",
+  "emo-neutral-talking": "tio-axolo-vignette-emo-neutral-talking",
+  "emo-sad-talking": "tio-axolo-vignette-emo-sad-talking",
+  "emo-singing-talking": "tio-axolo-vignette-emo-singing-talking",
+  "laughing-reaction": "tio-axolo-vignette-laughing-reaction",
+  "laughing-talking": "tio-axolo-vignette-laughing-talking",
+  "mischievous-talking": "tio-axolo-vignette-mischievous-talking",
+  "neutral-idle": "tio-axolo-vignette-neutral-idle",
+  "neutral-talking": "tio-axolo-vignette-neutral-talking",
+  "sad-talking": "tio-axolo-vignette-sad-talking",
+  "singing-talking": "tio-axolo-vignette-singing-talking"
+ },
+ "backgrounds": {
+  "bg-neon-club-background": "bg-neon-club-background"
+ },
+ "misc": {}
+}

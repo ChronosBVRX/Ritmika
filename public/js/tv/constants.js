@@ -165,6 +165,10 @@ const boot = {
               if (typeof destroyBootloader === 'function') destroyBootloader();
             }
             if (modeScreen) { modeScreen.classList.add('active'); }
+            setTimeout(() => {
+              const mascota = document.getElementById('mode-axolo-img');
+              if (mascota && typeof animateImg === 'function') animateImg(mascota, 'tio-axolo-body-idle');
+            }, 300);
 
             setTimeout(() => {
               try { if(typeof UISounds !== 'undefined') UISounds.whoosh(); } catch(e){}
