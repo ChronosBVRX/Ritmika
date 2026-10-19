@@ -1,6 +1,5 @@
-const CACHE_NAME = 'ritmika-cache-v1';
+const CACHE_NAME = 'ritmika-cache-v2';
 const ASSETS = [
-  '/join',
   '/libs/tailwind.css',
   '/libs/anime.min.js',
   '/js/animations.js',
@@ -21,9 +20,7 @@ const ASSETS = [
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
@@ -33,9 +30,7 @@ self.addEventListener('activate', (e) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
+          if (key !== CACHE_NAME) return caches.delete(key);
         })
       );
     })
@@ -45,27 +40,33 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  
+
   const url = new URL(e.request.url);
-  // Ignore dynamic endpoints and WebSocket polls to avoid breaking real-time connection
-  if (url.pathname.startsWith('/api') || url.pathname.startsWith('/socket.io')) {
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api') || url.pathname.startsWith('/socket.io')) return;
+
+  const isNavigation = e.request.mode === 'navigate'
+    || url.pathname === '/join'
+    || url.pathname === '/';
+
+  if (isNavigation) {
+    e.respondWith(
+      fetch(e.request).then((networkResponse) => {
+        if (networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseClone));
+        }
+        return networkResponse;
+      }).catch(() => {
+        return caches.match(e.request).then((cached) => cached || caches.match('/join'));
+      })
+    );
     return;
   }
 
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Stale-while-revalidate
-        fetch(e.request).then((networkResponse) => {
-          if (networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(e.request, networkResponse);
-            });
-          }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-      return fetch(e.request).then((networkResponse) => {
+      const networkRequest = fetch(e.request).then((networkResponse) => {
         if (networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -73,7 +74,9 @@ self.addEventListener('fetch', (e) => {
           });
         }
         return networkResponse;
-      });
+      }).catch(() => cachedResponse);
+
+      return cachedResponse || networkRequest;
     })
   );
 });
