@@ -1,6 +1,8 @@
 package party.ritmika.tv
 
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -164,7 +166,23 @@ class MainActivity : AppCompatActivity() {
         webView.loadUrl(BASE_URL)
         webView.requestFocus()
 
+        // Hook de diagnóstico: permite abrir el panel nativo por ADB sin
+        // depender del puente JS. No afecta el arranque normal.
+        if (intent?.getBooleanExtra("ritmika_open_audio", false) == true) {
+            webView.postDelayed({
+                try { startActivity(Intent(this, AudioPanelActivity::class.java)) } catch (_: Exception) {}
+            }, 700)
+        }
+
         UpdateManager.checkOnLaunch(this)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (intent.getBooleanExtra("ritmika_open_audio", false)) {
+            try { startActivity(Intent(this, AudioPanelActivity::class.java)) } catch (_: Exception) {}
+        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -394,6 +412,24 @@ class MainActivity : AppCompatActivity() {
         fun isAvailable(): Boolean = true
 
         @JavascriptInterface
+        fun isAudioPanelAvailable(): Boolean =
+            packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)
+
+        @JavascriptInterface
+        fun openAudioPanel(): Boolean {
+            if (!isAudioPanelAvailable()) return false
+            return try {
+                runOnUiThread {
+                    startActivity(Intent(this@MainActivity, AudioPanelActivity::class.java))
+                }
+                true
+            } catch (e: Exception) {
+                Log.e(TAG, "openAudioPanel failed", e)
+                false
+            }
+        }
+
+        @JavascriptInterface
         fun setSource(url: String?) {
             if (url.isNullOrBlank()) return
             runOnUiThread {
@@ -458,6 +494,18 @@ class MainActivity : AppCompatActivity() {
 
     // ── D-pad / gamepad / media keys → KeyboardEvent en la página ─────
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Atajo de control remoto: MENU abre el panel nativo de audio, pero
+        // solo si la página está en menú/lobby (lo valida el JS).
+        if (event.keyCode == KeyEvent.KEYCODE_MENU) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                webView.evaluateJavascript(
+                    "window.__ritmikaOpenAudioPanel&&window.__ritmikaOpenAudioPanel()",
+                    null
+                )
+            }
+            return true
+        }
+
         val jsKey = mapKey(event.keyCode)
         if (jsKey == null) return super.dispatchKeyEvent(event)
 

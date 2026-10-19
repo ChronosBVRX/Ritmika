@@ -332,9 +332,22 @@ const MainMenu = (function () {
     const how = $('mm-btn-how');
     const settings = $('mm-btn-settings');
     const credits = $('mm-btn-credits');
+    const audio = $('mm-btn-audio');
     if (how) how.addEventListener('click', () => openModal('how'));
     if (settings) settings.addEventListener('click', () => openModal('settings'));
     if (credits) credits.addEventListener('click', () => openModal('credits'));
+
+    if (audio) {
+      const nativeAudio = window.AndroidNative;
+      const available = !!(nativeAudio &&
+        typeof nativeAudio.isAudioPanelAvailable === 'function' &&
+        nativeAudio.isAudioPanelAvailable());
+      audio.style.display = available ? '' : 'none';
+      if (available) {
+        audio.addEventListener('click', () => openAudioPanel());
+      }
+    }
+
     if (els.cta) els.cta.addEventListener('click', createRoom);
     const back = $('btn-back-to-modes');
     if (back) back.addEventListener('click', backToMenu);
@@ -343,6 +356,24 @@ const MainMenu = (function () {
       if (btn) setToggle(btn, !!document.fullscreenElement);
     });
   }
+
+  function openAudioPanel() {
+    const nativeAudio = window.AndroidNative;
+    if (!nativeAudio || typeof nativeAudio.openAudioPanel !== 'function') return false;
+    // Solo fuera de una partida activa: menú o lobby. Durante una canción
+    // no abrimos una Activity que pause el WebView y desincronice la fase.
+    const menuActive = screen.classList.contains('active');
+    const lobbyActive = !!(lobby && lobby.classList.contains('active'));
+    if (!menuActive && !lobbyActive) return false;
+    try {
+      return nativeAudio.openAudioPanel();
+    } catch {
+      return false;
+    }
+  }
+
+  // El control remoto (KEYCODE_MENU) llama a esta función desde MainActivity.
+  window.__ritmikaOpenAudioPanel = openAudioPanel;
 
   function socketReady() {
     return typeof socket !== 'undefined' && socket && socket.connected;
