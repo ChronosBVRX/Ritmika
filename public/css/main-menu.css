@@ -1263,6 +1263,9 @@ html.ritmika-tv-lite .mm-spot,
 html.ritmika-tv-lite .mm-floating {
   display: none;
 }
+html.ritmika-tv-lite .mm-hero-footnote {
+  display: none;
+}
 html.ritmika-tv-lite .mm-bg-img,
 html.ritmika-tv-lite .mm-papel,
 html.ritmika-tv-lite .mm-axolo-wrap {
