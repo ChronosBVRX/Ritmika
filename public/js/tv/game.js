@@ -838,6 +838,7 @@ async function startKaraoke(player, song) {
   }
 
   let karaokeStarted = false;
+  let playbackWatchdog = null;
 
   function scheduleBotVotes() {
     state.players.forEach(p => {
@@ -861,6 +862,7 @@ async function startKaraoke(player, song) {
   function markKaraokeStarted() {
     if (karaokeStarted || myGeneration !== karaokeGeneration) return;
     karaokeStarted = true;
+    if (playbackWatchdog) { clearTimeout(playbackWatchdog); playbackWatchdog = null; }
     FlowDirector.enter('karaoke', {
       singerSocketId: player.socketId,
       label: 'En vivo: ' + player.name,
@@ -874,6 +876,15 @@ async function startKaraoke(player, song) {
   }
 
   const proceedWithKaraoke = () => {
+    // Watchdog fuera de requestAnimationFrame: si la TV está minimizada o el
+    // compositor no dispara `playing`, la partida no se queda congelada.
+    playbackWatchdog = setTimeout(() => {
+      if (myGeneration !== karaokeGeneration || karaokeStarted) return;
+      console.warn('[Karaoke] Video sin evento playing; arrancando respaldo.');
+      if (!timerInterval) startKaraokeTimer(null, song);
+      markKaraokeStarted();
+    }, 8000);
+
     // YIELD to event loop so Chromium can attach the DOM element to the hardware compositor
     // Without this double requestAnimationFrame, the second video will play audio only (black screen)
     requestAnimationFrame(() => {
@@ -932,15 +943,6 @@ async function startKaraoke(player, song) {
           startKaraokeTimer(null, song || { duration: 120 });
           markKaraokeStarted();
         }
-
-        // Watchdog: si el compositor no dispara `playing`, la partida no se
-        // queda congelada en "Preparando canción".
-        setTimeout(() => {
-          if (myGeneration !== karaokeGeneration || karaokeStarted) return;
-          console.warn('[Karaoke] Video sin evento playing; arrancando respaldo.');
-          if (!timerInterval) startKaraokeTimer(videoUrl ? video : null, song);
-          markKaraokeStarted();
-        }, 8000);
       });
     });
   };
