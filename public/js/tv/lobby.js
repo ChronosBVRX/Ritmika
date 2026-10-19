@@ -355,7 +355,9 @@ function playSwooshSound() {
 }
 
 // Global Activation Logic for Character Cut-in
+console.log('[Cutin] lobby.js cargado');
 function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
+  console.log('[Cutin] trigger emocion=' + emocion);
   const bar = document.getElementById('axolo-cutin-bar');
   const portrait = document.getElementById('axolo-cutin-portrait');
   const textBox = document.getElementById('axolo-cutin-text');
@@ -418,6 +420,7 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
   // 3. Slide in (add active class, remove exit classes)
   bar.classList.remove('slide-out');
   bar.classList.add('active');
+  console.log('[Cutin] barra activa, clases=' + bar.className);
 
   // Mejora progresiva: si el clip animado existe se monta ENCIMA del retrato,
   // ya con la barra activa. Si algo falla, el cut-in estático se ve igual.
@@ -442,6 +445,7 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
 
 // Exit transition logic
 function hideTioAxolCutin() {
+  console.log('[Cutin] hide');
   const bar = document.getElementById('axolo-cutin-bar');
   const wrap = document.getElementById('axolo-cutin-portrait-wrap');
   if (wrap) {
