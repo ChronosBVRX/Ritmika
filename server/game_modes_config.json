@@ -1,0 +1,39 @@
+{
+  "modes": {
+    "clasico": {
+      "label": "Modo Clásico",
+      "filter": "all",
+      "mode": ""
+    },
+    "emo": {
+      "label": "Fiesta Emo",
+      "filter": "genre",
+      "genres": ["rock", "balada", "pop"],
+      "mode": "emo"
+    },
+    "ranchera": {
+      "label": "Dolidas & Rancheras",
+      "filter": "genre",
+      "genres": ["ranchera", "banda"],
+      "mode": "ranchera"
+    },
+    "nostalgia": {
+      "label": "Nostalgia Pop",
+      "filter": "genre",
+      "genres": ["pop", "balada"],
+      "mode": "nostalgia"
+    },
+    "anime": {
+      "label": "Fiesta Anime",
+      "filter": "genre",
+      "genres": ["pop", "rock"],
+      "mode": "anime"
+    },
+    "electronica": {
+      "label": "Electrónica",
+      "filter": "genre",
+      "genres": ["electronica"],
+      "mode": ""
+    }
+  }
+}

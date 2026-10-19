@@ -436,6 +436,34 @@ window.getModeRoundLabels = function() {
       ]
     };
   }
+  if (typeof state !== 'undefined' && state.gameMode === 'ranchera') {
+    return {
+      badges: [
+        'Ronda 1 — Tu Despecho',
+        'Ronda 2 — La Indirecta',
+        'Ronda 3 — Apagón del Mariachi'
+      ],
+      headings: [
+        '¿Quién aguanta el despecho?',
+        '¿A quién le vas a dedicar esta canción?',
+        'Canta de memoria, como en el palenque.'
+      ]
+    };
+  }
+  if (typeof state !== 'undefined' && state.gameMode === 'nostalgia') {
+    return {
+      badges: [
+        'Ronda 1 — Tu Hit de los 2000',
+        'Ronda 2 — Mixtape para el Ex',
+        'Ronda 3 — Apagón del Recuerdo'
+      ],
+      headings: [
+        '¿Quién prende la pista?',
+        '¿A quién le dedicas el mixtape?',
+        'Canta de memoria, como en la prepa.'
+      ]
+    };
+  }
   return null; // Fallback a clasico
 };
 

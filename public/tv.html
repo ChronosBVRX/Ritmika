@@ -1423,6 +1423,84 @@
       letter-spacing: 1px !important;
     }
   </style>
+  <style id="ranchera-theme">
+    body[data-mode="ranchera"].party-bg {
+      background: radial-gradient(circle at center, #451a03 0%, #0c0704 100%) !important;
+    }
+    body[data-mode="ranchera"].party-bg::before {
+      filter: sepia(35%) hue-rotate(-10deg) brightness(0.65) contrast(1.15) !important;
+      opacity: 0.35 !important;
+    }
+    body[data-mode="ranchera"] #lobby-screen::before {
+      background: radial-gradient(ellipse at center, transparent 20%, rgba(30, 12, 2, 0.98) 100%) !important;
+    }
+    body[data-mode="ranchera"] #lobby-screen .lobby-glow-overlay {
+      filter: hue-rotate(-15deg) saturate(1.8) opacity(0.5) !important;
+    }
+    body[data-mode="ranchera"] .jackbox-panel {
+      border-color: #111827 !important;
+      box-shadow: 8px 8px 0px #b45309 !important;
+    }
+    body[data-mode="ranchera"] .text-yellow-400 { color: #fcd34d !important; }
+    body[data-mode="ranchera"] .text-cyan-400 { color: #fb923c !important; }
+    body[data-mode="ranchera"] .bg-pink-600 {
+      background-color: #7c2d12 !important;
+      border: 2px solid #f59e0b !important;
+    }
+    body[data-mode="ranchera"] #orb-cyan { background: rgba(217,119,6,0.18) !important; }
+    body[data-mode="ranchera"] #orb-pink { background: rgba(180,83,9,0.20) !important; }
+    body[data-mode="ranchera"] #orb-purple { background: rgba(120,53,15,0.35) !important; }
+    body[data-mode="ranchera"] #orb-magenta { background: rgba(251,146,60,0.16) !important; }
+    body[data-mode="ranchera"] .lobby-corner-tl, body[data-mode="ranchera"] .lobby-corner-tr,
+    body[data-mode="ranchera"] .lobby-corner-bl, body[data-mode="ranchera"] .lobby-corner-br {
+      border-color: #b45309 !important;
+    }
+    body[data-mode="ranchera"] #axolo-cutin-text {
+      font-family: Georgia, 'Times New Roman', serif, 'Fredoka' !important;
+      color: #fff7ed !important;
+      text-shadow: 2px 2px 0px rgba(0,0,0,0.9), -1px -1px 0px #b45309 !important;
+      letter-spacing: 1px !important;
+    }
+  </style>
+  <style id="nostalgia-theme">
+    body[data-mode="nostalgia"].party-bg {
+      background: radial-gradient(circle at center, #3b0764 0%, #0f172a 100%) !important;
+    }
+    body[data-mode="nostalgia"].party-bg::before {
+      filter: hue-rotate(300deg) saturate(1.6) brightness(0.7) contrast(1.15) !important;
+      opacity: 0.35 !important;
+    }
+    body[data-mode="nostalgia"] #lobby-screen::before {
+      background: radial-gradient(ellipse at center, transparent 20%, rgba(15, 23, 42, 0.98) 100%) !important;
+    }
+    body[data-mode="nostalgia"] #lobby-screen .lobby-glow-overlay {
+      filter: hue-rotate(310deg) saturate(2) opacity(0.5) !important;
+    }
+    body[data-mode="nostalgia"] .jackbox-panel {
+      border-color: #111827 !important;
+      box-shadow: 8px 8px 0px #ec4899 !important;
+    }
+    body[data-mode="nostalgia"] .text-yellow-400 { color: #FF71CE !important; }
+    body[data-mode="nostalgia"] .text-cyan-400 { color: #01CDFE !important; }
+    body[data-mode="nostalgia"] .bg-pink-600 {
+      background-color: #4c1d95 !important;
+      border: 2px solid #FF71CE !important;
+    }
+    body[data-mode="nostalgia"] #orb-cyan { background: rgba(1,205,254,0.16) !important; }
+    body[data-mode="nostalgia"] #orb-pink { background: rgba(255,113,206,0.18) !important; }
+    body[data-mode="nostalgia"] #orb-purple { background: rgba(76,29,149,0.35) !important; }
+    body[data-mode="nostalgia"] #orb-magenta { background: rgba(236,72,153,0.16) !important; }
+    body[data-mode="nostalgia"] .lobby-corner-tl, body[data-mode="nostalgia"] .lobby-corner-tr,
+    body[data-mode="nostalgia"] .lobby-corner-bl, body[data-mode="nostalgia"] .lobby-corner-br {
+      border-color: #ec4899 !important;
+    }
+    body[data-mode="nostalgia"] #axolo-cutin-text {
+      font-family: 'Fredoka', 'Paytone One', sans-serif !important;
+      color: #ffffff !important;
+      text-shadow: 2px 2px 0px rgba(0,0,0,0.9), -1px -1px 0px #ec4899 !important;
+      letter-spacing: 1px !important;
+    }
+  </style>
 </head>
 
 <body class="scanlines party-bg">
@@ -2497,7 +2575,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnCrearSalaModo) {
     btnCrearSalaModo.addEventListener('click', () => {
-      if (selectedMode !== 'clasico' && selectedMode !== 'emo') {
+      if (!['clasico', 'emo', 'ranchera', 'nostalgia'].includes(selectedMode)) {
         try { if(window.UISounds) UISounds.playTone(150, 0.3, 'sawtooth'); } catch(e){}
         if (typeof axoloSay === 'function') {
           axoloSay("¡Aguanta compa! Los changos del código siguen armando este modo.", "sad", 4000, true);

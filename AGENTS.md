@@ -56,6 +56,9 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 - `scripts/migrate_to_sqlite.js` — Upsert seguro de `r2_db.json` a `server/songs.db`; preserva la columna `mode`.
 - `scripts/import_party_tyme.js` — Audita/importa colecciones Party Tyme: dry-run, deduplicación contra R2, manifest CSV, subida y upsert en SQLite.
 - `scripts/apply_genre_overrides.js` — Aplica correcciones de género por artista desde `server/genre_overrides.json` a `r2_db.json` y `songs.db`.
+- `scripts/clean_titles.js` — Limpia títulos legacy (low, multi, estilo de, pista y letra, etc.) en `r2_db.json` y `songs.db`. Modo dry-run por defecto y `--apply`.
+- `scripts/apply_artist_overrides.js` — Unifica variantes de artistas desde `server/artist_overrides.json` (Wisin & Yandel, Los Tigres del Norte, etc.).
+- `scripts/tag_game_modes.js` — Etiqueta modos (ranchera, nostalgia, emo) sin borrar los existentes.
 - `scripts/generate_icon.ps1` — Crea `ritmika.ico` desde `tio_axolo_body.webp`.
 - `scripts/download_deps.ps1` — Descarga WebView2 SDK de NuGet, extrae DLLs.
 - `scripts/generate_all_audio.js` — Genera voces con ElevenLabs API. Lee API key de `.env`. 172+ frases definidas. Soporta skip si el MP3 ya existe.
@@ -83,6 +86,8 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 
 ### Config
 - `.env` — `PORT=3000`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `ADMIN_TOKEN`, `GITHUB_TOKEN`
+- `server/genre_overrides.json` / `server/artist_overrides.json` — Correcciones curadas de género y nombres de artista.
+- `server/game_modes_config.json` — Modos y filtros para el panel admin y futuros modos.
 - `.gitignore` — Excluye `.env`, EXEs, DLLs de WebView2, `libs/webview2/`, `server/songs.db-shm`, `server/songs.db-wal`, `*.log`. Nota: `server/songs.db` **sí está trackeado** (se deploya con el código a Render).
 
 ---
@@ -113,10 +118,10 @@ Celulares desde cualquier lugar
 
 ### Modos de juego (5)
 - **Clásico** — Modo estándar con todos los géneros
-- **Fiesta Emo** — IMPLEMENTADO (Rondas 1-3, overlays dramáticos, CSS temático, UI en móvil)
+- **Fiesta Emo** — IMPLEMENTADO (Rondas 1-3, overlays dramáticos, CSS temático, UI en móvil). `mode='emo'` ya tiene 58 canciones taggeadas.
+- **Dolidas & Rancheras** — DATOS LISTOS (1.057 canciones con `mode='ranchera'`); la UI sigue en PRÓXIMAMENTE.
+- **Nostalgia Pop** — DATOS LISTOS (299 canciones con `mode='nostalgia'`); la UI sigue en PRÓXIMAMENTE.
 - **Fiesta Anime** — PRÓXIMAMENTE
-- **Dolidas & Rancheras** — PRÓXIMAMENTE
-- **Nostalgia Pop** — PRÓXIMAMENTE
 
 ### Rondas
 - **Ronda 1 — "Tu Elección, Tu Condena"** — Ruleta, cada quien canta una canción de su preferencia + reto al 50%

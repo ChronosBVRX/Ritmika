@@ -2,6 +2,21 @@
 
 Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+- 670 pistas Party Tyme importadas a R2 y SQLite (catálogo en 4.515 canciones)
+- Modos Dolidas & Rancheras y Nostalgia Pop habilitados en TV con temas visuales y rondas temáticas
+- Etiquetado de modos: 1.057 ranchera, 299 nostalgia, 58 emo, 1 anime
+- Endpoint `/api/game-modes` + `server/game_modes_config.json` para el panel admin
+- Índices SQLite para `LOWER(genre)`, `LOWER(mode)`, `artist` y `title`
+
+### Changed
+- Limpieza de 1.933 títulos legacy (`low`, `multi`, `estilo de`, `pista y letra`, etc.)
+- Normalización de 84 artistas duplicados (Wisin & Yandel, Los Tigres del Norte, Paquita, etc.)
+- Corrección de 96 canciones con género mal etiquetado (Emmanuel, Rihanna, Nicky Jam, etc.)
+- Regenerado `artist-metadata.json` (643 artistas únicos)
+
 ## [1.0.1] - 2026-06-20
 
 ### Added

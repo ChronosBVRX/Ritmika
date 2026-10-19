@@ -71,6 +71,17 @@ app.get('/api/health', (req, res) => {
   res.json({ relay: true, server: true, catalog: false, catalogCount: 0, videoSource: 'none' });
 });
 
+// Game modes config (admin)
+app.get('/api/game-modes', (req, res) => {
+  try {
+    const fs = require('fs');
+    const configPath = path.join(__dirname, '../game_modes_config.json');
+    res.json(JSON.parse(fs.readFileSync(configPath, 'utf8')));
+  } catch (err) {
+    res.json({ modes: {} });
+  }
+});
+
 // Room info para móvil pre-join
 app.get('/api/room/:code', (req, res) => {
   const code = sanitizeRoomCode(req.params.code);

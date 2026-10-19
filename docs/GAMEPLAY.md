@@ -86,8 +86,8 @@ Guía completa de las mecánicas de juego, rondas, votación y reglas de Rítmik
 | Clásico | **Funcional** | Modo estándar con todos los géneros |
 | Fiesta Anime | PRÓXIMAMENTE | Enfocado en anime/J-pop |
 | Fiesta Emo | **Funcional** | Modo temático dramático con Diario Secreto, indirectas y lluvia |
-| Dolidas & Rancheras | PRÓXIMAMENTE | Regional mexicano |
-| Nostalgia Pop | PRÓXIMAMENTE | Pop de los 2000s-2010s |
+| Dolidas & Rancheras | DATOS LISTOS (UI PRÓXIMAMENTE) | Regional mexicano; 1.057 canciones taggeadas con `mode='ranchera'` |
+| Nostalgia Pop | DATOS LISTOS (UI PRÓXIMAMENTE) | Pop de los 2000s-2010s; 299 canciones taggeadas con `mode='nostalgia'` |
 
 Si se selecciona un modo bloqueado, Axolo muestra: "Aguanta compa! Los changos del codigo siguen armando este modo."
 

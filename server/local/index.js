@@ -542,6 +542,16 @@ app.get('/api/config', (req, res) => {
   });
 });
 
+// ── Game modes config (admin + futuros modos) ──
+app.get('/api/game-modes', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, '../game_modes_config.json');
+    res.json(JSON.parse(fs.readFileSync(configPath, 'utf8')));
+  } catch (err) {
+    res.json({ modes: {} });
+  }
+});
+
 // ── Health check for bootloader ──
 app.get('/api/health', (req, res) => {
   const origin = req.headers.origin;

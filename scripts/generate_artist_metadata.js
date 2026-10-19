@@ -17,11 +17,12 @@ for (const r of rows) {
   if (!map[g]) map[g] = [];
   if (!map[g].includes(r.artist)) map[g].push(r.artist);
 }
-// Also include emo mode grouping (if mode column exists)
-try {
-  const emoRows = db.prepare("SELECT DISTINCT artist FROM songs WHERE LOWER(mode)='emo' ORDER BY artist").all().map(r=>r.artist);
-  if (emoRows.length) map['emo'] = emoRows;
-} catch {}
+// Also include every game mode grouping (if mode column exists)
+const modes = db.prepare("SELECT DISTINCT LOWER(mode) AS mode, artist FROM songs WHERE mode IS NOT NULL AND mode != '' ORDER BY mode, artist").all();
+for (const row of modes) {
+  if (!map[row.mode]) map[row.mode] = [];
+  if (!map[row.mode].includes(row.artist)) map[row.mode].push(row.artist);
+}
 fs.writeFileSync(outPath, JSON.stringify(map, null, 2), 'utf8');
 console.log(`[artist-metadata] Wrote ${Object.keys(map).length} genres to ${outPath}`);
 for (const g of Object.keys(map)) console.log(`  ${g}: ${map[g].length}`);
