@@ -63,7 +63,9 @@ Karaoke party game estilo Jackbox. Servidor en la nube (Render), los jugadores s
 - `scripts/crawl_drive.py` — Crawler de carpetas de Google Drive para archivos de karaoke.
 - `scripts/convert_assets.py` — Convierte assets de imagen (PNG → WebP).
 - `scripts/process_green.py` — Procesa assets de fondo verde con floodfill para transparencia.
-- `scripts/fix_axolo_transparency.py` — Corrige transparencia de vignettes Axolo.
+- `scripts/fix_axolo_transparency.py` — Corrige transparencia de vignettes Axolo (un solo uso, rutas Windows).
+- `scripts/audit_asset_transparency.py` — Audita que los assets de primer plano tengan alfa real (revisa los 67 del repo y lista los que tienen fondo horneado).
+- `scripts/fix_asset_transparency.py` — Quita fondos horneados (tablero de ajedrez, croma verde, fondos blancos/grises) con floodfill desde el borde, sin perforar los blancos internos del dibujo. Flags: `--check`, `--auto-green`, `--auto-light`, `--from-transparent`, `--tol`, `--grow`.
 - `scripts/fix_stars_transparency.py` — Corrige transparencia de assets de estrellas.
 - `scripts/gen_lobby_deco.py` — Genera decoraciones de lobby.
 - `scripts/generate_tomato_asset.py` — Genera assets de tomate (proyectil + salpicadura).
