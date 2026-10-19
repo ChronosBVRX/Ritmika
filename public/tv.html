@@ -2326,13 +2326,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mode selection: special 2D layout
     if (activeScreen.id === 'mode-selection-screen') {
       const modeCards = Array.from(activeScreen.querySelectorAll('.mode-card'));
+      const utilityButtons = Array.from(activeScreen.querySelectorAll('.mm-utility button'))
+        .filter(btn => btn.offsetParent !== null && getComputedStyle(btn).display !== 'none');
       const btnCrear = document.getElementById('btn-crear-sala-modo');
       const isCard = modeCards.includes(el);
       const isBtn = el === btnCrear;
+      const isUtility = utilityButtons.includes(el);
+      const focusSelectedCard = () => {
+        (activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`) || modeCards[0]).focus();
+      };
+      const focusCtaOrCard = () => {
+        if (btnCrear && !btnCrear.disabled) btnCrear.focus();
+        else focusSelectedCard();
+      };
+
+      if (isUtility) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+          let idx = utilityButtons.indexOf(el);
+          const next = e.key === 'ArrowRight'
+            ? (idx + 1) % utilityButtons.length
+            : (idx - 1 + utilityButtons.length) % utilityButtons.length;
+          utilityButtons[next].focus();
+          e.preventDefault();
+          return;
+        }
+        if (e.key === 'ArrowUp') {
+          focusSelectedCard();
+          e.preventDefault();
+          return;
+        }
+        if (e.key === 'ArrowDown') {
+          focusCtaOrCard();
+          e.preventDefault();
+          return;
+        }
+        return;
+      }
 
       if (!isCard && !isBtn && e.key.startsWith('Arrow')) {
-        const sel = activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`);
-        (sel || modeCards[0]).focus();
+        focusSelectedCard();
         e.preventDefault();
         return;
       }
@@ -2340,19 +2372,28 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         if (isCard) {
           let idx = modeCards.indexOf(el);
-          modeCards[(idx + 1) % modeCards.length].focus();
+          if (e.key === 'ArrowDown' && idx === modeCards.length - 1 && utilityButtons.length) {
+            utilityButtons[0].focus();
+          } else {
+            modeCards[(idx + 1) % modeCards.length].focus();
+          }
           e.preventDefault();
         } else if (isBtn) {
-          (activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`) || modeCards[0]).focus();
+          if (e.key === 'ArrowDown' && utilityButtons.length) utilityButtons[0].focus();
+          else focusSelectedCard();
           e.preventDefault();
         }
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         if (isBtn) {
-          (activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`) || modeCards[0]).focus();
+          focusSelectedCard();
           e.preventDefault();
         } else if (isCard) {
           let idx = modeCards.indexOf(el);
-          modeCards[(idx - 1 + modeCards.length) % modeCards.length].focus();
+          if (e.key === 'ArrowUp' && idx === 0) {
+            focusCtaOrCard();
+          } else {
+            modeCards[(idx - 1 + modeCards.length) % modeCards.length].focus();
+          }
           e.preventDefault();
         }
       }
