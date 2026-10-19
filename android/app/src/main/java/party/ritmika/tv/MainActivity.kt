@@ -403,12 +403,23 @@ class MainActivity : AppCompatActivity() {
         fun openAudioPanel(): Boolean {
             if (!isAudioPanelAvailable()) return false
             return try {
-                runOnUiThread {
-                    startActivity(Intent(this@MainActivity, AudioPanelActivity::class.java))
-                }
+                runOnUiThread { openAudioPanelFromUi() }
                 true
             } catch (e: Exception) {
                 Log.e(TAG, "openAudioPanel failed", e)
+                false
+            }
+        }
+
+        @JavascriptInterface
+        fun openSettings(musicEnabled: Boolean, reducedMotion: Boolean): Boolean {
+            return try {
+                runOnUiThread {
+                    LobbySettingsDialog(this@MainActivity, musicEnabled, reducedMotion).show()
+                }
+                true
+            } catch (e: Exception) {
+                Log.e(TAG, "openSettings failed", e)
                 false
             }
         }
@@ -522,6 +533,34 @@ class MainActivity : AppCompatActivity() {
         val js = "(function(){var e=new KeyboardEvent('keydown',{key:$quoted,bubbles:true,cancelable:true});" +
             "document.dispatchEvent(e);})()"
         webView.evaluateJavascript(js, null)
+    }
+
+    fun openAudioPanelFromUi() {
+        try {
+            startActivity(Intent(this, AudioPanelActivity::class.java))
+        } catch (e: Exception) {
+            Log.e(TAG, "openAudioPanelFromUi failed", e)
+        }
+    }
+
+    fun applyMenuMusic(enabled: Boolean) {
+        try {
+            webView.evaluateJavascript(
+                "window.__ritmikaSetMenuMusic&&window.__ritmikaSetMenuMusic($enabled)",
+                null
+            )
+        } catch (_: Exception) {
+        }
+    }
+
+    fun applyReducedMotion(enabled: Boolean) {
+        try {
+            webView.evaluateJavascript(
+                "window.__ritmikaSetReducedMotion&&window.__ritmikaSetReducedMotion($enabled)",
+                null
+            )
+        } catch (_: Exception) {
+        }
     }
 
     companion object {

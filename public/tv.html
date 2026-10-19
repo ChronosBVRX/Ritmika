@@ -1804,6 +1804,7 @@
   <header class="flex items-center justify-between px-8 py-4 flex-shrink-0 relative" style="z-index:2; background:linear-gradient(to bottom, rgba(10,10,26,0.9), transparent);">
       <div class="flex items-center gap-4 lobby-stagger" data-stagger="0">
         <button id="btn-back-to-modes" class="jackbox-button-sticker px-6 py-3 rounded-xl" style="font-family:'Paytone One',sans-serif; font-size: 1.5rem; background:#ef4444; color:#fff; border:4px solid #111827; box-shadow:4px 4px 0px #111827; cursor:pointer;" tabindex="0">◀ ATRÁS</button>
+        <button id="btn-lobby-settings" class="jackbox-button-sticker px-6 py-3 rounded-xl" style="display:none; font-family:'Paytone One',sans-serif; font-size: 1.5rem; background:#00e5ff; color:#111827; border:4px solid #111827; box-shadow:4px 4px 0px #111827; cursor:pointer;" tabindex="0">⚙ AJUSTES</button>
         <img src="./assets/logo_ritmika.webp" alt="Rítmika" style="height:76px; width:auto; filter:drop-shadow(0 0 20px rgba(0,229,255,0.6)) drop-shadow(0 0 60px rgba(0,229,255,0.2)); image-rendering:auto;" />
       </div>
       <div id="status-badge" class="flex items-center gap-2 px-4 py-2 rounded-full lobby-stagger" data-stagger="1" style="background:rgba(30,41,59,0.8); backdrop-filter:blur(8px); border:1px solid rgba(236,72,153,0.4); box-shadow:0 0 15px rgba(236,72,153,0.2);">
@@ -1858,11 +1859,11 @@
         </div>
       </div>
 
-      <div class="flex gap-6 lobby-reveal lobby-reveal-delay-4" style="opacity:0; margin-top:20px; z-index:10; position:relative;">
-        <button class="jackbox-button-sticker jackbox-color-cyan jackbox-rot-left" tabindex="0">📱 Entra</button>
-        <button class="jackbox-button-sticker jackbox-color-magenta jackbox-rot-right" tabindex="0">🔢 Código</button>
-        <button class="jackbox-button-sticker jackbox-color-yellow jackbox-rot-left" tabindex="0">🎭 Avatar</button>
-        <button class="jackbox-button-sticker jackbox-color-orange jackbox-rot-right" tabindex="0">🎵 ¡A cantar!</button>
+      <div class="flex gap-6 lobby-reveal lobby-reveal-delay-4" style="opacity:0; margin-top:20px; z-index:10; position:relative;" aria-hidden="true">
+        <button class="jackbox-button-sticker jackbox-color-cyan jackbox-rot-left" tabindex="-1">📱 Entra</button>
+        <button class="jackbox-button-sticker jackbox-color-magenta jackbox-rot-right" tabindex="-1">🔢 Código</button>
+        <button class="jackbox-button-sticker jackbox-color-yellow jackbox-rot-left" tabindex="-1">🎭 Avatar</button>
+        <button class="jackbox-button-sticker jackbox-color-orange jackbox-rot-right" tabindex="-1">🎵 ¡A cantar!</button>
       </div>
 
       <!-- Restore banner -->

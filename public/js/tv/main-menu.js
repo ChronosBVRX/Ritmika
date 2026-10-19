@@ -333,8 +333,16 @@ const MainMenu = (function () {
     const settings = $('mm-btn-settings');
     const credits = $('mm-btn-credits');
     const audio = $('mm-btn-audio');
+    const lobbySettings = $('btn-lobby-settings');
+    const hasNativeSettings = !!(window.AndroidNative &&
+      typeof window.AndroidNative.openSettings === 'function');
+
     if (how) how.addEventListener('click', () => openModal('how'));
-    if (settings) settings.addEventListener('click', () => openModal('settings'));
+    if (settings) {
+      settings.addEventListener('click', () => {
+        if (!openNativeSettings()) openModal('settings');
+      });
+    }
     if (credits) credits.addEventListener('click', () => openModal('credits'));
 
     if (audio) {
@@ -348,6 +356,13 @@ const MainMenu = (function () {
       }
     }
 
+    if (lobbySettings) {
+      lobbySettings.style.display = hasNativeSettings ? '' : 'none';
+      if (hasNativeSettings) {
+        lobbySettings.addEventListener('click', () => openNativeSettings());
+      }
+    }
+
     if (els.cta) els.cta.addEventListener('click', createRoom);
     const back = $('btn-back-to-modes');
     if (back) back.addEventListener('click', backToMenu);
@@ -355,6 +370,16 @@ const MainMenu = (function () {
       const btn = document.querySelector('[data-mm-toggle="fullscreen"]');
       if (btn) setToggle(btn, !!document.fullscreenElement);
     });
+  }
+
+  function openNativeSettings() {
+    const native = window.AndroidNative;
+    if (!native || typeof native.openSettings !== 'function') return false;
+    try {
+      return native.openSettings(!!musicOn, !!reducedMotion);
+    } catch {
+      return false;
+    }
   }
 
   function openAudioPanel() {
@@ -374,6 +399,19 @@ const MainMenu = (function () {
 
   // El control remoto (KEYCODE_MENU) llama a esta función desde MainActivity.
   window.__ritmikaOpenAudioPanel = openAudioPanel;
+  window.__ritmikaOpenSettings = openNativeSettings;
+
+  window.__ritmikaSetMenuMusic = (enabled) => {
+    musicOn = enabled === true;
+    writeBool(STORAGE.music, musicOn);
+    applyMusicPreference();
+  };
+
+  window.__ritmikaSetReducedMotion = (enabled) => {
+    reducedMotion = enabled === true;
+    writeBool(STORAGE.motion, reducedMotion);
+    applyMotionPreference();
+  };
 
   function socketReady() {
     return typeof socket !== 'undefined' && socket && socket.connected;
