@@ -734,7 +734,7 @@ class MainActivity : AppCompatActivity() {
 
         private const val TAG = "RitmikaTV"
         private const val ORIGIN = "https://ritmika.duckdns.org"
-        const val BASE_URL = "$ORIGIN/?native=1&shell=1"
+        const val BASE_URL = "$ORIGIN/tv?native=1&shell=1"
 
         private const val PAUSE_MEDIA_JS = """
             (function(){

@@ -39,6 +39,15 @@ async function run(){
       const t=await r.text();
       assert(t.includes('Ritmika') || t.includes('tv') || t.includes('Tío Axolo'), 'no contiene TV');
     });
+    await test('GET /tv y /pc -> 200 y menú PC', async()=>{
+      for (const route of ['/tv','/pc']) {
+        const r=await fetch(base+route);
+        assert(r.status===200, route+' status '+r.status);
+        const t=await r.text();
+        assert(t.includes('WEB PC'), route+' no muestra canal WEB PC');
+        assert(t.includes('mode-selection-screen'), route+' no contiene menú');
+      }
+    });
     await test('GET /join -> 200 y contiene mobile', async()=>{
       const r=await fetch(base+'/join');
       assert(r.status===200);

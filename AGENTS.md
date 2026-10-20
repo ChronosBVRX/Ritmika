@@ -24,7 +24,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 ## Archivos clave
 
 ### Servidor
-- `server/index.js` — ~800 líneas. Express + Socket.io + SQLite. Pasarela de eventos JSON entre TV y celulares + endpoints de datos con filtros dinámicos. Compresión gzip. QR con `qrcode` (npm). Presigned URLs de Cloudflare R2 para video. Endpoints: `/`, `/join`, `/qr-game`, `/qr-wifi`, `/api/network-config`, `/api/songs`, `/api/artists`, `/api/artist-map`, `/api/audio-files`, `/api/health`, `/api/video-url`, `/api/game-modes`.
+- `server/index.js` — ~800 líneas. Express + Socket.io + SQLite. Pasarela de eventos JSON entre TV y celulares + endpoints de datos con filtros dinámicos. Compresión gzip. QR con `qrcode` (npm). Presigned URLs de Cloudflare R2 para video. Endpoints: `/`, `/tv`, `/pc`, `/join`, `/qr-game`, `/qr-wifi`, `/api/network-config`, `/api/songs`, `/api/artists`, `/api/artist-map`, `/api/audio-files`, `/api/health`, `/api/video-url`, `/api/game-modes`.
 - `server/songs.db` — Base de datos SQLite con 4,515 canciones (generada desde `r2_db.json` via `scripts/migrate_to_sqlite.js`). Columnas: `id`, `title`, `artist`, `genre`, `url`, `duration`, `mode`. Índices en genre y artist.
 - `server/game_modes_config.json` — Configuración de 7 modos de juego estructurados con filtros de género.
 - `server/deezer_audit.json` — Auditoría de la API de Deezer para resolución de géneros de artistas.
@@ -37,6 +37,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/tv/socket.js` — 463 líneas. Eventos Socket.io, rate limiting, relay TV↔Server.
 - `public/js/tv/flow.js` — Director de fases audio-aware. Espera a que termine la voz de Axolo, calcula pausas sobre audio real y transmite `PHASE_STATE` a los celulares para habilitar controles móviles (girar / listo / siguiente).
 - `public/js/tv/main-menu.js` — Menú principal Palenque Arcade: selección de show, hero, modales de ajustes/cómo jugar/créditos y transición al lobby.
+- `public/js/tv/shell-bridge.js` — Puente WebView↔shell nativo: modo, sala, QR, jugadores, canStart y acciones (crear/iniciar/volver).
 - `public/js/tv/performance.js` — Perfiles Automático/Rendimiento/Calidad; en nativo usa Rendimiento por defecto.
 - `public/css/performance.css` — Apaga loops, filtros, halftones y capas decorativas en modo Rendimiento.
 - `public/css/tailwind.build.css` — Tailwind precompilado (~34 KB). Reemplaza el runtime Play CDN; regenerar con `npm run build:css` al agregar clases.
@@ -57,7 +58,9 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/libs/` — Tailwind.js local + Anime.js local + GSAP local + QRCode.min.js (CDN evitado para rendimiento).
 
 ### App Android TV (Kotlin)
-- `android/app/src/main/java/party/ritmika/tv/MainActivity.kt` — WebView (`?native=1`) + ExoPlayer + puente JS. `AndroidNative.openAudioPanel()` y `KEYCODE_MENU` abren el panel nativo.
+- `android/app/src/main/java/party/ritmika/tv/MainActivity.kt` — WebView (`?native=1&shell=1`) + ExoPlayer + puente JS. El WebView queda fuera del viewport detrás del shell; al empezar la partida se muestra.
+- `android/app/src/main/java/party/ritmika/tv/NativeShellView.kt` — menú y lobby nativos, carrusel de modos, QR, jugadores y handoff al WebView.
+- `android/app/src/main/java/party/ritmika/tv/NeoBrutalUi.kt` / `RemoteImages.kt` — estilos compartidos y carga de arte remoto.
 - `android/app/src/main/java/party/ritmika/tv/AudioPanelActivity.kt` — UI nativa neo-brutalista del panel Altavoz/Audio, navegable con D-pad.
 - `android/app/src/main/java/party/ritmika/tv/LobbySettingsDialog.kt` — modal nativo de Ajustes sobre el lobby: Altavoz/Audio, música y movimiento reducido.
 - `android/app/src/main/java/party/ritmika/tv/BluetoothAudioController.kt` — permisos, discovery, `createBond`, estado A2DP y `AudioDeviceCallback`.
@@ -165,7 +168,15 @@ Celulares desde cualquier lugar
   2. `git commit -m "mensaje descriptivo"` (explicar QUÉ y POR QUÉ)
   3. `git push`
 - **Versionado**: Si se solicita incrementar la versión, usar `npm version patch|minor|major` — esto actualiza `package.json` y crea un tag en Git automáticamente.
-- **UI**: La versión del `package.json` se emite a los clientes vía `socket.emit('server_version', ...)`. `tv.html` y `mobile.html` la muestran en `div#version-display`.
+- **UI**: La versión del `package.json` se emite a los clientes vía `socket.emit('server_version', ...)`. La web/PC la muestra en `#mm-version` como `v1.1.0 · WEB PC`; el móvil en `#version-display`.
+
+### Dos versiones: Web/PC y Android TV
+- **Web / PC**: se sirve en `/tv` (alias `/` y `/pc`). Usa el menú/lobby HTML completos de `public/tv.html`, mouse y teclado. Su versión vive en `package.json` y se muestra como `v1.1.0 · WEB PC`.
+- **Android TV**: el APK carga `/tv?native=1&shell=1`. Usa `NativeShellView` para menú/lobby y el WebView solo para el juego. Su versión vive en `android/app/build.gradle.kts` y se publica con `android/scripts/publish_ota.sh`.
+- Las versiones son independientes. Un cambio de web no requiere APK; un cambio de APK no requiere bumpear la web, salvo que dependa de una ruta/API nueva.
+- El flag `shell=1` solo activa el shell si existe el puente `AndroidNative`; la versión PC nunca lo muestra.
+- Desplegar la web **antes** del APK cuando el APK cambie de ruta o consuma un endpoint nuevo.
+- Guía de release y comandos: `docs/RELEASES.md`.
 
 ### Menú principal Palenque Arcade
 - La pantalla `#mode-selection-screen` es el menú principal: los modos son las opciones del menú, no un dashboard aparte.
@@ -338,6 +349,28 @@ Celulares desde cualquier lugar
 
 ## Build & Deploy
 
+### Dos canales de release
+
+| Canal | Entrada | Versión | Deploy |
+|-------|---------|---------|--------|
+| **Web / PC** | `/tv` (alias `/`, `/pc`) | `package.json` (`1.1.0`) | Docker en el VPS |
+| **Android TV** | APK `/download/ritmika-tv.apk` | `android/app/build.gradle.kts` (`1.0.11`, code 12) | `android/scripts/publish_ota.sh` |
+
+**Web / PC:**
+```bash
+ssh -i /tmp/opencode/oci_key_dec.pem opc@159.54.146.146 \
+  'cd /opt/ritmika-app && git pull --ff-only origin main && sudo docker compose build && sudo docker compose up -d'
+```
+
+**Android TV:**
+```bash
+export ANDROID_HOME="$HOME/Android/sdk"
+export ANDROID_SDK_ROOT="$ANDROID_HOME"
+android/scripts/publish_ota.sh patch "notas de la version"
+```
+
+Los detalles y la verificación de cada canal están en `docs/RELEASES.md`.
+
 ### Requisitos
 - Windows 10/11
 - .NET Framework 4.6.2+ (csc.exe en `%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\`)
@@ -417,6 +450,8 @@ node scripts/migrate_to_sqlite.js   # Genera server/songs.db desde r2_db.json
 
 | Componente | Estado | Notas |
 |-----------|--------|-------|
+| **Web / PC** | **COMPLETO** | `/tv` (alias `/`, `/pc`), menú/lobby HTML, versión `1.1.0` |
+| **Android TV** | **COMPLETO** | Shell nativo de menú/lobby + WebView para juego, versión `1.0.11` (code 12), OTA |
 | Server | **COMPLETO** | ~800 líneas, Express + Socket.io + SQLite, R2 presigned URLs, endpoints filtrados |
 | TV Frontend | **COMPLETO** | ~2566 líneas HTML + 9 módulos JS (~4310 líneas), server-side song selection, sin catálogo en memoria |
 | Mobile Frontend | **COMPLETO** | ~1960 líneas, artist map via API, 8 pantallas, PWA, haptic |

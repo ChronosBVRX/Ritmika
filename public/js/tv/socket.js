@@ -52,7 +52,10 @@ function setupSocket(s) {
 
   s.on('server_version', (v) => {
     const el = document.getElementById('mm-version');
-    if (el) el.textContent = 'v' + v;
+    if (el) {
+      const channel = window.RITMIKA_TV_NATIVE ? 'ANDROID TV' : 'WEB PC';
+      el.textContent = 'v' + v + ' · ' + channel;
+    }
   });
 
   s.on('connect', () => {

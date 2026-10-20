@@ -164,10 +164,20 @@ app.use(express.static(path.join(__dirname, '../../public'), {
   }
 }));
 
-// ── Ruta raíz → TV principal ─────────────────────────────────
-app.get('/', (req, res) => {
+// ── Rutas de la versión Web / PC ─────────────────────────────
+// `/` se conserva por compatibilidad; `/tv` y `/pc` son los puntos de
+// entrada explícitos de la versión de navegador (menú/lobby HTML).
+function sendTvPage(res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.sendFile(path.join(__dirname, '../../public/tv.html'));
+}
+
+app.get('/', (req, res) => {
+  sendTvPage(res);
+});
+
+app.get(['/tv', '/tv/', '/pc', '/pc/'], (req, res) => {
+  sendTvPage(res);
 });
 
 // ── Ruta para celulares ──────────────────────────────────────

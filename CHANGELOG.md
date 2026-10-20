@@ -5,6 +5,12 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 ## [Unreleased]
 
 ### Added
+- **Dos canales de release**: Web/PC en `/tv` (alias `/`, `/pc`) y Android TV vía APK con shell nativo.
+- El menú de PC muestra `v1.1.0 · WEB PC`; el APK mantiene su propia versión `1.0.11` y OTA independiente.
+- **Shell nativo de menú y lobby** en Android TV: el menú de modos, hero, QR, código, jugadores y botón de inicio se pintan en Kotlin con D-pad.
+- El WebView queda como motor oculto de sala/socket/juego; al iniciar la partida se muestra el juego y el shell desaparece.
+- `shell-bridge.js` sincroniza modo, sala, QR, jugadores y estado entre el WebView y el shell nativo; las acciones nativas reutilizan los flujos existentes.
+- Fuentes Paytone One y Fredoka incluidas en el APK para el shell nativo.
 - Modos de rendimiento **Automático / Rendimiento / Calidad** para Android TV, seleccionables desde Ajustes del lobby.
 - `performance.js` + `performance.css`: en Rendimiento se apagan loops, filtros grandes, halftones, confetti, screen-shake y transiciones de pantalla; el arte y los flujos se conservan.
 - Prioridad de renderer `IMPORTANT` para el WebView de Android TV.
@@ -33,6 +39,8 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Se eliminó el auto-creado de sala a los 2 segundos; el show se elige explícitamente con teclado, mando o mouse.
 - El menú principal permite llegar a Cómo jugar, Ajustes, Altavoz y Créditos con el D-pad; Altavoz también se abre con la tecla MENU del control.
 - El botón Ajustes del menú principal abre el modal nativo en Android; en web se conserva el modal HTML.
+- En Android TV el menú y el lobby usan el shell nativo; la ruleta, karaoke y podio siguen en el WebView, que se activa al empezar la partida.
+- El servidor local/relay ahora acepta salas en modo `ranchera` y `nostalgia` (antes las convertía a `clasico`).
 - En Android TV el modo Automático usa Rendimiento por defecto; Calidad restaura todos los efectos visuales.
 - Los botones decorativos Entra/Código/Avatar/A cantar del lobby dejan de ser focusables para que el D-pad no se pierda en acciones falsas.
 - La lista de jugadores se movió al lobby; el menú ya no muestra un panel de jugadores vacío.
