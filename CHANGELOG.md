@@ -13,6 +13,11 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Tomatazo: proyectil HD con estela, impacto con onda expansiva, estallido de tomate, salpicaduras múltiples, texto `¡TOMATAZO!`, marcador atacante → víctima y penalización.
 - Apagón mental: banner reposicionado, scanlines y viñeta pulsante.
 
+### Avatares
+- Rediseño completo de los 8 avatares: figuras 3D coleccionables de fiesta, encuadre full-body uniforme, 768×768, alfa real y sin piso/sombras horneadas.
+- Generados con ComfyUI/SDXL Juggernaut XL, recorte `rembg` (u2netp) y limpieza de sombra de contacto.
+- Nuevo `scripts/generate_premium_avatars.py` para reproducir el lote y la hoja de contacto.
+
 ### Gameplay (P0)
 - El reto ahora se envía a **todos los celulares**, queda visible en un HUD persistente de la TV y se evalúa con un voto binario “¿Cumplió?” durante la votación.
 - Fallback de compatibilidad para relays v1.0.1: el voto de reto también viaja como emoji `🎭✅`/`🎭❌` por `player:emoji`.

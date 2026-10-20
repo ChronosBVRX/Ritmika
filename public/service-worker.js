@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ritmika-cache-v2';
+const CACHE_NAME = 'ritmika-cache-v3';
 const ASSETS = [
   '/libs/tailwind.css',
   '/libs/anime.min.js',
@@ -8,14 +8,14 @@ const ASSETS = [
   '/assets/favicon-64.png',
   '/assets/logo_ritmika.webp',
   '/assets/lobby_bg_premium.webp',
-  '/assets/avatars/avatar_0_taco_rockero.webp',
-  '/assets/avatars/avatar_1_chile_enmascarado.webp',
-  '/assets/avatars/avatar_2_tequila_fiestero.webp',
-  '/assets/avatars/avatar_3_estrella_rock.webp',
-  '/assets/avatars/avatar_4_loro_cumbiambero.webp',
-  '/assets/avatars/avatar_5_guitarra_magica.webp',
-  '/assets/avatars/avatar_6_rey_palenque.webp',
-  '/assets/avatars/avatar_7_pulpo_salsero.webp'
+  '/assets/avatars/avatar_0_taco_rockero.webp?v=2',
+  '/assets/avatars/avatar_1_chile_enmascarado.webp?v=2',
+  '/assets/avatars/avatar_2_tequila_fiestero.webp?v=2',
+  '/assets/avatars/avatar_3_estrella_rock.webp?v=2',
+  '/assets/avatars/avatar_4_loro_cumbiambero.webp?v=2',
+  '/assets/avatars/avatar_5_guitarra_magica.webp?v=2',
+  '/assets/avatars/avatar_6_rey_palenque.webp?v=2',
+  '/assets/avatars/avatar_7_pulpo_salsero.webp?v=2'
 ];
 
 self.addEventListener('install', (e) => {

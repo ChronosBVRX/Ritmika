@@ -88,6 +88,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `scripts/download_deps.ps1` — Descarga WebView2 SDK de NuGet, extrae DLLs.
 - `scripts/generate_all_audio.js` — Genera voces con ElevenLabs API. Lee API key de `.env`. 172+ frases definidas. Soporta skip si el MP3 ya existe.
 - `scripts/generate_podium_audio.js` — Genera audio de ceremonia de podio con ElevenLabs.
+- `scripts/generate_premium_avatars.py` — Genera los 8 avatares con ComfyUI/SDXL, recorte `rembg` y alfa real.
 - `scripts/generate_podium_extra.js` — Audio extra de podio.
 - `scripts/build_r2_db.py` — Construye la base de datos de Cloudflare R2 (genera r2_db.json).
 - `scripts/crawl_drive.py` — Crawler de carpetas de Google Drive para archivos de karaoke.
@@ -312,8 +313,8 @@ Celulares desde cualquier lugar
 - SFX ducking: el volumen de todos los SFX baja cuando Axolo habla (`duckSfx()`/`unduckSfx()`).
 
 ### Avatares de jugadores (`public/assets/avatars/`)
-- 8 WebP con transparencia alfa real generados con IA (estilo 3D cartoon/mascota de fiesta).
-- Procesados con floodfill desde las 4 esquinas (Pillow Python), luego convertidos de PNG a WebP.
+- 8 WebP de 768×768 con transparencia alfa real, estilo **figura 3D coleccionable de fiesta** (cabeza de objeto + cuerpo party), generados con ComfyUI/SDXL Juggernaut XL.
+- Recorte con `rembg` (u2netp) y limpieza de sombra de contacto; sin piso, sin sombra horneada y con margen uniforme. Script: `scripts/generate_premium_avatars.py`.
 - Nombres: `avatar_0_taco_rockero.webp` … `avatar_7_pulpo_salsero.webp`.
 - Catálogo de avatares (id → emoji, label, color):
   - 0: 🌮 Taco Rockero — `#f97316`
