@@ -289,6 +289,10 @@ function animateImg(imgEl, key, css) {
 // ════════════════════════════════════════════
 //  SCREEN SYSTEM
 // ════════════════════════════════════════════
+function notifyShellScreen() {
+  try { if (typeof window.__ritmikaShellPush === 'function') window.__ritmikaShellPush(); } catch (_) {}
+}
+
 function showScreen(id, transitionType, onComplete) {
   const current = document.querySelector('.tv-screen.active');
   const next    = document.getElementById(id);
@@ -299,6 +303,7 @@ function showScreen(id, transitionType, onComplete) {
     next.style.opacity = '';
     next.style.transform = '';
     next.classList.add('active');
+    notifyShellScreen();
     if (onComplete) onComplete();
     return;
   }
@@ -313,6 +318,7 @@ function showScreen(id, transitionType, onComplete) {
     next.style.opacity = '';
     next.style.transform = '';
     next.classList.add('active');
+    notifyShellScreen();
     if (onComplete) onComplete();
     return;
   }
@@ -339,6 +345,7 @@ function showScreen(id, transitionType, onComplete) {
           next.style.opacity = '0';
           next.style.display = '';
           next.classList.add('active');
+          notifyShellScreen();
           anime({
             targets: next,
             translateX: ['100vw', '0px'],
@@ -365,6 +372,7 @@ function showScreen(id, transitionType, onComplete) {
       next.style.display = '';
       next.style.opacity = '';
       next.style.transform = '';
+      notifyShellScreen();
       RitmikaStyleFX.flashBang('#ffffff', 300);
       RitmikaStyleFX.popIn('#' + id);
       if (onComplete) onComplete();
@@ -387,6 +395,7 @@ function showScreen(id, transitionType, onComplete) {
           next.style.opacity = '0';
           next.style.display = '';
           next.classList.add('active');
+          notifyShellScreen();
           anime({
             targets: next,
             scale: ['0.3', '1.05', '1'],
@@ -418,6 +427,7 @@ function showScreen(id, transitionType, onComplete) {
           next.style.display = '';
           next.style.transform = '';
           next.classList.add('active');
+          notifyShellScreen();
           anime({
             targets: next,
             opacity: [0, 1],

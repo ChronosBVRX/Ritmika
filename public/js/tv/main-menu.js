@@ -535,6 +535,7 @@ const MainMenu = (function () {
       if (lobby) lobby.classList.remove('active');
       screen.classList.add('active');
     }
+    if (typeof window.__ritmikaShellPush === 'function') window.__ritmikaShellPush();
   }
 
   function onShow() {

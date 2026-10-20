@@ -91,6 +91,8 @@
     }
   }
 
+  window.__ritmikaShellPush = () => push(true);
+
   window.__nativeShellSelectMode = (mode) => {
     if (typeof MainMenu !== 'undefined' && typeof MainMenu.selectMode === 'function') {
       MainMenu.selectMode(mode, { instant: true, force: true });
