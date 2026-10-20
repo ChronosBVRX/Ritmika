@@ -123,8 +123,7 @@ function setupSocket(s) {
       inicializarQRConexion();
       updateTicker('Reconectado a sala ' + roomCode + ' ✅');
       loadCatalog();
-      if (typeof window.__ritmikaShellPush === 'function') window.__ritmikaShellPush();
-    } else {
+        } else {
       console.warn('[TV] Reconexión falló:', error);
       clearHostToken();
       loadCatalog();
@@ -162,7 +161,6 @@ function setupSocket(s) {
     window.pendingLobbyAudio = rrChoice;
   }
   updateTicker(`Sala ${roomCode} creada. ¡Comparte el código!`);
-  if (typeof window.__ritmikaShellPush === 'function') window.__ritmikaShellPush();
 
   // animateLobbyWelcome() is called by bootloader after transition
 });
@@ -339,7 +337,6 @@ socket.on('tv:player_joined', ({ player, players }) => {
   if (state.round > 0) {
     syncReconnectedPlayer(player);
   }
-  if (typeof window.__ritmikaShellPush === 'function') window.__ritmikaShellPush();
 });
 
 socket.on('tv:player_left', ({ socketId, name, players }) => {
@@ -382,7 +379,6 @@ socket.on('tv:player_left', ({ socketId, name, players }) => {
   });
 
   if (state.players.filter(p => !p.disconnected).length < 1) document.getElementById('start-btn').classList.add('hidden');
-  if (typeof window.__ritmikaShellPush === 'function') window.__ritmikaShellPush();
 });
 
 socket.on('tv:player_genres', ({ socketId, playerId, genres }) => {
@@ -575,7 +571,6 @@ document.getElementById('start-btn').addEventListener('click', () => {
     hostToken: _hostToken,
   });
   startRoulette();
-  if (typeof window.__ritmikaShellPush === 'function') window.__ritmikaShellPush();
 });
 
 // DEBUG: Add bot player

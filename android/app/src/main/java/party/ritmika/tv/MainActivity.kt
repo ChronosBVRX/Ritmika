@@ -31,8 +31,6 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import org.json.JSONArray
-import org.json.JSONObject
 
 /**
  * Rítmika TV — host Android TV híbrido.
@@ -47,45 +45,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var playerView: PlayerView
     private lateinit var player: ExoPlayer
-    private lateinit var shellView: NativeShellView
 
     private var lastWidth = 0
     private var lastHeight = 0
     private var resumeVideoOnStart = false
-
-    private val shellListener = object : NativeShellView.Listener {
-        override fun onSelectMode(mode: String) {
-            evalJs("window.__nativeShellSelectMode&&window.__nativeShellSelectMode('${safeJs(mode)}')")
-        }
-
-        override fun onCreateRoom() {
-            evalJs("window.__nativeShellCreateRoom&&window.__nativeShellCreateRoom()")
-        }
-
-        override fun onStartGame() {
-            evalJs("window.__nativeShellStartGame&&window.__nativeShellStartGame()")
-        }
-
-        override fun onBackToMenu() {
-            evalJs("window.__nativeShellBackToMenu&&window.__nativeShellBackToMenu()")
-        }
-
-        override fun onOpenSettings() {
-            openSettingsFromShell()
-        }
-
-        override fun onOpenAudio() {
-            openAudioPanelFromUi()
-        }
-
-        override fun onRetry() {
-            try { webView.reload() } catch (_: Exception) {}
-        }
-
-        override fun onUnlockAudio() {
-            evalJs("window.__nativeShellUnlockAudio&&window.__nativeShellUnlockAudio()")
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -204,22 +167,16 @@ class MainActivity : AppCompatActivity() {
         root.addView(playerView)
         root.addView(stage)
 
-        // Shell nativo por encima del WebView. El WebView sigue vivo detrás
-        // como motor de socket/sala/juego, pero no se pinta mientras el menú
-        // o el lobby nativo están visibles.
-        shellView = NativeShellView(this, shellListener)
-        root.addView(shellView)
-        // El WebView sigue VISIBLE para que Chromium no congele su JS ni el
-        // socket, pero se saca fuera del viewport detrás del shell nativo.
+        // Android TV usa la misma interfaz Web/PC. El WebView es la única UI
+        // de menú/lobby; el video nativo sigue detrás.
         webView.visibility = View.VISIBLE
-        webView.translationX = -10000f
-        webView.isFocusable = false
+        webView.isFocusable = true
 
         setContentView(root)
 
         applyDocumentStartScript()
         webView.loadUrl(BASE_URL)
-        shellView.requestFocus()
+        webView.requestFocus()
 
         UpdateManager.checkOnLaunch(this)
     }
@@ -451,15 +408,6 @@ class MainActivity : AppCompatActivity() {
         fun isAvailable(): Boolean = true
 
         @JavascriptInterface
-        fun onShellState(json: String) {
-            try {
-                applyShellState(json)
-            } catch (e: Exception) {
-                Log.w(TAG, "onShellState failed", e)
-            }
-        }
-
-        @JavascriptInterface
         fun isAudioPanelAvailable(): Boolean =
             packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)
 
@@ -558,20 +506,6 @@ class MainActivity : AppCompatActivity() {
 
     // ── D-pad / gamepad / media keys → KeyboardEvent en la página ─────
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        // Con el shell nativo visible, el D-pad lo maneja el sistema de vistas
-        // de Android. No lo mandamos al WebView oculto.
-        if (::shellView.isInitialized && shellView.visibility == View.VISIBLE) {
-            if (event.keyCode == KeyEvent.KEYCODE_MENU) {
-                if (event.action == KeyEvent.ACTION_DOWN) shellView.openSettings()
-                return true
-            }
-            if (event.keyCode == KeyEvent.KEYCODE_BACK) {
-                if (event.action == KeyEvent.ACTION_DOWN && shellView.handleBack()) return true
-                return super.dispatchKeyEvent(event)
-            }
-            return super.dispatchKeyEvent(event)
-        }
-
         // Atajo de control remoto: MENU abre el panel nativo de audio, pero
         // solo si la página está en menú/lobby (lo valida el JS).
         if (event.keyCode == KeyEvent.KEYCODE_MENU) {
@@ -660,68 +594,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openSettingsFromShell() {
-        try {
-            val state = shellView.settings()
-            LobbySettingsDialog(this, state.music, state.motion, state.perf).show()
-        } catch (e: Exception) {
-            Log.e(TAG, "openSettingsFromShell failed", e)
-        }
-    }
-
-    private fun evalJs(js: String) {
-        try { webView.evaluateJavascript(js, null) } catch (_: Exception) {}
-    }
-
-    private fun safeJs(value: String): String =
-        value.replace("\\", "\\\\").replace("'", "\\'")
-
-    private fun applyShellState(rawJson: String) {
-        val obj = JSONObject(rawJson)
-        val players = mutableListOf<NativeShellView.Player>()
-        val array = obj.optJSONArray("players") ?: JSONArray()
-        for (i in 0 until array.length()) {
-            val item = array.optJSONObject(i) ?: continue
-            players.add(
-                NativeShellView.Player(
-                    name = item.optString("name", "Jugador"),
-                    avatarId = item.optInt("avatarId", 0),
-                    score = item.optInt("score", 0)
-                )
-            )
-        }
-        val qr = obj.optString("qr", "")
-        val state = NativeShellView.State(
-            screen = obj.optString("screen", "boot"),
-            selectedMode = obj.optString("selectedMode", "clasico"),
-            roomCode = obj.optString("roomCode", ""),
-            mode = obj.optString("mode", "clasico"),
-            joinUrl = obj.optString("joinUrl", ""),
-            qr = qr.takeIf { it.isNotBlank() },
-            players = players,
-            canStart = obj.optBoolean("canStart", false),
-            music = obj.optBoolean("music", true),
-            motion = obj.optBoolean("motion", false),
-            perf = obj.optString("perf", "auto")
-        )
-        runOnUiThread {
-            if (state.screen == "game") {
-                shellView.visibility = View.GONE
-                webView.visibility = View.VISIBLE
-                webView.translationX = 0f
-                webView.isFocusable = true
-                webView.requestFocus()
-            } else {
-                webView.visibility = View.VISIBLE
-                webView.translationX = -10000f
-                webView.isFocusable = false
-                shellView.visibility = View.VISIBLE
-                shellView.update(state)
-                if (shellView.findFocus() == null) shellView.requestFocus()
-            }
-        }
-    }
-
     companion object {
         // Ventana del video (marco premium). Debe coincidir con KS_WIN en
         // public/js/tv/game.js.
@@ -734,7 +606,7 @@ class MainActivity : AppCompatActivity() {
 
         private const val TAG = "RitmikaTV"
         private const val ORIGIN = "https://ritmika.duckdns.org"
-        const val BASE_URL = "$ORIGIN/tv?native=1&shell=1"
+        const val BASE_URL = "$ORIGIN/tv?native=1"
 
         private const val PAUSE_MEDIA_JS = """
             (function(){

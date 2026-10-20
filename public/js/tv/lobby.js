@@ -115,7 +115,6 @@ function renderPlayerList() {
   };
 
   renderToContainer(lobbyContainer, 'empty-state');
-  if (typeof window.__ritmikaShellPush === 'function') window.__ritmikaShellPush();
 }
 
 function buildPlayerCard(player) {
@@ -937,8 +936,6 @@ async function inicializarQRConexion() {
   } else {
     joinUrl = `http://${state.localIP || hostname}:${port}/join?code=${state.roomCode || ''}`;
   }
-  state.joinUrl = joinUrl;
-  window.__ritmikaJoinUrl = joinUrl;
 
   // Mostrar texto del URL inmediatamente como fallback
   const textoInstruccion = document.getElementById('texto-instruccion-unirse');
@@ -953,15 +950,13 @@ async function inicializarQRConexion() {
       color: { dark: '#000000', light: '#ffffff' },
     });
     console.log('[QR] Canvas renderizado para:', joinUrl);
-    if (typeof window.__ritmikaShellPush === 'function') window.__ritmikaShellPush();
-  } catch (err) {
+    } catch (err) {
     console.error('[QR] Error al generar el código QR de vinculación de sala:', err);
     // Fallback visual: mostrar el código de sala grande
     if (textoInstruccion) {
       textoInstruccion.innerHTML = `Código de sala: <span style="color:#ffe600; font-weight:900; font-size:1.8rem; letter-spacing:0.2em;">${state.roomCode || ''}</span><br/><span class="text-sm" style="color:#94a3b8;">Ingresa desde tu móvil a: <br/><span class="text-cyan-400 font-bold">${joinUrl}</span></span>`;
     }
-    if (typeof window.__ritmikaShellPush === 'function') window.__ritmikaShellPush();
-  }
+    }
 }
 
 
