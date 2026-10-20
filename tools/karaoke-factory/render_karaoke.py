@@ -681,6 +681,16 @@ def render(track, force=False):
         str(out_path),
     ]
     subprocess.run(cmd, check=True)
+
+    actual = probe(out_path).get("duration") or 0
+    if duration and abs(actual - duration) > 0.6:
+        print(f"  {track['id']:14s} salida corta ({actual:.1f}s vs {duration:.1f}s), reintentando")
+        subprocess.run(cmd, check=True)
+        actual = probe(out_path).get("duration") or 0
+        if abs(actual - duration) > 0.6:
+            print(f"  {track['id']:14s} sigue corta ({actual:.1f}s), revisar")
+            return False
+
     size = out_path.stat().st_size / 1e6
     print(f"  {track['id']:14s} {size:5.1f} MB  {out_path.name}")
     return True
