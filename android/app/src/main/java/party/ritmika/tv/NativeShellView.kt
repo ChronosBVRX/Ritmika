@@ -42,6 +42,7 @@ class NativeShellView(
         val screen: String = "boot",
         val selectedMode: String = "clasico",
         val roomCode: String = "",
+        val mode: String = "clasico",
         val joinUrl: String = "",
         val qr: String? = null,
         val players: List<Player> = emptyList(),
@@ -54,6 +55,7 @@ class NativeShellView(
     data class Mode(
         val id: String,
         val display: String,
+        val short: String,
         val kicker: String,
         val tagline: String,
         val description: String,
@@ -69,7 +71,7 @@ class NativeShellView(
 
     private val modes = listOf(
         Mode(
-            "clasico", "CLÁSICO", "SHOW 01 · EL SHOW DE TODOS",
+            "clasico", "CLÁSICO", "CLÁSICO", "SHOW 01 · EL SHOW DE TODOS",
             "Todos los éxitos. Cero piedad.",
             "El karaoke definitivo: 4,515 canciones, retos, tomatazos y sabotajes.",
             Color.parseColor("#FFE600"), "/assets/icon_classic.webp",
@@ -77,7 +79,7 @@ class NativeShellView(
             "4,515 ROLAS", "MODO ESTRELLA", "2–8 JUGADORES · 3 RONDAS · 20–30 MIN"
         ),
         Mode(
-            "emo", "FIESTA EMO", "SHOW 02 · DRAMA GARANTIZADO",
+            "emo", "FIESTA EMO", "FIESTA EMO", "SHOW 02 · DRAMA GARANTIZADO",
             "No es una fase. Es una fiesta.",
             "Pop punk, delineador negro y corazones rotos. La noche en que todos cantan como si nadie los escuchara.",
             Color.parseColor("#F0047F"), "/assets/icon_emo.webp",
@@ -85,7 +87,7 @@ class NativeShellView(
             "58 ROLAS", "DRAMA PREMIUM", "2–8 JUGADORES · 3 RONDAS · 25 MIN"
         ),
         Mode(
-            "ranchera", "DOLIDAS & RANCHERAS", "SHOW 03 · DESPECHO DE ALTURA",
+            "ranchera", "DOLIDAS & RANCHERAS", "RANCHERAS", "SHOW 03 · DESPECHO DE ALTURA",
             "Pa’ cantar con el alma y el pañuelo.",
             "Mariachi, palenque y despecho premium. Aquí se llora bonito, se canta fuerte y se perdona… o no.",
             Color.parseColor("#F59E0B"), "/assets/icon_ranchera.webp",
@@ -93,7 +95,7 @@ class NativeShellView(
             "1,057 ROLAS", "PALENQUE LEGENDARIO", "2–8 JUGADORES · 3 RONDAS · 25 MIN"
         ),
         Mode(
-            "nostalgia", "NOSTALGIA POP", "SHOW 04 · VIAJE A LOS 2000",
+            "nostalgia", "NOSTALGIA POP", "NOSTALGIA POP", "SHOW 04 · VIAJE A LOS 2000",
             "Saca el flip phone y el brillo labial.",
             "Y2K, discos compactos y pop de plástico. Un viaje a la época del Messenger y el playback.",
             Color.parseColor("#22D3EE"), "/assets/icon_nostalgia.webp",
@@ -101,7 +103,7 @@ class NativeShellView(
             "299 ROLAS", "AÑOS 2000", "2–8 JUGADORES · 3 RONDAS · 25 MIN"
         ),
         Mode(
-            "anime", "FIESTA ANIME", "SHOW 05 · EN EL HORNO",
+            "anime", "FIESTA ANIME", "ANIME", "SHOW 05 · EN EL HORNO",
             "Openings, endings y poder de protagonista.",
             "El próximo gran show de Rítmika. Los changos del código todavía lo están armando.",
             Color.parseColor("#38BDF8"), "/assets/icon_anime.webp",
@@ -138,6 +140,7 @@ class NativeShellView(
     private lateinit var audioButton: Button
 
     private lateinit var lobbyCode: TextView
+    private lateinit var lobbyMode: TextView
     private lateinit var lobbyJoin: TextView
     private lateinit var lobbyQr: ImageView
     private lateinit var lobbyQrPlaceholder: TextView
@@ -398,7 +401,7 @@ class NativeShellView(
             isFocusable = true
             isFocusableInTouchMode = true
             isClickable = true
-            setPadding(dp(12), dp(8), dp(16), dp(16))
+            setPadding(dp(12), dp(6), dp(16), dp(14))
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 0,
@@ -416,11 +419,11 @@ class NativeShellView(
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
-        val name = text(mode.display, 18f, NeoBrutalUi.WHITE, paytone = true).apply {
+        val name = text(mode.short, 17f, NeoBrutalUi.WHITE, paytone = true).apply {
             maxLines = 1
             setTextColor(NeoBrutalUi.modeTextColors())
         }
-        val sub = text(mode.tagline, 10f, NeoBrutalUi.MUTED).apply {
+        val sub = text(mode.tagline, 9f, NeoBrutalUi.MUTED).apply {
             maxLines = 1
             setTextColor(NeoBrutalUi.modeSubTextColors())
         }
@@ -537,6 +540,8 @@ class NativeShellView(
                 leftMargin = dp(18)
                 bottomMargin = dp(16)
             }
+            background = GradientDrawable().apply { setColor(0xCC0A0A14.toInt()) }
+            setPadding(dp(12), dp(8), dp(12), dp(8))
         }
         heroKicker = text("SHOW 01 · EL SHOW DE TODOS", 9f, NeoBrutalUi.YELLOW, paytone = true)
         heroName = text("CLÁSICO", 38f, NeoBrutalUi.WHITE, paytone = true).apply {
@@ -632,14 +637,19 @@ class NativeShellView(
         qrPanel.addView(text("📡 CÓDIGO DE SALA", 12f, NeoBrutalUi.CYAN, paytone = true).apply {
             letterSpacing = 0.14f
         })
-        lobbyCode = text("----", 50f, NeoBrutalUi.YELLOW, paytone = true).apply {
+        lobbyCode = text("----", 42f, NeoBrutalUi.YELLOW, paytone = true).apply {
             letterSpacing = 0.18f
             setPadding(0, dp(2), 0, dp(8))
         }
         qrPanel.addView(lobbyCode)
+        lobbyMode = text("MODO: CLÁSICO", 10f, NeoBrutalUi.MUTED).apply {
+            letterSpacing = 0.1f
+            setPadding(0, 0, 0, dp(6))
+        }
+        qrPanel.addView(lobbyMode)
 
         val qrFrame = FrameLayout(context).apply {
-            layoutParams = LinearLayout.LayoutParams(dp(280), dp(280))
+            layoutParams = LinearLayout.LayoutParams(dp(220), 0, 1f).apply { bottomMargin = dp(8) }
             background = NeoBrutalUi.panel(context, Color.WHITE, NeoBrutalUi.INK)
             setPadding(dp(10), dp(10), dp(18), dp(18))
         }
@@ -662,10 +672,14 @@ class NativeShellView(
         qrFrame.addView(lobbyQrPlaceholder)
         qrPanel.addView(qrFrame)
 
-        lobbyJoin = text("Escanea el QR o usa el código desde tu celular", 12f, NeoBrutalUi.WHITE).apply {
+        lobbyJoin = text("Escanea el QR o usa el código desde tu celular", 11f, NeoBrutalUi.WHITE).apply {
             gravity = Gravity.CENTER
-            setPadding(0, dp(10), 0, 0)
+            setPadding(0, dp(4), 0, 0)
             maxLines = 2
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(48)
+            )
         }
         qrPanel.addView(lobbyJoin)
         body.addView(qrPanel)
@@ -716,6 +730,7 @@ class NativeShellView(
 
     private fun updateLobby(state: State) {
         lobbyCode.text = state.roomCode.ifBlank { "----" }
+        lobbyMode.text = "MODO: " + (modes.firstOrNull { it.id == state.mode }?.short ?: "CLÁSICO")
         lobbyJoin.text = if (state.joinUrl.isNotBlank()) state.joinUrl else "Escanea el QR desde tu celular"
         lobbyCount.text = "👥 ${state.players.size} / 8"
         lobbyStart.isEnabled = state.canStart

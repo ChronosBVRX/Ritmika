@@ -209,7 +209,10 @@ class MainActivity : AppCompatActivity() {
         // o el lobby nativo están visibles.
         shellView = NativeShellView(this, shellListener)
         root.addView(shellView)
-        webView.visibility = View.INVISIBLE
+        // El WebView sigue VISIBLE para que Chromium no congele su JS ni el
+        // socket, pero se saca fuera del viewport detrás del shell nativo.
+        webView.visibility = View.VISIBLE
+        webView.translationX = -10000f
         webView.isFocusable = false
 
         setContentView(root)
@@ -692,6 +695,7 @@ class MainActivity : AppCompatActivity() {
             screen = obj.optString("screen", "boot"),
             selectedMode = obj.optString("selectedMode", "clasico"),
             roomCode = obj.optString("roomCode", ""),
+            mode = obj.optString("mode", "clasico"),
             joinUrl = obj.optString("joinUrl", ""),
             qr = qr.takeIf { it.isNotBlank() },
             players = players,
@@ -704,10 +708,12 @@ class MainActivity : AppCompatActivity() {
             if (state.screen == "game") {
                 shellView.visibility = View.GONE
                 webView.visibility = View.VISIBLE
+                webView.translationX = 0f
                 webView.isFocusable = true
                 webView.requestFocus()
             } else {
-                webView.visibility = View.INVISIBLE
+                webView.visibility = View.VISIBLE
+                webView.translationX = -10000f
                 webView.isFocusable = false
                 shellView.visibility = View.VISIBLE
                 shellView.update(state)

@@ -68,6 +68,7 @@
       screen,
       selectedMode: typeof selectedMode !== 'undefined' ? selectedMode : 'clasico',
       roomCode: typeof state !== 'undefined' ? (state.roomCode || '') : '',
+      mode: typeof state !== 'undefined' ? (state.gameMode || 'clasico') : 'clasico',
       joinUrl: (typeof state !== 'undefined' && state.joinUrl) || window.__ritmikaJoinUrl || '',
       qr,
       players,
@@ -84,8 +85,6 @@
       const json = JSON.stringify(collect());
       if (force || json !== lastJson) {
         lastJson = json;
-        const s = JSON.parse(json);
-        console.log('[Shell] push', s.screen, s.players.length, s.roomCode || '-');
         AndroidNative.onShellState(json);
       }
     } catch (e) {
@@ -131,7 +130,7 @@
     enterShellScreen();
     push(true);
     if (pushTimer) clearInterval(pushTimer);
-    pushTimer = setInterval(() => push(false), 350);
+    pushTimer = setInterval(() => push(false), 1000);
     setTimeout(() => push(true), 900);
     setTimeout(() => push(true), 2200);
   }
