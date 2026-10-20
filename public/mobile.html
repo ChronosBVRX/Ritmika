@@ -1520,6 +1520,13 @@ function submitChallengeVote(completed) {
     completed: completed === true,
     performerSocketId: me.currentSingerSocketId,
   });
+  // Compatibilidad con relays v1.0.1: reenvían emojis, no challenge_vote.
+  setTimeout(() => {
+    socket.emit('player:emoji', {
+      roomCode: me.roomCode,
+      emoji: completed === true ? '🎭✅' : '🎭❌',
+    });
+  }, 650);
   const yes = document.getElementById('challenge-yes');
   const no = document.getElementById('challenge-no');
   [yes, no].forEach(btn => { if (btn) btn.disabled = true; });

@@ -52,6 +52,8 @@ CORS: `isLocalOrigin()` — permite `localhost`, `127.0.0.1`, `192.168.*`, `10.*
 | `player:next_turn` | `{ roomCode }` | 900ms | host only; la TV valida la fase | `tv:next_turn_trigger` |
 | `player:new_game` | `{ roomCode }` | 1500ms | host only (local acepta cualquier jugador al final) | `tv:new_game_trigger` |
 
+> Compatibilidad con relays v1.0.1: el voto de reto también se envía como `player:emoji` con `🎭✅` / `🎭❌`. La TV lo interpreta como voto de reto y deduplica por socket, así funciona aunque el relay aún no conozca `player:challenge_vote`.
+
 ---
 
 ## 4. Relay → TV

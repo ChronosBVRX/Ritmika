@@ -456,6 +456,11 @@ socket.on('tv:tomatazo', ({ attackerName, targetName, targetSocketId, attackerSo
 });
 
 socket.on('tv:emoji', ({ senderName, emoji }) => {
+  // Fallback para relays v1.0.1 que aún no reenvían player:challenge_vote.
+  if (emoji === '🎭✅' || emoji === '🎭❌') {
+    handleChallengeVoteByName(senderName, emoji === '🎭✅');
+    return;
+  }
   floatEmoji(emoji);
   updateTicker(`${senderName} reaccionó con ${emoji}`);
 });
@@ -529,7 +534,11 @@ socket.on('tv:challenge_vote', ({ voterName, voterSocketId, voterPlayerId, perfo
   const singer = currentSongPerformer || state.singerQueue[state.currentSingerIdx];
   if (!singer || perfId !== singer.socketId) return;
 
-  const voterKey = voterPlayerId || voterSocketId;
+  const voter = state.players.find(p =>
+    (voterSocketId && p.socketId === voterSocketId) ||
+    (voterPlayerId && p.playerId === voterPlayerId)
+  );
+  const voterKey = (voter && voter.socketId) || voterPlayerId || voterSocketId;
   if (!voterKey) return;
   if (voterKey === singer.playerId || voterKey === singer.socketId) return;
 
@@ -558,7 +567,41 @@ socket.on('tv:challenge_vote', ({ voterName, voterSocketId, voterPlayerId, perfo
   checkAllVotesSubmitted(perfId);
 });
 
+function handleChallengeVoteByName(senderName, completed) {
+  if (!state.currentChallenge || !votePhaseActive) return;
+  const singer = currentSongPerformer || state.singerQueue[state.currentSingerIdx];
+  if (!singer) return;
+  const voter = state.players.find(p => p.name === senderName && p.socketId !== singer.socketId);
+  if (!voter) return;
+
+  const key = voter.socketId;
+  state.challengeVotedBy = state.challengeVotedBy || new Set();
+  if (state.challengeVotedBy.has(key)) return;
+  state.challengeVotedBy.add(key);
+  state.challengeVotes.push({
+    voterName: voter.name,
+    voterSocketId: voter.socketId,
+    performerSocketId: singer.socketId,
+    completed: completed === true,
+  });
+
+  updateTicker(`${voter.name} evaluó el reto: ${completed ? '✅' : '❌'}`);
+  const expected = state.players.filter(p => !p.disconnected && p.socketId !== singer.socketId).length;
+  socket.emit('tv:broadcast', { roomCode: state.roomCode, hostToken: _hostToken,
+    event: 'VOTE_COUNT',
+    data: {
+      count: state.votedBy ? state.votedBy.size : 0,
+      total: expected,
+      challengeCount: state.challengeVotedBy.size,
+      challengeTotal: expected,
+    },
+  });
+
+  checkAllVotesSubmitted(singer.socketId);
+}
+
 function checkAllVotesSubmitted(performerSocketId) {
+
   const expectedVoters = state.players.filter(p => !p.disconnected && p.socketId !== performerSocketId);
   const expectedCount = expectedVoters.length;
   state.votedBy = state.votedBy || new Set();

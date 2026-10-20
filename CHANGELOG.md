@@ -15,6 +15,7 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 
 ### Gameplay (P0)
 - El reto ahora se envía a **todos los celulares**, queda visible en un HUD persistente de la TV y se evalúa con un voto binario “¿Cumplió?” durante la votación.
+- Fallback de compatibilidad para relays v1.0.1: el voto de reto también viaja como emoji `🎭✅`/`🎭❌` por `player:emoji`.
 - Reto cumplido: **+15 pts**. La votación espera también los votos de reto antes de cerrar; los bots votan el reto.
 - El reto entra al **35%** de la canción (mín. 25 s, máx. 75 s) y ya no lleva voz de Axolo encima de la canción.
 - El apagón entra al **40%** (mín. 30 s, máx. 90 s) y ya no lleva intro/outro de voz encima de la canción.
