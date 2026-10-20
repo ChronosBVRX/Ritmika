@@ -2,6 +2,24 @@
 
 Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](https://keepachangelog.com/).
 
+## [Sin publicar] - 2026-10-20
+
+### Added
+- **Premium FX** (`public/css/premium-fx.css` + `public/js/tv/premium-fx.js`) para ruleta, retos, apagón mental y tomatazos, con capa de rendimiento que apaga los efectos pesados sin perder el arte.
+- Fondo de escenario 16:9 generado con ComfyUI/SDXL (`roulette_bg_stage_wide.webp`) y assets HD de tomate (`tomato_projectile_hd.webp`, `tomato_splat_hd.webp`) con alfa real.
+- `scripts/generate_premium_fx_assets.py` para reproducir el fondo y los assets de tomate con el pipeline local.
+- Ruleta: slices con degradado y brillo, aros de luz, nombres horizontales legibles, avatares con halo, ranking por puntaje y tarjeta de ganador con rayos y confeti.
+- Retos: tarjeta premium con sello, icono, barra de tiempo, chispas y entrada animada.
+- Tomatazo: proyectil HD con estela, impacto con onda expansiva, estallido de tomate, salpicaduras múltiples, texto `¡TOMATAZO!`, marcador atacante → víctima y penalización.
+- Apagón mental: banner reposicionado, scanlines y viñeta pulsante.
+
+### Fixed
+- El heading de la ruleta era casi invisible por falta de contraste.
+- Los nombres de los jugadores no se dibujaban en la ruleta de 2+ jugadores.
+- El botón de girar quedaba enfocado detrás de la tarjeta de ganador y asomaba su anillo cian.
+- Los cut-ins de Axolo mostraban entidades HTML literales (`&#161;`) en el podio y otras frases.
+- Los nombres de bots ya no muestran el sufijo `(Bot)` en ruleta ni en la tarjeta de ganador.
+
 ## [Web 1.1.2 / Android TV 1.0.13] - 2026-10-20
 
 ### Added

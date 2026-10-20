@@ -357,6 +357,15 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
   const textBox = document.getElementById('axolo-cutin-text');
   
   if (!bar || !portrait || !textBox) return;
+
+  // Algunas frases históricas vienen con entidades HTML (&#161;). El cut-in
+  // usa textContent, así que se decodifican aquí para no mostrar "&#161;".
+  const decodeEntities = (value) => {
+    if (typeof value !== 'string' || value.indexOf('&') === -1) return value;
+    const area = document.createElement('textarea');
+    area.innerHTML = value;
+    return area.value;
+  };
   
   // Clear any existing timeout immediately
   if (cutinTimeout) {
@@ -408,7 +417,7 @@ function triggerTioAxolCutin(texto, duracion = 4000, emocion = 'talking') {
     portrait.src = `./assets/tio_axolo_vignette_${assetName}.webp`;
   }
   bar.style.backgroundColor = bgColor;
-  textBox.textContent = texto;
+  textBox.textContent = decodeEntities(texto);
 
   
   // 3. Slide in (add active class, remove exit classes)

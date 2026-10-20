@@ -6,6 +6,15 @@
 //  ROULETTE
 // ════════════════════════════════════════════
 let rouletteAngle = 0;
+let rouletteUprightNodes = [];
+
+function applyRouletteUprightRotation(deg) {
+  if (!rouletteUprightNodes.length) return;
+  const rot = -deg;
+  rouletteUprightNodes.forEach(({ el, x, y, base }) => {
+    el.setAttribute('transform', `rotate(${base + rot},${x},${y})`);
+  });
+}
 let isSpinning    = false;
 let rouletteAutoSpinTimeout = null;
 let rouletteResultTimeout   = null;
@@ -18,8 +27,15 @@ const ROULETTE_INTROS = [
   { text: '¡Nadie se escapa! ¡La ruleta del Tío Axolo todo lo ve! 👁️', file: 'roulette_intro_3.mp3' },
 ];
 
+function rouletteDisplayName(name) {
+  return String(name || '').replace(/\s*\(bot\)$/i, '').trim();
+}
+
 async function startRoulette(skipIntro = false) {
   showScreen('roulette-screen', 'flash');
+  if (typeof updateTicker === 'function') {
+    updateTicker(state.round === 2 ? '🔥 Fuego cruzado: asignen canciones a sus rivales…' : '🎰 La ruleta decide quién canta…');
+  }
 
   const remaining = state.singerQueue.slice(state.currentSingerIdx);
   if (remaining.length === 0) return; // safety
@@ -200,7 +216,7 @@ async function startRoulette(skipIntro = false) {
     el.id = `rchip-${p.socketId}`;
     el.innerHTML = `
       <img src="${av.img}" style="border-color:${av.border};" />
-      <span>${escapeHtml(p.name)}</span>
+      <span>${escapeHtml(rouletteDisplayName(p.name))}</span>
       <span class="chip-score">${p.score || 0} pts</span>
       ${state.round === 2 ? `<span id="astatus-${p.socketId}" class="assignment-status waiting" title="Esperando asignación">⏳</span>` : ''}
     `;
@@ -246,6 +262,7 @@ async function startRoulette(skipIntro = false) {
 function buildRouletteWheel(playersToDraw) {
   const wheel = document.getElementById('roulette-wheel');
   wheel.innerHTML = '';
+  rouletteUprightNodes = [];
   const players   = playersToDraw || state.players;
   const n         = players.length;
   if (n === 0) return;
@@ -254,6 +271,60 @@ function buildRouletteWheel(playersToDraw) {
   const SLICE_COLORS = (state.gameMode === 'emo')
     ? ['#831843','#450a0a','#1e1b4b','#0f172a','#312e81','#000000','#581c87','#7f1d1d']
     : ['#ec4899','#22d3ee','#a855f7','#facc15','#f97316','#22c55e','#3b82f6','#06b6d4'];
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const mix = (hex, target, amount) => {
+    const a = parseInt(hex.slice(1), 16);
+    const b = parseInt(target.slice(1), 16);
+    const ch = (shift) => {
+      const av = (a >> shift) & 255;
+      const bv = (b >> shift) & 255;
+      return Math.round(av + (bv - av) * amount);
+    };
+    return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+  };
+
+  const defs = document.createElementNS(NS, 'defs');
+  const glossGrad = document.createElementNS(NS, 'radialGradient');
+  glossGrad.setAttribute('id', 'rfx-wheel-gloss');
+  glossGrad.setAttribute('cx', '42%');
+  glossGrad.setAttribute('cy', '18%');
+  glossGrad.setAttribute('r', '62%');
+  const glossStopA = document.createElementNS(NS, 'stop');
+  glossStopA.setAttribute('offset', '0%');
+  glossStopA.setAttribute('stop-color', '#ffffff');
+  glossStopA.setAttribute('stop-opacity', '0.34');
+  const glossStopB = document.createElementNS(NS, 'stop');
+  glossStopB.setAttribute('offset', '55%');
+  glossStopB.setAttribute('stop-color', '#ffffff');
+  glossStopB.setAttribute('stop-opacity', '0.04');
+  const glossStopC = document.createElementNS(NS, 'stop');
+  glossStopC.setAttribute('offset', '100%');
+  glossStopC.setAttribute('stop-color', '#000000');
+  glossStopC.setAttribute('stop-opacity', '0.22');
+  glossGrad.append(glossStopA, glossStopB, glossStopC);
+  defs.appendChild(glossGrad);
+
+  SLICE_COLORS.forEach((color, i) => {
+    const grad = document.createElementNS(NS, 'linearGradient');
+    grad.setAttribute('id', `rfx-slice-${i}`);
+    grad.setAttribute('x1', '0');
+    grad.setAttribute('y1', '0');
+    grad.setAttribute('x2', '0.25');
+    grad.setAttribute('y2', '1');
+    const s1 = document.createElementNS(NS, 'stop');
+    s1.setAttribute('offset', '0%');
+    s1.setAttribute('stop-color', mix(color, '#ffffff', 0.28));
+    const s2 = document.createElementNS(NS, 'stop');
+    s2.setAttribute('offset', '52%');
+    s2.setAttribute('stop-color', color);
+    const s3 = document.createElementNS(NS, 'stop');
+    s3.setAttribute('offset', '100%');
+    s3.setAttribute('stop-color', mix(color, '#000000', 0.38));
+    grad.append(s1, s2, s3);
+    defs.appendChild(grad);
+  });
+  wheel.appendChild(defs);
 
   if (n === 1) {
     const p = players[0];
@@ -264,14 +335,34 @@ function buildRouletteWheel(playersToDraw) {
     circle.setAttribute('cx', cx);
     circle.setAttribute('cy', cy);
     circle.setAttribute('r', r);
-    circle.setAttribute('fill', SLICE_COLORS[0]);
+    circle.setAttribute('fill', 'url(#rfx-slice-0)');
     circle.setAttribute('stroke', '#111827');
     circle.setAttribute('stroke-width', '4');
+    circle.setAttribute('class', 'roulette-slice');
+    circle.setAttribute('data-player', p.socketId);
     wheel.appendChild(circle);
+
+    // Gloss over the disc
+    const glossSingle = document.createElementNS(NS, 'circle');
+    glossSingle.setAttribute('cx', cx);
+    glossSingle.setAttribute('cy', cy);
+    glossSingle.setAttribute('r', r);
+    glossSingle.setAttribute('fill', 'url(#rfx-wheel-gloss)');
+    glossSingle.setAttribute('pointer-events', 'none');
+    wheel.appendChild(glossSingle);
 
     // Position label coordinates (in upper area so it rotates nicely when spun)
     const lx = cx;
     const ly = cy - 95;
+
+    const halo = document.createElementNS(NS, 'circle');
+    halo.setAttribute('cx', lx);
+    halo.setAttribute('cy', ly - 12);
+    halo.setAttribute('r', 52);
+    halo.setAttribute('fill', 'rgba(2,6,23,0.55)');
+    halo.setAttribute('stroke', 'rgba(255,255,255,0.5)');
+    halo.setAttribute('stroke-width', '2');
+    wheel.appendChild(halo);
     
     // Image element (using local transparent PNG)
     const avatarImg = document.createElementNS('http://www.w3.org/2000/svg', 'image');
@@ -295,8 +386,11 @@ function buildRouletteWheel(playersToDraw) {
     nameText.setAttribute('stroke','#111827');
     nameText.setAttribute('stroke-width','5');
     nameText.setAttribute('paint-order','stroke fill');
-    nameText.textContent = p.name.slice(0, 10);
+    nameText.textContent = rouletteDisplayName(p.name).slice(0, 12);
     wheel.appendChild(nameText);
+    rouletteUprightNodes.push({ el: avatarImg, x: lx, y: ly, base: 0 });
+    rouletteUprightNodes.push({ el: nameText, x: lx, y: ly, base: 0 });
+    applyRouletteUprightRotation(rouletteAngle);
     return;
   }
 
@@ -312,9 +406,11 @@ function buildRouletteWheel(playersToDraw) {
     // Slice path
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d', `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${lg},1 ${x2},${y2} Z`);
-    path.setAttribute('fill', SLICE_COLORS[i % SLICE_COLORS.length]);
-    path.setAttribute('stroke', '#111827');
+    path.setAttribute('fill', `url(#rfx-slice-${i % SLICE_COLORS.length})`);
+    path.setAttribute('stroke', '#0b1020');
     path.setAttribute('stroke-width', '4');
+    path.setAttribute('class', 'roulette-slice');
+    path.setAttribute('data-player', p.socketId);
     path.style.opacity = '1';
     wheel.appendChild(path);
 
@@ -325,34 +421,57 @@ function buildRouletteWheel(playersToDraw) {
     const deg = (midA * 180 / Math.PI) + 90;
 
     const av = getAvatar(p.avatarId);
+    const imgSize = n > 6 ? 36 : 54;
+
+    // Avatar halo
+    const halo = document.createElementNS(NS, 'circle');
+    halo.setAttribute('cx', lx);
+    halo.setAttribute('cy', ly - 10);
+    halo.setAttribute('r', imgSize / 2 + 5);
+    halo.setAttribute('fill', 'rgba(2,6,23,0.55)');
+    halo.setAttribute('stroke', 'rgba(255,255,255,0.45)');
+    halo.setAttribute('stroke-width', '1.5');
+    wheel.appendChild(halo);
     
     // Avatar Image (using local transparent PNG)
     const avatarImg = document.createElementNS('http://www.w3.org/2000/svg', 'image');
     avatarImg.setAttribute('href', av.img);
-    const imgSize = n > 6 ? 38 : 52;
     avatarImg.setAttribute('x', lx - imgSize / 2);
-    avatarImg.setAttribute('y', ly - imgSize / 2 - 10);
+    avatarImg.setAttribute('y', ly - imgSize / 2 - 12);
     avatarImg.setAttribute('width', imgSize);
     avatarImg.setAttribute('height', imgSize);
-    avatarImg.setAttribute('transform', `rotate(${deg},${lx},${ly})`);
     wheel.appendChild(avatarImg);
+    rouletteUprightNodes.push({ el: avatarImg, x: lx, y: ly, base: 0 });
 
-    // Name text
+    // Name text (kept horizontal so every slice reads upright)
     const nameText = document.createElementNS('http://www.w3.org/2000/svg','text');
     nameText.setAttribute('x', lx);
-    nameText.setAttribute('y', ly + imgSize / 2 + 6);
+    nameText.setAttribute('y', ly + imgSize / 2 + 9);
     nameText.setAttribute('text-anchor','middle');
     nameText.setAttribute('dominant-baseline','middle');
-    nameText.setAttribute('font-size', n > 6 ? '12' : '14');
+    nameText.setAttribute('font-size', n > 6 ? '11' : '14');
     nameText.setAttribute('font-weight','900');
     nameText.setAttribute('fill','white');
     nameText.setAttribute('stroke','#111827');
     nameText.setAttribute('stroke-width','4');
     nameText.setAttribute('paint-order','stroke fill');
-    nameText.setAttribute('transform', `rotate(${deg},${lx},${ly})`);
-    nameText.textContent = p.name.slice(0, 8);
+    nameText.textContent = rouletteDisplayName(p.name).slice(0, 12);
+    wheel.appendChild(nameText);
+    rouletteUprightNodes.push({ el: nameText, x: lx, y: ly, base: 0 });
   });
+
+  applyRouletteUprightRotation(rouletteAngle);
+
+  // Glassy highlight across the top of the wheel.
+  const gloss = document.createElementNS(NS, 'circle');
+  gloss.setAttribute('cx', cx);
+  gloss.setAttribute('cy', cy);
+  gloss.setAttribute('r', r);
+  gloss.setAttribute('fill', 'url(#rfx-wheel-gloss)');
+  gloss.setAttribute('pointer-events', 'none');
+  wheel.appendChild(gloss);
 }
+
 
 document.getElementById('spin-btn').addEventListener('click', () => {
   UISounds.click();
@@ -400,6 +519,7 @@ function spinRoulette() {
     easing: 'cubicBezier(0.15, 0.85, 0.15, 1)',
     update: (anim) => {
       const currentRot = rouletteAngle + (anim.progress / 100) * targetAngle;
+      applyRouletteUprightRotation(currentRot);
       const tickAngle = currentRot + 90;
       const currentSlice = Math.floor(tickAngle / sliceDeg);
       if (currentSlice !== lastTickSlice) {
@@ -417,6 +537,7 @@ function spinRoulette() {
     },
     complete: () => {
       rouletteAngle = (rouletteAngle + targetAngle) % 360;
+      applyRouletteUprightRotation(rouletteAngle);
       isSpinning = false;
       showRouletteResult(winner).catch(()=>{});
     },
@@ -429,6 +550,11 @@ function spinRoulette() {
 
 async function showRouletteResult(player) {
   if (rouletteAutoSpinTimeout) clearTimeout(rouletteAutoSpinTimeout);
+  const spinButton = document.getElementById('spin-btn');
+  if (spinButton) {
+    spinButton.blur();
+    spinButton.style.display = 'none';
+  }
   state.votes = [];
   const song = await pickSongForPlayer(player);
   state.currentSong = song;
@@ -449,7 +575,9 @@ async function showRouletteResult(player) {
   }
 
   document.getElementById('selected-player-avatar-img').src = getAvatar(player.avatarId).img;
-  document.getElementById('selected-player-name').textContent = player.name;
+  document.getElementById('selected-player-name').textContent = rouletteDisplayName(player.name);
+  const rouletteHeading = document.getElementById('roulette-heading');
+  if (rouletteHeading) rouletteHeading.textContent = '¡El destino habló!';
   document.getElementById('selected-song-info').textContent = song
     ? `Canción: "${song.title}" — ${song.artist}`
     : '🎲 Canción aleatoria de la noche';
@@ -461,6 +589,10 @@ async function showRouletteResult(player) {
     winnerChip.classList.add('is-winner');
   }
 
+  document.querySelectorAll('#roulette-wheel .roulette-slice').forEach(slice => slice.classList.remove('is-winner'));
+  const winningSlice = document.querySelector(`#roulette-wheel .roulette-slice[data-player="${player.socketId}"]`);
+  if (winningSlice) winningSlice.classList.add('is-winner');
+
   const banner = document.getElementById('selected-player-banner');
   anime({
     targets: banner,
@@ -468,7 +600,7 @@ async function showRouletteResult(player) {
     duration: 600, easing: 'easeOutBack',
   });
 
-  const winMsgText = `¡${player.name} le toca cantar! ${state.currentSong ? `La canción es "${state.currentSong.title}"` : '¡La suerte eligió!'} ¡Que el palenque decida su destino! 🎤`;
+  const winMsgText = `¡${rouletteDisplayName(player.name)} le toca cantar! ${state.currentSong ? `La canción es "${state.currentSong.title}"` : '¡La suerte eligió!'} ¡Que el palenque decida su destino! 🎤`;
   const winChoice = ROULETTE_WINS[Math.floor(Math.random() * ROULETTE_WINS.length)];
   axoloSay(winMsgText, winChoice.file);
 
@@ -1195,8 +1327,10 @@ function fireEmoRain() {
 function fireBlackout() {
   const video = document.getElementById('karaoke-video');
   const lyrics = document.getElementById('lyrics-text');
+  const karaokeScreen = document.getElementById('karaoke-screen');
 
   sting('sting_blackout', 0.55);
+  if (karaokeScreen) karaokeScreen.classList.add('rfx-blackout');
 
   // Show blackout banner
   anime({
@@ -1219,6 +1353,7 @@ function fireBlackout() {
     anime({ targets: '#blackout-banner', scale: [1, 0], duration: 400, easing: 'easeInCubic' });
     lyrics.classList.remove('blackout');
     document.getElementById('np-artist').classList.remove('blackout');
+    if (karaokeScreen) karaokeScreen.classList.remove('rfx-blackout');
     if (video) video.style.filter = '';
     const bEndChoice = BLACKOUT_ENDS[Math.floor(Math.random() * BLACKOUT_ENDS.length)];
     axoloSay(bEndChoice.text, bEndChoice.file);
@@ -1234,10 +1369,12 @@ function endSong(player) {
   const errBanner = document.getElementById('video-error-banner');
   if (errBanner) errBanner.classList.remove('visible');
   if (blackoutTimeout) { clearTimeout(blackoutTimeout); blackoutTimeout = null; }
-  const mouthCss = document.getElementById('axolo-mouth-css');
-  if (mouthCss) mouthCss.classList.remove('open');
+  const mouthCss2 = document.getElementById('axolo-mouth-css');
+  if (mouthCss2) mouthCss2.classList.remove('open');
   document.getElementById('lyrics-text').classList.remove('blackout');
   document.getElementById('np-artist').classList.remove('blackout');
+  const karaokeScreen = document.getElementById('karaoke-screen');
+  if (karaokeScreen) karaokeScreen.classList.remove('rfx-blackout');
 
   const video = document.getElementById('karaoke-video');
   video.onplaying = null;

@@ -41,6 +41,8 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/tv/dpad-nav.js` — Navegación D-pad/teclado unificada con foco visible, trampa de modales y recuperación de foco.
 - `public/js/tv/performance.js` — Perfiles Automático/Rendimiento/Calidad; en nativo usa Rendimiento por defecto.
 - `public/css/performance.css` — Apaga loops, filtros, halftones y capas decorativas en modo Rendimiento.
+- `public/css/premium-fx.css` — Capa visual premium de ruleta, retos, apagón y tomatazos; se carga al final del `<head>` para ganar la cascada y se apaga en Rendimiento.
+- `public/js/tv/premium-fx.js` — Envuelve las funciones existentes (sin reescribir la lógica) para añadir escenario, ranking, ganador, reto premium y tomatazo con estela/impacto.
 - `public/css/tailwind.build.css` — Tailwind precompilado (~34 KB). Reemplaza el runtime Play CDN; regenerar con `npm run build:css` al agregar clases.
 - `public/libs/tailwind.js` — runtime legado sin uso; se conserva solo como respaldo histórico.
 - `public/libs/gsap.min.js` — sin uso desde que el latido del bootloader pasó a CSS.
@@ -53,6 +55,8 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/styles.js` — 68 líneas. CSS helper functions.
 - `public/mobile.html` — ~2015 líneas. Control táctil. 8 pantallas: join, avatar, géneros, artistas, sala de espera, panel de control, asignación R2, podio. Service Worker PWA. Haptic feedback. Fullscreen automático. Deep-linking con `?code=`. Catálogo de artistas vía `/api/artist-map`.
 - `public/assets/audio/` — 392 archivos MP3. Voces Axolo por género (20×9 géneros = 180 barks), reacciones de voto (15×4 tiers = 60), intros (20), premios (16), eventos (lobby, round, blackout, roulette, sabotage, idle, podium, modes, SFX).
+- `public/assets/roulette_bg_stage_wide.webp` — Fondo 16:9 del escenario de ruleta (ComfyUI/SDXL).
+- `public/assets/tomato_projectile_hd.webp` / `tomato_splat_hd.webp` — Tomate y estallido HD con alfa real.
 - `public/assets/avatars/` — 8 WebP de avatares con transparencia alfa real (generados con IA + floodfill, convertidos de PNG a WebP).
 - `public/assets/tio_axolo_vignette_<emocion>.webp` — Assets de la mascota en modo RGBA con transparencia real. 6 emociones: `neutral`, `laughing`, `mischievous`, `sad`, `angry`, `singing`. + `tio_axolo_body.webp` para pantalla de carga. + Variantes por modo: `axolo_anime.webp`, `axolo_emo.webp`, `axolo_ranchera.webp`, `axolo_nostalgia.webp`.
 - `public/assets/` — También incluye: `logo_ritmika.webp`, fondos (`bg_neon_club.webp`, `bg_neon_y2k.webp`), decoraciones de lobby, assets de podio (`podium_bg_stadium.webp`, `podium_crown.webp`), assets de ruleta, `loading_bg.mp4`, iconos de modo, favicon, tomato assets (SVG + WebP), fuentes woff2 (Fredoka, Paytone One).
