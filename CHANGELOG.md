@@ -2,6 +2,22 @@
 
 Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](https://keepachangelog.com/).
 
+## [Web 1.1.1 / Android TV 1.0.12] - 2026-10-20
+
+### Changed
+- **Android TV vuelve a la interfaz web compartida**: el APK carga `/tv?native=1` y usa el mismo menú/lobby HTML que la versión PC.
+- `native-boot.js` entra directo al menú web en Android, sin preboot ni una segunda UI nativa.
+- Se elimina el WebView fuera del viewport y el render duplicado del menú/lobby: un solo render path.
+- Se conservan el video ExoPlayer, el panel de audio Bluetooth y el modal nativo de Ajustes.
+- El perfil **Rendimiento** sigue siendo el predeterminado en Android TV.
+
+### Removed
+- `NativeShellView`, `NeoBrutalUi`, `RemoteImages`, `shell-bridge.js`, las fuentes Paytone/Fredoka del APK y los hooks `__ritmikaShellPush`.
+- El flag `shell=1` deja de usarse; la app Android y la web comparten la misma UI.
+
+### Fixed
+- El menú/lobby de Android ya no compite con una capa nativa encima ni mantiene el WebView oculto solo para conservar el socket.
+
 ## [Web 1.1.0 / Android TV 1.0.11] - 2026-10-19
 
 ### Added

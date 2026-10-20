@@ -37,7 +37,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/tv/socket.js` — 463 líneas. Eventos Socket.io, rate limiting, relay TV↔Server.
 - `public/js/tv/flow.js` — Director de fases audio-aware. Espera a que termine la voz de Axolo, calcula pausas sobre audio real y transmite `PHASE_STATE` a los celulares para habilitar controles móviles (girar / listo / siguiente).
 - `public/js/tv/main-menu.js` — Menú principal Palenque Arcade: selección de show, hero, modales de ajustes/cómo jugar/créditos y transición al lobby.
-- `public/js/tv/shell-bridge.js` — Puente WebView↔shell nativo: modo, sala, QR, jugadores, canStart y acciones (crear/iniciar/volver).
+- `public/js/tv/native-boot.js` — En Android (`?native=1`) oculta preboot/bootloader y entra directo al menú web, sin una UI nativa duplicada.
 - `public/js/tv/performance.js` — Perfiles Automático/Rendimiento/Calidad; en nativo usa Rendimiento por defecto.
 - `public/css/performance.css` — Apaga loops, filtros, halftones y capas decorativas en modo Rendimiento.
 - `public/css/tailwind.build.css` — Tailwind precompilado (~34 KB). Reemplaza el runtime Play CDN; regenerar con `npm run build:css` al agregar clases.
@@ -58,11 +58,9 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/libs/` — Tailwind.js local + Anime.js local + GSAP local + QRCode.min.js (CDN evitado para rendimiento).
 
 ### App Android TV (Kotlin)
-- `android/app/src/main/java/party/ritmika/tv/MainActivity.kt` — WebView (`?native=1&shell=1`) + ExoPlayer + puente JS. El WebView queda fuera del viewport detrás del shell; al empezar la partida se muestra.
-- `android/app/src/main/java/party/ritmika/tv/NativeShellView.kt` — menú y lobby nativos, carrusel de modos, QR, jugadores y handoff al WebView.
-- `android/app/src/main/java/party/ritmika/tv/NeoBrutalUi.kt` / `RemoteImages.kt` — estilos compartidos y carga de arte remoto.
+- `android/app/src/main/java/party/ritmika/tv/MainActivity.kt` — WebView (`/tv?native=1`) + ExoPlayer + puente JS. La app usa el mismo menú/lobby web que PC; el video y el audio Bluetooth son nativos.
 - `android/app/src/main/java/party/ritmika/tv/AudioPanelActivity.kt` — UI nativa neo-brutalista del panel Altavoz/Audio, navegable con D-pad.
-- `android/app/src/main/java/party/ritmika/tv/LobbySettingsDialog.kt` — modal nativo de Ajustes sobre el lobby: Altavoz/Audio, música y movimiento reducido.
+- `android/app/src/main/java/party/ritmika/tv/LobbySettingsDialog.kt` — modal nativo de Ajustes sobre el lobby: Altavoz/Audio, música, movimiento reducido y rendimiento.
 - `android/app/src/main/java/party/ritmika/tv/BluetoothAudioController.kt` — permisos, discovery, `createBond`, estado A2DP y `AudioDeviceCallback`.
 - La bocina preferida se guarda por MAC en `SharedPreferences` (`ritmika_audio_panel`).
 - Un APK normal **no puede forzar** `BluetoothA2dp.connect()`; “Reconectar” solo espera y refresca la reconexión automática de Android.
@@ -168,22 +166,21 @@ Celulares desde cualquier lugar
   2. `git commit -m "mensaje descriptivo"` (explicar QUÉ y POR QUÉ)
   3. `git push`
 - **Versionado**: Si se solicita incrementar la versión, usar `npm version patch|minor|major` — esto actualiza `package.json` y crea un tag en Git automáticamente.
-- **UI**: La versión del `package.json` se emite a los clientes vía `socket.emit('server_version', ...)`. La web/PC la muestra en `#mm-version` como `v1.1.0 · WEB PC`; el móvil en `#version-display`.
+- **UI**: La versión del `package.json` se emite a los clientes vía `socket.emit('server_version', ...)`. La web/PC la muestra en `#mm-version` como `v1.1.1 · WEB PC`; el móvil en `#version-display`.
 
 ### Dos versiones: Web/PC y Android TV
-- **Web / PC**: se sirve en `/tv` (alias `/` y `/pc`). Usa el menú/lobby HTML completos de `public/tv.html`, mouse y teclado. Su versión vive en `package.json` y se muestra como `v1.1.0 · WEB PC`.
-- **Android TV**: el APK carga `/tv?native=1&shell=1`. Usa `NativeShellView` para menú/lobby y el WebView solo para el juego. Su versión vive en `android/app/build.gradle.kts` y se publica con `android/scripts/publish_ota.sh`.
+- **Web / PC**: se sirve en `/tv` (alias `/` y `/pc`). Usa el menú/lobby HTML completos de `public/tv.html`, mouse y teclado. Su versión vive en `package.json` y se muestra como `v1.1.1 · WEB PC`.
+- **Android TV**: el APK carga `/tv?native=1` y usa **la misma UI web** que PC; `native-boot.js` entra directo al menú. Solo el video, el panel de audio Bluetooth y el modal de Ajustes son nativos. Su versión vive en `android/app/build.gradle.kts` y se publica con `android/scripts/publish_ota.sh`.
 - **Regla de paridad obligatoria:** toda modificación funcional o visual se implementa y verifica en **Web/PC y Android TV** en el mismo cambio. No se acepta dejar una versión atrás.
-- La independencia es solo de **versionado**: los números pueden avanzar por separado, pero la funcionalidad debe quedar en paridad. Un cambio de menú/lobby no es “solo web”: hay dos implementaciones y ambas se actualizan.
+- La independencia es solo de **versionado**: los números pueden avanzar por separado, pero la funcionalidad debe quedar en paridad. Como la UI es compartida, un cambio de menú/lobby/juego se aplica a ambos canales automáticamente; aun así hay que probarlo en los dos.
 - Si un cambio es exclusivo de una plataforma (por ejemplo Bluetooth/A2DP), se documenta la excepción y se verifica que la otra versión siga funcionando.
 - Tabla rápida de paridad:
-  - **Menú/lobby:** `public/tv.html` + `public/js/tv/main-menu.js` ↔ `NativeShellView.kt`.
-  - **Juego (ruleta, karaoke, votación, podio):** el mismo WebView; se verifica en ambos canales.
-  - **Ajustes:** modal HTML ↔ `LobbySettingsDialog`.
+  - **Menú/lobby:** `public/tv.html` + `public/js/tv/main-menu.js` (compartido).
+  - **Juego (ruleta, karaoke, votación, podio):** el mismo WebView compartido.
+  - **Ajustes:** modal HTML en PC; `LobbySettingsDialog` nativo en Android (abierto desde la web).
   - **Audio Bluetooth:** solo Android (`AudioPanelActivity`); en PC no aplica.
   - **Servidor/API/Socket.io:** compartido; se despliega con la web.
 - Checklist mínimo: probar `/tv` en PC, probar el APK en Android, ejecutar `npm run test:all`, desplegar web y publicar OTA si el APK cambió.
-- El flag `shell=1` solo activa el shell si existe el puente `AndroidNative`; la versión PC nunca lo muestra.
 - Desplegar la web **antes** del APK cuando el APK cambie de ruta o consuma un endpoint nuevo.
 - Guía de release y comandos: `docs/RELEASES.md`.
 
@@ -362,8 +359,8 @@ Celulares desde cualquier lugar
 
 | Canal | Entrada | Versión | Deploy |
 |-------|---------|---------|--------|
-| **Web / PC** | `/tv` (alias `/`, `/pc`) | `package.json` (`1.1.0`) | Docker en el VPS |
-| **Android TV** | APK `/download/ritmika-tv.apk` | `android/app/build.gradle.kts` (`1.0.11`, code 12) | `android/scripts/publish_ota.sh` |
+| **Web / PC** | `/tv` (alias `/`, `/pc`) | `package.json` (`1.1.1`) | Docker en el VPS |
+| **Android TV** | APK `/download/ritmika-tv.apk` | `android/app/build.gradle.kts` (`1.0.12`, code 13) | `android/scripts/publish_ota.sh` |
 
 **Web / PC:**
 ```bash
@@ -459,8 +456,8 @@ node scripts/migrate_to_sqlite.js   # Genera server/songs.db desde r2_db.json
 
 | Componente | Estado | Notas |
 |-----------|--------|-------|
-| **Web / PC** | **COMPLETO** | `/tv` (alias `/`, `/pc`), menú/lobby HTML, versión `1.1.0` |
-| **Android TV** | **COMPLETO** | Shell nativo de menú/lobby + WebView para juego, versión `1.0.11` (code 12), OTA |
+| **Web / PC** | **COMPLETO** | `/tv` (alias `/`, `/pc`), menú/lobby HTML, versión `1.1.1` |
+| **Android TV** | **COMPLETO** | Misma UI web que PC + audio/Ajustes nativos, versión `1.0.12` (code 13), OTA |
 | Server | **COMPLETO** | ~800 líneas, Express + Socket.io + SQLite, R2 presigned URLs, endpoints filtrados |
 | TV Frontend | **COMPLETO** | ~2566 líneas HTML + 9 módulos JS (~4310 líneas), server-side song selection, sin catálogo en memoria |
 | Mobile Frontend | **COMPLETO** | ~1960 líneas, artist map via API, 8 pantallas, PWA, haptic |
