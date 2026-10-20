@@ -127,7 +127,10 @@ Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 
 4. **Karaoke**: cada palabra recibe un `\k` igual a su duración real y la línea se
    oculta 0.6 s después de la última. Si no hay alineación, cae al reparto por
    sílabas del LRC.
-5. **Fondo**: `bg_neon_club.webp` con blur y oscurecido, más un zoom lento.
+5. **Tres líneas en pantalla**: la anterior en gris tenue, la actual con barrido
+   y la siguiente en blanco. En canciones rápidas el cantante ve lo que viene
+   aunque el barrido llegue justo.
+6. **Fondo**: `bg_neon_club.webp` con blur y oscurecido, más un zoom lento.
 
 ### Requisitos extra
 

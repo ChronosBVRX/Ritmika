@@ -573,7 +573,9 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Lyric,{FONT_LYRIC},72,{YELLOW},{WHITE},{INK},&H96000000,-1,0,0,0,100,100,0,0,1,4,4,2,90,90,150,1
+Style: Lyric,{FONT_LYRIC},64,{YELLOW},{WHITE},{INK},&H96000000,-1,0,0,0,100,100,0,0,1,4,4,2,90,90,0,1
+Style: Next,{FONT_LYRIC},50,&H00DCDCDC,&H00DCDCDC,{INK},&H96000000,0,0,0,0,100,100,0,0,1,3,3,2,90,90,0,1
+Style: Prev,{FONT_LYRIC},44,&H008C8C8C,&H008C8C8C,{INK},&H96000000,0,0,0,0,100,100,0,0,1,3,3,2,90,90,0,1
 Style: Tiny,{FONT_LYRIC},30,{MUTED},{MUTED},{INK},&H96000000,0,0,0,0,100,100,2,0,1,2,2,9,70,70,46,1
 Style: Title,{FONT_TITLE},96,{WHITE},{WHITE},{INK},&H96000000,0,0,0,0,100,100,0,0,1,6,6,5,80,80,0,1
 Style: Artist,{FONT_TITLE},54,{YELLOW},{YELLOW},{INK},&H96000000,0,0,0,0,100,100,0,0,1,5,5,8,80,80,0,1
@@ -618,8 +620,20 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 continue
             events.append(
                 f"Dialogue: 0,{ass_time(start)},{ass_time(display_end)},Lyric,,0,0,0,,"
-                f"{{\\fad(90,160)}}{body}"
+                f"{{\\an2\\pos(960,890)\\fad(90,160)}}{body}"
             )
+            if index + 1 < len(aligned):
+                following = " ".join(word["w"] for word in aligned[index + 1]["words"])
+                events.append(
+                    f"Dialogue: 0,{ass_time(start)},{ass_time(next_start)},Next,,0,0,0,,"
+                    f"{{\\an2\\pos(960,975)\\fad(140,160)}}{clean_text(following)}"
+                )
+            if index > 0:
+                previous = " ".join(word["w"] for word in aligned[index - 1]["words"])
+                events.append(
+                    f"Dialogue: 0,{ass_time(start)},{ass_time(next_start)},Prev,,0,0,0,,"
+                    f"{{\\an2\\pos(960,800)\\fad(160,140)}}{clean_text(previous)}"
+                )
     else:
         for index, (start, text) in enumerate(lines):
             end = lines[index + 1][0] if index + 1 < len(lines) else audio_duration
