@@ -90,15 +90,37 @@ torch/demucs/stable-ts, no el del sistema:
 
 Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 + AAC).
 
-### Cómo se arma el video
+### La receta (aprendida a golpes)
+
+1. **El audio y la letra tienen que ser la misma versión.** Es el error que más
+   caro sale. `Cita en el quirófano` se bajó del video oficial (271 s, con un
+   sketch de 23 s) mientras el LRC venía del álbum (243 s). Ningún alineador
+   arregla eso: hay que emparejar versiones antes de tocar la letra.
+2. **Nunca forzar el texto contra el audio.** El *forced alignment* de Whisper
+   coloca todas las palabras aunque no existan en el audio, y el resultado se ve
+   sincronizado en el papel pero es basura (una palabra estirada 37 s).
+3. **Transcribir primero, emparejar después.** Whisper devuelve cuándo se canta
+   cada palabra que reconoce; luego se pega la letra canónica sobre esa
+   transcripción con `difflib`. Si el audio tiene intro, sketch o outro, el
+   desfase se absorbe solo.
+4. **Medir el emparejamiento.** Si menos del 55% de las palabras de la letra
+   encuentran pareja en la transcripción, la canción no es viable con ese LRC:
+   se conserva el LRC o se busca otra fuente.
+5. **Descartar lo que no se canta.** Las líneas sin palabras emparejadas no se
+   muestran. Es preferible un hueco a una línea inventada.
+6. **Verificar antes de renderizar.** Un frame en el segundo donde debe entrar
+   la primera línea cuesta 2 segundos y evita 40 minutos de render a ciegas.
+
+## Cómo se arma el video
 
 1. **Letras**: se elige el LRC de LRCLIB que mejor puntúa por cercanía de duración,
    completitud contra la letra plana y ausencia de huecos mayores a 35 s. Hay hasta
    16 versiones por canción y muchas tienen los timestamps corridos.
 2. **Instrumental**: `demucs --two-stems=vocals`. Se conserva `vocals.wav` por si
    luego se quiere una pista guía.
-3. **Alineación**: `stable-ts` (Whisper `medium`) alinea la letra contra la pista
-   vocal y devuelve inicio y fin reales de cada palabra. De ahí salen los `\k`.
+3. **Alineación**: Whisper transcribe el audio con timestamps por palabra; la
+   letra canónica se pega sobre esa transcripción con `difflib` (`--align`). Si
+   el emparejamiento baja del 55%, se conserva el LRC.
 4. **Karaoke**: cada palabra recibe un `\k` igual a su duración real y la línea se
    oculta 0.6 s después de la última. Si no hay alineación, cae al reparto por
    sílabas del LRC.
@@ -119,9 +141,9 @@ Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 
 
 ### Limitaciones conocidas
 
+- La alineación depende de que Whisper entienda la letra cantada. En mixes muy
+  densos o con coros encimados baja el porcentaje de emparejamiento y se nota.
+  El log imprime ese porcentaje por canción: por debajo de 75% conviene revisar.
 - Dos pistas del lote (`thermo-02`, `delux-02`) no tienen LRC sincronizado en
   LRCLIB. Se omiten del render hasta resolverlas.
-- La alineación es sobre la pista vocal separada: si Demucs deja coros de fondo,
-  Whisper puede pegarlos a la palabra vecina. Se ve en el reporte como líneas con
-  muy pocas palabras alineadas.
 - El video no trae barra de progreso ni cuenta atrás.

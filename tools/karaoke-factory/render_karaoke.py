@@ -34,6 +34,7 @@ SRC = ROOT / "media" / "karaoke-src"
 BUILD = ROOT / "media" / "karaoke-build"
 OUT = ROOT / "media" / "karaoke-video"
 ALIGNED = BUILD / "aligned"
+TRANSCRIPTS = BUILD / "transcripts"
 REPORT = SRC / "report.json"
 
 DEMUCS_PY = Path("/home/chronos/Escritorio/Comfy/venv/bin/python")
@@ -227,46 +228,64 @@ def load_aligner():
 
 
 def align_tracks(tracks, force=False):
-    """Ajusta la letra al audio real y guarda tiempos por palabra."""
+    """Transcribe el audio y pega la letra sobre lo que de verdad se canta.
+
+    No usa forced alignment: si el audio es otra version (mas intro, otro
+    master), forzar el texto produce basura. Transcribir primero y emparejar
+    despues tolera versiones distintas y detecta lineas que no se cantan.
+    """
     ALIGNED.mkdir(parents=True, exist_ok=True)
+    TRANSCRIPTS.mkdir(parents=True, exist_ok=True)
     pending = []
     for track in tracks:
         out = ALIGNED / f"{track['id']}.json"
         lrc = BUILD / "lyrics" / f"{track['id']}.lrc"
-        vocals = stem_dir(track) / "vocals.wav"
         if out.exists() and not force:
             continue
-        if not lrc.exists() or not vocals.exists():
+        if not lrc.exists() or not Path(track["file"]).exists():
             continue
-        pending.append((track, out, lrc, vocals))
+        pending.append((track, out, lrc))
 
     if not pending:
         print("  alineación ya lista")
         return
 
     model = load_aligner()
-    for track, out, lrc, vocals in pending:
+    for track, out, lrc in pending:
         parsed = [(start, text) for start, text in parse_lrc(lrc.read_text(encoding="utf-8")) if text]
         if not parsed:
             continue
         lines = [text for _, text in parsed]
 
-        try:
-            result = model.align(str(vocals), "\n".join(lines), language="es", verbose=False)
-        except Exception as exc:
-            print(f"  {track['id']:14s} falló: {str(exc)[:60]}")
-            continue
+        cache = TRANSCRIPTS / f"{track['id']}.json"
+        if cache.exists() and not force:
+            heard = [(w["w"], w["s"], w["e"]) for w in json.loads(cache.read_text(encoding="utf-8"))]
+        else:
+            try:
+                result = model.transcribe(
+                    str(track["file"]), language="es", verbose=False, word_timestamps=True
+                )
+            except Exception as exc:
+                print(f"  {track['id']:14s} falló: {str(exc)[:60]}")
+                continue
+            heard = [
+                (word.word.strip(), float(word.start), float(word.end))
+                for segment in result.segments for word in segment.words
+                if word.word.strip()
+            ]
+            cache.write_text(
+                json.dumps([{"w": w, "s": s, "e": e} for w, s, e in heard], ensure_ascii=False),
+                encoding="utf-8",
+            )
 
-        heard = [
-            (word.word, float(word.start), float(word.end))
-            for segment in result.segments for word in segment.words
-        ]
-
-        mine = [(line_idx, token) for line_idx, line in enumerate(lines) for token in line.split()]
+        mine = [(idx, token) for idx, line in enumerate(lines) for token in line.split()]
         if not mine or not heard:
             continue
 
         timings = match_timings(mine, heard)
+        matched = sum(1 for value in timings if value)
+        ratio = matched / len(mine)
+
         records = []
         for line_idx, line in enumerate(lines):
             words = [
@@ -282,15 +301,18 @@ def align_tracks(tracks, force=False):
                 "words": [{"w": w["w"], "s": round(w["s"], 3), "e": round(w["e"], 3)} for w in words],
             })
 
-        if len(records) < len(lines) * 0.6:
-            print(f"  {track['id']:14s} alineación pobre, se conserva LRC")
+        if ratio < 0.55 or len(records) < len(lines) * 0.5:
+            print(f"  {track['id']:14s} {ratio:4.0%} emparejado, se conserva LRC")
             continue
 
         out.write_text(
             json.dumps({"lines": records}, ensure_ascii=False, indent=1), encoding="utf-8"
         )
         drift = records[0]["start"] - parsed[0][0]
-        print(f"  {track['id']:14s} {len(records):3d} líneas  (desfase inicial {drift:+.1f}s)")
+        print(
+            f"  {track['id']:14s} {len(records):3d}/{len(lines):3d} líneas · "
+            f"{ratio:3.0%} palabras · desfase {drift:+.1f}s"
+        )
 
 
 def match_timings(mine, heard):
