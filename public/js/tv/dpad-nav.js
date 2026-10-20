@@ -72,6 +72,21 @@
       screen.querySelector('.mode-card');
   }
 
+  function selectCard(card) {
+    const id = card && card.dataset ? card.dataset.mode : null;
+    if (!id) return;
+    if (typeof selectedMode !== 'undefined' && selectedMode === id) return;
+    if (typeof MainMenu !== 'undefined' && typeof MainMenu.selectMode === 'function') {
+      MainMenu.selectMode(id, { instant: true });
+    }
+  }
+
+  function focusCard(card) {
+    const ok = focusEl(card);
+    if (ok) selectCard(card);
+    return ok;
+  }
+
   function defaultFocus(screen) {
     if (!screen) return false;
     let target = null;
@@ -125,7 +140,7 @@
     const isCard = cardIndex >= 0;
     const isCta = el === cta;
     const isUtility = utilities.indexOf(el) >= 0;
-    const selected = () => focusEl(selectedModeCard(screen));
+    const selected = () => focusCard(selectedModeCard(screen));
     const utilityAt = (i) => utilities.length ? focusEl(utilities[(i + utilities.length) % utilities.length]) : false;
 
     if (!isCard && !isCta && !isUtility) return defaultFocus(screen);
@@ -133,10 +148,10 @@
     if (isCard) {
       if (key === 'ArrowDown') {
         if (cardIndex === cards.length - 1) return utilityAt(0) || (cta && focusEl(cta));
-        return focusEl(cards[cardIndex + 1]);
+        return focusCard(cards[cardIndex + 1]);
       }
       if (key === 'ArrowUp') {
-        return focusEl(cards[(cardIndex - 1 + cards.length) % cards.length]);
+        return focusCard(cards[(cardIndex - 1 + cards.length) % cards.length]);
       }
       if (key === 'ArrowRight') {
         return (cta && !cta.disabled && focusEl(cta)) || selected();
