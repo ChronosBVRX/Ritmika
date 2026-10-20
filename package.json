@@ -22,6 +22,7 @@
     "test:portability": "node tests/portability.test.js",
     "test:smoke": "node tests/smoke.test.js",
     "test:all": "node tests/portability.test.js && node tests/protocol.test.js && node tests/local_http.test.js && node tests/config.test.js && node tests/cors.test.js && node tests/reconnect.test.js && node tests/relay.test.js && node tests/identity.test.js && node tests/build.test.js && node tests/smoke.test.js",
+    "build:css": "node node_modules/tailwindcss/lib/cli.js -i public/css/tailwind-input.css -o public/css/tailwind.build.css --minify",
     "generate:artist-metadata": "node scripts/generate_artist_metadata.js",
     "audit:secrets": "node scripts/audit_secrets.js",
     "benchmark": "node scripts/benchmark.js",

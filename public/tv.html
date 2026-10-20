@@ -44,29 +44,8 @@
   <link rel="stylesheet" href="/css/emo-theme.css?v=3" />
   <link rel="stylesheet" href="/css/main-menu.css?v=8" />
   <link rel="stylesheet" href="/css/performance.css?v=1" />
-  <script src="/libs/tailwind.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'neon-pink':   '#ec4899', 'neon-cyan': '#22d3ee',
-            'neon-purple': '#a855f7', 'neon-yellow': '#facc15',
-            'antro-bg':    '#0f172a', 'antro-card': '#1e293b',
-            'jb-magenta':  '#f0047f', 'jb-cyan':    '#00e5ff',
-            'jb-yellow':   '#ffe600', 'jb-lime':    '#b8ff57',
-            'jb-orange':   '#ff6b00', 'jb-purple':  '#9b00ff',
-          },
-          fontFamily: {
-            outfit:  ['Outfit','sans-serif'],
-            fredoka: ['Fredoka','sans-serif'],
-            paytone: ['Paytone One','sans-serif'],
-          },
-          rotate: { '1.5': '1.5deg', '-1.5': '-1.5deg', '2.5': '2.5deg', '-2.5': '-2.5deg' },
-        },
-      },
-    };
-  </script>
+  <link rel="stylesheet" href="/css/tailwind.build.css?v=1" />
+  
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -1245,7 +1224,10 @@
       position: relative; z-index: 10;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       width: 100%; height: 100%;
+      animation: boot-heartbeat 0.46875s ease-in-out infinite alternate;
+      transform-origin: center;
     }
+    @keyframes boot-heartbeat { from { transform: scale(1); } to { transform: scale(1.04); } }
 
     .boot-checklist {
       position: absolute;
@@ -2249,7 +2231,6 @@
 
 <!-- ═══ Dependencias Runtime ═══ -->
   <script src="/libs/anime.min.js"></script>
-  <script src="/libs/gsap.min.js"></script>
   <script src="/js/bootloader.js?v=1792360195"></script>
   <script src="/js/styles.js?v=1792360195"></script>
   <script src="/js/animations.js?v=2"></script>

@@ -39,6 +39,9 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/tv/main-menu.js` — Menú principal Palenque Arcade: selección de show, hero, modales de ajustes/cómo jugar/créditos y transición al lobby.
 - `public/js/tv/performance.js` — Perfiles Automático/Rendimiento/Calidad; en nativo usa Rendimiento por defecto.
 - `public/css/performance.css` — Apaga loops, filtros, halftones y capas decorativas en modo Rendimiento.
+- `public/css/tailwind.build.css` — Tailwind precompilado (~34 KB). Reemplaza el runtime Play CDN; regenerar con `npm run build:css` al agregar clases.
+- `public/libs/tailwind.js` — runtime legado sin uso; se conserva solo como respaldo histórico.
+- `public/libs/gsap.min.js` — sin uso desde que el latido del bootloader pasó a CSS.
 - `public/css/main-menu.css` — Estilos neo-brutalistas del menú, animaciones, modales y responsive para 1366×768 / 1920×1080.
 - `public/assets/menu/` — Fondo y portadas de modo generados con ComfyUI/SDXL + `papel_picado.svg` vectorial.
 - `public/js/tv/state.js` — 54 líneas. Estado global del juego (players, scores, round, etc.).
@@ -67,6 +70,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `src/GameWindow.cs` — 132 líneas. Ventana WebView2 fullscreen sin animación de carga (va directo al servidor). F11 toggle fullscreen. Polling al servidor cada 500ms. Flags de GPU y video acelerado.
 
 ### Build
+- `npm run build:css` — precompila Tailwind a `public/css/tailwind.build.css`; ejecutarlo después de cambiar clases en HTML/JS. No se necesita el runtime `libs/tailwind.js`.
 - `build.bat` — 62 líneas. Un solo paso: icono → dependencias → compilar → copiar DLLs.
 - `scripts/migrate_to_sqlite.js` — Upsert seguro de `r2_db.json` a `server/songs.db`; preserva la columna `mode`.
 - `scripts/import_party_tyme.js` — Audita/importa colecciones Party Tyme: dry-run, deduplicación contra R2, manifest CSV, subida y upsert en SQLite.
