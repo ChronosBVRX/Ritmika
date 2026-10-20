@@ -44,7 +44,14 @@ def main():
     parser.add_argument("--only", default=None)
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--all", action="store_true", help="refinar también las ya alineadas")
+    parser.add_argument("--build", default=None)
     args = parser.parse_args()
+
+    global BUILD, ALIGNED, STEMS
+    if args.build:
+        BUILD = Path(args.build).expanduser().resolve()
+        ALIGNED = BUILD / "aligned"
+        STEMS = BUILD / "stems" / "htdemucs"
 
     import torch
     from torchaudio.pipelines import MMS_FA as bundle

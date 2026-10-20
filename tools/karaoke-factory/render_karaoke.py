@@ -37,6 +37,30 @@ ALIGNED = BUILD / "aligned"
 TRANSCRIPTS = BUILD / "transcripts"
 REPORT = SRC / "report.json"
 
+THEMES = {
+    "neon": {
+        "sung": "&H0000E6FF",
+        "unsung": "&H00FFFFFF",
+        "outline": "&H00271811",
+        "background": ROOT / "public" / "assets" / "bg_neon_club.webp",
+        "grade": "gblur=sigma=28,eq=brightness=-0.22:saturation=1.15",
+        "fit": "scale=2400:1350:force_original_aspect_ratio=increase,crop=2400:1350",
+        "visualizer": False,
+        "watermark": "RÍTMIKA",
+    },
+    "anime": {
+        "sung": "&H007F3DFF",
+        "unsung": "&H00FFFFFF",
+        "outline": "&H00201218",
+        "background": ROOT / "public" / "assets" / "menu" / "hero_anime.webp",
+        "grade": "gblur=sigma=7,eq=brightness=-0.30:saturation=1.20",
+        "fit": "scale=2400:1600:force_original_aspect_ratio=increase,crop=2400:1350",
+        "visualizer": True,
+        "watermark": "RÍTMIKA · ANIME",
+    },
+}
+THEME = "neon"
+
 DEMUCS_PY = Path("/home/chronos/Escritorio/Comfy/venv/bin/python")
 DEMUCS = Path("/home/chronos/Escritorio/Comfy/venv/bin/demucs")
 
@@ -192,7 +216,12 @@ def fetch_lyrics(tracks, force=False):
         path = target / f"{track['id']}.lrc"
         if path.exists() and not force:
             continue
-        text = lrclib_synced(track["artist"], track["title"], track.get("duration"))
+        lookup = track.get("lookup") or {}
+        text = lrclib_synced(
+            lookup.get("artist") or track["artist"],
+            lookup.get("title") or track["title"],
+            track.get("duration"),
+        )
         if not text:
             print(f"  {track['id']:14s} sin letra sincronizada")
             missing += 1
@@ -204,6 +233,69 @@ def fetch_lyrics(tracks, force=False):
         warn = f"  ¡{len(gaps)} hueco(s)!" if gaps else ""
         print(f"  {track['id']:14s} {len(sung):3d} líneas{warn}")
     return missing
+
+
+def group_words(words, max_gap=0.6, max_chars=44):
+    lines = []
+    current = []
+    for word in words:
+        text = " ".join(item["w"] for item in current)
+        if current and (word["s"] - current[-1]["e"] > max_gap or len(text) > max_chars):
+            lines.append(current)
+            current = []
+        current.append(word)
+    if current:
+        lines.append(current)
+    return lines
+
+
+def to_lrc(lines):
+    out = []
+    for words in lines:
+        start = words[0]["s"]
+        minutes = int(start // 60)
+        seconds = start % 60
+        text = " ".join(word["w"] for word in words)
+        out.append(f"[{minutes:02d}:{seconds:05.2f}] {text}")
+    return "\n".join(out) + "\n"
+
+
+def synthesize_missing(tracks, force=False):
+    """Crea un LRC desde la transcripción para las pistas sin letra."""
+    (BUILD / "lyrics").mkdir(parents=True, exist_ok=True)
+    TRANSCRIPTS.mkdir(parents=True, exist_ok=True)
+    model = None
+    made = 0
+    for track in tracks:
+        lrc = BUILD / "lyrics" / f"{track['id']}.lrc"
+        if lrc.exists() and not force:
+            continue
+        cache = TRANSCRIPTS / f"{track['id']}.json"
+        if cache.exists() and not force:
+            words = json.loads(cache.read_text(encoding="utf-8"))
+        else:
+            if model is None:
+                model = load_aligner()
+            try:
+                result = model.transcribe(
+                    str(track["file"]), language=track.get("language", "es"),
+                    verbose=False, word_timestamps=True,
+                )
+            except Exception as exc:
+                print(f"  {track['id']:14s} falló: {str(exc)[:50]}")
+                continue
+            words = [
+                {"w": w.word.strip(), "s": float(w.start), "e": float(w.end)}
+                for segment in result.segments for w in segment.words if w.word.strip()
+            ]
+            cache.write_text(json.dumps(words, ensure_ascii=False), encoding="utf-8")
+        lines = group_words(words)
+        if not lines:
+            continue
+        lrc.write_text(to_lrc(lines), encoding="utf-8")
+        made += 1
+        print(f"  {track['id']:14s} {len(lines):3d} líneas (transcripción)")
+    return made
 
 
 # ---------------------------------------------------------------- alignment
@@ -560,6 +652,8 @@ def karaoke_words(words):
 
 
 def build_ass(track, lrc_path, audio_duration, out_path):
+    theme = THEMES[THEME]
+    sung, unsung, ink = theme["sung"], theme["unsung"], theme["outline"]
     lines = parse_lrc(lrc_path.read_text(encoding="utf-8"))
     if not lines:
         return False
@@ -573,12 +667,12 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Lyric,{FONT_LYRIC},64,{YELLOW},{WHITE},{INK},&H96000000,-1,0,0,0,100,100,0,0,1,4,4,2,90,90,0,1
-Style: Next,{FONT_LYRIC},50,&H00DCDCDC,&H00DCDCDC,{INK},&H96000000,0,0,0,0,100,100,0,0,1,3,3,2,90,90,0,1
-Style: Prev,{FONT_LYRIC},44,&H008C8C8C,&H008C8C8C,{INK},&H96000000,0,0,0,0,100,100,0,0,1,3,3,2,90,90,0,1
-Style: Tiny,{FONT_LYRIC},30,{MUTED},{MUTED},{INK},&H96000000,0,0,0,0,100,100,2,0,1,2,2,9,70,70,46,1
-Style: Title,{FONT_TITLE},96,{WHITE},{WHITE},{INK},&H96000000,0,0,0,0,100,100,0,0,1,6,6,5,80,80,0,1
-Style: Artist,{FONT_TITLE},54,{YELLOW},{YELLOW},{INK},&H96000000,0,0,0,0,100,100,0,0,1,5,5,8,80,80,0,1
+Style: Lyric,{FONT_LYRIC},64,{sung},{unsung},{ink},&H96000000,-1,0,0,0,100,100,0,0,1,4,4,2,90,90,0,1
+Style: Next,{FONT_LYRIC},50,&H00DCDCDC,&H00DCDCDC,{ink},&H96000000,0,0,0,0,100,100,0,0,1,3,3,2,90,90,0,1
+Style: Prev,{FONT_LYRIC},44,&H008C8C8C,&H008C8C8C,{ink},&H96000000,0,0,0,0,100,100,0,0,1,3,3,2,90,90,0,1
+Style: Tiny,{FONT_LYRIC},30,{MUTED},{MUTED},{ink},&H96000000,0,0,0,0,100,100,2,0,1,2,2,9,70,70,46,1
+Style: Title,{FONT_TITLE},96,{unsung},{unsung},{ink},&H96000000,0,0,0,0,100,100,0,0,1,6,6,5,80,80,0,1
+Style: Artist,{FONT_TITLE},54,{sung},{sung},{ink},&H96000000,0,0,0,0,100,100,0,0,1,5,5,8,80,80,0,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -599,7 +693,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     )
     events.append(
         f"Dialogue: 0,{ass_time(0)},{ass_time(audio_duration)},Tiny,,0,0,0,,"
-        "{\\an7\\pos(70,44)}RÍTMIKA"
+        "{\\an7\\pos(70,44)}" + theme["watermark"]
     )
 
     aligned_path = ALIGNED / f"{track['id']}.json"
@@ -656,16 +750,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 # ---------------------------------------------------------------- render
 
-def background():
-    path = BUILD / "bg.jpg"
+def background(theme):
+    path = BUILD / f"bg_{THEME}.jpg"
     if path.exists():
         return path
     BUILD.mkdir(parents=True, exist_ok=True)
-    source = ROOT / "public" / "assets" / "bg_neon_club.webp"
     cmd = [
-        "ffmpeg", "-y", "-v", "error", "-i", str(source),
-        "-vf", "scale=2400:1350:force_original_aspect_ratio=increase,crop=2400:1350,"
-               "gblur=sigma=28,eq=brightness=-0.22:saturation=1.15",
+        "ffmpeg", "-y", "-v", "error", "-i", str(theme["background"]),
+        "-vf", f"{theme['fit']},{theme['grade']}",
         "-q:v", "3", str(path),
     ]
     subprocess.run(cmd, check=True)
@@ -704,7 +796,8 @@ def render(track, force=False):
         print(f"  {track['id']:14s} LRC vacío, se omite")
         return False
 
-    bg = background()
+    theme = THEMES[THEME]
+    bg = background(theme)
     frames = max(1, int(math.ceil(duration * FPS)))
     zoom = "min(1.0+0.0009*on,1.12)"
     vf = (
@@ -713,10 +806,21 @@ def render(track, force=False):
         f"ass={ass_path}:fontsdir={FONTS}"
     )
     OUT.mkdir(parents=True, exist_ok=True)
+    if theme["visualizer"]:
+        graph = (
+            f"[0:v]{vf}[base];"
+            f"[1:a]showwaves=s=1920x70:mode=cline:colors=0xFF3D7F:rate={FPS},"
+            f"format=rgba,colorchannelmixer=aa=0.55[wave];"
+            f"[base][wave]overlay=0:1006:shortest=1[v];"
+            f"[1:a]loudnorm=I=-14:TP=-1.5:LRA=11[a]"
+        )
+    else:
+        graph = f"[0:v]{vf}[v];[1:a]loudnorm=I=-14:TP=-1.5:LRA=11[a]"
+
     cmd = [
         "ffmpeg", "-y", "-v", "error",
         "-i", str(bg), "-i", str(instrumental),
-        "-filter_complex", f"[0:v]{vf}[v];[1:a]loudnorm=I=-14:TP=-1.5:LRA=11[a]",
+        "-filter_complex", graph,
         "-map", "[v]", "-map", "[a]",
         "-t", f"{duration:.3f}",
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
@@ -744,16 +848,38 @@ def render(track, force=False):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--lyrics", action="store_true")
+    parser.add_argument("--synth", action="store_true")
     parser.add_argument("--stems", action="store_true")
     parser.add_argument("--align", action="store_true")
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--only", default=None)
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--src", default=None)
+    parser.add_argument("--build", default=None)
+    parser.add_argument("--out-dir", default=None)
+    parser.add_argument("--manifest", default=None)
+    parser.add_argument("--theme", default="neon")
     args = parser.parse_args()
 
-    if not (args.lyrics or args.stems or args.align or args.render):
+    if not (args.lyrics or args.synth or args.stems or args.align or args.render):
         parser.error("indica al menos una etapa: --lyrics, --stems, --align o --render")
+
+    global SRC, BUILD, OUT, ALIGNED, TRANSCRIPTS, REPORT, MANIFEST, THEME
+    if args.src:
+        SRC = Path(args.src).expanduser().resolve()
+    if args.build:
+        BUILD = Path(args.build).expanduser().resolve()
+    if args.out_dir:
+        OUT = Path(args.out_dir).expanduser().resolve()
+    if args.manifest:
+        MANIFEST = Path(args.manifest).expanduser().resolve()
+    ALIGNED = BUILD / "aligned"
+    TRANSCRIPTS = BUILD / "transcripts"
+    REPORT = SRC / "report.json"
+    THEME = args.theme
+    if THEME not in THEMES:
+        parser.error(f"tema desconocido: {THEME}")
 
     tracks = load_tracks()
     if args.only:
@@ -767,6 +893,11 @@ def main():
         print("Letras:")
         missing = fetch_lyrics(tracks, args.force)
         print(f"  {missing} sin letra sincronizada\n")
+
+    if args.synth:
+        print("Letras desde transcripción:")
+        synthesize_missing(tracks, args.force)
+        print()
 
     if args.stems:
         print("Stems:")

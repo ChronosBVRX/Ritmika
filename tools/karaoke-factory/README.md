@@ -132,6 +132,24 @@ Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 
    aunque el barrido llegue justo.
 6. **Fondo**: `bg_neon_club.webp` con blur y oscurecido, más un zoom lento.
 
+### Lotes y temas
+
+Cada lote vive en su propio directorio para no pisar el reporte de otro:
+
+```bash
+python3 tools/karaoke-factory/fetch_songs.py \
+  --manifest tools/karaoke-factory/songs-anime.json --out media/anime-src
+
+python3 tools/karaoke-factory/render_karaoke.py \
+  --manifest tools/karaoke-factory/songs-anime.json \
+  --src media/anime-src --build media/anime-build --out-dir media/anime-video \
+  --theme anime --lyrics --synth --stems --align --render
+```
+
+`--theme anime` usa el escenario japonés, letras rosa y un visualizador de audio
+al pie. `--synth` genera un LRC desde la transcripción para las pistas que no
+tienen letra en LRCLIB (queda marcado en el reporte).
+
 ### Requisitos extra
 
 - `demucs` y `stable-ts` en un venv con PyTorch. La ruta de demucs se detecta sola

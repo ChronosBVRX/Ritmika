@@ -1,0 +1,614 @@
+{
+  "batch": "anime-01",
+  "tracks": [
+    {
+      "id": "anime-01",
+      "artist": "Dragon Ball Z",
+      "title": "Cha-La Head-Cha-La",
+      "search": "dragon ball z chala head chala latino",
+      "lookup": {
+        "artist": "Mauren Mendo",
+        "title": "Cha-La Head-Cha-La"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-02",
+      "artist": "Los Caballeros del Zodiaco",
+      "title": "Pegasus Fantasy",
+      "search": "pegasus fantasy español latino mauren mendo",
+      "lookup": {
+        "artist": "Mauren Mendo",
+        "title": "Pegasus Fantasy"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-03",
+      "artist": "Sailor Moon",
+      "title": "Luz de Luna",
+      "search": "sailor moon opening 1 espanol latino",
+      "lookup": {
+        "artist": "Sailor Moon",
+        "title": "Luz de Luna"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-04",
+      "artist": "Pokémon",
+      "title": "Atrápalos Ya",
+      "search": "pokemon atrapalos ya opening espanol latino",
+      "lookup": {
+        "artist": "Pokemon",
+        "title": "Atrapalos Ya"
+      },
+      "min_duration": 150,
+      "language": "es",
+      "video": "-1YDz1pze_E"
+    },
+    {
+      "id": "anime-05",
+      "artist": "Slam Dunk",
+      "title": "Quiero Gritar Te Amo",
+      "search": "slam dunk opening 1 latino adrian barba",
+      "lookup": {
+        "artist": "Adrian Barba",
+        "title": "Quiero Gritar Te Amo"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-06",
+      "artist": "Dragon Ball",
+      "title": "La Fantástica Aventura",
+      "search": "dragon ball la fantastica aventura latino",
+      "lookup": {
+        "artist": "Dragon Ball",
+        "title": "La Fantastica Aventura"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-07",
+      "artist": "Sakura Card Captor",
+      "title": "Yo Te Atrapo, Tú Me Atrapas",
+      "search": "sakura card captor opening 1 latino",
+      "lookup": {
+        "artist": "Sakura Card Captor",
+        "title": "Yo Te Atrapo Tu Me Atrapas"
+      },
+      "min_duration": 150,
+      "language": "es",
+      "video": "oeLO_BaArcE"
+    },
+    {
+      "id": "anime-08",
+      "artist": "Ranma ½",
+      "title": "Fuego",
+      "search": "ranma 1/2 opening 1 latino",
+      "lookup": {
+        "artist": "Ranma 1/2",
+        "title": "Fuego"
+      },
+      "min_duration": 150,
+      "language": "es",
+      "video": "CwPV0Pm7dco"
+    },
+    {
+      "id": "anime-09",
+      "artist": "Sailor Moon R",
+      "title": "El Poder de Nuestro Amor",
+      "search": "el poder de nuestro amor sailor moon r latino",
+      "lookup": {
+        "artist": "Sailor Moon",
+        "title": "El Poder de Nuestro Amor"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-10",
+      "artist": "Supercampeones",
+      "title": "Capitán Tsubasa",
+      "search": "supercampeones opening 1 espanol latino",
+      "lookup": {
+        "artist": "Supercampeones",
+        "title": "Capitan Tsubasa"
+      },
+      "min_duration": 150,
+      "language": "es",
+      "video": "2ZAYBk-WdSw"
+    },
+    {
+      "id": "anime-11",
+      "artist": "Dragon Ball",
+      "title": "Romance Te Puedo Dar",
+      "search": "romance te puedo dar ending latino",
+      "lookup": {
+        "artist": "Dragon Ball",
+        "title": "Romance Te Puedo Dar"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-12",
+      "artist": "Dragon Ball Z",
+      "title": "Ángeles Fuimos",
+      "search": "angeles fuimos dragon ball z adrian barba",
+      "lookup": {
+        "artist": "Adrian Barba",
+        "title": "Angeles Fuimos"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-13",
+      "artist": "Slam Dunk",
+      "title": "Solo un Corazón",
+      "search": "slam dunk ending 1 espanol latino",
+      "lookup": {
+        "artist": "Slam Dunk",
+        "title": "Solo un Corazon"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-14",
+      "artist": "Los Caballeros del Zodiaco",
+      "title": "Soldier Dream",
+      "search": "saint seiya soldier dream espanol latino",
+      "lookup": {
+        "artist": "Saint Seiya",
+        "title": "Soldier Dream"
+      },
+      "min_duration": 150,
+      "language": "es",
+      "video": "rSK5gQVz9Hw"
+    },
+    {
+      "id": "anime-15",
+      "artist": "Ranma ½",
+      "title": "Ya Verás",
+      "search": "ranma 1/2 ya veras ending 1 latino",
+      "lookup": {
+        "artist": "Ranma 1/2",
+        "title": "Ya Veras"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-16",
+      "artist": "Detective Conan",
+      "title": "Detective Conan",
+      "search": "detective conan opening 1 espanol latino",
+      "lookup": {
+        "artist": "Detective Conan",
+        "title": "Detective Conan"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-17",
+      "artist": "Medabots",
+      "title": "Medabots",
+      "search": "medabots opening espanol latino",
+      "lookup": {
+        "artist": "Medabots",
+        "title": "Medabots"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-18",
+      "artist": "Digimon Adventure",
+      "title": "Butterfly",
+      "search": "butterfly digimon cesar franco latino",
+      "lookup": {
+        "artist": "Cesar Franco",
+        "title": "Butterfly"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-19",
+      "artist": "Dragon Ball GT",
+      "title": "Mi Corazón Encantado",
+      "search": "mi corazon encantado aaron montalvo",
+      "lookup": {
+        "artist": "Aaron Montalvo",
+        "title": "Mi Corazon Encantado"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-20",
+      "artist": "Inuyasha",
+      "title": "El Mundo He de Cambiar",
+      "search": "inuyasha el mundo he de cambiar nicolas silva",
+      "lookup": {
+        "artist": "Nicolas Silva",
+        "title": "El Mundo He de Cambiar"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-21",
+      "artist": "Shaman King",
+      "title": "Over Soul",
+      "search": "shaman king over soul gabriela vega latino",
+      "lookup": {
+        "artist": "Gabriela Vega",
+        "title": "Over Soul"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-22",
+      "artist": "Rurouni Kenshin",
+      "title": "Sobakasu (Pecas)",
+      "search": "samurai x sobakasu espanol latino",
+      "lookup": {
+        "artist": "Rurouni Kenshin",
+        "title": "Sobakasu"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-23",
+      "artist": "Digimon 02",
+      "title": "Target",
+      "search": "digimon 02 target cesar franco latino",
+      "lookup": {
+        "artist": "Cesar Franco",
+        "title": "Target"
+      },
+      "min_duration": 150,
+      "language": "es",
+      "video": "93jN_ybWbTM"
+    },
+    {
+      "id": "anime-24",
+      "artist": "Yu Yu Hakusho",
+      "title": "Una Gota de Agua",
+      "search": "yu yu hakusho una gota de agua latino",
+      "lookup": {
+        "artist": "Yu Yu Hakusho",
+        "title": "Una Gota de Agua"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-25",
+      "artist": "Inuyasha",
+      "title": "Fukai Mori (Bosque Profundo)",
+      "search": "inuyasha fukai mori ending 2 latino",
+      "lookup": {
+        "artist": "Inuyasha",
+        "title": "Fukai Mori"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-26",
+      "artist": "Digimon Adventure",
+      "title": "Si Tú Lo Deseas (Brave Heart)",
+      "search": "digimon brave heart cesar franco espanol",
+      "lookup": {
+        "artist": "Cesar Franco",
+        "title": "Brave Heart"
+      },
+      "min_duration": 150,
+      "language": "es",
+      "video": "v-62sWrxWSg"
+    },
+    {
+      "id": "anime-27",
+      "artist": "Corrector Yui",
+      "title": "Danza de la Suerte",
+      "search": "corrector yui opening espanol latino",
+      "lookup": {
+        "artist": "Corrector Yui",
+        "title": "Danza de la Suerte"
+      },
+      "min_duration": 150,
+      "language": "es",
+      "video": "dFRlGfVAXLQ"
+    },
+    {
+      "id": "anime-28",
+      "artist": "Fullmetal Alchemist",
+      "title": "Melissa",
+      "search": "fullmetal alchemist melissa opening 1 latino",
+      "lookup": {
+        "artist": "Fullmetal Alchemist",
+        "title": "Melissa"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-29",
+      "artist": "Fullmetal Alchemist",
+      "title": "Ready Steady Go",
+      "search": "ready steady go fma opening 2 latino",
+      "lookup": {
+        "artist": "Fullmetal Alchemist",
+        "title": "Ready Steady Go"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-30",
+      "artist": "Digimon Tamers",
+      "title": "The Biggest Dreamer",
+      "search": "digimon tamers the biggest dreamer latino",
+      "lookup": {
+        "artist": "Digimon Tamers",
+        "title": "The Biggest Dreamer"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-31",
+      "artist": "Gundam Wing",
+      "title": "Just Communication",
+      "search": "gundam wing just communication opening latino",
+      "lookup": {
+        "artist": "Gundam Wing",
+        "title": "Just Communication"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-32",
+      "artist": "Hellsing",
+      "title": "A Mis Pies (Shine)",
+      "search": "hellsing ending shine espanol latino",
+      "lookup": {
+        "artist": "Hellsing",
+        "title": "Shine"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-33",
+      "artist": "Inuyasha",
+      "title": "My Will",
+      "search": "inuyasha my will ending 1 espanol latino",
+      "lookup": {
+        "artist": "Inuyasha",
+        "title": "My Will"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-34",
+      "artist": "Capitán Futuro",
+      "title": "Capitán Futuro",
+      "search": "capitan futuro tema de apertura original latino",
+      "lookup": {
+        "artist": "Capitan Futuro",
+        "title": "Capitan Futuro"
+      },
+      "min_duration": 150,
+      "language": "es"
+    },
+    {
+      "id": "anime-35",
+      "artist": "Evangelion",
+      "title": "Cruel Angel's Thesis",
+      "search": "yoko takahashi cruel angel thesis romaji",
+      "lookup": {
+        "artist": "Yoko Takahashi",
+        "title": "Cruel Angel's Thesis"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-36",
+      "artist": "Naruto Shippuden",
+      "title": "Silhouette",
+      "search": "kana boon silhouette naruto romaji",
+      "lookup": {
+        "artist": "Kana-Boon",
+        "title": "Silhouette"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-37",
+      "artist": "Naruto Shippuden",
+      "title": "Blue Bird",
+      "search": "ikimonogakari blue bird naruto romaji",
+      "lookup": {
+        "artist": "Ikimonogakari",
+        "title": "Blue Bird"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-38",
+      "artist": "Death Note",
+      "title": "The World",
+      "search": "nightmare the world death note romaji",
+      "lookup": {
+        "artist": "Nightmare",
+        "title": "The World"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-39",
+      "artist": "Fullmetal Alchemist Brotherhood",
+      "title": "Again",
+      "search": "yui again fullmetal alchemist brotherhood romaji",
+      "lookup": {
+        "artist": "Yui",
+        "title": "Again"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-40",
+      "artist": "One Piece",
+      "title": "We Are!",
+      "search": "hiroshi kitadani we are one piece romaji",
+      "lookup": {
+        "artist": "Hiroshi Kitadani",
+        "title": "We Are!"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-41",
+      "artist": "Naruto",
+      "title": "GO!!!",
+      "search": "flow go naruto opening 4 romaji",
+      "lookup": {
+        "artist": "FLOW",
+        "title": "GO!!!"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-42",
+      "artist": "Naruto",
+      "title": "Haruka Kanata",
+      "search": "asian kung fu generation haruka kanata romaji",
+      "lookup": {
+        "artist": "Asian Kung-Fu Generation",
+        "title": "Haruka Kanata"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-43",
+      "artist": "Demon Slayer",
+      "title": "Gurenge",
+      "search": "lisa gurenge demon slayer romaji",
+      "lookup": {
+        "artist": "LiSA",
+        "title": "Gurenge"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-44",
+      "artist": "Attack on Titan",
+      "title": "Shinzou wo Sasageyo!",
+      "search": "linked horizon shinzou wo sasageyo romaji",
+      "lookup": {
+        "artist": "Linked Horizon",
+        "title": "Shinzou wo Sasageyo!"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-45",
+      "artist": "Jujutsu Kaisen",
+      "title": "Kaikai Kitan",
+      "search": "eve kaikai kitan jujutsu kaisen romaji",
+      "lookup": {
+        "artist": "Eve",
+        "title": "Kaikai Kitan"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-46",
+      "artist": "Tokyo Ghoul",
+      "title": "Unravel",
+      "search": "tk from ling tosite sigure unravel romaji",
+      "lookup": {
+        "artist": "TK from Ling Tosite Sigure",
+        "title": "Unravel"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-47",
+      "artist": "Oshi no Ko",
+      "title": "Idol",
+      "search": "yoasobi idol oshi no ko romaji",
+      "lookup": {
+        "artist": "YOASOBI",
+        "title": "Idol"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-48",
+      "artist": "Chainsaw Man",
+      "title": "Kick Back",
+      "search": "kenshi yonezu kick back chainsaw man romaji",
+      "lookup": {
+        "artist": "Kenshi Yonezu",
+        "title": "Kick Back"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    },
+    {
+      "id": "anime-49",
+      "artist": "Attack on Titan",
+      "title": "The Rumbling",
+      "search": "sim the rumbling attack on titan lyrics",
+      "lookup": {
+        "artist": "SiM",
+        "title": "The Rumbling"
+      },
+      "min_duration": 150,
+      "language": "ja",
+      "video": "OBqw818mQ1E"
+    },
+    {
+      "id": "anime-50",
+      "artist": "Jujutsu Kaisen",
+      "title": "Specialz",
+      "search": "king gnu specialz jujutsu kaisen romaji",
+      "lookup": {
+        "artist": "King Gnu",
+        "title": "Specialz"
+      },
+      "min_duration": 150,
+      "language": "ja"
+    }
+  ]
+}

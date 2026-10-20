@@ -74,7 +74,7 @@ def slug(text):
     return re.sub(r"[^a-z0-9]+", "-", norm(text)).strip("-")[:48]
 
 
-def score_candidate(cand, artist, title, ref_duration=None):
+def score_candidate(cand, artist, title, ref_duration=None, min_duration=None):
     c_title = cand.get("title") or ""
     c_channel = cand.get("channel") or cand.get("uploader") or ""
     duration = cand.get("duration")
@@ -111,6 +111,8 @@ def score_candidate(cand, artist, title, ref_duration=None):
         score -= 10.0
     elif duration < 80 or duration > 420:
         score -= 40.0
+    elif min_duration and duration < min_duration:
+        score -= 25.0
 
     if ref_duration and duration:
         delta = abs(duration - ref_duration)
@@ -252,6 +254,7 @@ def lrclib(artist, title):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=os.environ.get("RITMIKA_KARAOKE_DIR", str(DEFAULT_OUT)))
+    parser.add_argument("--manifest", default=str(MANIFEST))
     parser.add_argument("--only", default=None, help="ids separados por coma")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--no-lyrics", action="store_true")
@@ -260,7 +263,7 @@ def main():
     out_dir = Path(args.out).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    manifest = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
     tracks = manifest["tracks"]
     if args.only:
         wanted = {s.strip() for s in args.only.split(",") if s.strip()}
@@ -315,6 +318,29 @@ def main():
             print(f"[{index:02d}/{len(tracks)}] {tid:14s} ya existe")
             continue
 
+        forced = track.get("video")
+        if forced:
+            stem = f"{tid}__{slug(artist)}__{slug(title)}"
+            path, error = download(ytdlp, forced, out_dir, stem)
+            if not path:
+                record["status"] = "error"
+                record["detail"] = error
+                results.append(record)
+                print(f" forzado {forced}: {error}")
+                continue
+            info = probe(path)
+            record.update({
+                "status": "downloaded",
+                "file": str(path),
+                "duration": info.get("duration"),
+                "format": info.get("format"),
+                "chosen": {"id": forced, "title": "(fijado a mano)", "channel": "",
+                           "duration": info.get("duration"), "score": 0},
+            })
+            results.append(record)
+            print(f" forzado {forced}  {info.get('duration', '?'):>5}s")
+            continue
+
         print(f"[{index:02d}/{len(tracks)}] {tid:14s} buscando…", end="", flush=True)
         candidates = search(ytdlp, query)
         if not candidates:
@@ -325,7 +351,7 @@ def main():
 
         scored = []
         for cand in candidates:
-            value, recall, artist_hit = score_candidate(cand, artist, title, ref)
+            value, recall, artist_hit = score_candidate(cand, artist, title, ref, track.get("min_duration"))
             scored.append({
                 "id": cand["id"],
                 "title": cand.get("title"),
