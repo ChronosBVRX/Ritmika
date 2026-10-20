@@ -14,7 +14,7 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Apagón mental: banner reposicionado, scanlines y viñeta pulsante.
 
 ### Avatares
-- Rediseño completo de los 8 avatares: figuras 3D coleccionables de fiesta, encuadre full-body uniforme, 768×768, alfa real y sin piso/sombras horneadas.
+- Rediseño completo de los 8 avatares: figuras 3D coleccionables de fiesta, encuadre busto uniforme, 768×768, alfa real y sin piso/sombras horneadas.
 - Generados con ComfyUI/SDXL Juggernaut XL, recorte `rembg` (u2netp) y limpieza de sombra de contacto.
 - Nuevo `scripts/generate_premium_avatars.py` para reproducir el lote y la hoja de contacto.
 

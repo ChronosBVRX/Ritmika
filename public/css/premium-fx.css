@@ -307,8 +307,8 @@
 }
 
 .roulette-player-chip img {
-  width: 42px;
-  height: 42px;
+  width: 52px;
+  height: 52px;
   border: 2px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 0 0 3px rgba(2, 6, 23, 0.55);
   background: radial-gradient(circle at 35% 25%, #334155, #0b1020);
@@ -451,6 +451,14 @@
   -webkit-mask: radial-gradient(circle, transparent 22%, #000 30%, transparent 62%);
   mask: radial-gradient(circle, transparent 22%, #000 30%, transparent 62%);
   animation: rfx-rotate 18s linear infinite;
+}
+#selected-player-avatar-img {
+  width: 92px !important;
+  height: 92px !important;
+}
+.player-card .avatar-bubble {
+  width: 3.4rem;
+  height: 3.4rem;
 }
 #selected-player-banner #selected-player-name {
   font-family: 'Paytone One', sans-serif;

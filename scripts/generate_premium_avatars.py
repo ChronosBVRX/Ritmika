@@ -3,7 +3,8 @@
 
 - 1024x1024, SDXL (Juggernaut XL).
 - Fondo croma magenta plano; se recorta con floodfill y alfa real.
-- Sin piso, sin sombra horneada, encuadre full-body y margen uniforme.
+- Sin piso, sin sombra horneada, encuadre busto (cabeza + hombros + parte del
+  instrumento) y margen uniforme para que se lea en chips pequeños.
 - Los candidatos quedan en staging; no reemplazan los avatares actuales
   hasta que se elija el ganador.
 
@@ -34,7 +35,7 @@ REMBG = os.environ.get("REMBG_BIN") or shutil.which("rembg") or "/tmp/opencode/r
 REMBG_MODEL = os.environ.get("REMBG_MODEL", "u2netp")
 STAGING = Path("/tmp/opencode/avatar-staging")
 CANVAS = 1024
-MARGIN = 0.06
+MARGIN = 0.035
 
 STYLE = (
     "premium 3D collectible vinyl toy mascot, one single character, full body head to toe, "
@@ -174,7 +175,19 @@ def cutout(source: Path, target: Path) -> dict:
         return {"ok": False, "reason": "sin alfa"}
     left, top, right, bottom = bbox
     edge_touch = left <= 1 or top <= 1 or right >= im.width - 1 or bottom >= im.height - 1
-    im = im.crop(bbox)
+    bw, bh = right - left, bottom - top
+
+    # Encuadre busto: la cara y el sombrero/objeto dominan el chip circular;
+    # se conserva parte del torso y del instrumento.
+    side = int(max(bw * 0.98, bh * 0.50))
+    cx = (left + right) // 2
+    x0 = max(0, cx - side // 2)
+    y0 = top
+    x1 = min(im.width, x0 + side)
+    y1 = min(im.height, y0 + side)
+    x0 = max(0, x1 - side)
+    y0 = max(0, y1 - side)
+    im = im.crop((x0, y0, x1, y1))
 
     limit = int(CANVAS * (1 - MARGIN * 2))
     im = ImageOps.contain(im, (limit, limit), Image.Resampling.LANCZOS)

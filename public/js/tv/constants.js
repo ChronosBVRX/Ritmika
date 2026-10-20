@@ -485,14 +485,14 @@ async function pickSongForPlayer(player) {
 //  GAME STATE
 // ════════════════════════════════════════════
 const AVATARS = [
-  { id:0, emoji:'🌮', label:'Taco Rockero',      color:'#f97316', border:'#ea580c', img:'./assets/avatars/avatar_0_taco_rockero.webp?v=2' },
-  { id:1, emoji:'🌶️', label:'Chile Enmascarado', color:'#ef4444', border:'#dc2626', img:'./assets/avatars/avatar_1_chile_enmascarado.webp?v=2' },
-  { id:2, emoji:'🍹', label:'Tequila Fiestero',  color:'#a855f7', border:'#9333ea', img:'./assets/avatars/avatar_2_tequila_fiestero.webp?v=2' },
-  { id:3, emoji:'⭐', label:'Estrella de Rock',  color:'#facc15', border:'#eab308', img:'./assets/avatars/avatar_3_estrella_rock.webp?v=2' },
-  { id:4, emoji:'🦜', label:'Loro Cumbiambero',  color:'#22c55e', border:'#16a34a', img:'./assets/avatars/avatar_4_loro_cumbiambero.webp?v=2' },
-  { id:5, emoji:'🎸', label:'Guitarra Mágica',   color:'#3b82f6', border:'#2563eb', img:'./assets/avatars/avatar_5_guitarra_magica.webp?v=2' },
-  { id:6, emoji:'👑', label:'Rey del Palenque',  color:'#ec4899', border:'#db2777', img:'./assets/avatars/avatar_6_rey_palenque.webp?v=2' },
-  { id:7, emoji:'🐙', label:'Pulpo Salsero',     color:'#06b6d4', border:'#0891b2', img:'./assets/avatars/avatar_7_pulpo_salsero.webp?v=2' },
+  { id:0, emoji:'🌮', label:'Taco Rockero',      color:'#f97316', border:'#ea580c', img:'./assets/avatars/avatar_0_taco_rockero.webp?v=4' },
+  { id:1, emoji:'🌶️', label:'Chile Enmascarado', color:'#ef4444', border:'#dc2626', img:'./assets/avatars/avatar_1_chile_enmascarado.webp?v=4' },
+  { id:2, emoji:'🍹', label:'Tequila Fiestero',  color:'#a855f7', border:'#9333ea', img:'./assets/avatars/avatar_2_tequila_fiestero.webp?v=4' },
+  { id:3, emoji:'⭐', label:'Estrella de Rock',  color:'#facc15', border:'#eab308', img:'./assets/avatars/avatar_3_estrella_rock.webp?v=4' },
+  { id:4, emoji:'🦜', label:'Loro Cumbiambero',  color:'#22c55e', border:'#16a34a', img:'./assets/avatars/avatar_4_loro_cumbiambero.webp?v=4' },
+  { id:5, emoji:'🎸', label:'Guitarra Mágica',   color:'#3b82f6', border:'#2563eb', img:'./assets/avatars/avatar_5_guitarra_magica.webp?v=4' },
+  { id:6, emoji:'👑', label:'Rey del Palenque',  color:'#ec4899', border:'#db2777', img:'./assets/avatars/avatar_6_rey_palenque.webp?v=4' },
+  { id:7, emoji:'🐙', label:'Pulpo Salsero',     color:'#06b6d4', border:'#0891b2', img:'./assets/avatars/avatar_7_pulpo_salsero.webp?v=4' },
 ];
 const getAvatar = id => AVATARS[id] || AVATARS[0];
 

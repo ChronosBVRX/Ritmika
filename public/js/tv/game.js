@@ -473,7 +473,7 @@ function buildRouletteWheel(playersToDraw) {
     const deg = (midA * 180 / Math.PI) + 90;
 
     const av = getAvatar(p.avatarId);
-    const imgSize = n > 6 ? 36 : 54;
+    const imgSize = n > 6 ? 46 : 70;
 
     // Avatar halo
     const halo = document.createElementNS(NS, 'circle');

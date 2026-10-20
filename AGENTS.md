@@ -313,7 +313,7 @@ Celulares desde cualquier lugar
 - SFX ducking: el volumen de todos los SFX baja cuando Axolo habla (`duckSfx()`/`unduckSfx()`).
 
 ### Avatares de jugadores (`public/assets/avatars/`)
-- 8 WebP de 768×768 con transparencia alfa real, estilo **figura 3D coleccionable de fiesta** (cabeza de objeto + cuerpo party), generados con ComfyUI/SDXL Juggernaut XL.
+- 8 WebP de 768×768 con transparencia alfa real, estilo **figura 3D coleccionable de fiesta** (cabeza de objeto + cuerpo party) y encuadre busto para chips pequeños, generados con ComfyUI/SDXL Juggernaut XL.
 - Recorte con `rembg` (u2netp) y limpieza de sombra de contacto; sin piso, sin sombra horneada y con margen uniforme. Script: `scripts/generate_premium_avatars.py`.
 - Nombres: `avatar_0_taco_rockero.webp` … `avatar_7_pulpo_salsero.webp`.
 - Catálogo de avatares (id → emoji, label, color):
