@@ -936,6 +936,8 @@ async function inicializarQRConexion() {
   } else {
     joinUrl = `http://${state.localIP || hostname}:${port}/join?code=${state.roomCode || ''}`;
   }
+  state.joinUrl = joinUrl;
+  window.__ritmikaJoinUrl = joinUrl;
 
   // Mostrar texto del URL inmediatamente como fallback
   const textoInstruccion = document.getElementById('texto-instruccion-unirse');

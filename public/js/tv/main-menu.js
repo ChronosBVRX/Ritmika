@@ -771,6 +771,8 @@ const MainMenu = (function () {
   return {
     init,
     selectMode: select,
+    createRoom,
+    backToMenu,
     isMusicEnabled: () => musicOn,
     isReducedMotion: () => reducedMotion,
   };

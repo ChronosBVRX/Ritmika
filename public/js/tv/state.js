@@ -43,6 +43,7 @@ const TOMATAZO_COST = 30;
 
 const state = {
   roomCode:   null,
+  joinUrl:    '',
   localIP:    '127.0.0.1',
   hotspotSSID: 'Ritmika',
   hotspotPassword: '',
