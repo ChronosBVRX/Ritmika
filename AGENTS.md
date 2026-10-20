@@ -149,10 +149,18 @@ Celulares desde cualquier lugar
 - **Fiesta Anime** — PRÓXIMAMENTE
 
 ### Rondas
-- **Ronda 1 — "Tu Elección, Tu Condena"** — Ruleta, cada quien canta una canción de su preferencia + reto al 50%
+- **Ronda 1 — "Tu Elección, Tu Condena"** — Ruleta, cada quien canta una canción de su preferencia + reto al **35%** (mín. 25 s, máx. 75 s)
 - **Ronda 2 — "Fuego Cruzado"** — Los jugadores asignan canciones a otros, la asignada reemplaza la preferencia
-- **Ronda 3 — "Apagón Mental"** — Igual que R1 pero con blackout de video/letras al 40%
+- **Ronda 3 — "Apagón Mental"** — Igual que R1 pero con blackout de video/letras al **40%** (mín. 30 s, máx. 90 s)
 - **Podio** — Ceremonia de 5 fases: título → premios especiales → 3ro/2do → ganador épico → podio final
+
+### Reto, tomatazo y sabotaje (P0)
+- El reto de Ronda 1 se envía a **todos los celulares**, queda en un HUD persistente de la TV y se evalúa en la votación con “¿Cumplió?”. Si ≥50% dice sí: **+15 pts**.
+- La votación espera votos de score y de reto; los bots votan el reto. El cantante no puede autovotarse.
+- El reto y el apagón ya no llevan voz de Axolo encima de la canción: solo un sting corto.
+- Tomatazo: cuesta **10 pts**, solo se lanza al cantante actual y resta **−15 pts** a su canción (tope −30). El scoreboard muestra `Votos + Reto − Tomates`.
+- `state.sabotageCounts` alimenta el premio **Vengador Anónimo** (antes se le daba al segundo lugar).
+- Eventos nuevos: `player:challenge_vote` → `tv:challenge_vote`; broadcasts `CHALLENGE_START`, `CHALLENGE_CLEAR`, `TOMATO_HIT`.
 
 ### Géneros musicales (8 en frontend)
 - Frontend (tv.html + mobile.html): reggaeton, banda, ranchera, rock, pop, cumbia, balada, **electronica**

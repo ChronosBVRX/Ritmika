@@ -40,10 +40,11 @@ CORS: `isLocalOrigin()` — permite `localhost`, `127.0.0.1`, `192.168.*`, `10.*
 | `player:join` | `{ roomCode, name, avatarId }` | — | `room` existe, `name` trim ≤15 sanitizado `<>` fallback `Jugador N`, `avatarId` clamp 0-7 | `player:join_ack` a jugador `{success, roomCode, mode, players, isHost}` + `tv:player_joined` a TV `{player, players}`; asigna `hostPlayerSocketId` al primer humano |
 | `player:select_genres` | `{ roomCode, genres:string[] }` | — | `players.has(socket.id)` | `tv:player_genres {socketId, genres}` |
 | `player:select_artists` | `{ roomCode, artists:string[] }` | — | igual | `tv:player_artists {socketId, artists}` |
-| `player:tomatazo` | `{ roomCode, targetName }` | 2000ms (`canAct`) | `players.has` | `tv:tomatazo {attackerName, attackerSocketId, targetName}` (coste descontado en TV) |
+| `player:tomatazo` | `{ roomCode, targetName, targetSocketId }` | 2000ms (`canAct`) | `players.has`; `targetSocketId` debe existir en sala | `tv:tomatazo {attackerName, attackerSocketId, targetName, targetSocketId}` (coste 10 y daño −15 se aplican en TV) |
 | `player:emoji` | `{ roomCode, emoji }` | 500ms | `players.has` | `tv:emoji {senderName, emoji}` |
 | `player:sabotage_audio` | `{ roomCode }` | 3000ms | `players.has` | `tv:sabotage_audio {socketId}` |
-| `player:vote` | `{ roomCode, score, performerSocketId }` | — | `players.has`, `score` clamp `[10,30,60,100]` default 10, `performerSocketId` existe en sala | `tv:vote {voterName, voterSocketId, performerSocketId, score}` |
+| `player:vote` | `{ roomCode, score, performerSocketId }` | — | `players.has`, `score` clamp `[10,30,60,100]` default 10, `performerSocketId` existe en sala; la TV rechaza autovoto | `tv:vote {voterName, voterSocketId, performerSocketId, score}` |
+| `player:challenge_vote` | `{ roomCode, completed:boolean, performerSocketId }` | — | `players.has`; `performerSocketId` existe en sala | `tv:challenge_vote {voterName, voterSocketId, performerSocketId, completed}` |
 | `player:assign_song` | `{ roomCode, targetSocketId, songId }` | — | `players.has(socket.id)` + `players.has(targetSocketId)` + `songId` string ≤100 + existe en `songs.db` si DB ready | `tv:song_assigned {attackerName, attackerSocketId, targetSocketId, songId}` |
 | `player:start_game` | `{ roomCode }` | — | `hostPlayerSocketId === socket.id` | `tv:start_game_trigger` a TV |
 | `player:start_song` | `{ roomCode }` | 800ms | cualquier jugador de la sala; la TV valida la fase | `tv:start_song_trigger` |
@@ -66,6 +67,7 @@ CORS: `isLocalOrigin()` — permite `localhost`, `127.0.0.1`, `192.168.*`, `10.*
 | `tv:emoji` | `{ senderName, emoji }` | `player:emoji` |
 | `tv:sabotage_audio` | `{ socketId }` | `player:sabotage_audio` |
 | `tv:vote` | `{ voterName, voterSocketId, performerSocketId, score }` | `player:vote` |
+| `tv:challenge_vote` | `{ voterName, voterSocketId, performerSocketId, completed }` | `player:challenge_vote` |
 | `tv:song_assigned` | `{ attackerName, attackerSocketId, targetSocketId, songId }` | `player:assign_song` |
 | `tv:start_game_trigger` | `{}` | `player:start_game` (host) |
 | `tv:start_song_trigger` | `{}` | `player:start_song` (cantante u host) |

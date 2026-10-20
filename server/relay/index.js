@@ -323,15 +323,16 @@ io.on('connection', (socket) => {
   });
 
   // Jugador -> TV (con rate limit)
-  socket.on(EVENTS.PLAYER_TOMATAZO, ({ roomCode, targetName }) => {
+  socket.on(EVENTS.PLAYER_TOMATAZO, ({ roomCode, targetName, targetSocketId }) => {
     const key = socket.id + ':' + EVENTS.PLAYER_TOMATAZO;
     if (!rateLimiter.canAct(key, RATE_LIMITS[EVENTS.PLAYER_TOMATAZO])) return;
     const room = roomManager.getRoom(sanitizeRoomCode(roomCode));
     if (!room || !room.players.has(socket.id)) return;
     const attacker = room.players.get(socket.id);
     const cleanTarget = typeof targetName === 'string' ? targetName.trim().substring(0, 15).replace(/<[^>]*>/g, '') : 'Alguien';
+    const cleanTargetSocketId = typeof targetSocketId === 'string' && room.players.has(targetSocketId) ? targetSocketId : null;
     roomManager.touch(room);
-    io.to(room.tvSocketId).emit(EVENTS.TV_TOMATAZO, { attackerName: attacker.name, attackerSocketId: socket.id, attackerPlayerId: attacker.playerId, targetName: cleanTarget });
+    io.to(room.tvSocketId).emit(EVENTS.TV_TOMATAZO, { attackerName: attacker.name, attackerSocketId: socket.id, attackerPlayerId: attacker.playerId, targetName: cleanTarget, targetSocketId: cleanTargetSocketId });
   });
 
   socket.on(EVENTS.PLAYER_EMOJI, ({ roomCode, emoji }) => {
@@ -369,6 +370,27 @@ io.on('connection', (socket) => {
     if (!perfSid || (!room.players.has(perfSid) && room.tvSocketId !== perfSid)) return;
     roomManager.touch(room);
     io.to(room.tvSocketId).emit(EVENTS.TV_VOTE, { voterName: voter.name, voterSocketId: socket.id, voterPlayerId: voter.playerId, performerSocketId: perfSid, score: cleanScore });
+  });
+
+  socket.on(EVENTS.PLAYER_CHALLENGE_VOTE, ({ roomCode, completed, performerSocketId, performerPlayerId }) => {
+    const room = roomManager.getRoom(sanitizeRoomCode(roomCode));
+    if (!room || !room.players.has(socket.id)) return;
+    const voter = room.players.get(socket.id);
+    let perfSid = performerSocketId;
+    if (performerPlayerId) {
+      const p = roomManager.findPlayerByPlayerId(room, performerPlayerId);
+      if (p) perfSid = p.socketId;
+    }
+    if (typeof perfSid === 'string') perfSid = perfSid.trim();
+    if (!perfSid || (!room.players.has(perfSid) && room.tvSocketId !== perfSid)) return;
+    roomManager.touch(room);
+    io.to(room.tvSocketId).emit(EVENTS.TV_CHALLENGE_VOTE, {
+      voterName: voter.name,
+      voterSocketId: socket.id,
+      voterPlayerId: voter.playerId,
+      performerSocketId: perfSid,
+      completed: completed === true,
+    });
   });
 
   socket.on(EVENTS.PLAYER_ASSIGN_SONG, ({ roomCode, targetSocketId, targetPlayerId, songId }) => {

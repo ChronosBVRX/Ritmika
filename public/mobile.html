@@ -684,6 +684,79 @@ function applyMobileModeTheme() {
       transition: width 1s linear;
     }
 
+    /* ── Reto de la canción (móvil) ───────────────────────── */
+    #mobile-challenge-card {
+      margin: 0 0 0.65rem;
+      padding: 0.75rem 0.9rem;
+      background: linear-gradient(135deg, #2a0a4a 0%, #7c3aed 58%, #9d174d 100%);
+      border: 3px solid #111827;
+      box-shadow: 4px 4px 0 #111827;
+      border-radius: 0.85rem;
+      color: #fff;
+      animation: challengeCardIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    #mobile-challenge-card.hidden { display: none; }
+    @keyframes challengeCardIn {
+      from { opacity: 0; transform: translateY(-12px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .challenge-card-head {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-family: 'Paytone One', sans-serif;
+      font-size: 0.68rem; letter-spacing: 0.16em;
+      color: #ffe600; text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+    #mobile-challenge-text {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.95rem; font-weight: 900; line-height: 1.25;
+      color: #fff;
+      text-shadow: 1px 1px 0 #111827;
+    }
+    .challenge-card-hint {
+      font-size: 0.62rem; font-weight: 700; color: #ddd6fe;
+      margin-top: 0.3rem; opacity: 0.85;
+    }
+    #challenge-vote-block {
+      margin-bottom: 0.75rem;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #2a0a4a, #9d174d);
+      border: 3px solid #111827;
+      box-shadow: 4px 4px 0 #111827;
+      border-radius: 0.85rem;
+    }
+    #challenge-vote-block.hidden { display: none; }
+    .challenge-vote-title {
+      font-family: 'Paytone One', sans-serif;
+      font-size: 0.75rem; letter-spacing: 0.1em; text-align: center;
+      color: #ffe600; margin-bottom: 0.2rem;
+    }
+    .challenge-vote-text {
+      font-size: 0.7rem; font-weight: 700; line-height: 1.25;
+      color: #f5d0fe; text-align: center;
+    }
+    .challenge-vote-btn {
+      border: 3px solid #111827;
+      border-radius: 0.7rem;
+      padding: 0.65rem 0.5rem;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 900;
+      box-shadow: 3px 3px 0 #111827;
+      cursor: pointer;
+      transition: transform 0.12s, opacity 0.12s;
+      -webkit-appearance: none;
+    }
+    .challenge-vote-btn:active { transform: scale(0.95); }
+    .challenge-vote-btn.yes { background: #22c55e; color: #052e16; }
+    .challenge-vote-btn.no  { background: #ef4444; color: #fff; }
+    .challenge-vote-btn:disabled { opacity: 0.45; transform: none; }
+    .challenge-vote-status {
+      text-align: center; font-size: 0.65rem; font-weight: 800;
+      color: #86efac; margin-top: 0.4rem;
+    }
+    .challenge-vote-status.hidden { display: none; }
+
     /* ── Vote count indicator ─────────────────────────────── */
     #vote-count-indicator {
       display: inline-flex; align-items: center; gap: 0.35rem;
@@ -990,6 +1063,13 @@ function applyMobileModeTheme() {
   </div>
   <div id="mobile-timer-bar" class="hidden"><div id="mobile-timer-fill"></div></div>
 
+  <!-- RETO ACTIVO: visible para cantante y público -->
+  <div id="mobile-challenge-card" class="hidden">
+    <div class="challenge-card-head"><span>🎭</span><span>Reto de la canción</span></div>
+    <p id="mobile-challenge-text"></p>
+    <p class="challenge-card-hint">El público decidirá si lo cumpliste.</p>
+  </div>
+
   <!-- Player score display -->
   <div class="text-center mb-2">
     <span id="round-label" class="inline-block px-3 py-1 rounded-full text-xs font-black mr-2" style="background:#1e293b; border:1px solid #22d3ee66; color:#22d3ee;">Ronda 1</span>
@@ -1029,8 +1109,8 @@ function applyMobileModeTheme() {
     <button id="tomatazo-btn" class="action-btn btn-primary text-left flex items-center gap-3">
       <span class="text-2xl">🍅</span>
       <div>
-        <p class="font-black">¡Tomatazo! <span id="tomatazo-cost-label" class="text-xs font-bold" style="color:#fca5a5;">(-30 pts)</span></p>
-        <p class="text-xs opacity-70" id="tomatazo-remaining">3 tomates restantes</p>
+        <p class="font-black">¡Tomatazo! <span id="tomatazo-cost-label" class="text-xs font-bold" style="color:#fca5a5;">(-10 pts)</span></p>
+        <p class="text-xs opacity-70" id="tomatazo-remaining">3 tomates · −15 pts al rival</p>
       </div>
       <div class="ml-auto flex gap-1" id="tomatazo-pips">
         <span class="w-3 h-3 rounded-full bg-white opacity-80"></span>
@@ -1056,6 +1136,15 @@ function applyMobileModeTheme() {
     <p class="text-xs font-bold text-center mb-3" style="color:#475569; letter-spacing:0.1em;">
       ¿CÓMO LO HIZO?
     </p>
+    <div id="challenge-vote-block" class="hidden">
+      <p class="challenge-vote-title">🎭 ¿CUMPLIÓ EL RETO?</p>
+      <p id="challenge-vote-text" class="challenge-vote-text"></p>
+      <div class="grid grid-cols-2 gap-2 mt-2">
+        <button id="challenge-yes" class="challenge-vote-btn yes">✅ SÍ</button>
+        <button id="challenge-no" class="challenge-vote-btn no">❌ NO</button>
+      </div>
+      <p id="challenge-vote-status" class="hidden challenge-vote-status">Voto de reto registrado ✅</p>
+    </div>
     <div id="vote-count-indicator" class="mx-auto mb-3 hidden">0/0 votos</div>
     <div class="grid grid-cols-2 gap-2">
       <button class="vote-btn gold" data-score="100" id="vote-100" aria-label="100 puntos">
@@ -1237,6 +1326,8 @@ const me = {
   artists: [],
   tomatazosLeft: 3,
   hasVoted: false,
+  hasVotedChallenge: false,
+  currentChallenge: null,
   hasJoinedOnce: false,
   joinRetries: 0,
   currentSingerSocketId: null,
@@ -1380,11 +1471,71 @@ socket.on('disconnect', () => {
 });
 });
 
+// ── RETO DE LA CANCIÓN (móvil) ────────────────────────────
+function showMobileChallenge(challenge) {
+  if (!challenge || !challenge.text) return;
+  me.currentChallenge = challenge;
+  const card = document.getElementById('mobile-challenge-card');
+  const text = document.getElementById('mobile-challenge-text');
+  const voteText = document.getElementById('challenge-vote-text');
+  if (text) text.textContent = challenge.text;
+  if (voteText) voteText.textContent = challenge.text;
+  if (card) card.classList.remove('hidden');
+}
+
+function hideChallengeVote() {
+  const block = document.getElementById('challenge-vote-block');
+  if (block) block.classList.add('hidden');
+  const status = document.getElementById('challenge-vote-status');
+  if (status) status.classList.add('hidden');
+}
+
+function hideMobileChallenge() {
+  me.currentChallenge = null;
+  me.hasVotedChallenge = false;
+  const card = document.getElementById('mobile-challenge-card');
+  if (card) card.classList.add('hidden');
+  hideChallengeVote();
+}
+
+function showChallengeVote() {
+  if (!me.currentChallenge) { hideChallengeVote(); return; }
+  const block = document.getElementById('challenge-vote-block');
+  const text = document.getElementById('challenge-vote-text');
+  if (text) text.textContent = me.currentChallenge.text || '';
+  if (block) block.classList.remove('hidden');
+  const yes = document.getElementById('challenge-yes');
+  const no = document.getElementById('challenge-no');
+  [yes, no].forEach(btn => { if (btn) btn.disabled = false; });
+  const status = document.getElementById('challenge-vote-status');
+  if (status) status.classList.add('hidden');
+  me.hasVotedChallenge = false;
+}
+
+function submitChallengeVote(completed) {
+  if (!me.currentChallenge || me.hasVotedChallenge) return;
+  me.hasVotedChallenge = true;
+  socket.emit('player:challenge_vote', {
+    roomCode: me.roomCode,
+    completed: completed === true,
+    performerSocketId: me.currentSingerSocketId,
+  });
+  const yes = document.getElementById('challenge-yes');
+  const no = document.getElementById('challenge-no');
+  [yes, no].forEach(btn => { if (btn) btn.disabled = true; });
+  const status = document.getElementById('challenge-vote-status');
+  if (status) status.classList.remove('hidden');
+  if (navigator.vibrate) navigator.vibrate(completed ? [30, 40, 30] : [60]);
+  try { UISounds.playTone(completed ? 900 : 220, 0.08, 'sine', 0.08); } catch (e) {}
+  showToast(completed ? '🎭 Reto cumplido ✅' : '🎭 Reto no cumplido ❌');
+}
+
 // ── GAME EVENTS FROM TV ───────────────────────────────────
 function handleGameEvent(event, data) {
   switch (event) {
     case 'NEW_SINGER':
       me.currentSingerSocketId = data.socketId;
+      hideMobileChallenge();
       document.getElementById('current-singer-name').textContent = data.name;
       me.hasVoted = false;
       document.getElementById('vote-status').classList.add('hidden');
@@ -1397,6 +1548,7 @@ function handleGameEvent(event, data) {
       break;
 
     case 'ROULETTE_START':
+      hideMobileChallenge();
       updateContextCard('ROULETTE_START', data);
       goToScreen('screen-controls');
       break;
@@ -1404,6 +1556,7 @@ function handleGameEvent(event, data) {
     case 'SINGER_SELECTED':
       me.currentSingerSocketId = data.socketId;
       me.hasVoted = false;
+      hideMobileChallenge();
       document.getElementById('vote-status').classList.add('hidden');
       document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '0.3'; b.disabled = true; });
       document.getElementById('vote-count-indicator')?.classList.add('hidden');
@@ -1419,7 +1572,16 @@ function handleGameEvent(event, data) {
       document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '1'; b.disabled = false; });
       document.getElementById('vote-count-indicator')?.classList.add('hidden');
       updateContextCard('VOTE_PHASE_START', data);
-      showToast('🗳️ ¡Vota ahora!');
+      if (data.performerSocketId === socket.id) {
+        hideChallengeVote();
+        showToast('🎤 El público está votando…');
+      } else if (me.currentChallenge) {
+        showChallengeVote();
+        showToast('🗳️ ¡Vota y evalúa el reto!');
+      } else {
+        hideChallengeVote();
+        showToast('🗳️ ¡Vota ahora!');
+      }
       break;
 
     case 'PHASE_STATE':
@@ -1429,6 +1591,7 @@ function handleGameEvent(event, data) {
     case 'KARAOKE_PREP':
       me.currentSingerSocketId = data.socketId;
       me.hasVoted = false;
+      hideMobileChallenge();
       updateContextCard('KARAOKE_PREP', data);
       goToScreen('screen-controls');
       break;
@@ -1436,24 +1599,38 @@ function handleGameEvent(event, data) {
     case 'KARAOKE_START':
       me.currentSingerSocketId = data.socketId;
       me.hasVoted = false;
+      hideMobileChallenge();
       document.getElementById('vote-status').classList.add('hidden');
       document.querySelectorAll('.vote-btn').forEach(b => { b.style.opacity = '0.3'; b.disabled = true; });
       updateContextCard('KARAOKE_START', data);
       goToScreen('screen-controls');
       break;
 
+    case 'CHALLENGE_START':
+      showMobileChallenge(data);
+      if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
+      showToast('🎭 Reto activo: ' + (data.text || ''));
+      break;
+
+    case 'CHALLENGE_CLEAR':
+      hideMobileChallenge();
+      break;
+
     case 'SHOW_SCOREBOARD':
+      hideMobileChallenge();
       updateContextCard('SHOW_SCOREBOARD', data);
       goToScreen('screen-controls');
       break;
 
     case 'ROUND_2_ASSIGN':
+      hideMobileChallenge();
       renderAssignScreen(data.players, data.songs);
       goToScreen('screen-assign');
       if (typeof renderFlowControls === 'function') renderFlowControls();
       break;
 
     case 'GAME_OVER':
+      hideMobileChallenge();
       renderPodium(data);
       goToScreen('screen-podium');
       break;
@@ -1479,7 +1656,19 @@ function handleGameEvent(event, data) {
       const vc = data.count ?? 0;
       const vt = data.total ?? 0;
       const vci = document.getElementById('vote-count-indicator');
-      if (vci) vci.textContent = `${vc}/${vt} votos`;
+      if (vci) {
+        vci.textContent = data.challengeTotal
+          ? `${vc}/${vt} votos · Reto ${data.challengeCount ?? 0}/${data.challengeTotal}`
+          : `${vc}/${vt} votos`;
+      }
+      break;
+
+    case 'TOMATO_HIT':
+      if (data && data.targetSocketId === socket.id) {
+        showToast(`🍅 ¡Te cayó un tomate! −${data.penalty || 15} pts al final`);
+        if (navigator.vibrate) navigator.vibrate([60, 40, 90]);
+        try { UISounds.playTone(180, 0.2, 'sawtooth', 0.1); } catch (e) {}
+      }
       break;
 
     case 'SONG_TIMER':
@@ -1667,15 +1856,29 @@ function updateContextCard(event, data) {
       }
       break;
 
-    case 'VOTE_PHASE_START':
+    case 'VOTE_PHASE_START': {
+      const isPerformer = data.performerSocketId === socket.id;
       document.getElementById('current-singer-name').textContent = data.performerName || '?';
       if (emojiBar) emojiBar.classList.remove('hidden');
       if (sabotageSec) sabotageSec.classList.add('hidden');
-      if (voteSec) voteSec.classList.remove('hidden');
       document.getElementById('vote-count-indicator')?.classList.remove('hidden');
       document.getElementById('mobile-timer-text')?.classList.add('hidden');
       document.getElementById('mobile-timer-bar')?.classList.add('hidden');
 
+      if (isPerformer) {
+        if (voteSec) voteSec.classList.add('hidden');
+        hideChallengeVote();
+        card.innerHTML = `
+          <div class="text-center py-2">
+            <p class="text-lg font-black text-pink-500">🎤 EL PÚBLICO ESTÁ VOTANDO</p>
+            <p class="text-xs text-slate-400 mt-1">Tu actuación está en evaluación. No puedes votarte a ti mismo.</p>
+            <p id="flow-status-line" class="text-xs mt-2 text-slate-500 italic"></p>
+          </div>
+        `;
+        break;
+      }
+
+      if (voteSec) voteSec.classList.remove('hidden');
       card.innerHTML = `
         <div class="text-center py-2">
           <p class="text-lg font-black text-yellow-500">🗳️ ¡VOTA AHORA!</p>
@@ -1684,6 +1887,7 @@ function updateContextCard(event, data) {
         </div>
       `;
       break;
+    }
 
     case 'SHOW_SCOREBOARD':
       document.getElementById('current-singer-name').textContent = data.performerName;
@@ -1695,12 +1899,20 @@ function updateContextCard(event, data) {
       document.getElementById('mobile-timer-bar')?.classList.add('hidden');
 
       const isHost = isVip();
+      const breakdown = (data && data.total != null)
+        ? `<p class="text-xs mt-2" style="color:#e2e8f0;">Votos ${data.average}${data.challenge ? ` · Reto ${data.challenge.bonus ? '+' + data.challenge.bonus : '0'}` : ''}${data.tomatoPenalty ? ` · Tomates −${data.tomatoPenalty}` : ''} · <b>Total ${data.total}</b></p>`
+        : '';
+      const challengeMsg = (data && data.challenge)
+        ? `<p class="text-xs mt-1" style="color:${data.challenge.passed ? '#4ade80' : '#fca5a5'};">${data.challenge.passed ? '🎭 Reto cumplido +' + data.challenge.bonus : '🎭 Reto no cumplido'}</p>`
+        : '';
 
       if (isHost) {
         card.innerHTML = `
           <div class="text-center py-2">
             <p class="text-lg font-black text-yellow-500">📊 Resultados en TV</p>
             <p class="text-xs text-slate-400 mt-1">Viendo la tabla de puntuaciones...</p>
+            ${challengeMsg}
+            ${breakdown}
             <button id="btn-action-next-turn" class="btn-primary mt-3 w-full" disabled style="background:linear-gradient(135deg,#ec4899,#a855f7); color:white; border:3px solid #111827; box-shadow:3px 3px 0px #111827;">
               ⏳ Cerrando ronda…
             </button>
@@ -1720,6 +1932,8 @@ function updateContextCard(event, data) {
           <div class="text-center py-2">
             <p class="text-lg font-black text-slate-200">📊 Fin de la canción</p>
             <p class="text-xs text-slate-400 mt-1">Viendo la tabla de puntuaciones en la TV...</p>
+            ${challengeMsg}
+            ${breakdown}
             <p class="text-xs mt-3 text-slate-500 italic">El presentador avanzará la ronda en breve.</p>
             <p id="flow-status-line" class="text-xs mt-1 text-slate-500 italic"></p>
           </div>
@@ -1864,16 +2078,10 @@ function handlePrivateEvent(event, data) {
       break;
 
     case 'TOMATAZO_REJECTED':
-      showToast('❌ ' + (data?.reason || 'Puntos insuficientes') + ' (-' + (data?.cost || 30) + ' pts)');
-      // Restore tomatazo count
+      showToast('❌ ' + (data?.reason || 'Puntos insuficientes') + ' (-' + (data?.cost || 10) + ' pts)');
+      // Restore tomatazo count (the score was never deducted locally).
       me.tomatazosLeft = Math.min(3, (me.tomatazosLeft || 0) + 1);
       updateTomatazoPips();
-      // Restore score
-      const rejCost = data?.cost || 30;
-      me.score = (me.score || 0) + rejCost;
-      const scoreDispR = document.getElementById('my-score-display');
-      if (scoreDispR) scoreDispR.textContent = me.score + ' pts';
-      // Haptic error feedback
       UISounds.playTone(150, 0.3, 'square', 0.1);
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
       break;
@@ -2471,7 +2679,7 @@ document.querySelectorAll('.emoji-btn').forEach(btn => {
 
 // Tomatazo button
 document.getElementById('tomatazo-btn').addEventListener('click', () => {
-  const cost = 30;
+  const cost = 10;
   if (me.tomatazosLeft <= 0) return;
   if ((me.score || 0) < cost) {
     showToast('❌ Puntos insuficientes para tomatazo');
@@ -2482,16 +2690,10 @@ document.getElementById('tomatazo-btn').addEventListener('click', () => {
 
   // Get current singer name
   const singerName = document.getElementById('current-singer-name').textContent;
-  socket.emit('player:tomatazo', { roomCode: me.roomCode, targetName: singerName });
+  socket.emit('player:tomatazo', { roomCode: me.roomCode, targetName: singerName, targetSocketId: me.currentSingerSocketId });
 
   me.tomatazosLeft--;
   updateTomatazoPips();
-
-  // Preview cost deduction in local score
-  const prevScore = typeof me.score === 'number' ? me.score : 0;
-  me.score = Math.max(0, prevScore - cost);
-  const scoreDisp = document.getElementById('my-score-display');
-  if (scoreDisp) scoreDisp.textContent = me.score + ' pts';
 
   // Haptic feedback (where supported)
   if (navigator.vibrate) navigator.vibrate([50, 30, 80, 30, 50]);
@@ -2526,7 +2728,7 @@ function updateTomatazoPips() {
   pips.forEach((pip, i) => {
     pip.style.opacity = i < me.tomatazosLeft ? '0.9' : '0.1';
   });
-  const cost = 30;
+  const cost = 10;
   const hasEnoughPoints = (me.score || 0) >= cost;
   const outOfTomatoes = me.tomatazosLeft <= 0;
   document.getElementById('tomatazo-remaining').textContent =
@@ -2562,6 +2764,10 @@ function confirmSabotage() {
 function cancelSabotage() {
   document.getElementById('confirm-sabotage-overlay').classList.add('hidden');
 }
+
+// Challenge vote buttons
+document.getElementById('challenge-yes')?.addEventListener('click', () => submitChallengeVote(true));
+document.getElementById('challenge-no')?.addEventListener('click', () => submitChallengeVote(false));
 
 // Vote buttons
 document.querySelectorAll('.vote-btn').forEach(btn => {

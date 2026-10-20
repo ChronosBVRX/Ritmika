@@ -39,7 +39,7 @@ function clearSavedGame() {
   localStorage.removeItem(SAVE_KEY);
 }
 
-const TOMATAZO_COST = 30;
+const TOMATAZO_COST = 10;
 
 const state = {
   roomCode:   null,
@@ -58,5 +58,9 @@ const state = {
   AUDIO_SABOTAGE_THRESHOLD: 3,
   songQueue:    [],  // songs already used
   tomatazoCounts: {},
+  sabotageCounts: {},
+  currentChallenge: null,
+  challengeVotes: [],
+  challengeVotedBy: new Set(),
   assignedSongs: {}, // targetSocketId → { attackerName, songId }
 };

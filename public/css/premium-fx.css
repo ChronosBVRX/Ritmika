@@ -621,6 +621,64 @@
   z-index: 3;
 }
 
+/* Resultados: mover el cut-in de Axolo arriba para no tapar la tabla */
+body.scoreboard-open #axolo-cutin-bar {
+  top: 5%;
+  height: 130px;
+}
+body.scoreboard-open #axolo-cutin-portrait-wrap {
+  height: 175px;
+  bottom: -8px;
+}
+body.scoreboard-open #axolo-cutin-text {
+  font-size: clamp(1.2rem, 1.7vw, 1.7rem) !important;
+}
+
+/* ─────────────────────────────────────────────
+   RETO ACTIVO · HUD PERSISTENTE EN TV
+   ───────────────────────────────────────────── */
+#active-challenge-hud {
+  position: absolute;
+  top: 92px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 32;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: min(880px, 82vw);
+  padding: 0.48rem 1.1rem;
+  background: linear-gradient(100deg, #1b0630 0%, #4c1d95 55%, #9d174d 100%);
+  border: 3px solid #111827;
+  box-shadow: 5px 5px 0 #111827, 0 0 26px rgba(240, 4, 127, 0.35);
+  border-radius: 999px;
+  font-family: 'Fredoka', sans-serif;
+  pointer-events: none;
+}
+#active-challenge-hud.hidden { display: none; }
+#active-challenge-hud .rfx-ach-icon {
+  font-size: 1.15rem;
+  filter: drop-shadow(0 0 6px #ffe600);
+  animation: rfx-breathe 1.8s ease-in-out infinite alternate;
+}
+#active-challenge-hud .rfx-ach-label {
+  font-family: 'Paytone One', sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  color: #ffe600;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+#active-challenge-hud #active-challenge-hud-text {
+  font-size: clamp(0.8rem, 1.05vw, 1rem);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ─────────────────────────────────────────────
    APAGÓN MENTAL
    ───────────────────────────────────────────── */
@@ -935,6 +993,7 @@ html.ritmika-perf #blackout-banner {
   box-shadow: 6px 6px 0 rgba(17, 24, 39, 0.9) !important;
 }
 
+html.ritmika-perf #active-challenge-hud .rfx-ach-icon,
 html.ritmika-perf #tomato-splat-overlay .rfx-juice,
 html.ritmika-perf #tomato-splat-overlay .rfx-impact-shock {
   display: none !important;
@@ -951,7 +1010,8 @@ html.ritmika-perf #tomato-splat-overlay .rfx-impact-shock {
   #challenge-banner::after,
   #challenge-banner::before,
   #blackout-banner::before,
-  #karaoke-screen.rfx-blackout::after {
+  #karaoke-screen.rfx-blackout::after,
+  #active-challenge-hud .rfx-ach-icon {
     animation: none !important;
   }
 }

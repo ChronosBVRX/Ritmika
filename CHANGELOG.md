@@ -13,6 +13,16 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Tomatazo: proyectil HD con estela, impacto con onda expansiva, estallido de tomate, salpicaduras múltiples, texto `¡TOMATAZO!`, marcador atacante → víctima y penalización.
 - Apagón mental: banner reposicionado, scanlines y viñeta pulsante.
 
+### Gameplay (P0)
+- El reto ahora se envía a **todos los celulares**, queda visible en un HUD persistente de la TV y se evalúa con un voto binario “¿Cumplió?” durante la votación.
+- Reto cumplido: **+15 pts**. La votación espera también los votos de reto antes de cerrar; los bots votan el reto.
+- El reto entra al **35%** de la canción (mín. 25 s, máx. 75 s) y ya no lleva voz de Axolo encima de la canción.
+- El apagón entra al **40%** (mín. 30 s, máx. 90 s) y ya no lleva intro/outro de voz encima de la canción.
+- Tomatazo: cuesta **10 pts**, solo se puede lanzar al cantante actual y resta **−15 pts** a su canción (tope −30).
+- El scoreboard muestra el desglose `Votos + Reto − Tomates = Total`.
+- El premio **Vengador Anónimo** ahora usa el jugador con más sabotajes reales.
+- Bloqueado el autovoto del cantante.
+
 ### Fixed
 - El heading de la ruleta era casi invisible por falta de contraste.
 - Los nombres de los jugadores no se dibujaban en la ruleta de 2+ jugadores.

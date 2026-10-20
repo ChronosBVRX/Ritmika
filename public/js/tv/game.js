@@ -31,6 +31,58 @@ function rouletteDisplayName(name) {
   return String(name || '').replace(/\s*\(bot\)$/i, '').trim();
 }
 
+// ════════════════════════════════════════════
+//  RETO DE LA CANCIÓN
+// ════════════════════════════════════════════
+let challengeDeck = [];
+
+function drawChallenge() {
+  if (!challengeDeck.length) {
+    challengeDeck = RETO_CHALLENGES
+      .map((text, id) => ({ id, text }))
+      .sort(() => Math.random() - 0.5);
+  }
+  return challengeDeck.pop() || { id: 0, text: RETO_CHALLENGES[0] };
+}
+
+function ensureChallengeHud() {
+  let hud = document.getElementById('active-challenge-hud');
+  if (!hud) {
+    hud = document.createElement('div');
+    hud.id = 'active-challenge-hud';
+    hud.className = 'hidden';
+    hud.innerHTML = '<span class="rfx-ach-icon">🎭</span><span class="rfx-ach-label">RETO</span><span id="active-challenge-hud-text"></span>';
+    const screen = document.getElementById('karaoke-screen');
+    if (screen) screen.appendChild(hud);
+  }
+  return hud;
+}
+
+function showChallengeHud(text) {
+  const hud = ensureChallengeHud();
+  const textEl = document.getElementById('active-challenge-hud-text');
+  if (textEl) textEl.textContent = text || '';
+  if (hud) hud.classList.remove('hidden');
+}
+
+function hideChallengeHud() {
+  const hud = document.getElementById('active-challenge-hud');
+  if (hud) hud.classList.add('hidden');
+}
+
+function resetSongChallenge() {
+  state.currentChallenge = null;
+  state.challengeVotes = [];
+  state.challengeVotedBy = new Set();
+  hideChallengeHud();
+  const banner = document.getElementById('challenge-banner');
+  if (banner) {
+    banner.style.opacity = '0';
+    banner.style.transform = 'translateY(60px)';
+    banner.classList.remove('is-live');
+  }
+}
+
 async function startRoulette(skipIntro = false) {
   showScreen('roulette-screen', 'flash');
   if (typeof updateTicker === 'function') {
@@ -905,9 +957,14 @@ async function startKaraoke(player, song) {
 
   challengeFired = false;
   blackoutFired = false;
-  document.getElementById('challenge-banner').style.transform = 'translateY(60px)';
+  document.body.classList.remove('scoreboard-open');
+  resetSongChallenge();
+  state.tomatazoCounts = {};
   document.getElementById('blackout-banner').style.transform = 'scale(0)';
   document.getElementById('scoreboard-overlay').classList.remove('visible');
+  if (state.roomCode) {
+    socket.emit('tv:broadcast', { roomCode: state.roomCode, event: 'CHALLENGE_CLEAR', data: {} });
+  }
   const aph = document.getElementById('audio-only-placeholder');
   if (aph) aph.classList.remove('visible');
 
@@ -983,7 +1040,7 @@ async function startKaraoke(player, song) {
         if (state.votedBy.has(p.socketId)) return;
         const scores = [30, 60, 100];
         const botScore = scores[Math.floor(Math.random() * scores.length)];
-        state.votes.push({ voterName: p.name, performerSocketId: player.socketId, score: botScore });
+        state.votes.push({ voterName: p.name, voterSocketId: p.socketId, performerSocketId: player.socketId, score: botScore });
         updateTicker(`${p.name} votó: ${botScore} pts 🗳️`);
         state.votedBy.add(p.socketId);
         checkAllVotesSubmitted(player.socketId);
@@ -1119,7 +1176,50 @@ async function startKaraoke(player, song) {
   proceedWithKaraoke();
 }
 
+function scheduleBotChallengeVotes(player) {
+  if (!state.currentChallenge) return;
+  state.challengeVotedBy = state.challengeVotedBy || new Set();
+  state.challengeVotes = state.challengeVotes || [];
+  state.players.forEach(p => {
+    if (!p.socketId.startsWith('bot_') || p.socketId === player.socketId) return;
+    const delay = 900 + Math.random() * 2400;
+    setTimeout(() => {
+      if (!votePhaseActive || !state.currentChallenge) return;
+      if (state.challengeVotedBy.has(p.socketId)) return;
+
+      const singerVote = state.votes.find(v =>
+        v.performerSocketId === player.socketId &&
+        (v.voterSocketId === p.socketId || v.voterName === p.name)
+      );
+      const baseScore = singerVote ? singerVote.score : 60;
+      const completed = baseScore >= 60 ? Math.random() < 0.85 : Math.random() < 0.3;
+
+      state.challengeVotedBy.add(p.socketId);
+      state.challengeVotes.push({
+        voterName: p.name,
+        voterSocketId: p.socketId,
+        performerSocketId: player.socketId,
+        completed,
+      });
+
+      const expected = state.players.filter(x => !x.disconnected && x.socketId !== player.socketId).length;
+      socket.emit('tv:broadcast', {
+        roomCode: state.roomCode,
+        event: 'VOTE_COUNT',
+        data: {
+          count: state.votedBy ? state.votedBy.size : 0,
+          total: expected,
+          challengeCount: state.challengeVotedBy.size,
+          challengeTotal: expected,
+        },
+      });
+      checkAllVotesSubmitted(player.socketId);
+    }, delay);
+  });
+}
+
 async function startVotePhase(player, song) {
+
   if (songEnded) return;
   songEnded = true;
   votePhaseActive = true;
@@ -1179,6 +1279,7 @@ async function startVotePhase(player, song) {
   // La votación cierra sola. El mínimo cuenta desde que termina la voz de
   // Axolo, así el prompt nunca se corta.
   FlowDirector.armAuto({ minMs: VOTE_PHASE_DURATION, holdMs: 500 });
+  scheduleBotChallengeVotes(player);
 }
 
 function showAudioOnlyPlaceholder(song) {
@@ -1229,14 +1330,16 @@ function startKaraokeTimer(video, song) {
       });
     }
 
-    // Ronda 1: reto a la mitad de la canción
-    if (state.round === 1 && !challengeFired && elapsed >= duration * 0.5) {
+    // Ronda 1: el reto entra en la primera mitad, nunca después de 1:15.
+    const challengeAt = Math.min(75, Math.max(25, duration * 0.35));
+    if (state.round === 1 && !challengeFired && elapsed >= challengeAt) {
       challengeFired = true;
       fireChallenge();
     }
 
-    // Ronda 3: blackout entre 40-60%
-    if (state.round === 3 && !blackoutFired && elapsed >= duration * 0.4) {
+    // Ronda 3: apagón con el mismo criterio, nunca después de 1:30.
+    const blackoutAt = Math.min(90, Math.max(30, duration * 0.4));
+    if (state.round === 3 && !blackoutFired && elapsed >= blackoutAt) {
       blackoutFired = true;
       if (state.gameMode === 'emo') {
         fireEmoRain();
@@ -1255,10 +1358,15 @@ function startKaraokeTimer(video, song) {
 }
 
 function fireChallenge() {
-  const reto = RETO_CHALLENGES[Math.floor(Math.random() * RETO_CHALLENGES.length)];
-  document.getElementById('challenge-text').textContent = reto;
-  const banner = document.getElementById('challenge-banner');
+  const reto = drawChallenge();
+  state.currentChallenge = { id: reto.id, text: reto.text, round: 1, startedAt: Date.now() };
+  state.challengeVotes = [];
+  state.challengeVotedBy = new Set();
 
+  document.getElementById('challenge-text').textContent = reto.text;
+  showChallengeHud(reto.text);
+
+  const banner = document.getElementById('challenge-banner');
   anime({
     targets: banner,
     opacity: [0, 1],
@@ -1266,11 +1374,19 @@ function fireChallenge() {
     duration: 700,
     easing: 'easeOutBack',
   });
-  const cChoice = CHALLENGE_INTROS[Math.floor(Math.random() * CHALLENGE_INTROS.length)];
-  const retoMsg = `¡RETO ACTIVADO! ${reto}`;
-  axoloSay(retoMsg, cChoice.file);
 
-  // Auto-hide after 8s
+  // Sin voz encima de la canción: el reto se lee en TV y en los celulares.
+  sting('sting_round_start', 0.32);
+
+  if (state.roomCode) {
+    socket.emit('tv:broadcast', {
+      roomCode: state.roomCode,
+      event: 'CHALLENGE_START',
+      data: { id: reto.id, text: reto.text, round: 1 },
+    });
+  }
+  updateTicker(`🎭 Reto activo: ${reto.text}`);
+
   setTimeout(() => {
     anime({ targets: banner, opacity: [1, 0], translateY: [0, 60], duration: 400, easing: 'easeInCubic' });
   }, 8000);
@@ -1302,14 +1418,8 @@ function fireEmoRain() {
   const originalFilter = video.style.filter;
   video.style.filter = 'grayscale(80%) contrast(1.2) brightness(0.6)';
 
-  if (typeof axoloSay === 'function') {
-    if (file) {
-      axoloSay(reto, file, 5000);
-    } else {
-      const p = EMO_MODE_PHRASES.blackout ? EMO_MODE_PHRASES.blackout[Math.floor(Math.random() * EMO_MODE_PHRASES.blackout.length)] : { text: "Lluvia dramática. Sufre." };
-      axoloSay(p.text, p.file);
-    }
-  }
+  // Sting corto: la voz de Axolo no debe tapar la canción ni la lluvia.
+  sting('sting_blackout', 0.4);
 
   // Auto-hide after 12s
   setTimeout(() => {
@@ -1343,10 +1453,6 @@ function fireBlackout() {
   document.getElementById('np-artist').classList.add('blackout');
   if (video) video.style.filter = 'brightness(0.05)';
 
-  const bIntroChoice = BLACKOUT_INTROS[Math.floor(Math.random() * BLACKOUT_INTROS.length)];
-  const blackoutMsg = bIntroChoice.text;
-  axoloSay(blackoutMsg, bIntroChoice.file);
-
   const blackoutDuration = 5000 + Math.random() * 5000;
   blackoutTimeout = setTimeout(() => {
     blackoutTimeout = null;
@@ -1355,8 +1461,7 @@ function fireBlackout() {
     document.getElementById('np-artist').classList.remove('blackout');
     if (karaokeScreen) karaokeScreen.classList.remove('rfx-blackout');
     if (video) video.style.filter = '';
-    const bEndChoice = BLACKOUT_ENDS[Math.floor(Math.random() * BLACKOUT_ENDS.length)];
-    axoloSay(bEndChoice.text, bEndChoice.file);
+    try { UISounds.playToneSweep(320, 960, 0.28, 0.1); } catch (e) {}
   }, blackoutDuration);
 }
 
@@ -1395,8 +1500,30 @@ function endSong(player) {
     ? Math.round(singerVotes.reduce((sum, v) => sum + v.score, 0) / singerVotes.length)
     : 50;
 
+  const challengeVotes = (state.currentChallenge && Array.isArray(state.challengeVotes))
+    ? state.challengeVotes.filter(v => v.performerSocketId === player.socketId)
+    : [];
+  const challengeYes = challengeVotes.filter(v => v.completed).length;
+  const challengeTotal = challengeVotes.length;
+  const challengePassed = !!state.currentChallenge && challengeTotal > 0 && challengeYes >= Math.ceil(challengeTotal / 2);
+  const challengeBonus = challengePassed ? 15 : 0;
+  const challengeResult = state.currentChallenge
+    ? { text: state.currentChallenge.text, total: challengeTotal, yes: challengeYes, passed: challengePassed, bonus: challengeBonus }
+    : null;
+
+  const tomatoCount = state.tomatazoCounts[player.socketId] || 0;
+  const tomatoPenalty = Math.min(30, tomatoCount * 15);
+  const finalScore = Math.max(0, avgScore + challengeBonus - tomatoPenalty);
+
+  hideChallengeHud();
+  const challengeBanner = document.getElementById('challenge-banner');
+  if (challengeBanner) {
+    challengeBanner.style.opacity = '0';
+    challengeBanner.classList.remove('is-live');
+  }
+
   const target = state.players.find(p => p.socketId === player.socketId);
-  if (target) target.score = (target.score || 0) + avgScore;
+  if (target) target.score = (target.score || 0) + finalScore;
 
   // Broadcast score update to mobiles
   socket.emit('tv:broadcast', {
@@ -1438,10 +1565,18 @@ function endSong(player) {
     });
   }
 
+  if (challengeResult) {
+    const challengeRow = document.createElement('div');
+    challengeRow.className = 'mt-3 p-3 rounded-xl text-center';
+    challengeRow.style.cssText = `background:${challengePassed ? '#22c55e22' : '#ef444422'}; border:1px solid ${challengePassed ? '#22c55e66' : '#ef444466'};`;
+    challengeRow.innerHTML = `<p class="font-bold text-xs" style="color:${challengePassed ? '#4ade80' : '#fca5a5'}; letter-spacing:.12em;">🎭 RETO ${challengePassed ? 'CUMPLIDO +15' : 'NO CUMPLIDO'}</p><p class="text-xs mt-1" style="color:#94a3b8;">${escapeHtml(challengeResult.text)} · ${challengeYes}/${challengeTotal} votos</p>`;
+    list.appendChild(challengeRow);
+  }
+
   const totalRow = document.createElement('div');
   totalRow.className = 'mt-4 p-3 rounded-xl text-center';
   totalRow.style.cssText = 'background:#ec489922; border:1px solid #ec489966; opacity:0; transform:scale(0.8);';
-  totalRow.innerHTML = `<p class="font-bold" style="color:#64748b;">PUNTOS GANADOS</p><p id="total-score-display" class="text-4xl font-black" style="color:#ec4899;">0</p>`;
+  totalRow.innerHTML = `<p class="font-bold" style="color:#64748b;">TOTAL DE LA CANCIÓN</p><p id="total-score-display" class="text-4xl font-black" style="color:#ec4899;">0</p><p class="text-xs mt-1" style="color:#94a3b8;">Votos ${avgScore}${challengeResult ? ` · Reto ${challengeBonus ? '+' + challengeBonus : '0'}` : ''}${tomatoPenalty ? ` · Tomates −${tomatoPenalty}` : ''}</p>`;
   list.appendChild(totalRow);
 
   const totalDelay = 300 + singerVotes.length * 250 + 300;
@@ -1451,13 +1586,14 @@ function endSong(player) {
       targets: totalRow, opacity: [0, 1], scale: [0.8, 1.05, 1],
       duration: 600, easing: 'easeOutElastic(1, .5)',
       complete: () => {
-        RitmikaStyleFX.counter(document.getElementById('total-score-display'), 0, avgScore, { duration: 800, prefix: '+' });
+        RitmikaStyleFX.counter(document.getElementById('total-score-display'), 0, finalScore, { duration: 800, prefix: '+' });
       }
     });
   }, totalDelay);
 
   saveGameState();
   overlay.classList.add('visible');
+  document.body.classList.add('scoreboard-open');
 
   FlowDirector.enter('scoreboard', {
     action: 'next',
@@ -1469,8 +1605,17 @@ function endSong(player) {
   socket.emit('tv:broadcast', {
     roomCode: state.roomCode,
     event: 'SHOW_SCOREBOARD',
-    data: { performerSocketId: player.socketId, performerName: player.name },
+    data: {
+      performerSocketId: player.socketId,
+      performerName: player.name,
+      average: avgScore,
+      challenge: challengeResult,
+      tomatoCount,
+      tomatoPenalty,
+      total: finalScore,
+    },
   });
+  socket.emit('tv:broadcast', { roomCode: state.roomCode, event: 'CHALLENGE_CLEAR', data: {} });
 
   const singer = state.players.find(p => p.socketId === player.socketId);
   const genreBark = singer ? getGenreBark(singer) : '&#161;Vaya actuaci&#243;n!';
@@ -1509,6 +1654,9 @@ function nextTurn() {
   if (blackoutTimeout) { clearTimeout(blackoutTimeout); blackoutTimeout = null; }
 
   document.getElementById('scoreboard-overlay').classList.remove('visible');
+  document.body.classList.remove('scoreboard-open');
+  resetSongChallenge();
+  state.tomatazoCounts = {};
   state.currentSingerIdx++;
 
   if (state.currentSingerIdx >= state.singerQueue.length) {
@@ -1576,6 +1724,7 @@ const AWARD_CARRILLA = {
 let podiumBgm = null;
 
 function showPodium() {
+  document.body.classList.remove('scoreboard-open');
   if (typeof bootMusic !== 'undefined' && bootMusic) { bootMusic.pause(); }
   FlowDirector.enter('podium', { label: 'Premiación' });
   sting('sting_podium', 0.5);
@@ -1584,7 +1733,10 @@ function showPodium() {
 
   const sorted       = [...state.players].sort((a, b) => b.score - a.score);
   const mostTomatoes = [...state.players].sort((a, b) => (b.tomatazos||0) - (a.tomatazos||0))[0];
-  const vengador     = sorted.length >= 3 ? sorted[1] : (sorted[1] || sorted[0]);
+  const sabotageCounts = state.sabotageCounts || {};
+  const sabotageSorted = [...state.players].sort((a, b) => (sabotageCounts[b.socketId] || 0) - (sabotageCounts[a.socketId] || 0));
+  const mostSaboteur = sabotageSorted.find(p => (sabotageCounts[p.socketId] || 0) > 0) || null;
+  const vengador = mostSaboteur || (sorted.length >= 3 ? sorted[1] : (sorted[1] || sorted[0]));
   const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 
   let awardsData = [];
@@ -1598,7 +1750,7 @@ function showPodium() {
     awardsData = [
       { icon:'&#128019;', img: './assets/award_gallo.webp?v=2', title:'Gallo Supremo',    subtitle:'Valor Desafinado', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: rand(AWARD_CARRILLA.gallo) },
       { icon:'&#127813;', img: './assets/award_tomate.webp?v=2', title:'Salsa de Tomate',  subtitle:'El M&#225;s Atacado',   player: mostTomatoes && mostTomatoes.tomatazos > 0 ? mostTomatoes : null, color:'#ef4444', border:'#dc2626', obj: rand(AWARD_CARRILLA.tomate) },
-      { icon:'&#128535;', img: './assets/award_vengador.webp?v=2', title:'Vengador An&#243;nimo', subtitle:'Fuego Cruzado',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
+      { icon:'&#128535;', img: './assets/award_vengador.webp?v=2', title:'Vengador An&#243;nimo', subtitle:'M&#225;s Sabotajes',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
     ];
   }
   awardsData = awardsData.map(a => ({...a, carrilla: a.obj.text, file: a.obj.file}));
@@ -2084,7 +2236,7 @@ function showPodium() {
       if(podiumToRemove&&podiumToRemove.parentNode) podiumToRemove.parentNode.removeChild(podiumToRemove);
       UISounds.click();
       state.round=0;state.players=[];state.votes=[];state.currentSingerIdx=0;
-      state.singerQueue=[];state.audioSabotageCount=0;state.tomatazoCounts={};
+      state.singerQueue=[];state.audioSabotageCount=0;state.tomatazoCounts={};state.sabotageCounts={};state.currentChallenge=null;state.challengeVotes=[];state.challengeVotedBy=new Set();challengeDeck=[];hideChallengeHud();
       socket.emit('tv:create_room');
       showScreen('lobby-screen');
       FlowDirector.enter('lobby', { label: 'Sala de espera' });

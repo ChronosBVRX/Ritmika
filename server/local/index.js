@@ -963,16 +963,18 @@ io.on('connection', (socket) => {
   // JUGADOR → TV: TOMATAZO 🍅
   // Payload: { roomCode, targetName }
   // ──────────────────────────────────────────────────────────
-  socket.on('player:tomatazo', ({ roomCode, targetName }) => {
+  socket.on('player:tomatazo', ({ roomCode, targetName, targetSocketId }) => {
     if (!canAct(socket.id, 2000)) return;
     const room = rooms.get(roomCode);
     if (!room || !room.players.has(socket.id)) return;
     const attacker = room.players.get(socket.id);
-    let cleanTargetName = typeof targetName === 'string' ? targetName.trim().substring(0, 15).replace(/<[^>]*>/g, '') : 'Alguien';
+    const cleanTargetName = typeof targetName === 'string' ? targetName.trim().substring(0, 15).replace(/<[^>]*>/g, '') : 'Alguien';
+    const cleanTargetSocketId = typeof targetSocketId === 'string' && room.players.has(targetSocketId) ? targetSocketId : null;
     io.to(room.tvSocketId).emit('tv:tomatazo', {
       attackerName: attacker?.name || 'Desconocido',
       attackerSocketId: socket.id,
       targetName: cleanTargetName,
+      targetSocketId: cleanTargetSocketId,
     });
     console.log(`[🍅 TOMATAZO] ${attacker?.name} → ${cleanTargetName} en sala ${roomCode}`);
   });
@@ -1027,6 +1029,27 @@ io.on('connection', (socket) => {
       score: clampedScore,
     });
     console.log(`[VOTO] ${voter.name} → ${clampedScore} pts para ${cleanPerformerSocketId}`);
+  });
+
+  // ──────────────────────────────────────────────────────────
+  // JUGADOR → TV: Voto de cumplimiento del reto
+  // Payload: { roomCode, completed: boolean, performerSocketId }
+  // ──────────────────────────────────────────────────────────
+  socket.on('player:challenge_vote', ({ roomCode, completed, performerSocketId }) => {
+    const room = rooms.get(roomCode);
+    if (!room) return;
+    const voter = room.players.get(socket.id);
+    if (!voter) return;
+    let cleanPerformerSocketId = typeof performerSocketId === 'string' ? performerSocketId.trim() : '';
+    if (!room.players.has(cleanPerformerSocketId) && room.tvSocketId !== cleanPerformerSocketId) {
+      return;
+    }
+    io.to(room.tvSocketId).emit('tv:challenge_vote', {
+      voterName: voter.name,
+      voterSocketId: socket.id,
+      performerSocketId: cleanPerformerSocketId,
+      completed: completed === true,
+    });
   });
 
   // ──────────────────────────────────────────────────────────

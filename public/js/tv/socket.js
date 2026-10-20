@@ -173,6 +173,13 @@ function syncReconnectedPlayer(player) {
   FlowDirector.sendToPlayer(player.socketId);
 
   const phase = FlowDirector.getPhase();
+  if (state.currentChallenge && (phase === 'karaoke' || phase === 'vote' || phase === 'vote_pending')) {
+    socket.emit('tv:send_to_player', { hostToken: _hostToken,
+      targetSocketId: player.socketId,
+      event: 'CHALLENGE_START',
+      data: { id: state.currentChallenge.id, text: state.currentChallenge.text, round: state.currentChallenge.round },
+    });
+  }
   const isAssign = phase === 'roulette_wait' && state.round === 2;
   const isVideo = phase === 'karaoke_intro' || phase === 'karaoke' || phase === 'vote_pending' || phase === 'vote' || phase === 'scoreboard';
   const isRoulette = phase === 'roulette_wait' || phase === 'roulette_spin' || phase === 'singer_result';
@@ -395,13 +402,25 @@ socket.on('tv:player_artists', ({ socketId, playerId, artists }) => {
   updateTicker(`${name} eligió artistas: ${artists.slice(0,3).join(', ')} 🎸`);
 });
 
-socket.on('tv:tomatazo', ({ attackerName, targetName, attackerSocketId, attackerPlayerId }) => {
+socket.on('tv:tomatazo', ({ attackerName, targetName, targetSocketId, attackerSocketId, attackerPlayerId }) => {
+  if (votePhaseActive) return;
   const attacker = state.players.find(p => (attackerPlayerId && p.playerId === attackerPlayerId) || p.socketId === attackerSocketId);
+  const currentSinger = currentSongPerformer || state.singerQueue[state.currentSingerIdx];
+  const target = state.players.find(p => (targetSocketId && p.socketId === targetSocketId) || p.name === targetName);
+
+  if (!currentSinger || !target || target.socketId !== currentSinger.socketId) {
+    socket.emit('tv:send_to_player', { hostToken: _hostToken,
+      targetSocketId: attackerSocketId,
+      event: 'TOMATAZO_REJECTED',
+      data: { reason: 'Solo puedes tomatazear al cantante actual', cost: TOMATAZO_COST },
+    });
+    return;
+  }
+
   const cost = TOMATAZO_COST;
   if (attacker && attacker.score !== undefined) {
     if ((attacker.score || 0) < cost) {
-      // Not enough points — send rejection to player
-      socket.emit('tv:send_to_player', { hostToken: _hostToken, 
+      socket.emit('tv:send_to_player', { hostToken: _hostToken,
         targetSocketId: attackerSocketId,
         event: 'TOMATAZO_REJECTED',
         data: { reason: 'Puntos insuficientes', cost },
@@ -415,10 +434,25 @@ socket.on('tv:tomatazo', ({ attackerName, targetName, attackerSocketId, attacker
       data: { players: state.players.map(p => ({ socketId: p.socketId, score: p.score || 0, name: p.name })) },
     });
   }
-  fireTomatazo(attackerName, targetName, cost);
-  updateTicker(`🍅 ¡${attackerName} tomatazó a ${targetName} (-${cost} pts)!`);
-  const target = state.players.find(p => p.name === targetName);
-  if (target) target.tomatazos = (target.tomatazos || 0) + 1;
+
+  state.tomatazoCounts = state.tomatazoCounts || {};
+  state.tomatazoCounts[target.socketId] = (state.tomatazoCounts[target.socketId] || 0) + 1;
+  target.tomatazos = (target.tomatazos || 0) + 1;
+  const hitCount = state.tomatazoCounts[target.socketId];
+  const penalty = Math.min(30, hitCount * 15);
+
+  fireTomatazo(attackerName, target.name, cost);
+  updateTicker(`🍅 ¡${attackerName} tomatazó a ${target.name} (-${cost} pts)!`);
+  socket.emit('tv:broadcast', { roomCode: state.roomCode, hostToken: _hostToken,
+    event: 'TOMATO_HIT',
+    data: {
+      targetSocketId: target.socketId,
+      targetName: target.name,
+      attackerName,
+      count: hitCount,
+      penalty,
+    },
+  });
 });
 
 socket.on('tv:emoji', ({ senderName, emoji }) => {
@@ -426,10 +460,17 @@ socket.on('tv:emoji', ({ senderName, emoji }) => {
   updateTicker(`${senderName} reaccionó con ${emoji}`);
 });
 
-socket.on('tv:sabotage_audio', () => {
+socket.on('tv:sabotage_audio', ({ socketId, playerId } = {}) => {
+  const saboteur = state.players.find(p => (playerId && p.playerId === playerId) || p.socketId === socketId);
+  if (saboteur) {
+    state.sabotageCounts = state.sabotageCounts || {};
+    state.sabotageCounts[saboteur.socketId] = (state.sabotageCounts[saboteur.socketId] || 0) + 1;
+  }
+
   state.audioSabotageCount++;
   const pct = Math.round((state.audioSabotageCount / state.AUDIO_SABOTAGE_THRESHOLD) * 100);
-  updateTicker(`🔇 Sabotaje: ${pct}% (${state.audioSabotageCount}/${state.AUDIO_SABOTAGE_THRESHOLD})`);
+  const who = saboteur ? `${saboteur.name} ` : '';
+  updateTicker(`🔇 ${who}Sabotaje: ${pct}% (${state.audioSabotageCount}/${state.AUDIO_SABOTAGE_THRESHOLD})`);
   if (state.audioSabotageCount >= state.AUDIO_SABOTAGE_THRESHOLD) {
     triggerAudioSabotage();
     state.audioSabotageCount = 0;
@@ -437,15 +478,24 @@ socket.on('tv:sabotage_audio', () => {
 });
 
 socket.on('tv:vote', ({ voterName, performerSocketId, performerPlayerId, score, voterSocketId, voterPlayerId }) => {
+  if (!votePhaseActive) return;
+
   // Resolve performer by playerId if needed
   let perfId = performerSocketId;
   if (performerPlayerId) {
     const perf = state.players.find(p => p.playerId === performerPlayerId);
     if (perf) perfId = perf.socketId;
   }
-  state.votedBy = state.votedBy || new Set();
+
+  const singer = currentSongPerformer || state.singerQueue[state.currentSingerIdx];
+  if (!singer || perfId !== singer.socketId) return;
+
   const voterKey = voterPlayerId || voterSocketId;
-  if (voterKey && state.votedBy.has(voterKey)) return;
+  if (!voterKey) return;
+  if (voterKey === singer.playerId || voterKey === singer.socketId || voterSocketId === singer.socketId) return;
+
+  state.votedBy = state.votedBy || new Set();
+  if (state.votedBy.has(voterKey)) return;
   state.votes.push({ voterName, performerSocketId: perfId, score });
   updateTicker(`${voterName} votó: ${score} pts 🗳️`);
 
@@ -455,11 +505,57 @@ socket.on('tv:vote', ({ voterName, performerSocketId, performerPlayerId, score, 
   const expectedCount = state.players.filter(p => !p.disconnected && p.socketId !== performerSocketId).length;
   socket.emit('tv:broadcast', { roomCode: state.roomCode, hostToken: _hostToken,
     event: 'VOTE_COUNT',
-    data: { count: state.votedBy.size, total: expectedCount },
+    data: {
+      count: state.votedBy.size,
+      total: expectedCount,
+      challengeCount: state.currentChallenge ? (state.challengeVotedBy ? state.challengeVotedBy.size : 0) : 0,
+      challengeTotal: state.currentChallenge ? expectedCount : 0,
+    },
   });
   
   // Check if all votes are in
   checkAllVotesSubmitted(performerSocketId);
+});
+
+socket.on('tv:challenge_vote', ({ voterName, voterSocketId, voterPlayerId, performerSocketId, performerPlayerId, completed }) => {
+  if (!state.currentChallenge || !votePhaseActive) return;
+
+  let perfId = performerSocketId;
+  if (performerPlayerId) {
+    const perf = state.players.find(p => p.playerId === performerPlayerId);
+    if (perf) perfId = perf.socketId;
+  }
+
+  const singer = currentSongPerformer || state.singerQueue[state.currentSingerIdx];
+  if (!singer || perfId !== singer.socketId) return;
+
+  const voterKey = voterPlayerId || voterSocketId;
+  if (!voterKey) return;
+  if (voterKey === singer.playerId || voterKey === singer.socketId) return;
+
+  state.challengeVotedBy = state.challengeVotedBy || new Set();
+  if (state.challengeVotedBy.has(voterKey)) return;
+  state.challengeVotedBy.add(voterKey);
+  state.challengeVotes.push({
+    voterName,
+    voterSocketId,
+    performerSocketId: perfId,
+    completed: completed === true,
+  });
+
+  updateTicker(`${voterName} evaluó el reto: ${completed ? '✅' : '❌'}`);
+  const expected = state.players.filter(p => !p.disconnected && p.socketId !== perfId).length;
+  socket.emit('tv:broadcast', { roomCode: state.roomCode, hostToken: _hostToken,
+    event: 'VOTE_COUNT',
+    data: {
+      count: state.votedBy ? state.votedBy.size : 0,
+      total: expected,
+      challengeCount: state.challengeVotedBy.size,
+      challengeTotal: expected,
+    },
+  });
+
+  checkAllVotesSubmitted(perfId);
 });
 
 function checkAllVotesSubmitted(performerSocketId) {
@@ -467,12 +563,19 @@ function checkAllVotesSubmitted(performerSocketId) {
   const expectedCount = expectedVoters.length;
   state.votedBy = state.votedBy || new Set();
 
-  if (votePhaseActive && state.votedBy.size >= expectedCount) {
-    // Ya votaron todos: se cierra la votación en cuanto Axolo termine de
-    // hablar. Antes se cortaba el prompt de voto a la mitad.
+  const challengeActive = !!state.currentChallenge;
+  const challengeExpected = expectedVoters.length;
+  const challengeDone = !challengeActive ||
+    (state.challengeVotedBy && state.challengeVotedBy.size >= challengeExpected);
+
+  if (votePhaseActive && state.votedBy.size >= expectedCount && challengeDone) {
+    // Ya votaron todos (score y reto): se cierra la votación en cuanto Axolo
+    // termine de hablar. Antes se cortaba el prompt de voto a la mitad.
     FlowDirector.hasten(2500, 500);
   }
 }
+
+window.checkAllVotesSubmitted = checkAllVotesSubmitted;
 
 socket.on('tv:song_assigned', ({ attackerName, attackerSocketId, attackerPlayerId, targetSocketId, targetPlayerId, songId }) => {
   const targetKey = targetPlayerId ? (state.players.find(p=>p.playerId===targetPlayerId)?.socketId || targetSocketId) : targetSocketId;
@@ -563,6 +666,13 @@ document.getElementById('start-btn').addEventListener('click', () => {
   state.round = 1;
   state.singerQueue = [...state.players].sort(() => Math.random() - 0.5);
   state.currentSingerIdx = 0;
+  state.currentChallenge = null;
+  state.challengeVotes = [];
+  state.challengeVotedBy = new Set();
+  state.tomatazoCounts = {};
+  state.sabotageCounts = {};
+  if (typeof challengeDeck !== 'undefined') challengeDeck = [];
+  if (typeof hideChallengeHud === 'function') hideChallengeHud();
   if (idleInterval) { clearInterval(idleInterval); idleInterval = null; }
   socket.emit('tv:start_game', { roomCode: state.roomCode });
   socket.emit('tv:broadcast', { roomCode: state.roomCode, hostToken: _hostToken,
