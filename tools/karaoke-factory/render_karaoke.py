@@ -108,7 +108,7 @@ def load_tracks():
     tracks = []
     for entry in json.loads(MANIFEST.read_text(encoding="utf-8"))["tracks"]:
         row = by_id.get(entry["id"])
-        if not row or row.get("status") != "downloaded" or not row.get("file"):
+        if not row or row.get("status") not in ("downloaded", "downloaded_low") or not row.get("file"):
             continue
         tracks.append({**entry, "file": Path(row["file"]), "duration": row.get("duration")})
     return tracks
@@ -278,7 +278,7 @@ def synthesize_missing(tracks, force=False):
                 model = load_aligner()
             try:
                 result = model.transcribe(
-                    str(track["file"]), language=track.get("language", "es"),
+                    str(track["file"]), language=None,
                     verbose=False, word_timestamps=True,
                 )
             except Exception as exc:
@@ -295,6 +295,13 @@ def synthesize_missing(tracks, force=False):
         lrc.write_text(to_lrc(lines), encoding="utf-8")
         made += 1
         print(f"  {track['id']:14s} {len(lines):3d} líneas (transcripción)")
+
+    if model is not None:
+        del model
+        import gc
+        import torch
+        gc.collect()
+        torch.cuda.empty_cache()
     return made
 
 
@@ -541,6 +548,12 @@ def align_tracks(tracks, force=False):
             f"  {track['id']:14s} {len(records):3d}/{len(lines):3d} líneas · "
             f"ancladas {anchors:2d} · desfase {drift:+.1f}s"
         )
+
+    del model
+    import gc
+    import torch
+    gc.collect()
+    torch.cuda.empty_cache()
 
 
 def match_timings(mine, heard):
