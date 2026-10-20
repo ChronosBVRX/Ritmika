@@ -29,7 +29,7 @@ class RoomManager {
   }
 
   createRoom(tvSocketId, mode = 'clasico') {
-    const validModes = new Set(['clasico', 'emo']);
+    const validModes = new Set(['clasico', 'emo', 'ranchera', 'nostalgia']);
     const cleanMode = validModes.has(mode) ? mode : 'clasico';
     const code = generateRoomCode(this.rooms);
     const hostToken = crypto.randomBytes(24).toString('hex'); // 48 hex chars, nunca va a jugadores

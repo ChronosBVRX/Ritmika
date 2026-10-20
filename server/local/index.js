@@ -764,7 +764,7 @@ io.on('connection', (socket) => {
     let code;
     do { code = generateRoomCode(); } while (rooms.has(code));
 
-    const validModes = new Set(['clasico', 'emo']);
+    const validModes = new Set(['clasico', 'emo', 'ranchera', 'nostalgia']);
     const cleanMode = validModes.has(payload.mode) ? payload.mode : 'clasico';
 
     rooms.set(code, {
@@ -808,7 +808,7 @@ io.on('connection', (socket) => {
       }
       room.tvSocketId = socket.id;
     } else {
-      const validModes = new Set(['clasico', 'emo']);
+      const validModes = new Set(['clasico', 'emo', 'ranchera', 'nostalgia']);
       const cleanMode = validModes.has(mode) ? mode : 'clasico';
       room = {
         tvSocketId: socket.id,

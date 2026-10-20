@@ -95,10 +95,8 @@
   window.__ritmikaShellPush = () => push(true);
 
   window.__nativeShellSelectMode = (mode) => {
-    console.log('[Shell] select', mode);
     if (typeof MainMenu !== 'undefined' && typeof MainMenu.selectMode === 'function') {
       MainMenu.selectMode(mode, { instant: true, force: true });
-      console.log('[Shell] web selected', typeof selectedMode !== 'undefined' ? selectedMode : '?');
     }
   };
   window.__nativeShellCreateRoom = () => {

@@ -275,7 +275,6 @@ const MainMenu = (function () {
 
   function select(modeId, opts) {
     if (!MM_MODES[modeId]) return;
-    console.log('[Menu] selectMode', modeId, opts && opts.force ? 'force' : '');
     if (modeId === selectedMode && !(opts && opts.force)) {
       if (opts && opts.instant) renderMode(modeId, opts);
       return;
@@ -423,7 +422,6 @@ const MainMenu = (function () {
 
   function createRoom() {
     if (creating) return;
-    console.log('[Menu] createRoom', selectedMode);
     const mode = MM_MODES[selectedMode];
     if (!mode) return;
     if (mode.locked) {
