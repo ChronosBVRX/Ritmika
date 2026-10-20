@@ -104,8 +104,11 @@ Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 
    transcripción con `difflib`. Si el audio tiene intro, sketch o outro, el
    desfase se absorbe solo.
 4. **Medir el emparejamiento.** Si menos del 55% de las palabras de la letra
-   encuentran pareja en la transcripción, la canción no es viable con ese LRC:
-   se conserva el LRC o se busca otra fuente.
+   encuentran pareja en la transcripción, la canción no es viable con esa
+   transcripción: se conserva el LRC, corregido por la mediana del desfase de las
+   líneas que sí empataron con alta confianza (y solo si esa mediana es menor a
+   8 s). Un desplazamiento global pequeño se corrige; uno grande es señal de que
+   el emparejamiento no es confiable y no se toca.
 5. **Descartar lo que no se canta.** Las líneas sin palabras emparejadas no se
    muestran. Es preferible un hueco a una línea inventada.
 6. **Verificar antes de renderizar.** Un frame en el segundo donde debe entrar
@@ -119,8 +122,9 @@ Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 
 2. **Instrumental**: `demucs --two-stems=vocals`. Se conserva `vocals.wav` por si
    luego se quiere una pista guía.
 3. **Alineación**: Whisper transcribe el audio con timestamps por palabra; la
-   letra canónica se pega sobre esa transcripción con `difflib` (`--align`). Si
-   el emparejamiento baja del 55%, se conserva el LRC.
+   letra canónica se pega línea por línea sobre esa transcripción con `difflib`
+   (`--align`). Si el emparejamiento baja del 55%, se conserva el LRC con el
+   desfase medido en las líneas de alta confianza.
 4. **Karaoke**: cada palabra recibe un `\k` igual a su duración real y la línea se
    oculta 0.6 s después de la última. Si no hay alineación, cae al reparto por
    sílabas del LRC.

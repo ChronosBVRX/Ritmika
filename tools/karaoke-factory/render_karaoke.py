@@ -227,6 +227,128 @@ def load_aligner():
     )
 
 
+def line_similarity(tokens, words):
+    a = " ".join(norm_token(t) for t in tokens)
+    b = " ".join(norm_token(w) for w in words)
+    if not a or not b:
+        return 0.0
+    return difflib.SequenceMatcher(None, a, b, autojunk=False).ratio()
+
+
+def align_lines(lines, heard, starts=None, min_score=0.52):
+    """Empareja cada línea con la ventana de la transcripción que mejor suena.
+
+    Hacerlo línea por línea evita que una palabra mal transcrita arrastre a
+    todas las siguientes, que es lo que rompía el emparejamiento global.
+    """
+    records = []
+    offsets = []
+    cursor = 0
+    total = 0
+    matched = 0
+
+    for line_idx, line in enumerate(lines):
+        tokens = [t for t in line.split() if t]
+        if not tokens:
+            continue
+        total += len(tokens)
+        count = len(tokens)
+
+        best = (0.0, cursor, cursor)
+        upper = min(len(heard), cursor + 8 * count + 40)
+        for start in range(cursor, upper):
+            longest = min(len(heard) - start, int(count * 1.5) + 4)
+            shortest = max(1, int(count * 0.55))
+            for length in range(shortest, longest + 1):
+                score = line_similarity(tokens, [heard[j][0] for j in range(start, start + length)])
+                if score > best[0]:
+                    best = (score, start, start + length)
+
+        score, start, end = best
+        if score < min_score or end <= start:
+            continue
+        window = heard[start:end]
+
+        ours = [norm_token(t) for t in tokens]
+        theirs = [norm_token(w[0]) for w in window]
+        matcher = difflib.SequenceMatcher(None, ours, theirs, autojunk=False)
+        last = -1
+        for tag, _, _, j1, j2 in matcher.get_opcodes():
+            if tag == "equal":
+                last = max(last, j2 - 1)
+        cursor = start + (last + 1 if last >= 0 else 1)
+
+        timings = match_timings([(0, t) for t in tokens], window)
+        known = [k for k, value in enumerate(timings) if value]
+        if known:
+            matched += len(known)
+            first, last = known[0], known[-1]
+            for k in range(first):
+                timings[k] = (window[0][1], timings[first][0])
+            for k in range(last + 1, count):
+                timings[k] = (timings[last][1], window[-1][2])
+        else:
+            span = (window[-1][2] - window[0][1]) / count
+            for k in range(count):
+                timings[k] = (window[0][1] + k * span, window[0][1] + (k + 1) * span)
+
+        words = []
+        previous = -1.0
+        for token, value in zip(tokens, timings):
+            if not value:
+                continue
+            begin = max(value[0], previous)
+            finish = max(value[1], begin + 0.08)
+            previous = finish
+            words.append({"w": token, "s": round(begin, 3), "e": round(finish, 3)})
+        if not words:
+            continue
+
+        records.append({
+            "start": round(words[0]["s"], 3),
+            "end": round(words[-1]["e"], 3),
+            "words": words,
+            "score": round(score, 2),
+        })
+        if starts and line_idx < len(starts) and score >= 0.7:
+            offsets.append(words[0]["s"] - starts[line_idx])
+
+    ratio = matched / total if total else 0.0
+    return records, ratio, offsets
+
+
+def distribute_words(tokens, start, end):
+    weights = [max(1, syllables(t)) for t in tokens]
+    total = sum(weights) or 1
+    words = []
+    clock = start
+    for token, weight in zip(tokens, weights):
+        span = max(0.05, (end - start) * weight / total)
+        words.append({"w": token, "s": round(clock, 3), "e": round(clock + span, 3)})
+        clock += span
+    return words
+
+
+def lrc_records(parsed, shift, duration):
+    records = []
+    for index, (moment, text) in enumerate(parsed):
+        following = parsed[index + 1][0] if index + 1 < len(parsed) else duration
+        start = max(0.0, moment + shift)
+        end = min(duration, following + shift)
+        if end <= start:
+            end = start + 0.6
+        tokens = [token for token in text.split() if token]
+        if not tokens:
+            continue
+        records.append({
+            "start": round(start, 3),
+            "end": round(end, 3),
+            "words": distribute_words(tokens, start, end),
+            "score": 0,
+        })
+    return records
+
+
 def align_tracks(tracks, force=False):
     """Transcribe el audio y pega la letra sobre lo que de verdad se canta.
 
@@ -278,31 +400,27 @@ def align_tracks(tracks, force=False):
                 encoding="utf-8",
             )
 
-        mine = [(idx, token) for idx, line in enumerate(lines) for token in line.split()]
-        if not mine or not heard:
+        if not heard:
             continue
 
-        timings = match_timings(mine, heard)
-        matched = sum(1 for value in timings if value)
-        ratio = matched / len(mine)
-
-        records = []
-        for line_idx, line in enumerate(lines):
-            words = [
-                {"w": token, "s": timings[i][0], "e": timings[i][1]}
-                for i, (owner, token) in enumerate(mine)
-                if owner == line_idx and timings[i]
-            ]
-            if not words:
-                continue
-            records.append({
-                "start": round(words[0]["s"], 3),
-                "end": round(words[-1]["e"], 3),
-                "words": [{"w": w["w"], "s": round(w["s"], 3), "e": round(w["e"], 3)} for w in words],
-            })
-
+        records, ratio, offsets = align_lines(lines, heard, [start for start, _ in parsed])
         if ratio < 0.55 or len(records) < len(lines) * 0.5:
-            print(f"  {track['id']:14s} {ratio:4.0%} emparejado, se conserva LRC")
+            if len(offsets) >= 5:
+                ordered = sorted(offsets)
+                shift = ordered[len(ordered) // 2]
+                if abs(shift) > 8:
+                    shift = 0.0
+                duration = track.get("duration") or (heard[-1][2] + 1)
+                records = lrc_records(parsed, shift, duration)
+                out.write_text(
+                    json.dumps({"lines": records}, ensure_ascii=False, indent=1), encoding="utf-8"
+                )
+                print(
+                    f"  {track['id']:14s} {ratio:4.0%} · LRC desplazado {shift:+.1f}s "
+                    f"({len(records)} líneas)"
+                )
+            else:
+                print(f"  {track['id']:14s} {ratio:4.0%} emparejado, se conserva LRC")
             continue
 
         out.write_text(
