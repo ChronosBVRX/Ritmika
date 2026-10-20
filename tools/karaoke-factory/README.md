@@ -71,13 +71,21 @@ muestra los 5 candidatos por pista para poder auditar la decisión.
 
 ## Siguiente etapa — videos de karaoke
 
-`render_karaoke.py` hace las tres etapas siguientes, cada una cacheable:
+`render_karaoke.py` hace las cuatro etapas siguientes, cada una cacheable:
 
 ```bash
 python3 tools/karaoke-factory/render_karaoke.py --lyrics          # LRCLIB → media/karaoke-build/lyrics
 python3 tools/karaoke-factory/render_karaoke.py --stems           # Demucs → instrumental
+python3 tools/karaoke-factory/render_karaoke.py --align           # Whisper → tiempos por palabra
 python3 tools/karaoke-factory/render_karaoke.py --stems --render  # todo
 python3 tools/karaoke-factory/render_karaoke.py --render --only pxndx-01
+```
+
+Las etapas `--stems` y `--align` necesitan el **python del venv** que tiene
+torch/demucs/stable-ts, no el del sistema:
+
+```bash
+~/Comfy/venv/bin/python tools/karaoke-factory/render_karaoke.py --align
 ```
 
 Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 + AAC).
@@ -89,16 +97,21 @@ Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 
    16 versiones por canción y muchas tienen los timestamps corridos.
 2. **Instrumental**: `demucs --two-stems=vocals`. Se conserva `vocals.wav` por si
    luego se quiere una pista guía.
-3. **Karaoke**: cada línea se parte en palabras y se le asigna un `\k` proporcional
-   a sus sílabas. El barrido se corta si el hueco hasta la siguiente línea es muy
-   largo, para que no se arrastre durante un solo de guitarra.
-4. **Fondo**: `bg_neon_club.webp` con blur y oscurecido, más un zoom lento.
+3. **Alineación**: `stable-ts` (Whisper `medium`) alinea la letra contra la pista
+   vocal y devuelve inicio y fin reales de cada palabra. De ahí salen los `\k`.
+4. **Karaoke**: cada palabra recibe un `\k` igual a su duración real y la línea se
+   oculta 0.6 s después de la última. Si no hay alineación, cae al reparto por
+   sílabas del LRC.
+5. **Fondo**: `bg_neon_club.webp` con blur y oscurecido, más un zoom lento.
 
 ### Requisitos extra
 
-- `demucs` en un venv con PyTorch. La ruta se detecta sola en
-  `/home/chronos/Escritorio/Comfy/venv/bin/demucs` o se define con
+- `demucs` y `stable-ts` en un venv con PyTorch. La ruta de demucs se detecta sola
+  en `/home/chronos/Escritorio/Comfy/venv/bin/demucs` o se define con
   `RITMIKA_DEMUCS`; el dispositivo con `RITMIKA_DEMUCS_DEVICE` (`cuda` por defecto).
+- El modelo de Whisper se elige con `RITMIKA_WHISPER_MODEL` (`medium` por defecto;
+  `large-v3` no cabe si ComfyUI ya ocupa 6 GB de la GPU) y la caché con
+  `RITMIKA_WHISPER_DIR`.
 - Fuentes: `fonts/Fredoka-Bold.ttf` es una instancia estática generada desde la
   variable de Google Fonts (fontconfig no resuelve la variable y libass caía a
   Noto Sans). `PaytoneOne-Regular.ttf` viene directo del repo de Google Fonts.
@@ -108,6 +121,7 @@ Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 
 
 - Dos pistas del lote (`thermo-02`, `delux-02`) no tienen LRC sincronizado en
   LRCLIB. Se omiten del render hasta resolverlas.
-- La sincronía es por línea (LRC), no por palabra real. El barrido por sílabas es
-  una aproximación: se ve bien, pero no es un `forced alignment`.
+- La alineación es sobre la pista vocal separada: si Demucs deja coros de fondo,
+  Whisper puede pegarlos a la palabra vecina. Se ve en el reporte como líneas con
+  muy pocas palabras alineadas.
 - El video no trae barra de progreso ni cuenta atrás.

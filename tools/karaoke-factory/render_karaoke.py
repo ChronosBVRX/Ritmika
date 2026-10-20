@@ -11,6 +11,7 @@ Cada etapa se salta si el resultado ya existe. `--force` la rehace.
 """
 
 import argparse
+import difflib
 import json
 import math
 import os
@@ -32,6 +33,7 @@ FONTS = TOOL_DIR / "fonts"
 SRC = ROOT / "media" / "karaoke-src"
 BUILD = ROOT / "media" / "karaoke-build"
 OUT = ROOT / "media" / "karaoke-video"
+ALIGNED = BUILD / "aligned"
 REPORT = SRC / "report.json"
 
 DEMUCS_PY = Path("/home/chronos/Escritorio/Comfy/venv/bin/python")
@@ -203,7 +205,125 @@ def fetch_lyrics(tracks, force=False):
     return missing
 
 
-# ---------------------------------------------------------------- stems
+# ---------------------------------------------------------------- alignment
+
+def norm_token(text):
+    return re.sub(r"[^0-9a-záéíóúüñ]", "", text.lower())
+
+
+def load_aligner():
+    try:
+        import stable_whisper
+    except ImportError:
+        sys.exit(
+            "Falta stable-ts. Ejecuta este script con el python del venv que lo "
+            "tiene instalado (el mismo de demucs), no con el python del sistema."
+        )
+    model_name = os.environ.get("RITMIKA_WHISPER_MODEL", "medium")
+    device = os.environ.get("RITMIKA_WHISPER_DEVICE", "cuda")
+    return stable_whisper.load_model(
+        model_name, device=device, download_root=os.environ.get("RITMIKA_WHISPER_DIR")
+    )
+
+
+def align_tracks(tracks, force=False):
+    """Ajusta la letra al audio real y guarda tiempos por palabra."""
+    ALIGNED.mkdir(parents=True, exist_ok=True)
+    pending = []
+    for track in tracks:
+        out = ALIGNED / f"{track['id']}.json"
+        lrc = BUILD / "lyrics" / f"{track['id']}.lrc"
+        vocals = stem_dir(track) / "vocals.wav"
+        if out.exists() and not force:
+            continue
+        if not lrc.exists() or not vocals.exists():
+            continue
+        pending.append((track, out, lrc, vocals))
+
+    if not pending:
+        print("  alineación ya lista")
+        return
+
+    model = load_aligner()
+    for track, out, lrc, vocals in pending:
+        parsed = [(start, text) for start, text in parse_lrc(lrc.read_text(encoding="utf-8")) if text]
+        if not parsed:
+            continue
+        lines = [text for _, text in parsed]
+
+        try:
+            result = model.align(str(vocals), "\n".join(lines), language="es", verbose=False)
+        except Exception as exc:
+            print(f"  {track['id']:14s} falló: {str(exc)[:60]}")
+            continue
+
+        heard = [
+            (word.word, float(word.start), float(word.end))
+            for segment in result.segments for word in segment.words
+        ]
+
+        mine = [(line_idx, token) for line_idx, line in enumerate(lines) for token in line.split()]
+        if not mine or not heard:
+            continue
+
+        timings = match_timings(mine, heard)
+        records = []
+        for line_idx, line in enumerate(lines):
+            words = [
+                {"w": token, "s": timings[i][0], "e": timings[i][1]}
+                for i, (owner, token) in enumerate(mine)
+                if owner == line_idx and timings[i]
+            ]
+            if not words:
+                continue
+            records.append({
+                "start": round(words[0]["s"], 3),
+                "end": round(words[-1]["e"], 3),
+                "words": [{"w": w["w"], "s": round(w["s"], 3), "e": round(w["e"], 3)} for w in words],
+            })
+
+        if len(records) < len(lines) * 0.6:
+            print(f"  {track['id']:14s} alineación pobre, se conserva LRC")
+            continue
+
+        out.write_text(
+            json.dumps({"lines": records}, ensure_ascii=False, indent=1), encoding="utf-8"
+        )
+        drift = records[0]["start"] - parsed[0][0]
+        print(f"  {track['id']:14s} {len(records):3d} líneas  (desfase inicial {drift:+.1f}s)")
+
+
+def match_timings(mine, heard):
+    """Empareja tokens propios con palabras detectadas; interpola los huecos."""
+    ours = [norm_token(token) for _, token in mine]
+    theirs = [norm_token(word) for word, _, _ in heard]
+    timings = [None] * len(ours)
+
+    matcher = difflib.SequenceMatcher(None, ours, theirs, autojunk=False)
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == "equal":
+            for offset in range(i2 - i1):
+                _, start, end = heard[j1 + offset]
+                timings[i1 + offset] = (start, end)
+
+    known = [i for i, value in enumerate(timings) if value]
+    if not known:
+        return timings
+
+    for left, right in zip(known, known[1:]):
+        if right - left == 1:
+            continue
+        if mine[left][0] != mine[right][0]:
+            continue
+        start = timings[left][1]
+        end = timings[right][0]
+        step = (end - start) / (right - left)
+        for offset in range(1, right - left):
+            timings[left + offset] = (start + step * (offset - 1), start + step * offset)
+
+    return timings
+
+
 
 def stem_dir(track):
     return BUILD / "stems" / "htdemucs" / Path(track["file"]).stem
@@ -269,6 +389,18 @@ def karaoke_line(start, end, text):
     return "".join(chunks).rstrip()
 
 
+def karaoke_words(words):
+    chunks = []
+    for index, word in enumerate(words):
+        if index + 1 < len(words):
+            span = words[index + 1]["s"] - word["s"]
+        else:
+            span = word["e"] - word["s"]
+        cs = max(6, int(round(span * 100)))
+        chunks.append(f"{{\\k{cs}}}{clean_text(word['w'])} ")
+    return "".join(chunks).rstrip()
+
+
 def build_ass(track, lrc_path, audio_duration, out_path):
     lines = parse_lrc(lrc_path.read_text(encoding="utf-8"))
     if not lines:
@@ -310,19 +442,40 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         "{\\an7\\pos(70,44)}RÍTMIKA"
     )
 
-    for index, (start, text) in enumerate(lines):
-        end = lines[index + 1][0] if index + 1 < len(lines) else audio_duration
-        end = min(end, audio_duration)
-        if end <= start:
-            end = start + 1.0
-        body = karaoke_line(start, end, text)
-        if not body:
-            continue
-        display_end = min(end, start + max(1.2, 0.30 * sum(syllables(w) for w in text.split())) + 2.2)
-        events.append(
-            f"Dialogue: 0,{ass_time(start)},{ass_time(display_end)},Lyric,,0,0,0,,"
-            f"{{\\fad(120,220)}}{body}"
-        )
+    aligned_path = ALIGNED / f"{track['id']}.json"
+    aligned = None
+    if aligned_path.exists():
+        try:
+            aligned = json.loads(aligned_path.read_text(encoding="utf-8")).get("lines") or None
+        except json.JSONDecodeError:
+            aligned = None
+
+    if aligned:
+        for index, line in enumerate(aligned):
+            start = line["start"]
+            next_start = aligned[index + 1]["start"] if index + 1 < len(aligned) else audio_duration
+            display_end = min(max(line["end"] + 0.6, start + 0.8), next_start)
+            body = karaoke_words(line["words"])
+            if not body:
+                continue
+            events.append(
+                f"Dialogue: 0,{ass_time(start)},{ass_time(display_end)},Lyric,,0,0,0,,"
+                f"{{\\fad(90,160)}}{body}"
+            )
+    else:
+        for index, (start, text) in enumerate(lines):
+            end = lines[index + 1][0] if index + 1 < len(lines) else audio_duration
+            end = min(end, audio_duration)
+            if end <= start:
+                end = start + 1.0
+            body = karaoke_line(start, end, text)
+            if not body:
+                continue
+            display_end = min(end, start + max(1.2, 0.30 * sum(syllables(w) for w in text.split())) + 2.2)
+            events.append(
+                f"Dialogue: 0,{ass_time(start)},{ass_time(display_end)},Lyric,,0,0,0,,"
+                f"{{\\fad(120,220)}}{body}"
+            )
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(header + "\n".join(events) + "\n", encoding="utf-8")
@@ -399,14 +552,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--lyrics", action="store_true")
     parser.add_argument("--stems", action="store_true")
+    parser.add_argument("--align", action="store_true")
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--only", default=None)
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
 
-    if not (args.lyrics or args.stems or args.render):
-        parser.error("indica al menos una etapa: --lyrics, --stems o --render")
+    if not (args.lyrics or args.stems or args.align or args.render):
+        parser.error("indica al menos una etapa: --lyrics, --stems, --align o --render")
 
     tracks = load_tracks()
     if args.only:
@@ -424,6 +578,11 @@ def main():
     if args.stems:
         print("Stems:")
         separate(tracks, args.force)
+        print()
+
+    if args.align:
+        print("Alineación:")
+        align_tracks(tracks, args.force)
         print()
 
     if args.render:
