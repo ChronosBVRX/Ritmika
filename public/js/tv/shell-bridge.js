@@ -21,7 +21,7 @@
       document.querySelectorAll('.tv-screen').forEach(s => s.classList.remove('active'));
       const menu = document.getElementById('mode-selection-screen');
       if (menu) menu.classList.add('active');
-      if (window.MainMenu) MainMenu.init();
+      if (typeof MainMenu !== 'undefined') MainMenu.init();
       if (typeof bootMusic !== 'undefined' && bootMusic) {
         bootMusic.volume = 0.25;
         bootMusic.play().catch(() => {});
@@ -92,12 +92,12 @@
   }
 
   window.__nativeShellSelectMode = (mode) => {
-    if (window.MainMenu && typeof MainMenu.selectMode === 'function') {
+    if (typeof MainMenu !== 'undefined' && typeof MainMenu.selectMode === 'function') {
       MainMenu.selectMode(mode, { instant: true, force: true });
     }
   };
   window.__nativeShellCreateRoom = () => {
-    if (window.MainMenu && typeof MainMenu.createRoom === 'function') MainMenu.createRoom();
+    if (typeof MainMenu !== 'undefined' && typeof MainMenu.createRoom === 'function') MainMenu.createRoom();
   };
   window.__nativeShellStartGame = () => {
     const start = document.getElementById('start-btn');
