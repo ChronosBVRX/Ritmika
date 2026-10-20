@@ -5,8 +5,8 @@ la misma base de datos de canciones.
 
 | Canal | Punto de entrada | Versión actual | Interfaz |
 |-------|------------------|----------------|----------|
-| **Web / PC** | `https://ritmika.duckdns.org/tv` (alias `/`, `/pc`) | `package.json` → **1.1.1** | Menú y lobby HTML completos, mouse/teclado |
-| **Android TV** | APK `/download/ritmika-tv.apk` | `android/app/build.gradle.kts` → **1.0.12** (`versionCode 13`) | La misma UI web; video, audio Bluetooth y Ajustes nativos |
+| **Web / PC** | `https://ritmika.duckdns.org/tv` (alias `/`, `/pc`) | `package.json` → **1.1.2** | Menú y lobby HTML completos, mouse/teclado |
+| **Android TV** | APK `/download/ritmika-tv.apk` | `android/app/build.gradle.kts` → **1.0.13** (`versionCode 14`) | La misma UI web; video, audio Bluetooth y Ajustes nativos |
 
 El servidor es compartido: los cambios de API, Socket.io, catálogo y modos se
 despliegan con la versión Web y aplican a ambos canales. El APK no necesita
@@ -45,7 +45,7 @@ capa nativa Android (video, audio Bluetooth, puente JS o `native-boot`).
 - `/` y `/pc` sirven la misma página.
 - La interfaz es la versión HTML de `public/tv.html`: menú Palenque Arcade,
   lobby, QR, ajustes HTML y juego.
-- La versión se muestra en el menú como `v1.1.1 · WEB PC`.
+- La versión se muestra en el menú como `v1.1.2 · WEB PC`.
 - La versión vive en `package.json` y `package-lock.json`.
 
 ### Desplegar
@@ -105,6 +105,15 @@ La app se actualiza sola vía `UpdateManager` cuando `latest.json` tiene un
 
 ---
 
+## Navegación D-pad
+
+- `public/js/tv/dpad-nav.js` cubre menú, modales, lobby, juego y podio.
+- Foco inicial por pantalla y anillo cian visible; los botones ocultos, deshabilitados y de debug no se recorren.
+- Modales atrapan el foco, cierran con Escape/Back y devuelven el foco al disparador.
+- En Android, `KEYCODE_BACK` cierra modal → vuelve del lobby → sale de la app.
+- Diálogos nativos de Ajustes/Altavoz conservan su foco D-pad; el WebView lo recupera al volver.
+- Checklist: menú (modos/CTA/utilidades), modal (abrir/alternar/cerrar), lobby (Atrás/Ajustes/Empezar), inicio de partida, ruleta/karaoke y podio.
+
 ## Reglas de convivencia
 
 1. **Paridad obligatoria.** Toda modificación funcional o visual se implementa
@@ -129,12 +138,12 @@ La app se actualiza sola vía `UpdateManager` cuando `latest.json` tiene un
 
 ## Tags
 
-- `web-v1.1.1` — release Web/PC.
-- `android-v1.0.12` — release Android TV.
+- `web-v1.1.2` — release Web/PC.
+- `android-v1.0.13` — release Android TV.
 
 ## Versiones
 
-- Web / PC: `1.1.1`.
-- Android TV: `1.0.12` (`versionCode 13`).
+- Web / PC: `1.1.2`.
+- Android TV: `1.0.13` (`versionCode 14`).
 - La app Android muestra su versión en el manifiesto OTA; la web la muestra en
   el menú y la recibe por `server_version`.

@@ -2,8 +2,8 @@
 
 > Karaoke party game al estilo Jackbox. Una PC sirve como servidor y pantalla de TV, los invitados usan sus celulares como controles. Sin internet necesario.
 
-[![Web](https://img.shields.io/badge/web-1.1.1-blue)](package.json)
-[![Android TV](https://img.shields.io/badge/android%20tv-1.0.12-green)](android/app/build.gradle.kts)
+[![Web](https://img.shields.io/badge/web-1.1.2-blue)](package.json)
+[![Android TV](https://img.shields.io/badge/android%20tv-1.0.13-green)](android/app/build.gradle.kts)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D16-brightgreen)](https://nodejs.org)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2B-lightgrey)]()
@@ -20,8 +20,8 @@ Rítmika es un juego de karaoke para fiestas donde un grupo de jugadores se cone
 
 | Canal | Entrada | Versión |
 |-------|---------|---------|
-| **Web / PC** | `https://ritmika.duckdns.org/tv` (alias `/`, `/pc`) | **1.1.1** |
-| **Android TV** | `/download/ritmika-tv.apk` | **1.0.12** |
+| **Web / PC** | `https://ritmika.duckdns.org/tv` (alias `/`, `/pc`) | **1.1.2** |
+| **Android TV** | `/download/ritmika-tv.apk` | **1.0.13** |
 | **Celulares** | `https://ritmika.duckdns.org/join` | — |
 
 La versión Web/PC usa el menú y lobby HTML completos. La app Android TV usa

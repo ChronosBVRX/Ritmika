@@ -183,7 +183,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) hideSystemUi()
+        if (hasFocus) {
+            hideSystemUi()
+            if (::webView.isInitialized && webView.visibility == View.VISIBLE) {
+                webView.requestFocus()
+            }
+        }
     }
 
     /*
@@ -197,6 +202,7 @@ class MainActivity : AppCompatActivity() {
         if (::webView.isInitialized) {
             webView.onResume()
             webView.resumeTimers()
+            webView.requestFocus()
         }
         if (resumeVideoOnStart) {
             resumeVideoOnStart = false
@@ -506,6 +512,23 @@ class MainActivity : AppCompatActivity() {
 
     // ── D-pad / gamepad / media keys → KeyboardEvent en la página ─────
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Back: primero pregunta a la UI web si hay un modal o el lobby abierto.
+        // Si no lo maneja, sale de la app como el Back normal de Android.
+        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+            if (event.action == KeyEvent.ACTION_DOWN && ::webView.isInitialized) {
+                try {
+                    webView.evaluateJavascript(
+                        "(function(){try{return !!(window.__ritmikaHandleBack&&window.__ritmikaHandleBack());}catch(e){return false;}})()"
+                    ) { result ->
+                        if (result != "true") runOnUiThread { finish() }
+                    }
+                } catch (_: Exception) {
+                    finish()
+                }
+            }
+            return true
+        }
+
         // Atajo de control remoto: MENU abre el panel nativo de audio, pero
         // solo si la página está en menú/lobby (lo valida el JS).
         if (event.keyCode == KeyEvent.KEYCODE_MENU) {
@@ -536,6 +559,7 @@ class MainActivity : AppCompatActivity() {
         KeyEvent.KEYCODE_ENTER,
         KeyEvent.KEYCODE_NUMPAD_ENTER,
         KeyEvent.KEYCODE_BUTTON_A,
+        KeyEvent.KEYCODE_BUTTON_START,
         KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
         KeyEvent.KEYCODE_MEDIA_PLAY,
         KeyEvent.KEYCODE_MEDIA_PAUSE,

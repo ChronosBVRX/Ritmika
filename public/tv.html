@@ -1486,6 +1486,27 @@
       letter-spacing: 1px !important;
     }
   </style>
+
+  <style>
+    /* D-pad / teclado: foco siempre visible en cualquier pantalla. */
+    button:focus-visible,
+    [role="button"]:focus-visible,
+    a[href]:focus-visible,
+    [tabindex="0"]:focus-visible {
+      outline: 5px solid #00e5ff !important;
+      outline-offset: 4px !important;
+      box-shadow: 0 0 0 3px #111827, 0 0 26px rgba(0, 229, 255, 0.8) !important;
+    }
+    /* WebView de Android TV: el foco programático también debe verse. */
+    html.ritmika-tv-lite button:focus,
+    html.ritmika-tv-lite [role="button"]:focus,
+    html.ritmika-tv-lite a[href]:focus,
+    html.ritmika-tv-lite [tabindex="0"]:focus {
+      outline: 5px solid #00e5ff !important;
+      outline-offset: 4px !important;
+      box-shadow: 0 0 0 3px #111827, 0 0 26px rgba(0, 229, 255, 0.8) !important;
+    }
+  </style>
 </head>
 
 <body class="scanlines party-bg">
@@ -1630,7 +1651,7 @@
       <span class="mm-status-dot"></span>
       <span class="mm-status-copy">
         <strong>TV LISTA</strong>
-        <small id="mm-version">v1.1.1 · WEB PC</small>
+        <small id="mm-version">v1.1.2 · WEB PC</small>
       </span>
     </div>
   </header>
@@ -2247,8 +2268,9 @@
   <script src="/js/tv/lobby.js?v=6"></script>
   <script src="/js/tv/flow.js?v=1"></script>
   <script src="/js/tv/phrases_extra.js?v=1"></script>
-  <script src="/js/tv/main-menu.js?v=15"></script>
+  <script src="/js/tv/main-menu.js?v=18"></script>
   <script src="/js/tv/native-boot.js?v=1"></script>
+  <script src="/js/tv/dpad-nav.js?v=4"></script>
 
 <!-- Unified Keyboard + Gamepad Controller System -->
 <script>
@@ -2274,131 +2296,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initButtons();
   setTimeout(initButtons, 1000);
-
-  // ── Keyboard Navigation ────────────────────────────
-  function getFocusableElements(screen) {
-    return Array.from(screen.querySelectorAll(
-      'button:not([tabindex^="-"]), [tabindex="0"], a[href], input, select, textarea'
-    )).filter(el => {
-      if (el.classList.contains('hidden')) return false;
-      const style = window.getComputedStyle(el);
-      return style.display !== 'none' && style.visibility !== 'hidden';
-    });
-  }
-
-  document.addEventListener('keydown', (e) => {
-    const activeScreen = document.querySelector('.tv-screen.active');
-    if (!activeScreen) return;
-
-    const el = document.activeElement;
-
-    // Enter or Space on focused button → click it
-    if ((e.key === 'Enter' || e.key === ' ') && el && el !== document.body && el.tagName === 'BUTTON') {
-      e.preventDefault();
-      RitmikaStyleFX.punchOnPress(el);
-      if (typeof UISounds !== 'undefined') UISounds.playTone(600, 0.1);
-      el.click();
-      return;
-    }
-
-    // Escape → back from lobby
-    if (e.key === 'Escape' && activeScreen.id === 'lobby-screen') {
-      const backBtn = document.getElementById('btn-back-to-modes');
-      if (backBtn) { backBtn.click(); e.preventDefault(); }
-      return;
-    }
-
-    // Mode selection: special 2D layout
-    if (activeScreen.id === 'mode-selection-screen') {
-      const modeCards = Array.from(activeScreen.querySelectorAll('.mode-card'));
-      const utilityButtons = Array.from(activeScreen.querySelectorAll('.mm-utility button'))
-        .filter(btn => btn.offsetParent !== null && getComputedStyle(btn).display !== 'none');
-      const btnCrear = document.getElementById('btn-crear-sala-modo');
-      const isCard = modeCards.includes(el);
-      const isBtn = el === btnCrear;
-      const isUtility = utilityButtons.includes(el);
-      const focusSelectedCard = () => {
-        (activeScreen.querySelector(`.mode-card[data-mode="${selectedMode}"]`) || modeCards[0]).focus();
-      };
-      const focusCtaOrCard = () => {
-        if (btnCrear && !btnCrear.disabled) btnCrear.focus();
-        else focusSelectedCard();
-      };
-
-      if (isUtility) {
-        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-          let idx = utilityButtons.indexOf(el);
-          const next = e.key === 'ArrowRight'
-            ? (idx + 1) % utilityButtons.length
-            : (idx - 1 + utilityButtons.length) % utilityButtons.length;
-          utilityButtons[next].focus();
-          e.preventDefault();
-          return;
-        }
-        if (e.key === 'ArrowUp') {
-          focusSelectedCard();
-          e.preventDefault();
-          return;
-        }
-        if (e.key === 'ArrowDown') {
-          focusCtaOrCard();
-          e.preventDefault();
-          return;
-        }
-        return;
-      }
-
-      if (!isCard && !isBtn && e.key.startsWith('Arrow')) {
-        focusSelectedCard();
-        e.preventDefault();
-        return;
-      }
-
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        if (isCard) {
-          let idx = modeCards.indexOf(el);
-          if (e.key === 'ArrowDown' && idx === modeCards.length - 1 && utilityButtons.length) {
-            utilityButtons[0].focus();
-          } else {
-            modeCards[(idx + 1) % modeCards.length].focus();
-          }
-          e.preventDefault();
-        } else if (isBtn) {
-          if (e.key === 'ArrowDown' && utilityButtons.length) utilityButtons[0].focus();
-          else focusSelectedCard();
-          e.preventDefault();
-        }
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        if (isBtn) {
-          focusSelectedCard();
-          e.preventDefault();
-        } else if (isCard) {
-          let idx = modeCards.indexOf(el);
-          if (e.key === 'ArrowUp' && idx === 0) {
-            focusCtaOrCard();
-          } else {
-            modeCards[(idx - 1 + modeCards.length) % modeCards.length].focus();
-          }
-          e.preventDefault();
-        }
-      }
-      return;
-    }
-
-    // Generic arrow navigation for all other screens
-    if (e.key.startsWith('Arrow')) {
-      e.preventDefault();
-      const items = getFocusableElements(activeScreen);
-      if (items.length === 0) return;
-      let idx = items.indexOf(el);
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        idx = (idx + 1) % items.length;
-      } else {
-        idx = (idx <= 0) ? items.length - 1 : idx - 1;
-      }
-      items[Math.max(0, idx)].focus();
-    }
-  });
 
   // ── Gamepad Support ────────────────────────────────
   const GAMEPAD_THROTTLE = 250;

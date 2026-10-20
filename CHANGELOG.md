@@ -2,6 +2,20 @@
 
 Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](https://keepachangelog.com/).
 
+## [Web 1.1.2 / Android TV 1.0.13] - 2026-10-20
+
+### Added
+- Navegación D-pad unificada (`dpad-nav.js`) para menú, modales, lobby, ruleta, karaoke y podio.
+- Anillo de foco cian global; en Android se muestra también con foco programático.
+- `KEYCODE_BACK` cierra modal, luego vuelve del lobby y al final sale; `KEYCODE_BUTTON_START` equivale a Enter.
+
+### Fixed
+- Navegación espacial del menú: modos, CTA y utilidades sin saltos ni callejones sin salida.
+- Lobby: foco en Atrás/Ajustes/Empezar, exclusión de botones decorativos y recuperación si Empezar se oculta.
+- Modales: foco atrapado, cierre con Escape/Back y retorno al botón que los abrió.
+- Podio dinámico y botones de juego reciben foco; `Skip` de debug y controles ocultos ya no se recorren.
+- El WebView recupera el foco al volver de Ajustes/Altavoz nativos.
+
 ## [Web 1.1.1 / Android TV 1.0.12] - 2026-10-20
 
 ### Changed

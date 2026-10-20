@@ -106,6 +106,7 @@ const MainMenu = (function () {
   let creating = false;
   let hoverTimer = null;
   let modalOpen = false;
+  let modalTrigger = null;
   let musicOn = true;
   let reducedMotion = false;
   let wasActive = screen.classList.contains('active');
@@ -587,15 +588,20 @@ const MainMenu = (function () {
     const modal = document.getElementById('mm-modal');
     const body = document.getElementById('mm-modal-body');
     if (!modal || !body) return;
+    const trigger = document.activeElement;
+    modalTrigger = (trigger && trigger !== document.body && screen.contains(trigger)) ? trigger : null;
     sfx('whoosh');
     body.innerHTML = modalContent(kind);
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     modalOpen = true;
-    setTimeout(() => {
+    const focusClose = () => {
+      if (!modalOpen) return;
       const close = document.getElementById('mm-modal-close');
       if (close) close.focus({ preventScroll: true });
-    }, 120);
+    };
+    focusClose();
+    setTimeout(focusClose, 120);
   }
 
   function closeModal() {
@@ -604,7 +610,17 @@ const MainMenu = (function () {
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
     modalOpen = false;
-    if (els.cta) setTimeout(() => els.cta.focus({ preventScroll: true }), 80);
+    const target = modalTrigger;
+    modalTrigger = null;
+    const focusBack = () => {
+      const fallback = els.cta;
+      const pick = (target && document.contains(target) && !target.disabled && target.getClientRects().length)
+        ? target
+        : fallback;
+      if (pick) pick.focus({ preventScroll: true });
+    };
+    focusBack();
+    setTimeout(focusBack, 80);
   }
 
   function modalContent(kind) {
@@ -720,7 +736,7 @@ const MainMenu = (function () {
       closeModal();
       return;
     }
-    if (event.key === 'ArrowDown' || event.key === 'ArrowRight' || event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight' || event.key === 'ArrowUp' || event.key === 'ArrowLeft' || event.key === 'Tab') {
       event.preventDefault();
       event.stopPropagation();
       const modal = document.getElementById('mm-modal');
@@ -728,7 +744,9 @@ const MainMenu = (function () {
         .filter(el => !el.disabled && el.offsetParent !== null);
       if (!focusables.length) return;
       const idx = focusables.indexOf(document.activeElement);
-      const next = (event.key === 'ArrowDown' || event.key === 'ArrowRight')
+      const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight' ||
+        (event.key === 'Tab' && !event.shiftKey);
+      const next = forward
         ? (idx + 1) % focusables.length
         : (idx <= 0 ? focusables.length - 1 : idx - 1);
       focusables[next].focus({ preventScroll: true });

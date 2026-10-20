@@ -38,6 +38,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/tv/flow.js` — Director de fases audio-aware. Espera a que termine la voz de Axolo, calcula pausas sobre audio real y transmite `PHASE_STATE` a los celulares para habilitar controles móviles (girar / listo / siguiente).
 - `public/js/tv/main-menu.js` — Menú principal Palenque Arcade: selección de show, hero, modales de ajustes/cómo jugar/créditos y transición al lobby.
 - `public/js/tv/native-boot.js` — En Android (`?native=1`) oculta preboot/bootloader y entra directo al menú web, sin una UI nativa duplicada.
+- `public/js/tv/dpad-nav.js` — Navegación D-pad/teclado unificada con foco visible, trampa de modales y recuperación de foco.
 - `public/js/tv/performance.js` — Perfiles Automático/Rendimiento/Calidad; en nativo usa Rendimiento por defecto.
 - `public/css/performance.css` — Apaga loops, filtros, halftones y capas decorativas en modo Rendimiento.
 - `public/css/tailwind.build.css` — Tailwind precompilado (~34 KB). Reemplaza el runtime Play CDN; regenerar con `npm run build:css` al agregar clases.
@@ -166,10 +167,10 @@ Celulares desde cualquier lugar
   2. `git commit -m "mensaje descriptivo"` (explicar QUÉ y POR QUÉ)
   3. `git push`
 - **Versionado**: Si se solicita incrementar la versión, usar `npm version patch|minor|major` — esto actualiza `package.json` y crea un tag en Git automáticamente.
-- **UI**: La versión del `package.json` se emite a los clientes vía `socket.emit('server_version', ...)`. La web/PC la muestra en `#mm-version` como `v1.1.1 · WEB PC`; el móvil en `#version-display`.
+- **UI**: La versión del `package.json` se emite a los clientes vía `socket.emit('server_version', ...)`. La web/PC la muestra en `#mm-version` como `v1.1.2 · WEB PC`; el móvil en `#version-display`.
 
 ### Dos versiones: Web/PC y Android TV
-- **Web / PC**: se sirve en `/tv` (alias `/` y `/pc`). Usa el menú/lobby HTML completos de `public/tv.html`, mouse y teclado. Su versión vive en `package.json` y se muestra como `v1.1.1 · WEB PC`.
+- **Web / PC**: se sirve en `/tv` (alias `/` y `/pc`). Usa el menú/lobby HTML completos de `public/tv.html`, mouse y teclado. Su versión vive en `package.json` y se muestra como `v1.1.2 · WEB PC`.
 - **Android TV**: el APK carga `/tv?native=1` y usa **la misma UI web** que PC; `native-boot.js` entra directo al menú. Solo el video, el panel de audio Bluetooth y el modal de Ajustes son nativos. Su versión vive en `android/app/build.gradle.kts` y se publica con `android/scripts/publish_ota.sh`.
 - **Regla de paridad obligatoria:** toda modificación funcional o visual se implementa y verifica en **Web/PC y Android TV** en el mismo cambio. No se acepta dejar una versión atrás.
 - La independencia es solo de **versionado**: los números pueden avanzar por separado, pero la funcionalidad debe quedar en paridad. Como la UI es compartida, un cambio de menú/lobby/juego se aplica a ambos canales automáticamente; aun así hay que probarlo en los dos.
@@ -183,6 +184,17 @@ Celulares desde cualquier lugar
 - Checklist mínimo: probar `/tv` en PC, probar el APK en Android, ejecutar `npm run test:all`, desplegar web y publicar OTA si el APK cambió.
 - Desplegar la web **antes** del APK cuando el APK cambie de ruta o consuma un endpoint nuevo.
 - Guía de release y comandos: `docs/RELEASES.md`.
+
+### Navegación D-pad (WebView Android TV y teclado PC)
+- `public/js/tv/dpad-nav.js` es el único dueño de la navegación por teclado/D-pad: menú, modales, lobby, ruleta, karaoke y podio.
+- El foco inicial es `CREAR SALA` en el menú, `ATRÁS` en el lobby (o `EMPEZAR` si ya hay jugadores), y la acción principal de cada pantalla de juego.
+- El anillo de foco es global y visible: `5px` cian; en Android se fuerza también con `html.ritmika-tv-lite :focus`.
+- Menú: arriba/abajo recorre modos; derecha va al CTA; abajo del CTA o del último modo va a utilidades; arriba desde utilidades vuelve al modo seleccionado.
+- Lobby: izquierda/derecha alterna Atrás/Ajustes; abajo va a Empezar si está visible; Escape/Back vuelve al menú.
+- Los botones ocultos, deshabilitados, decorativos (`tabindex=-1`) y de debug (`btn-debug-*`) quedan fuera del recorrido. Si el foco cae en uno que se ocultó, se recupera al siguiente control válido.
+- Modales: foco inicial en cerrar; flechas atrapadas dentro; Enter alterna; Escape/Back cierra y devuelve el foco al botón que lo abrió.
+- `KEYCODE_BACK` de Android consulta `window.__ritmikaHandleBack()`: cierra modal → vuelve del lobby → sale de la app. `KEYCODE_BUTTON_B` equivale a Escape.
+- Los diálogos nativos de Ajustes y Altavoz conservan su propio foco D-pad; al volver, el WebView recupera el foco.
 
 ### Menú principal Palenque Arcade
 - La pantalla `#mode-selection-screen` es el menú principal: los modos son las opciones del menú, no un dashboard aparte.
@@ -359,8 +371,8 @@ Celulares desde cualquier lugar
 
 | Canal | Entrada | Versión | Deploy |
 |-------|---------|---------|--------|
-| **Web / PC** | `/tv` (alias `/`, `/pc`) | `package.json` (`1.1.1`) | Docker en el VPS |
-| **Android TV** | APK `/download/ritmika-tv.apk` | `android/app/build.gradle.kts` (`1.0.12`, code 13) | `android/scripts/publish_ota.sh` |
+| **Web / PC** | `/tv` (alias `/`, `/pc`) | `package.json` (`1.1.2`) | Docker en el VPS |
+| **Android TV** | APK `/download/ritmika-tv.apk` | `android/app/build.gradle.kts` (`1.0.13`, code 14) | `android/scripts/publish_ota.sh` |
 
 **Web / PC:**
 ```bash
@@ -456,8 +468,8 @@ node scripts/migrate_to_sqlite.js   # Genera server/songs.db desde r2_db.json
 
 | Componente | Estado | Notas |
 |-----------|--------|-------|
-| **Web / PC** | **COMPLETO** | `/tv` (alias `/`, `/pc`), menú/lobby HTML, versión `1.1.1` |
-| **Android TV** | **COMPLETO** | Misma UI web que PC + audio/Ajustes nativos, versión `1.0.12` (code 13), OTA |
+| **Web / PC** | **COMPLETO** | `/tv` (alias `/`, `/pc`), menú/lobby HTML, versión `1.1.2` |
+| **Android TV** | **COMPLETO** | Misma UI web que PC + audio/Ajustes nativos, versión `1.0.13` (code 14), OTA |
 | Server | **COMPLETO** | ~800 líneas, Express + Socket.io + SQLite, R2 presigned URLs, endpoints filtrados |
 | TV Frontend | **COMPLETO** | ~2566 líneas HTML + 9 módulos JS (~4310 líneas), server-side song selection, sin catálogo en memoria |
 | Mobile Frontend | **COMPLETO** | ~1960 líneas, artist map via API, 8 pantallas, PWA, haptic |
