@@ -176,7 +176,17 @@ app.get('/', (req, res) => {
   sendTvPage(res);
 });
 
-app.get(['/tv', '/tv/', '/pc', '/pc/'], (req, res) => {
+app.get(['/tv', '/pc'], (req, res) => {
+  // Express ignora la barra final por defecto; canonicalizamos aquí porque
+  // tv.html usa rutas relativas de assets y `/tv/` las resolvería contra
+  // `/tv/assets/...`.
+  if (req.path.endsWith('/')) {
+    const target = req.path.replace(/\/+$/, '');
+    const queryIndex = req.originalUrl.indexOf('?');
+    const query = queryIndex >= 0 ? req.originalUrl.slice(queryIndex) : '';
+    res.redirect(301, target + query);
+    return;
+  }
   sendTvPage(res);
 });
 

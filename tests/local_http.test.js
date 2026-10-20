@@ -48,6 +48,13 @@ async function run(){
         assert(t.includes('mode-selection-screen'), route+' no contiene menú');
       }
     });
+    await test('GET /tv/ y /pc/ redirigen sin barra final', async()=>{
+      for (const route of ['/tv/','/pc/']) {
+        const r=await fetch(base+route,{redirect:'manual'});
+        assert(r.status===301, route+' status '+r.status);
+        assert(r.headers.get('location')===route.slice(0,-1), route+' location '+r.headers.get('location'));
+      }
+    });
     await test('GET /join -> 200 y contiene mobile', async()=>{
       const r=await fetch(base+'/join');
       assert(r.status===200);
