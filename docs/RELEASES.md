@@ -92,6 +92,11 @@ La app se actualiza sola vía `UpdateManager` cuando `latest.json` tiene un
 
 ---
 
+## Tags
+
+- `web-v1.1.0` — release Web/PC.
+- `android-v1.0.11` — release Android TV.
+
 ## Versiones
 
 - Web / PC: `1.1.0`.

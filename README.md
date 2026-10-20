@@ -2,7 +2,8 @@
 
 > Karaoke party game al estilo Jackbox. Una PC sirve como servidor y pantalla de TV, los invitados usan sus celulares como controles. Sin internet necesario.
 
-[![Version](https://img.shields.io/badge/version-1.0.1-blue)](package.json)
+[![Web](https://img.shields.io/badge/web-1.1.0-blue)](package.json)
+[![Android TV](https://img.shields.io/badge/android%20tv-1.0.11-green)](android/app/build.gradle.kts)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D16-brightgreen)](https://nodejs.org)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2B-lightgrey)]()
@@ -15,6 +16,19 @@ Rítmika es un juego de karaoke para fiestas donde un grupo de jugadores se cone
 
 **Funciona local y en la nube.** Modo local: PC con Windows + hotspot WiFi. Modo online: servidor en un VPS de Oracle Cloud Infrastructure (OCI), jugadores desde cualquier lugar con internet.
 
+## Canales
+
+| Canal | Entrada | Versión |
+|-------|---------|---------|
+| **Web / PC** | `https://ritmika.duckdns.org/tv` (alias `/`, `/pc`) | **1.1.0** |
+| **Android TV** | `/download/ritmika-tv.apk` | **1.0.11** |
+| **Celulares** | `https://ritmika.duckdns.org/join` | — |
+
+La versión Web/PC usa el menú y lobby HTML completos. La app Android TV usa un
+shell nativo para menú/lobby y deja el juego en el WebView. Ambas comparten
+servidor, catálogo y Socket.io. Comandos de release en
+[`docs/RELEASES.md`](docs/RELEASES.md).
+
 ## Características
 
 - **Dual-Display** — Pantalla TV + controles móviles sincronizados en tiempo real
@@ -25,7 +39,7 @@ Rítmika es un juego de karaoke para fiestas donde un grupo de jugadores se cone
 - **Ruleta animada** — SVG con avatares reales y giro determinista
 - **Votación en vivo** — 10, 30, 60 o 100 puntos por canción
 - **Premiación épica** — Ceremonia tipo pasarela con premios especiales
-- **5 modos de juego** — Clásico y Fiesta Emo (funcionales). Anime, Ranchera, Nostalgia (próximamente)
+- **5 modos de juego** — Clásico, Fiesta Emo, Dolidas & Rancheras y Nostalgia Pop. Fiesta Anime próximamente.
 - **Neo-brutalismo** — Estética Jackbox/Persona 5 con sombras sólidas y colores vibrantes
 
 ## Quick Start
