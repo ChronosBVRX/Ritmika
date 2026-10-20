@@ -92,27 +92,26 @@ Salida: `media/karaoke-video/<id>__<artista>__<título>.mp4` (1920×1080, H.264 
 
 ### La receta (aprendida a golpes)
 
-1. **El audio y la letra tienen que ser la misma versión.** Es el error que más
-   caro sale. `Cita en el quirófano` se bajó del video oficial (271 s, con un
-   sketch de 23 s) mientras el LRC venía del álbum (243 s). Ningún alineador
-   arregla eso: hay que emparejar versiones antes de tocar la letra.
-2. **Nunca forzar el texto contra el audio.** El *forced alignment* de Whisper
-   coloca todas las palabras aunque no existan en el audio, y el resultado se ve
-   sincronizado en el papel pero es basura (una palabra estirada 37 s).
-3. **Transcribir primero, emparejar después.** Whisper devuelve cuándo se canta
-   cada palabra que reconoce; luego se pega la letra canónica sobre esa
-   transcripción con `difflib`. Si el audio tiene intro, sketch o outro, el
-   desfase se absorbe solo.
-4. **Medir el emparejamiento.** Si menos del 55% de las palabras de la letra
-   encuentran pareja en la transcripción, la canción no es viable con esa
-   transcripción: se conserva el LRC, corregido por la mediana del desfase de las
-   líneas que sí empataron con alta confianza (y solo si esa mediana es menor a
-   8 s). Un desplazamiento global pequeño se corrige; uno grande es señal de que
-   el emparejamiento no es confiable y no se toca.
-5. **Descartar lo que no se canta.** Las líneas sin palabras emparejadas no se
-   muestran. Es preferible un hueco a una línea inventada.
-6. **Verificar antes de renderizar.** Un frame en el segundo donde debe entrar
-   la primera línea cuesta 2 segundos y evita 40 minutos de render a ciegas.
+1. **La letra es la fuente de verdad.** No se transcribe para mostrarla ni se
+   recorta: se muestra el LRC completo, tal cual. Whisper no decide qué dice la
+   canción, solo cuándo entra.
+2. **El audio y la letra tienen que ser la misma versión.** `Cita en el
+   quirófano` se bajó del video oficial (271 s, con un sketch de 23 s) mientras
+   el LRC venía del álbum (243 s). Eso se corrige con un desfase global, no
+   reescribiendo la letra.
+3. **El desfase se estima con las tres primeras líneas.** Son únicas y no se
+   repiten como los coros. Se exige que al menos dos coincidan en ±3 s; si no
+   hay consenso, el LRC se usa tal cual. Mirar muchas líneas desvía la canción
+   entera cuando hay coros repetidos (llegó a dar +97 s).
+4. **La precisión por palabra sale de CTC** (MMS_FA), no de Whisper: se alinea
+   cada línea contra su ventana de audio y devuelve el inicio y fin reales de
+   cada palabra.
+5. **Nunca borrar líneas.** Si una línea no se puede anclar, conserva el tiempo
+   del LRC. Es preferible un barrido aproximado a una letra que desaparece.
+6. **Nada de solapes.** Si el CTC adelanta una línea, se empuja hacia adelante
+   para que dos líneas no se dibujen encima.
+7. **Verificar antes de renderizar.** Un frame en el segundo donde entra la
+   primera línea cuesta 2 segundos y evita 40 minutos de render a ciegas.
 
 ## Cómo se arma el video
 

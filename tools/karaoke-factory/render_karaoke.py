@@ -235,86 +235,119 @@ def line_similarity(tokens, words):
     return difflib.SequenceMatcher(None, a, b, autojunk=False).ratio()
 
 
-def align_lines(lines, heard, starts=None, min_score=0.52):
-    """Empareja cada línea con la ventana de la transcripción que mejor suena.
+def vocal_envelope(track, sr=16000, window=0.02):
+    import numpy as np
 
-    Hacerlo línea por línea evita que una palabra mal transcrita arrastre a
-    todas las siguientes, que es lo que rompía el emparejamiento global.
+    vocals = stem_dir(track) / "vocals.wav"
+    raw = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(vocals), "-f", "f32le", "-ac", "1", "-ar", str(sr), "-"],
+        capture_output=True,
+    ).stdout
+    signal = np.frombuffer(raw, dtype=np.float32)
+    size = int(sr * window)
+    frames = len(signal) // size
+    energy = np.sqrt((signal[: frames * size].reshape(frames, size) ** 2).mean(axis=1) + 1e-12)
+    return 20 * np.log10(energy + 1e-9), window
+
+
+def estimate_shift(starts, duration, envelope, window):
+    """Desfase global que mejor alinea las líneas del LRC con la voz audible."""
+    import numpy as np
+
+    total = len(envelope)
+    activity = np.zeros(total, dtype=bool)
+    for index, moment in enumerate(starts):
+        following = starts[index + 1] if index + 1 < len(starts) else duration
+        span = min(2.0, max(0.4, following - moment))
+        begin = int(max(0, moment / window))
+        finish = int(min(total, (moment + span) / window))
+        if finish > begin:
+            activity[begin:finish] = True
+
+    steps = int(round(40 / window))
+    stride = max(1, int(round(0.1 / window)))
+    best = (0.0, -1e9)
+    for lag in range(-steps, steps + 1, stride):
+        mask = np.roll(activity, lag)
+        if lag > 0:
+            mask[:lag] = False
+        elif lag < 0:
+            mask[lag:] = False
+        if mask.sum() < total * 0.05:
+            continue
+        score = envelope[mask].mean() - envelope[~mask].mean()
+        if score > best[1]:
+            best = (lag * window, float(score))
+    return best[0]
+
+
+def align_lines(lines, heard, starts, duration, prior=0.0, min_score=0.85):
+    """La letra manda; Whisper solo detecta si el audio es otra versión.
+
+    El desfase se estima con las tres primeras líneas, que suelen ser únicas y
+    no se repiten como los coros. Se exige que al menos dos coincidan en ±3 s;
+    si no hay consenso, se usa el LRC tal cual. Ninguna línea se descarta.
     """
-    records = []
-    offsets = []
-    cursor = 0
-    total = 0
-    matched = 0
+    import bisect
 
-    for line_idx, line in enumerate(lines):
-        tokens = [t for t in line.split() if t]
+    times_heard = [item[1] for item in heard]
+    deltas = []
+
+    for index in range(min(3, len(lines))):
+        tokens = [token for token in lines[index].split() if token]
+        count = len(tokens)
+        if not count:
+            continue
+        left = bisect.bisect_left(times_heard, max(0.0, starts[index] - 35.0))
+        right = bisect.bisect_right(times_heard, min(duration, starts[index] + 35.0))
+        if right - left < 2:
+            continue
+
+        best = (0.0, left)
+        longest = int(count * 1.5) + 4
+        shortest = max(1, int(count * 0.55))
+        for start in range(left, right):
+            limit = min(len(heard) - start, longest)
+            for length in range(shortest, limit + 1):
+                if heard[start + length - 1][1] > starts[index] + 35.0:
+                    break
+                value = line_similarity(
+                    tokens, [heard[j][0] for j in range(start, start + length)]
+                )
+                if value > best[0]:
+                    best = (value, start)
+        score, start = best
+        if score >= min_score:
+            deltas.append(heard[start][1] - starts[index])
+
+    shift = prior
+    ordered = sorted(deltas)
+    for left_value, right_value in zip(ordered, ordered[1:]):
+        if right_value - left_value <= 3.0:
+            shift = (left_value + right_value) / 2
+            break
+
+    times = [max(0.0, moment + shift) for moment in starts]
+    for index in range(1, len(times)):
+        if times[index] <= times[index - 1]:
+            times[index] = times[index - 1] + 0.35
+
+    records = []
+    for index, line in enumerate(lines):
+        tokens = [token for token in line.split() if token]
         if not tokens:
             continue
-        total += len(tokens)
-        count = len(tokens)
-
-        best = (0.0, cursor, cursor)
-        upper = min(len(heard), cursor + 8 * count + 40)
-        for start in range(cursor, upper):
-            longest = min(len(heard) - start, int(count * 1.5) + 4)
-            shortest = max(1, int(count * 0.55))
-            for length in range(shortest, longest + 1):
-                score = line_similarity(tokens, [heard[j][0] for j in range(start, start + length)])
-                if score > best[0]:
-                    best = (score, start, start + length)
-
-        score, start, end = best
-        if score < min_score or end <= start:
-            continue
-        window = heard[start:end]
-
-        ours = [norm_token(t) for t in tokens]
-        theirs = [norm_token(w[0]) for w in window]
-        matcher = difflib.SequenceMatcher(None, ours, theirs, autojunk=False)
-        last = -1
-        for tag, _, _, j1, j2 in matcher.get_opcodes():
-            if tag == "equal":
-                last = max(last, j2 - 1)
-        cursor = start + (last + 1 if last >= 0 else 1)
-
-        timings = match_timings([(0, t) for t in tokens], window)
-        known = [k for k, value in enumerate(timings) if value]
-        if known:
-            matched += len(known)
-            first, last = known[0], known[-1]
-            for k in range(first):
-                timings[k] = (window[0][1], timings[first][0])
-            for k in range(last + 1, count):
-                timings[k] = (timings[last][1], window[-1][2])
-        else:
-            span = (window[-1][2] - window[0][1]) / count
-            for k in range(count):
-                timings[k] = (window[0][1] + k * span, window[0][1] + (k + 1) * span)
-
-        words = []
-        previous = -1.0
-        for token, value in zip(tokens, timings):
-            if not value:
-                continue
-            begin = max(value[0], previous)
-            finish = max(value[1], begin + 0.08)
-            previous = finish
-            words.append({"w": token, "s": round(begin, 3), "e": round(finish, 3)})
-        if not words:
-            continue
-
+        begin = times[index]
+        following = times[index + 1] if index + 1 < len(lines) else duration
+        finish = max(begin + 0.4, min(following, begin + 8.0))
         records.append({
-            "start": round(words[0]["s"], 3),
-            "end": round(words[-1]["e"], 3),
-            "words": words,
-            "score": round(score, 2),
+            "start": round(begin, 3),
+            "end": round(finish, 3),
+            "words": distribute_words(tokens, begin, finish),
+            "score": 0,
         })
-        if starts and line_idx < len(starts) and score >= 0.7:
-            offsets.append(words[0]["s"] - starts[line_idx])
 
-    ratio = matched / total if total else 0.0
-    return records, ratio, offsets
+    return records, len(deltas) / 3.0, len(deltas)
 
 
 def distribute_words(tokens, start, end):
@@ -403,25 +436,10 @@ def align_tracks(tracks, force=False):
         if not heard:
             continue
 
-        records, ratio, offsets = align_lines(lines, heard, [start for start, _ in parsed])
-        if ratio < 0.55 or len(records) < len(lines) * 0.5:
-            if len(offsets) >= 5:
-                ordered = sorted(offsets)
-                shift = ordered[len(ordered) // 2]
-                if abs(shift) > 8:
-                    shift = 0.0
-                duration = track.get("duration") or (heard[-1][2] + 1)
-                records = lrc_records(parsed, shift, duration)
-                out.write_text(
-                    json.dumps({"lines": records}, ensure_ascii=False, indent=1), encoding="utf-8"
-                )
-                print(
-                    f"  {track['id']:14s} {ratio:4.0%} · LRC desplazado {shift:+.1f}s "
-                    f"({len(records)} líneas)"
-                )
-            else:
-                print(f"  {track['id']:14s} {ratio:4.0%} emparejado, se conserva LRC")
-            continue
+        duration = track.get("duration") or (heard[-1][2] + 1)
+        records, ratio, anchors = align_lines(
+            lines, heard, [start for start, _ in parsed], duration, 0.0
+        )
 
         out.write_text(
             json.dumps({"lines": records}, ensure_ascii=False, indent=1), encoding="utf-8"
@@ -429,7 +447,7 @@ def align_tracks(tracks, force=False):
         drift = records[0]["start"] - parsed[0][0]
         print(
             f"  {track['id']:14s} {len(records):3d}/{len(lines):3d} líneas · "
-            f"{ratio:3.0%} palabras · desfase {drift:+.1f}s"
+            f"ancladas {anchors:2d} · desfase {drift:+.1f}s"
         )
 
 
@@ -638,6 +656,17 @@ def background():
     ]
     subprocess.run(cmd, check=True)
     return path
+
+
+def probe(path):
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
+        capture_output=True, text=True,
+    )
+    try:
+        return {"duration": float(result.stdout.strip())}
+    except ValueError:
+        return {}
 
 
 def render(track, force=False):

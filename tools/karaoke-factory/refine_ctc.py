@@ -43,6 +43,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--only", default=None)
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--all", action="store_true", help="refinar también las ya alineadas")
     args = parser.parse_args()
 
     import torch
@@ -67,7 +68,7 @@ def main():
         lines = data.get("lines") or []
         if not lines:
             continue
-        if not args.force and any(line.get("score", 0) > 0 for line in lines):
+        if not args.force and any(line.get("score", 0) > 0 for line in lines) and not args.all:
             continue
 
         stem = next(STEMS.glob(f"{tid}__*/vocals.wav"), None)
@@ -95,14 +96,17 @@ def main():
             if not spans or any(not span for span in spans):
                 continue
 
-            ratio = len(chunk) / emission.shape[0]
+            ratio = len(chunk) / emission.shape[1]
             for word, span in zip(words, spans):
                 start = begin + span[0].start * ratio / 16000
                 end = begin + span[-1].end * ratio / 16000
-                if end > start:
-                    word["s"] = round(start, 3)
-                    word["e"] = round(end, 3)
-                    changed += 1
+                if end <= start:
+                    continue
+                if start < begin - 0.5 or end > ending + 0.5:
+                    continue
+                word["s"] = round(start, 3)
+                word["e"] = round(end, 3)
+                changed += 1
 
         if changed:
             for line in lines:
