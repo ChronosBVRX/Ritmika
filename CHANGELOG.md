@@ -2,7 +2,7 @@
 
 Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [Web 1.1.0 / Android TV 1.0.11] - 2026-10-19
 
 ### Added
 - **Dos canales de release**: Web/PC en `/tv` (alias `/`, `/pc`) y Android TV vía APK con shell nativo.
