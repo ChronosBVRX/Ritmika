@@ -10,7 +10,33 @@ la misma base de datos de canciones.
 
 El servidor es compartido: los cambios de API, Socket.io, catálogo y modos se
 despliegan con la versión Web y aplican a ambos canales. El APK no necesita
-recompilarse para cambios de contenido o de servidor.
+recompilarse para cambios de contenido o de servidor; sí para cambios del shell
+nativo.
+
+> **Regla de paridad obligatoria:** toda modificación funcional o visual se
+> implementa y verifica en **Web/PC y Android TV** en el mismo cambio. No se
+> deja una versión atrás. Los números de versión pueden avanzar por separado,
+> pero la funcionalidad debe quedar en paridad.
+
+## Paridad obligatoria entre canales
+
+| Área | Web / PC | Android TV |
+|------|----------|------------|
+| Menú y lobby | `public/tv.html` + `public/js/tv/main-menu.js` | `NativeShellView.kt` |
+| Juego (ruleta, karaoke, votación, podio) | WebView | El mismo WebView |
+| Ajustes | Modal HTML | `LobbySettingsDialog.kt` |
+| Audio Bluetooth | No aplica | `AudioPanelActivity.kt` |
+| Servidor / API / Socket.io | Compartido | Compartido |
+
+- Si un cambio toca menú, lobby, QR, jugadores, ajustes o navegación, hay que
+  actualizar **las dos implementaciones**, no solo la web.
+- Si un cambio toca el juego, suele vivir en el WebView compartido; aun así se
+  verifica en PC y en el APK.
+- Las únicas excepciones son funciones exclusivas de una plataforma (por
+  ejemplo Bluetooth/A2DP en Android). Se documenta la excepción y se verifica
+  que la otra versión no se rompa.
+- Checklist mínimo: probar `/tv` en PC, probar el APK en Android, ejecutar
+  `npm run test:all`, desplegar web y publicar OTA si cambió el APK.
 
 ---
 
@@ -78,16 +104,20 @@ La app se actualiza sola vía `UpdateManager` cuando `latest.json` tiene un
 
 ## Reglas de convivencia
 
-1. **No mezclar bumps.** Un cambio solo de web sube `package.json`; un cambio
-   del APK sube `android/app/build.gradle.kts` con `publish_ota.sh`.
-2. **PC nunca usa `shell=1`.** El menú/lobby HTML es la versión de PC.
-3. **Android siempre usa `/tv?native=1&shell=1`.** El shell nativo se muestra
+1. **Paridad obligatoria.** Toda modificación funcional o visual se implementa
+   y verifica en Web/PC y Android TV en el mismo cambio. No se deja una versión
+   atrás; si toca menú/lobby/ajustes, se actualizan HTML y shell nativo.
+2. **No mezclar bumps.** Un cambio solo de web sube `package.json`; un cambio
+   del APK sube `android/app/build.gradle.kts` con `publish_ota.sh`. Los bumps
+   son independientes, pero la funcionalidad debe quedar en paridad.
+3. **PC nunca usa `shell=1`.** El menú/lobby HTML es la versión de PC.
+4. **Android siempre usa `/tv?native=1&shell=1`.** El shell nativo se muestra
    solo cuando existe `AndroidNative` y el flag `shell=1`.
-4. **Desplegar Web antes del APK** si el APK cambia de ruta o depende de un
+5. **Desplegar Web antes del APK** si el APK cambia de ruta o depende de un
    endpoint nuevo.
-5. **Los cambios de servidor son compartidos.** Después de tocar
+6. **Los cambios de servidor son compartidos.** Después de tocar
    `server/`, desplegar Web y ejecutar `npm run test:all`.
-6. **No commitear** `tools/karaoke-factory/` ni artefactos de staging sin
+7. **No commitear** `tools/karaoke-factory/` ni artefactos de staging sin
    decisión explícita; es material de trabajo aparte.
 
 ---

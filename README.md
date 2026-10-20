@@ -29,6 +29,10 @@ shell nativo para menú/lobby y deja el juego en el WebView. Ambas comparten
 servidor, catálogo y Socket.io. Comandos de release en
 [`docs/RELEASES.md`](docs/RELEASES.md).
 
+> **Paridad obligatoria:** cada modificación funcional o visual se aplica y
+> verifica en las dos versiones en el mismo cambio. No se deja una atrás. Las
+> únicas excepciones son funciones exclusivas de una plataforma, y se documentan.
+
 ## Características
 
 - **Dual-Display** — Pantalla TV + controles móviles sincronizados en tiempo real

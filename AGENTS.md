@@ -173,7 +173,16 @@ Celulares desde cualquier lugar
 ### Dos versiones: Web/PC y Android TV
 - **Web / PC**: se sirve en `/tv` (alias `/` y `/pc`). Usa el menú/lobby HTML completos de `public/tv.html`, mouse y teclado. Su versión vive en `package.json` y se muestra como `v1.1.0 · WEB PC`.
 - **Android TV**: el APK carga `/tv?native=1&shell=1`. Usa `NativeShellView` para menú/lobby y el WebView solo para el juego. Su versión vive en `android/app/build.gradle.kts` y se publica con `android/scripts/publish_ota.sh`.
-- Las versiones son independientes. Un cambio de web no requiere APK; un cambio de APK no requiere bumpear la web, salvo que dependa de una ruta/API nueva.
+- **Regla de paridad obligatoria:** toda modificación funcional o visual se implementa y verifica en **Web/PC y Android TV** en el mismo cambio. No se acepta dejar una versión atrás.
+- La independencia es solo de **versionado**: los números pueden avanzar por separado, pero la funcionalidad debe quedar en paridad. Un cambio de menú/lobby no es “solo web”: hay dos implementaciones y ambas se actualizan.
+- Si un cambio es exclusivo de una plataforma (por ejemplo Bluetooth/A2DP), se documenta la excepción y se verifica que la otra versión siga funcionando.
+- Tabla rápida de paridad:
+  - **Menú/lobby:** `public/tv.html` + `public/js/tv/main-menu.js` ↔ `NativeShellView.kt`.
+  - **Juego (ruleta, karaoke, votación, podio):** el mismo WebView; se verifica en ambos canales.
+  - **Ajustes:** modal HTML ↔ `LobbySettingsDialog`.
+  - **Audio Bluetooth:** solo Android (`AudioPanelActivity`); en PC no aplica.
+  - **Servidor/API/Socket.io:** compartido; se despliega con la web.
+- Checklist mínimo: probar `/tv` en PC, probar el APK en Android, ejecutar `npm run test:all`, desplegar web y publicar OTA si el APK cambió.
 - El flag `shell=1` solo activa el shell si existe el puente `AndroidNative`; la versión PC nunca lo muestra.
 - Desplegar la web **antes** del APK cuando el APK cambie de ruta o consuma un endpoint nuevo.
 - Guía de release y comandos: `docs/RELEASES.md`.
