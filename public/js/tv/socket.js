@@ -261,6 +261,7 @@ function syncReconnectedPlayer(player) {
 }
 
 socket.on('tv:player_joined', ({ player, players }) => {
+  console.log('[TV] player_joined', players ? players.length : 0, player && player.name);
   const saved = state.isRestored ? loadSavedGame() : null;
   const matchedNames = new Set();
   state.players = players.map(p => {

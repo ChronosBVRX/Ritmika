@@ -84,6 +84,8 @@
       const json = JSON.stringify(collect());
       if (force || json !== lastJson) {
         lastJson = json;
+        const s = JSON.parse(json);
+        console.log('[Shell] push', s.screen, s.players.length, s.roomCode || '-');
         AndroidNative.onShellState(json);
       }
     } catch (e) {
