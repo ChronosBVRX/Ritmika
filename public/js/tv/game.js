@@ -1838,6 +1838,7 @@ let podiumBgm = null;
 
 function showPodium() {
   document.body.classList.remove('scoreboard-open');
+  document.body.classList.remove('podium-title-open','podium-award-open','podium-winner-open','podium-final-open');
   if (typeof bootMusic !== 'undefined' && bootMusic) { bootMusic.pause(); }
   FlowDirector.enter('podium', { label: 'Premiación' });
   sting('sting_podium', 0.5);
@@ -1855,15 +1856,15 @@ function showPodium() {
   let awardsData = [];
   if (state.gameMode === 'emo') {
     awardsData = [
-      { icon:'💔', img: './assets/modes/emo/award_broken_heart.webp?v=2', title:'Corazón Más Roto', subtitle:'Mayor Sufrimiento', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: {text:'Ni tu ex te dejó tan mal como esta puntuación.', file: 'emo/emo_award_0.mp3'} },
-      { icon:'📱', img: './assets/modes/emo/award_indirecta.webp?v=2', title:'Mejor Indirecta', subtitle:'Fuego Cruzado Emo', player: vengador, color:'#a855f7', border:'#9333ea', obj: {text:'Esa indirecta dolió hasta en la otra cuadra.', file: 'emo/emo_award_1.mp3'} },
-      { icon:'🌑', img: './assets/modes/emo/award_blackout.webp?v=2', title:'Sobreviviente', subtitle:'Superó el Apagón', player: sorted[0], color:'#facc15', border:'#eab308', obj: {text:'Cantaste en la oscuridad mejor que en la luz.', file: 'emo/emo_award_2.mp3'} },
+      { icon:'💔', img: './assets/modes/emo/award_broken_heart.webp?v=3', title:'Corazón Más Roto', subtitle:'Mayor Sufrimiento', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: {text:'Ni tu ex te dejó tan mal como esta puntuación.', file: 'emo/emo_award_0.mp3'} },
+      { icon:'📱', img: './assets/modes/emo/award_indirecta.webp?v=3', title:'Mejor Indirecta', subtitle:'Fuego Cruzado Emo', player: vengador, color:'#a855f7', border:'#9333ea', obj: {text:'Esa indirecta dolió hasta en la otra cuadra.', file: 'emo/emo_award_1.mp3'} },
+      { icon:'🌑', img: './assets/modes/emo/award_blackout.webp?v=3', title:'Sobreviviente', subtitle:'Superó el Apagón', player: sorted[0], color:'#facc15', border:'#eab308', obj: {text:'Cantaste en la oscuridad mejor que en la luz.', file: 'emo/emo_award_2.mp3'} },
     ];
   } else {
     awardsData = [
-      { icon:'&#128019;', img: './assets/award_gallo.webp?v=2', title:'Gallo Supremo',    subtitle:'Valor Desafinado', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: rand(AWARD_CARRILLA.gallo) },
-      { icon:'&#127813;', img: './assets/award_tomate.webp?v=2', title:'Salsa de Tomate',  subtitle:'El M&#225;s Atacado',   player: mostTomatoes && mostTomatoes.tomatazos > 0 ? mostTomatoes : null, color:'#ef4444', border:'#dc2626', obj: rand(AWARD_CARRILLA.tomate) },
-      { icon:'&#128535;', img: './assets/award_vengador.webp?v=2', title:'Vengador An&#243;nimo', subtitle:'M&#225;s Sabotajes',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
+      { icon:'&#128019;', img: './assets/award_gallo.webp?v=3', title:'Gallo Supremo',    subtitle:'Valor Desafinado', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: rand(AWARD_CARRILLA.gallo) },
+      { icon:'&#127813;', img: './assets/award_tomate.webp?v=3', title:'Salsa de Tomate',  subtitle:'El M&#225;s Atacado',   player: mostTomatoes && mostTomatoes.tomatazos > 0 ? mostTomatoes : null, color:'#ef4444', border:'#dc2626', obj: rand(AWARD_CARRILLA.tomate) },
+      { icon:'&#128535;', img: './assets/award_vengador.webp?v=3', title:'Vengador An&#243;nimo', subtitle:'M&#225;s Sabotajes',    player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(AWARD_CARRILLA.vengador) },
     ];
   }
   awardsData = awardsData.map(a => ({...a, carrilla: a.obj.text, file: a.obj.file}));
@@ -1954,9 +1955,10 @@ function showPodium() {
   async function runCeremony() {
 
     // FASE 1: Titulo epico
+    document.body.classList.add('podium-title-open');
     ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
     const bgImg=document.createElement('div');
-    bgImg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.webp) center/cover no-repeat;opacity:0;z-index:0;transition:opacity 1.2s ease;';
+    bgImg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stage_wide.webp) center/cover no-repeat;opacity:0;z-index:0;transition:opacity 1.2s ease;';
     ceremonyRoot.appendChild(bgImg);
     const bgOvl=document.createElement('div');
     bgOvl.style.cssText='position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,26,0.5) 0%,rgba(10,10,26,0.88) 100%);z-index:1;';
@@ -1968,7 +1970,7 @@ function showPodium() {
     ceremonyRoot.appendChild(titleWrap);
 
     const trophyEl=document.createElement('img');
-    trophyEl.src='./assets/podium_trophy_glow.webp';
+    trophyEl.src='./assets/podium_trophy_ritmika.webp';
     trophyEl.style.cssText='width:150px;height:150px;object-fit:contain;opacity:0;transform:translateY(-60px) scale(0.5);filter:drop-shadow(0 0 30px #facc15) drop-shadow(0 0 60px #facc1588);';
     titleWrap.appendChild(trophyEl);
 
@@ -1998,8 +2000,10 @@ function showPodium() {
     await waitForAxoloAudio(1500);
     anime({targets:[titleBlock,subtitleEl,trophyEl],opacity:[1,0],translateY:[0,-40],duration:500,easing:'easeInCubic'});
     await wait(600);
+    document.body.classList.remove('podium-title-open');
 
     // FASE 2: Premios especiales
+    document.body.classList.add('podium-award-open');
     let awardRevealSeq = 0;
     for (const award of awardsData) {
       if (!award.player) continue;
@@ -2007,7 +2011,7 @@ function showPodium() {
       const sideDir=award.icon==='&#128019;'?-1:award.icon==='&#127813;'?1:0;
       ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
       const aBg=document.createElement('div');
-      aBg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.webp) center/cover no-repeat;opacity:0.22;z-index:0;';
+      aBg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stage_wide.webp) center/cover no-repeat;opacity:0.22;z-index:0;';
       ceremonyRoot.appendChild(aBg);
       const aOvl=document.createElement('div');
       aOvl.style.cssText='position:absolute;inset:0;background:rgba(10,10,26,0.72);z-index:1;';
@@ -2031,7 +2035,7 @@ function showPodium() {
       aCard.style.border='6px solid '+award.color;
       aCard.style.boxShadow='16px 16px 0 #111827, 0 0 40px '+award.color+'88';
       aCard.style.transform='translateX('+(sideDir*130)+'%)';
-      let awardGraphic = award.img ? '<img src="'+award.img+'" style="width:160px;height:160px;object-fit:contain;margin:0 auto 12px;filter:drop-shadow(0 0 18px '+award.color+');"/>' : '<div style="font-size:76px;margin-bottom:8px;filter:drop-shadow(0 0 18px '+award.color+');">'+award.icon+'</div>';
+      let awardGraphic = award.img ? '<img src="'+award.img+'" style="width:220px;height:220px;object-fit:contain;margin:0 auto 12px;filter:drop-shadow(0 0 18px '+award.color+');"/>' : '<div style="font-size:76px;margin-bottom:8px;filter:drop-shadow(0 0 18px '+award.color+');">'+award.icon+'</div>';
       // La tarjeta muestra el premio durante la narración, pero el ganador se
       // revela recién cuando el narrador termina de anunciarlo.
       const winnerBlockId = 'award-winner-' + (awardRevealSeq++);
@@ -2085,7 +2089,7 @@ function showPodium() {
     playSfx('./assets/audio/sfx_drumroll.mp3');
     ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
     const p3bg=document.createElement('div');
-    p3bg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.webp) center/cover no-repeat;opacity:0.18;z-index:0;';
+    p3bg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stage_wide.webp) center/cover no-repeat;opacity:0.18;z-index:0;';
     ceremonyRoot.appendChild(p3bg);
     const p3ovl=document.createElement('div');
     p3ovl.style.cssText='position:absolute;inset:0;background:radial-gradient(circle at center,rgba(30,27,75,0.55) 0%,rgba(10,10,26,0.92) 100%);z-index:1;';
@@ -2152,6 +2156,7 @@ function showPodium() {
       await wait(1700);
     }
     await wait(400);
+    document.body.classList.remove('podium-award-open');
 
     // FASE 4: MOMENTO WOW - 1er lugar
     if(sorted[0]) {
@@ -2188,8 +2193,9 @@ function showPodium() {
         setTimeout(()=>fireworkBurst(window.innerWidth*rx,window.innerHeight*ry),i*180);
       });
       await wait(300);
+      document.body.classList.add('podium-winner-open');
       const winnerScreen=document.createElement('div');
-      winnerScreen.style.cssText='position:fixed;inset:0;z-index:10004;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center,#1e1b4b 0%,#0a0a1a 100%);overflow:hidden;';
+      winnerScreen.style.cssText='position:fixed;inset:0;z-index:10004;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(rgba(10,10,26,0.72),rgba(10,10,26,0.92)), url(./assets/podium_bg_stage_wide.webp) center/cover no-repeat;overflow:hidden;';
       document.body.appendChild(winnerScreen);
       const winnerAv=getAvatar(sorted[0].avatarId);
       ['25%','50%','75%'].forEach((pos,i)=>{
@@ -2207,7 +2213,8 @@ function showPodium() {
         +'<div style="margin-top:24px;background:#ffe600;border:6px solid #111827;box-shadow:16px 16px 0 #111827;padding:18px 50px;border-radius:0;text-align:center;">'
         +'<div style="font-family:\'Paytone One\',sans-serif;font-size:24px;color:#111827;letter-spacing:6px;text-transform:uppercase;">&#129351; GANADOR &#129351;</div>'
         +'<div style="font-family:\'Paytone One\',sans-serif;font-size:52px;color:#111827;line-height:1.1;margin-top:4px;">'+escapeHtml(sorted[0].name)+'</div></div>'
-        +'<div id="winner-score-display" style="font-family:\'Paytone One\',sans-serif;font-size:42px;color:#facc15;margin-top:18px;text-shadow:6px 6px 0 #111827, 0 0 20px #facc15;opacity:0;background:#0f172a;border:6px solid #111827;padding:4px 30px;box-shadow:10px 10px 0 #111827;">0 pts</div>';
+        +'<div id="winner-score-display" style="font-family:\'Paytone One\',sans-serif;font-size:42px;color:#facc15;margin-top:18px;text-shadow:6px 6px 0 #111827, 0 0 20px #facc15;opacity:0;background:#0f172a;border:6px solid #111827;padding:4px 30px;box-shadow:10px 10px 0 #111827;">0 pts</div>'
+        +'<img src="./assets/podium_trophy_ritmika.webp" alt="Trofeo Rítmika" style="width:160px;height:160px;object-fit:contain;margin-top:20px;filter:drop-shadow(0 0 28px #facc15) drop-shadow(0 0 56px #facc1588);"/>';
       winnerScreen.appendChild(winnerContent);
       anime({targets:'#winner-reveal-content',opacity:[0,1],scale:[0.6,1.05,1],duration:900,easing:'easeOutBack'});
       sting('sting_winner', 0.55);
@@ -2231,12 +2238,14 @@ function showPodium() {
       anime({targets:'#winner-reveal-content',opacity:[1,0],scale:[1,0.8],duration:500,easing:'easeInCubic'});
       await wait(600);
       if(winnerScreen.parentNode) winnerScreen.parentNode.removeChild(winnerScreen);
+      document.body.classList.remove('podium-winner-open');
     }
 
     // FASE 5: Podio final completo premium
+    document.body.classList.add('podium-final-open');
     ceremonyRoot.innerHTML=''; ceremonyRoot.appendChild(starCanvas);
     const finalBg=document.createElement('div');
-    finalBg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stadium.webp) center/cover no-repeat;opacity:0.16;z-index:0;';
+    finalBg.style.cssText='position:absolute;inset:0;background:url(./assets/podium_bg_stage_wide.webp) center/cover no-repeat;opacity:0.16;z-index:0;';
     ceremonyRoot.appendChild(finalBg);
     const finalOvl=document.createElement('div');
     finalOvl.style.cssText='position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(30,27,75,0.5) 0%,rgba(10,10,26,0.95) 100%);z-index:1;';
@@ -2294,7 +2303,10 @@ function showPodium() {
       const av=getAvatar(a.player.avatarId);
       const aEl=document.createElement('div');
       aEl.style.cssText='display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;max-width:140px;gap:2px;';
-      aEl.innerHTML='<div style="font-size:26px;filter:drop-shadow(0 0 8px '+a.color+');">'+a.icon+'</div>'
+      const awardPanelIcon = a.img
+        ? '<img src="'+a.img+'" style="width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 8px '+a.color+');"/>'
+        : '<div style="font-size:26px;filter:drop-shadow(0 0 8px '+a.color+');">'+a.icon+'</div>';
+      aEl.innerHTML=awardPanelIcon
         +'<p style="font-size:10px;font-weight:900;text-transform:uppercase;color:'+a.color+';margin:0;letter-spacing:1px;">'+a.title+'</p>'
         +'<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;background:'+av.color+';border:4px solid #111827;display:flex;align-items:center;justify-content:center;margin:2px 0;box-shadow:4px 4px 0 #111827;"><img src="'+av.img+'" style="width:90%;height:90%;object-fit:contain;"/></div>'
         +'<p style="font-size:12px;font-weight:800;color:#e2e8f0;margin:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(a.player.name)+'</p>';

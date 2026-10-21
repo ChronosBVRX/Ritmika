@@ -13,6 +13,13 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Tomatazo: proyectil HD con estela, impacto con onda expansiva, estallido de tomate, salpicaduras múltiples, texto `¡TOMATAZO!`, marcador atacante → víctima y penalización.
 - Apagón mental: banner reposicionado, scanlines y viñeta pulsante.
 
+### Premiación
+- Escenario de premiación **1920×1080** sin personas ni texto, con podio central, papel picado, confeti y luces neón.
+- Trofeos 3D nuevos para **Gallo Supremo**, **Salsa de Tomate**, **Vengador Anónimo** y los premios emo (Corazón Roto, Mejor Indirecta, Sobreviviente).
+- Trofeo de campeón **Rítmika** (micrófono con corona) en la portada de la ceremonia y en la revelación del ganador.
+- El cut-in de Axolo se mueve arriba durante la premiación para no tapar trofeos ni podio; en el podio final se oculta.
+- Script reproducible `scripts/generate_podium_assets.py`.
+
 ### Avatares
 - Rediseño completo de los 8 avatares: figuras 3D coleccionables de fiesta, encuadre busto uniforme, 768×768, alfa real y sin piso/sombras horneadas.
 - Generados con ComfyUI/SDXL Juggernaut XL, recorte `rembg` (u2netp) y limpieza de sombra de contacto.

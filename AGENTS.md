@@ -59,7 +59,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/assets/tomato_projectile_hd.webp` / `tomato_splat_hd.webp` — Tomate y estallido HD con alfa real.
 - `public/assets/avatars/` — 8 WebP de avatares con transparencia alfa real (generados con IA + floodfill, convertidos de PNG a WebP).
 - `public/assets/tio_axolo_vignette_<emocion>.webp` — Assets de la mascota en modo RGBA con transparencia real. 6 emociones: `neutral`, `laughing`, `mischievous`, `sad`, `angry`, `singing`. + `tio_axolo_body.webp` para pantalla de carga. + Variantes por modo: `axolo_anime.webp`, `axolo_emo.webp`, `axolo_ranchera.webp`, `axolo_nostalgia.webp`.
-- `public/assets/` — También incluye: `logo_ritmika.webp`, fondos (`bg_neon_club.webp`, `bg_neon_y2k.webp`), decoraciones de lobby, assets de podio (`podium_bg_stadium.webp`, `podium_crown.webp`), assets de ruleta, `loading_bg.mp4`, iconos de modo, favicon, tomato assets (SVG + WebP), fuentes woff2 (Fredoka, Paytone One).
+- `public/assets/` — También incluye: `logo_ritmika.webp`, fondos (`bg_neon_club.webp`, `bg_neon_y2k.webp`), decoraciones de lobby, assets de podio (`podium_bg_stage_wide.webp`, `podium_crown.webp`, `podium_trophy_ritmika.webp`), assets de ruleta, `loading_bg.mp4`, iconos de modo, favicon, tomato assets (SVG + WebP), fuentes woff2 (Fredoka, Paytone One).
 - `public/libs/` — Tailwind.js local + Anime.js local + GSAP local + QRCode.min.js (CDN evitado para rendimiento).
 
 ### App Android TV (Kotlin)
@@ -88,6 +88,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `scripts/download_deps.ps1` — Descarga WebView2 SDK de NuGet, extrae DLLs.
 - `scripts/generate_all_audio.js` — Genera voces con ElevenLabs API. Lee API key de `.env`. 172+ frases definidas. Soporta skip si el MP3 ya existe.
 - `scripts/generate_podium_audio.js` — Genera audio de ceremonia de podio con ElevenLabs.
+- `scripts/generate_podium_assets.py` — Genera escenario 16:9 y trofeos 3D de premiación con ComfyUI/SDXL + rembg.
 - `scripts/generate_premium_avatars.py` — Genera los 8 avatares con ComfyUI/SDXL, recorte `rembg` y alfa real.
 - `scripts/generate_podium_extra.js` — Audio extra de podio.
 - `scripts/build_r2_db.py` — Construye la base de datos de Cloudflare R2 (genera r2_db.json).
