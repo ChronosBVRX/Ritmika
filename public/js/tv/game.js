@@ -52,7 +52,7 @@ function ensureChallengeHud() {
     hud.id = 'active-challenge-hud';
     hud.className = 'hidden';
     hud.innerHTML = '<span class="rfx-ach-icon">🎭</span><span class="rfx-ach-label">RETO</span><span id="active-challenge-hud-text"></span>';
-    const screen = document.getElementById('karaoke-screen');
+    const screen = document.getElementById('karaoke-video-wrap') || document.getElementById('karaoke-screen');
     if (screen) screen.appendChild(hud);
   }
   return hud;
@@ -608,7 +608,9 @@ async function showRouletteResult(player) {
     spinButton.style.display = 'none';
   }
   state.votes = [];
+  const assignment = state.assignedSongs[player.socketId] || null;
   const song = await pickSongForPlayer(player);
+  state.currentAssignment = assignment;
   state.currentSong = song;
 
   // Resolve video URL — siempre presignada desde R2. La URL pública
@@ -630,8 +632,11 @@ async function showRouletteResult(player) {
   document.getElementById('selected-player-name').textContent = rouletteDisplayName(player.name);
   const rouletteHeading = document.getElementById('roulette-heading');
   if (rouletteHeading) rouletteHeading.textContent = '¡El destino habló!';
+  const assignedSuffix = assignment && assignment.attackerName
+    ? ` · Asignada por ${assignment.attackerName}`
+    : '';
   document.getElementById('selected-song-info').textContent = song
-    ? `Canción: "${song.title}" — ${song.artist}`
+    ? `Canción: "${song.title}" — ${song.artist}${assignedSuffix}`
     : '🎲 Canción aleatoria de la noche';
 
   // Highlight winner chip
@@ -660,7 +665,12 @@ async function showRouletteResult(player) {
   socket.emit('tv:broadcast', {
     roomCode: state.roomCode,
     event: 'SINGER_SELECTED',
-    data: { socketId: player.socketId, name: player.name, song: state.currentSong },
+    data: {
+      socketId: player.socketId,
+      name: player.name,
+      song: state.currentSong,
+      assignedBy: assignment ? assignment.attackerName : null,
+    },
   });
   // Private message to singer
   socket.emit('tv:send_to_player', {
@@ -773,6 +783,7 @@ function sting(name, vol) {
 const KS_WIN = { x: 200, y: 112, w: 1520, h: 855 };
 const KS_DESIGN = { w: 1920, h: 1080 };
 let ksVideoPoll = null;
+let lastKsVideo = '';
 
 function ksFit(vw, vh) {
   if (!vw || !vh) return { x: KS_WIN.x, y: KS_WIN.y, w: KS_WIN.w, h: KS_WIN.h };
@@ -790,9 +801,10 @@ function ksEnsureStage() {
   const st = document.createElement('style');
   st.id = 'ks-css';
   st.textContent = [
-    '#ks-bg,#ks-fg{position:fixed;inset:0;pointer-events:none;}',
+    '#ks-bg,#ks-fg{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;}',
     '#ks-bg{z-index:0;}',
     '#ks-fg{z-index:2;}',
+    '#karaoke-video-wrap{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:top left;overflow:hidden;}',
     '.ks-region{position:absolute;background-image:url("./assets/karaoke_stage_bg.webp?v=1");background-size:1920px 1080px;background-repeat:no-repeat;}',
     '#ks-frame{position:absolute;border:6px solid #111827;box-shadow:inset 0 0 0 2px rgba(255,230,0,.22),0 0 40px rgba(0,229,255,.16);}',
     '#ks-vig{position:absolute;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 52%,rgba(0,0,0,.62) 100%);}',
@@ -810,10 +822,10 @@ function ksEnsureStage() {
   ].join('\n');
   document.head.appendChild(st);
 
-  const host = document.getElementById('karaoke-screen') || document.body;
+  const host = document.getElementById('karaoke-video-wrap') || document.getElementById('karaoke-screen') || document.body;
   const bg = document.createElement('div'); bg.id = 'ks-bg';
   const fg = document.createElement('div'); fg.id = 'ks-fg';
-  host.appendChild(bg);
+  host.insertBefore(bg, host.firstChild);
   host.appendChild(fg);
 
   ['ks-out-t', 'ks-out-b', 'ks-out-l', 'ks-out-r',
@@ -823,6 +835,11 @@ function ksEnsureStage() {
     d.id = id;
     bg.appendChild(d);
   });
+
+  if (!window.__ksResizeBound) {
+    window.addEventListener('resize', ksApplyViewport);
+    window.__ksResizeBound = true;
+  }
 
   const frame = document.createElement('div'); frame.id = 'ks-frame'; fg.appendChild(frame);
   const vig = document.createElement('div'); vig.id = 'ks-vig'; fg.appendChild(vig);
@@ -843,7 +860,23 @@ function ksEnsureStage() {
   });
 }
 
+function ksApplyViewport() {
+  const wrap = document.getElementById('karaoke-video-wrap');
+  if (!wrap) return;
+  const scale = Math.min(window.innerWidth / KS_DESIGN.w, window.innerHeight / KS_DESIGN.h);
+  const ox = Math.round((window.innerWidth - KS_DESIGN.w * scale) / 2);
+  const oy = Math.round((window.innerHeight - KS_DESIGN.h * scale) / 2);
+  wrap.style.position = 'absolute';
+  wrap.style.left = '0';
+  wrap.style.top = '0';
+  wrap.style.width = KS_DESIGN.w + 'px';
+  wrap.style.height = KS_DESIGN.h + 'px';
+  wrap.style.transformOrigin = 'top left';
+  wrap.style.transform = `translate(${ox}px,${oy}px) scale(${scale})`;
+}
+
 function ksLayout(vw, vh) {
+  ksApplyViewport();
   const r = ksFit(vw, vh);
   const place = (id, x, y, w, h) => {
     const d = document.getElementById(id);
@@ -915,6 +948,13 @@ function karaokeStageEnter() {
   });
 }
 
+function isQuickSongsMode() {
+  try {
+    if (window.MainMenu && typeof MainMenu.isQuickSongs === 'function') return MainMenu.isQuickSongs();
+  } catch (e) {}
+  try { return localStorage.getItem('ritmika_quick_songs') === '1'; } catch (e) { return false; }
+}
+
 async function startKaraoke(player, song) {
   if (document.getElementById('karaoke-screen').classList.contains('active')) return;
   karaokeGeneration++;
@@ -934,10 +974,16 @@ async function startKaraoke(player, song) {
   karaokeStageInfo(song, player);
   karaokeStageEnter();
   if (ksVideoPoll) clearInterval(ksVideoPoll);
+  lastKsVideo = '';
   ksVideoPoll = setInterval(() => {
     if (myGeneration !== karaokeGeneration) { clearInterval(ksVideoPoll); ksVideoPoll = null; return; }
     const v = document.getElementById('karaoke-video');
-    if (v) ksLayout(v.videoWidth, v.videoHeight);
+    if (!v) return;
+    const key = v.videoWidth + 'x' + v.videoHeight;
+    if (key !== lastKsVideo) {
+      lastKsVideo = key;
+      ksLayout(v.videoWidth, v.videoHeight);
+    }
   }, 400);
 
   // Resolve video URL if not already done (presignada desde R2)
@@ -949,6 +995,11 @@ async function startKaraoke(player, song) {
   }
 
   state.votedBy = new Set();
+  const quickSongs = isQuickSongsMode();
+  state.songLimitSeconds = quickSongs ? 90 : null;
+  state.songStartOffset = quickSongs
+    ? Math.min(15, Math.max(0, (song && song.duration ? song.duration : 0) * 0.05))
+    : 0;
 
   const av = getAvatar(player.avatarId);
   document.getElementById('hud-singer-avatar-img').src = av.img;
@@ -1007,7 +1058,14 @@ async function startKaraoke(player, song) {
     document.getElementById('np-artist').textContent = song.artist;
     video.muted = true;
     video.src = videoUrl;
+    const seekToStart = () => {
+      if (state.songStartOffset > 0 && isFinite(video.duration) && video.duration > 0) {
+        try { video.currentTime = Math.min(state.songStartOffset, Math.max(0, video.duration - 1)); } catch (e) {}
+      }
+    };
     try { video.load(); } catch (e) {}
+    if (video.readyState >= 1) seekToStart();
+    else video.addEventListener('loadedmetadata', seekToStart, { once: true });
     if (typeof bootMusic !== 'undefined' && bootMusic) bootMusic.pause();
   } else {
     document.getElementById('lyrics-text').textContent = '¡Canta lo que quieras!';
@@ -1295,6 +1353,8 @@ function showAudioOnlyPlaceholder(song) {
 function startKaraokeTimer(video, song) {
   if (timerInterval) clearInterval(timerInterval);
   const fallbackDuration = Math.floor(song?.duration || 120);
+  const clipStart = Math.max(0, Number(state.songStartOffset) || 0);
+  const clipLimit = state.songLimitSeconds ? Number(state.songLimitSeconds) : null;
   let wallElapsed = 0;
   let lastBroadcastSecond = -1;
 
@@ -1307,11 +1367,12 @@ function startKaraokeTimer(video, song) {
     let duration;
     const hasVideoClock = video && !video.error && isFinite(video.duration) && video.duration > 0;
     if (hasVideoClock) {
-      elapsed = video.currentTime || 0;
-      duration = video.duration;
+      elapsed = Math.max(0, (video.currentTime || 0) - clipStart);
+      const videoRemaining = Math.max(0, video.duration - clipStart);
+      duration = clipLimit ? Math.min(clipLimit, videoRemaining) : videoRemaining;
     } else {
       elapsed = wallElapsed;
-      duration = fallbackDuration;
+      duration = clipLimit ? Math.min(clipLimit, fallbackDuration) : fallbackDuration;
     }
 
     const remaining = Math.max(0, Math.floor(duration - elapsed));
@@ -1351,6 +1412,7 @@ function startKaraokeTimer(video, song) {
     if (remaining <= 0) {
       clearInterval(timerInterval);
       timerInterval = null;
+      if (clipLimit && video) { try { video.pause(); } catch (e) {} }
       const fallbackSinger = currentSongPerformer || state.singerQueue[state.currentSingerIdx % state.singerQueue.length] || state.players.find(p => !p.disconnected);
       startVotePhase(fallbackSinger, song);
     }
@@ -1513,7 +1575,36 @@ function endSong(player) {
 
   const tomatoCount = state.tomatazoCounts[player.socketId] || 0;
   const tomatoPenalty = Math.min(30, tomatoCount * 15);
-  const finalScore = Math.max(0, avgScore + challengeBonus - tomatoPenalty);
+
+  let revenge = null;
+  let revengeBonus = 0;
+  let attackerDelta = 0;
+  let revengeAttacker = null;
+  if (state.round === 2 && state.currentAssignment && state.currentAssignment.attackerSocketId) {
+    const assignment = state.currentAssignment;
+    revengeAttacker = state.players.find(p =>
+      p.socketId === assignment.attackerSocketId ||
+      (assignment.attackerPlayerId && p.playerId === assignment.attackerPlayerId)
+    ) || null;
+    if (revengeAttacker && revengeAttacker.socketId !== player.socketId) {
+      if (avgScore >= 80) {
+        revengeBonus = 15;
+        attackerDelta = -10;
+        revenge = {
+          type: 'revenge', bonus: revengeBonus, attackerName: revengeAttacker.name,
+          attackerDelta, text: 'Revancha',
+        };
+      } else if (avgScore <= 30) {
+        attackerDelta = 5;
+        revenge = {
+          type: 'crossfire', bonus: 0, attackerName: revengeAttacker.name,
+          attackerDelta, text: 'Fuego cruzado',
+        };
+      }
+    }
+  }
+
+  const finalScore = Math.max(0, avgScore + challengeBonus - tomatoPenalty + revengeBonus);
 
   hideChallengeHud();
   const challengeBanner = document.getElementById('challenge-banner');
@@ -1524,6 +1615,9 @@ function endSong(player) {
 
   const target = state.players.find(p => p.socketId === player.socketId);
   if (target) target.score = (target.score || 0) + finalScore;
+  if (revengeAttacker && attackerDelta) {
+    revengeAttacker.score = Math.max(0, (revengeAttacker.score || 0) + attackerDelta);
+  }
 
   // Broadcast score update to mobiles
   socket.emit('tv:broadcast', {
@@ -1573,10 +1667,25 @@ function endSong(player) {
     list.appendChild(challengeRow);
   }
 
+  if (revenge) {
+    const revengeRow = document.createElement('div');
+    revengeRow.className = 'mt-3 p-3 rounded-xl text-center';
+    const revColor = revenge.type === 'revenge' ? '#22c55e' : '#a855f7';
+    revengeRow.style.cssText = `background:${revColor}22; border:1px solid ${revColor}66;`;
+    const revLabel = revenge.type === 'revenge'
+      ? `⚔️ REVANCHA +${revenge.bonus}`
+      : `🔥 FUEGO CRUZADO +${revenge.attackerDelta}`;
+    const revDetail = revenge.type === 'revenge'
+      ? `Asignada por ${escapeHtml(revenge.attackerName)} · pierde ${Math.abs(revenge.attackerDelta)}`
+      : `Asignada por ${escapeHtml(revenge.attackerName)} · se lleva +${revenge.attackerDelta}`;
+    revengeRow.innerHTML = `<p class="font-bold text-xs" style="color:${revColor}; letter-spacing:.12em;">${revLabel}</p><p class="text-xs mt-1" style="color:#94a3b8;">${revDetail}</p>`;
+    list.appendChild(revengeRow);
+  }
+
   const totalRow = document.createElement('div');
   totalRow.className = 'mt-4 p-3 rounded-xl text-center';
   totalRow.style.cssText = 'background:#ec489922; border:1px solid #ec489966; opacity:0; transform:scale(0.8);';
-  totalRow.innerHTML = `<p class="font-bold" style="color:#64748b;">TOTAL DE LA CANCIÓN</p><p id="total-score-display" class="text-4xl font-black" style="color:#ec4899;">0</p><p class="text-xs mt-1" style="color:#94a3b8;">Votos ${avgScore}${challengeResult ? ` · Reto ${challengeBonus ? '+' + challengeBonus : '0'}` : ''}${tomatoPenalty ? ` · Tomates −${tomatoPenalty}` : ''}</p>`;
+  totalRow.innerHTML = `<p class="font-bold" style="color:#64748b;">TOTAL DE LA CANCIÓN</p><p id="total-score-display" class="text-4xl font-black" style="color:#ec4899;">0</p><p class="text-xs mt-1" style="color:#94a3b8;">Votos ${avgScore}${challengeResult ? ` · Reto ${challengeBonus ? '+' + challengeBonus : '0'}` : ''}${tomatoPenalty ? ` · Tomates −${tomatoPenalty}` : ''}${revengeBonus ? ` · Revancha +${revengeBonus}` : ''}</p>`;
   list.appendChild(totalRow);
 
   const totalDelay = 300 + singerVotes.length * 250 + 300;
@@ -1612,6 +1721,7 @@ function endSong(player) {
       challenge: challengeResult,
       tomatoCount,
       tomatoPenalty,
+      revenge,
       total: finalScore,
     },
   });
@@ -1656,6 +1766,9 @@ function nextTurn() {
   document.getElementById('scoreboard-overlay').classList.remove('visible');
   document.body.classList.remove('scoreboard-open');
   resetSongChallenge();
+  state.currentAssignment = null;
+  state.songLimitSeconds = null;
+  state.songStartOffset = 0;
   state.tomatazoCounts = {};
   state.currentSingerIdx++;
 
@@ -2236,7 +2349,7 @@ function showPodium() {
       if(podiumToRemove&&podiumToRemove.parentNode) podiumToRemove.parentNode.removeChild(podiumToRemove);
       UISounds.click();
       state.round=0;state.players=[];state.votes=[];state.currentSingerIdx=0;
-      state.singerQueue=[];state.audioSabotageCount=0;state.tomatazoCounts={};state.sabotageCounts={};state.currentChallenge=null;state.challengeVotes=[];state.challengeVotedBy=new Set();challengeDeck=[];hideChallengeHud();
+      state.singerQueue=[];state.audioSabotageCount=0;state.tomatazoCounts={};state.sabotageCounts={};state.currentChallenge=null;state.currentAssignment=null;state.songLimitSeconds=null;state.songStartOffset=0;state.challengeVotes=[];state.challengeVotedBy=new Set();challengeDeck=[];hideChallengeHud();
       socket.emit('tv:create_room');
       showScreen('lobby-screen');
       FlowDirector.enter('lobby', { label: 'Sala de espera' });

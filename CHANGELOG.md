@@ -18,6 +18,13 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Generados con ComfyUI/SDXL Juggernaut XL, recorte `rembg` (u2netp) y limpieza de sombra de contacto.
 - Nuevo `scripts/generate_premium_avatars.py` para reproducir el lote y la hoja de contacto.
 
+### Cierre de producto
+- **Karaoke responsivo:** el escenario se diseña a 1920×1080 y se escala/centra a la ventana. Corrige el video corrido o cortado en PC a 1366×768, 1280×720 y otras resoluciones.
+- **Ronda 2 — Revancha:** si la canción asignada termina con ≥80, el cantante gana **+15** y el asignador pierde **10**. Si termina con ≤30, el asignador gana **+5**. La tarjeta muestra quién asignó la canción.
+- **Sabotaje real:** el audio del video se mutea **3 s** (antes solo sonaba la queja de Axolo). El video sigue en su tiempo, sin desincronizar letra ni reloj.
+- **Modo Fiesta 90 s:** ajuste en el menú para jugar canciones de 90 s; reto, apagón y votación se recalculan sobre el clip.
+- Textos de ayuda actualizados: tomatazo 10 pts / −15 al cantante, reto +15 y sabotaje 3 s.
+
 ### Gameplay (P0)
 - El reto ahora se envía a **todos los celulares**, queda visible en un HUD persistente de la TV y se evalúa con un voto binario “¿Cumplió?” durante la votación.
 - Fallback de compatibilidad para relays v1.0.1: el voto de reto también viaja como emoji `🎭✅`/`🎭❌` por `player:emoji`.

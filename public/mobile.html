@@ -1907,7 +1907,7 @@ function updateContextCard(event, data) {
 
       const isHost = isVip();
       const breakdown = (data && data.total != null)
-        ? `<p class="text-xs mt-2" style="color:#e2e8f0;">Votos ${data.average}${data.challenge ? ` · Reto ${data.challenge.bonus ? '+' + data.challenge.bonus : '0'}` : ''}${data.tomatoPenalty ? ` · Tomates −${data.tomatoPenalty}` : ''} · <b>Total ${data.total}</b></p>`
+        ? `<p class="text-xs mt-2" style="color:#e2e8f0;">Votos ${data.average}${data.challenge ? ` · Reto ${data.challenge.bonus ? '+' + data.challenge.bonus : '0'}` : ''}${data.tomatoPenalty ? ` · Tomates −${data.tomatoPenalty}` : ''}${data.revenge ? ` · ${data.revenge.type === 'revenge' ? 'Revancha +' + data.revenge.bonus : 'Fuego cruzado +' + data.revenge.attackerDelta}` : ''} · <b>Total ${data.total}</b></p>`
         : '';
       const challengeMsg = (data && data.challenge)
         ? `<p class="text-xs mt-1" style="color:${data.challenge.passed ? '#4ade80' : '#fca5a5'};">${data.challenge.passed ? '🎭 Reto cumplido +' + data.challenge.bonus : '🎭 Reto no cumplido'}</p>`

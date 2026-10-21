@@ -151,7 +151,7 @@ Celulares desde cualquier lugar
 
 ### Rondas
 - **Ronda 1 — "Tu Elección, Tu Condena"** — Ruleta, cada quien canta una canción de su preferencia + reto al **35%** (mín. 25 s, máx. 75 s)
-- **Ronda 2 — "Fuego Cruzado"** — Los jugadores asignan canciones a otros, la asignada reemplaza la preferencia
+- **Ronda 2 — "Fuego Cruzado"** — Los jugadores asignan canciones a otros; si la asignada termina ≥80 el cantante gana +15 y el asignador pierde 10; si ≤30 el asignador gana +5
 - **Ronda 3 — "Apagón Mental"** — Igual que R1 pero con blackout de video/letras al **40%** (mín. 30 s, máx. 90 s)
 - **Podio** — Ceremonia de 5 fases: título → premios especiales → 3ro/2do → ganador épico → podio final
 
@@ -160,6 +160,9 @@ Celulares desde cualquier lugar
 - La votación espera votos de score y de reto; los bots votan el reto. El cantante no puede autovotarse.
 - El reto y el apagón ya no llevan voz de Axolo encima de la canción: solo un sting corto.
 - Tomatazo: cuesta **10 pts**, solo se lanza al cantante actual y resta **−15 pts** a su canción (tope −30). El scoreboard muestra `Votos + Reto − Tomates`.
+- Sabotaje real: el audio del video se mutea 3 s; el video no se pausa para no desincronizar.
+- **Modo Fiesta 90 s** en Ajustes: recorta la canción y recalcula reto/apagón/voto sobre el clip.
+- Escenario de karaoke: diseño 1920×1080 escalado y centrado con `ksApplyViewport()`; evita el video corrido en PC.
 - `state.sabotageCounts` alimenta el premio **Vengador Anónimo** (antes se le daba al segundo lugar).
 - Eventos nuevos: `player:challenge_vote` → `tv:challenge_vote`; broadcasts `CHALLENGE_START`, `CHALLENGE_CLEAR`, `TOMATO_HIT`.
 

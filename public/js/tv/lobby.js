@@ -288,6 +288,17 @@ function triggerAudioSabotage() {
   const choice = sabotagePhrases[Math.floor(Math.random() * sabotagePhrases.length)];
   axoloSay(choice.text, choice.file, 4000, true);
 
+  // Sabotaje real: el audio del video se corta 3 s. El video sigue en su
+  // tiempo para no desincronizar la letra ni el reloj de la canción.
+  const video = document.getElementById('karaoke-video');
+  if (video && video.readyState >= 2) {
+    const wasMuted = video.muted;
+    try { video.muted = true; } catch (e) {}
+    setTimeout(() => {
+      try { video.muted = wasMuted; } catch (e) {}
+    }, 3000);
+  }
+
   RitmikaStyleFX.screenShake(14, 600);
 
   const overlay = document.createElement('div');

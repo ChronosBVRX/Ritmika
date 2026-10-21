@@ -60,6 +60,9 @@ const state = {
   tomatazoCounts: {},
   sabotageCounts: {},
   currentChallenge: null,
+  currentAssignment: null,
+  songLimitSeconds: null,
+  songStartOffset: 0,
   challengeVotes: [],
   challengeVotedBy: new Set(),
   assignedSongs: {}, // targetSocketId → { attackerName, songId }

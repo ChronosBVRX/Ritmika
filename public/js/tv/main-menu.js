@@ -93,6 +93,7 @@ const MainMenu = (function () {
   const STORAGE = {
     music: 'ritmika_menu_music',
     motion: 'ritmika_reduced_motion',
+    quickSongs: 'ritmika_quick_songs',
   };
 
   const screen = document.getElementById('mode-selection-screen');
@@ -109,6 +110,7 @@ const MainMenu = (function () {
   let modalTrigger = null;
   let musicOn = true;
   let reducedMotion = false;
+  let quickSongs = false;
   let wasActive = screen.classList.contains('active');
   let initialized = false;
 
@@ -633,8 +635,8 @@ const MainMenu = (function () {
           <div class="mm-step"><span class="mm-step-num">2</span><span class="mm-step-icon">🎭</span><h4>PREPÁRATE</h4><p>Elige avatar, géneros y tus gallos. El Tío Axolo hace el resto.</p></div>
           <div class="mm-step"><span class="mm-step-num">3</span><span class="mm-step-icon">🎤</span><h4>CANTA Y VOTA</h4><p>Tres rondas, retos, tomatazos y sabotajes. El público decide tu destino.</p></div>
         </div>
-        <div class="mm-note">🍅 <b>Tomatazo:</b> cuesta 30 pts. 📢 <b>Sabotaje:</b> entre todos pueden desatar al Tío Axolo. La ruleta y la votación avanzan solas; el host puede acelerarlas desde su celular.</div>
-        <p style="margin-top:16px;color:#64748b;font-size:12px;letter-spacing:1px;text-transform:uppercase;">2–8 jugadores · 3 rondas · 20–30 minutos</p>
+        <div class="mm-note">🍅 <b>Tomatazo:</b> cuesta 10 pts y resta 15 al cantante. 🎭 <b>Reto:</b> el público decide si lo cumplió (+15). 📢 <b>Sabotaje:</b> corta el audio 3 s. La ruleta y la votación avanzan solas; el host puede acelerarlas desde su celular.</div>
+        <p style="margin-top:16px;color:#64748b;font-size:12px;letter-spacing:1px;text-transform:uppercase;">2–8 jugadores · 3 rondas · 20–30 min · Modo Fiesta 90 s</p>
       `;
     }
     if (kind === 'settings') {
@@ -645,6 +647,7 @@ const MainMenu = (function () {
           ${settingRow('music', 'Música del menú', 'Ambiente para elegir el show', musicOn)}
           ${settingRow('fullscreen', 'Pantalla completa', 'Para que nadie vea el escritorio', !!document.fullscreenElement)}
           ${settingRow('motion', 'Movimiento reducido', 'Menos animaciones para TVs lentas', reducedMotion)}
+          ${settingRow('quickSongs', 'Canciones', quickSongs ? 'Fiesta: 90 s por canción' : 'Canción completa', quickSongs)}
           ${perfRow(window.RitmikaPerf ? window.RitmikaPerf.getMode() : 'auto')}
         </div>
         <div class="mm-note" style="margin-top:16px;">Los ajustes se guardan en esta TV. La música se detiene sola en la partida para no pelear con Axolo ni con las canciones.</div>
@@ -715,6 +718,12 @@ const MainMenu = (function () {
       writeBool(STORAGE.motion, reducedMotion);
       applyMotionPreference();
       setToggle(btn, reducedMotion);
+    } else if (key === 'quickSongs') {
+      quickSongs = !quickSongs;
+      writeBool(STORAGE.quickSongs, quickSongs);
+      setToggle(btn, quickSongs);
+      const note = btn.closest('.mm-setting-row')?.querySelector('small');
+      if (note) note.textContent = quickSongs ? 'Fiesta: 90 s por canción' : 'Canción completa';
     }
   }
 
@@ -773,6 +782,7 @@ const MainMenu = (function () {
     if (!els.cta || !els.name) return;
     musicOn = readBool(STORAGE.music, true);
     reducedMotion = readBool(STORAGE.motion, false);
+    quickSongs = readBool(STORAGE.quickSongs, false);
     applyMotionPreference();
     preload();
     bindCards();
@@ -791,6 +801,7 @@ const MainMenu = (function () {
     selectMode: select,
     isMusicEnabled: () => musicOn,
     isReducedMotion: () => reducedMotion,
+    isQuickSongs: () => quickSongs,
   };
 })();
 

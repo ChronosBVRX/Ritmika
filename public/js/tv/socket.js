@@ -710,6 +710,9 @@ document.getElementById('start-btn').addEventListener('click', () => {
   state.singerQueue = [...state.players].sort(() => Math.random() - 0.5);
   state.currentSingerIdx = 0;
   state.currentChallenge = null;
+  state.currentAssignment = null;
+  state.songLimitSeconds = null;
+  state.songStartOffset = 0;
   state.challengeVotes = [];
   state.challengeVotedBy = new Set();
   state.tomatazoCounts = {};
