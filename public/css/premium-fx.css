@@ -659,6 +659,20 @@ body.podium-final-open #axolo-cutin-bar {
   top: -240px;
 }
 
+/* En la premiación solo se ve el retrato de Axolo; el diálogo va por voz. */
+body.podium-title-open #axolo-cutin-textbox,
+body.podium-award-open #axolo-cutin-textbox,
+body.podium-winner-open #axolo-cutin-textbox,
+body.podium-final-open #axolo-cutin-textbox {
+  display: none !important;
+}
+body.podium-title-open #axolo-cutin-portrait-wrap,
+body.podium-award-open #axolo-cutin-portrait-wrap,
+body.podium-winner-open #axolo-cutin-portrait-wrap {
+  left: 50%;
+  transform: translateX(-50%) skewX(12deg);
+}
+
 /* Resultados: mover el cut-in de Axolo arriba para no tapar la tabla */
 body.scoreboard-open #axolo-cutin-bar {
   top: 5%;
