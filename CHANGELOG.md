@@ -13,6 +13,13 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Tomatazo: proyectil HD con estela, impacto con onda expansiva, estallido de tomate, salpicaduras múltiples, texto `¡TOMATAZO!`, marcador atacante → víctima y penalización.
 - Apagón mental: banner reposicionado, scanlines y viñeta pulsante.
 
+### Audio
+- **Premiación con 5 variantes por fase:** intro, Gallo Supremo, Salsa de Tomate, Vengador Anónimo, 3.er lugar, 2.º lugar, buildup y revelación del ganador.
+- **Modo emo con 5 variantes:** arranques de ronda, podio, premios y carrilla; además se recuperaron los audios faltantes de reto, diario y dedicatoria.
+- **Refuerzos:** `challenge_intro_3/4`, `catalog_ready_3/4`, `award_rey_4` y prompts/reacciones emo.
+- Nuevo `scripts/generate_audio_variety.js` para reproducir el paquete con ElevenLabs.
+- El cut-in conserva la emoción correcta con `axoloMoodForFile()`.
+
 ### Premiación
 - Escenario de premiación **1920×1080** sin personas ni texto, con podio central, papel picado, confeti y luces neón.
 - Trofeos 3D nuevos para **Gallo Supremo**, **Salsa de Tomate**, **Vengador Anónimo** y los premios emo (Corazón Roto, Mejor Indirecta, Sobreviviente).

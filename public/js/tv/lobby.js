@@ -581,6 +581,17 @@ function stopMouthAnimation() {}
 function axoloTalk() {}
 function setAxoloPreset() {}
 
+function axoloMoodForFile(file) {
+  if (AXOLO_PRESET_MAP[file]) return AXOLO_PRESET_MAP[file];
+  if (/^podium_award_gallo/.test(file) ||
+      /^podium_award_tomate/.test(file) ||
+      /^podium_intro_ceremony/.test(file) ||
+      /^podium_winner_reveal/.test(file) ||
+      /^award_rey/.test(file)) return 'laughing';
+  if (/^podium_award_vengador/.test(file)) return 'mischievous';
+  return 'talking';
+}
+
 function _playAxoloAudio(texto, audioFileOrMood) {
   const cleanName = audioFileOrMood.replace(/\.(wav|mp3)$/i, '') + '.mp3';
   const audioUrl = `./assets/audio/${cleanName}`;
@@ -594,7 +605,7 @@ function _playAxoloAudio(texto, audioFileOrMood) {
     active: true,
   };
 
-  const emotion = AXOLO_PRESET_MAP[audioFileOrMood] || 'talking';
+  const emotion = axoloMoodForFile(audioFileOrMood);
   triggerTioAxolCutin(texto, 'manual', emotion);
   duckSfx();
 
@@ -883,7 +894,7 @@ async function axoloSay(text, moodOrDuration = 'neutral', duration = 4000, inter
 
   if (!spokeWithAudio) {
     console.warn('[Voice] narración descartada (welcomePlaying): ' + audioFile);
-    const emotion = AXOLO_PRESET_MAP[audioFile] || (typeof moodOrDuration === 'string' ? moodOrDuration : 'talking');
+    const emotion = axoloMoodForFile(audioFile);
     triggerTioAxolCutin(text, bubbleDur, emotion);
   }
 }

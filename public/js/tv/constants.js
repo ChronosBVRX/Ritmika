@@ -742,7 +742,9 @@ const ROULETTE_WINS = [
 const CHALLENGE_INTROS = [
   { text: '¡Reto de actuación activado! ¡A cantar con estilo! 🎭', file: 'challenge_intro_0.mp3' },
   { text: '¡Hora del reto! Cántenle con ganas y pónganle drama. 🎭', file: 'challenge_intro_1.mp3' },
-  { text: '¡Reto especial! Demuestren que además de afinación, traen actitud escénica. 🌟', file: 'challenge_intro_2.mp3' }
+  { text: '¡Reto especial! Demuestren que además de afinación, traen actitud escénica. 🌟', file: 'challenge_intro_2.mp3' },
+  { text: '¡Reto activado! Ahora demuestren que además de cantar, tienen resistencia emocional.', file: 'challenge_intro_3.mp3' },
+  { text: '¡Hora del reto! La banda quiere ver de qué están hechos... y si sobreviven al ridículo.', file: 'challenge_intro_4.mp3' }
 ];
 
 const BLACKOUT_INTROS = [
@@ -772,7 +774,9 @@ const PODIUM_CLIMAXES = [
 const CATALOG_READIES = [
   { text: '¡El catálogo de canciones está listo! 🎵', file: 'catalog_ready_0.mp3' },
   { text: '¡Todas las rolas cargadas y listas para sonar! 🎶', file: 'catalog_ready_1.mp3' },
-  { text: '¡Ya pueden buscar sus temas preferidos! Catálogo listo. 📂', file: 'catalog_ready_2.mp3' }
+  { text: '¡Ya pueden buscar sus temas preferidos! Catálogo listo. 📂', file: 'catalog_ready_2.mp3' },
+  { text: '¡Catálogo listo, banda! Ya pueden buscar hasta la canción que les rompió el corazón.', file: 'catalog_ready_3.mp3' },
+  { text: '¡Todas las rolas cargadas! Elijan con cuidado, que aquí no hay marcha atrás.', file: 'catalog_ready_4.mp3' }
 ];
 
 const NEW_GAMES = [
@@ -917,6 +921,12 @@ function getGenreBark(player) {
 }
 
 function getVoteReaction(score) {
+  if (typeof state !== 'undefined' && state.gameMode === 'emo' && typeof EMO_MODE_PHRASES !== 'undefined') {
+    const emoLines = score >= 50 ? EMO_MODE_PHRASES.voteGood : EMO_MODE_PHRASES.voteBad;
+    if (emoLines && emoLines.length) {
+      return emoLines[Math.floor(Math.random() * emoLines.length)];
+    }
+  }
   let key = 10;
   if (score >= 80) key = 100;
   else if (score >= 50) key = 60;
@@ -943,6 +953,29 @@ const EMO_MODE_PHRASES = {
     { text: 'Si no traes delineador negro, puedes salir de la sala. Esto es Rítmika Emo. 💔', file: 'emo/emo_intro_4.mp3' },
     { text: 'Hoy no venimos a ganar, venimos a desahogarnos. Bienvenidos al club de los corazones rotos.', file: 'emo/emo_intro_5.mp3' }
   ],
+  roundIntros: {
+    1: [
+      { text: 'Ronda uno: Tu Diario de Depresión. Escojan la canción que más les duela.', file: 'emo/emo_round_1_intro.mp3' },
+      { text: 'Ronda uno: Abran su diario, banda. Hoy se canta con el corazón roto y el delineador corrido.', file: 'emo/emo_round_1_intro_1.mp3' },
+      { text: 'Primera ronda: Tu Diario de Depresión. Saquen esa canción que nadie más entiende.', file: 'emo/emo_round_1_intro_2.mp3' },
+      { text: 'Ronda uno: el diario secreto se abre. Elijan la rola que les recuerda a su ex.', file: 'emo/emo_round_1_intro_3.mp3' },
+      { text: 'Arranca la ronda uno: Tu Diario de Depresión. Aquí no se juzga... bueno, sí.', file: 'emo/emo_round_1_intro_4.mp3' }
+    ],
+    2: [
+      { text: 'Ronda dos: Trauma Compartido. Asigna una canción a alguien más. Destruyan su dignidad.', file: 'emo/emo_round_2_intro.mp3' },
+      { text: 'Ronda dos: Trauma Compartido. Elijan la canción más cruel para su rival emocional.', file: 'emo/emo_round_2_intro_1.mp3' },
+      { text: 'Segunda ronda: repartan dolor. Asignen una canción que les duela hasta el alma.', file: 'emo/emo_round_2_intro_2.mp3' },
+      { text: 'Ronda dos: Fuego Cruzado Emo. Denle a su compa la canción que más les rompió.', file: 'emo/emo_round_2_intro_3.mp3' },
+      { text: 'Ronda dos: Trauma Compartido. Hoy el amor se demuestra asignando sufrimiento.', file: 'emo/emo_round_2_intro_4.mp3' }
+    ],
+    3: [
+      { text: 'Ronda tres: Apagón Emocional. Canten desde la memoria, a oscuras.', file: 'emo/emo_round_3_intro.mp3' },
+      { text: 'Ronda tres: Apagón Emocional. Sin letra, sin luz y sin esperanza.', file: 'emo/emo_round_3_intro_1.mp3' },
+      { text: 'Tercera ronda: canten a oscuras, como en su cuarto a las 3 de la mañana.', file: 'emo/emo_round_3_intro_2.mp3' },
+      { text: 'Ronda tres: el apagón emocional. Demuestren que se saben la canción de memoria.', file: 'emo/emo_round_3_intro_3.mp3' },
+      { text: 'Última ronda: Apagón Emocional. La oscuridad juzga, la banda también.', file: 'emo/emo_round_3_intro_4.mp3' }
+    ]
+  },
   roulette: [
     { text: 'La ruleta va a elegir quién abre su diario frente a todos. 📓🖤', file: 'emo/emo_roulette_0.mp3' },
     { text: 'Gira la rueda del dolor adolescente. A ver quién llora primero. 💔', file: 'emo/emo_roulette_1.mp3' },
@@ -960,10 +993,19 @@ const EMO_MODE_PHRASES = {
   ],
   vote: [
     { text: 'Hora de votar. ¿Fue arte, drama o puro berrinche afinado? 🗳️', file: 'emo/emo_vote_0.mp3' },
+    { text: 'Hora de votar, banda emo. ¿Fue arte, drama o puro berrinche afinado?', file: 'emo/emo_vote_1.mp3' },
+    { text: 'Saquen las palomitas y el delineador: es hora de calificar el sufrimiento.', file: 'emo/emo_vote_2.mp3' },
+    { text: 'Voten con el corazón roto, no con la razón. ¿Qué tal estuvo la actuación?', file: 'emo/emo_vote_3.mp3' },
+    { text: 'Es momento de la verdad. ¿Lloramos con ustedes o lloramos por nosotros?', file: 'emo/emo_vote_4.mp3' }
+  ],
+  voteGood: [
     { text: 'Wow. Me hiciste llorar, y eso que soy un ajolote digital.', file: 'emo/emo_vote_good_0.mp3' },
     { text: 'Tanta oscuridad en esa interpretación. Fue... poético.', file: 'emo/emo_vote_good_1.mp3' },
     { text: '¡Qué intensidad! Si sigo escuchándote, me voy a pintar las uñas de negro.', file: 'emo/emo_vote_good_2.mp3' },
     { text: 'Mis respetos. Cantaste con tanto dolor que me dieron ganas de mandarle un mensaje a mi ex.', file: 'emo/emo_vote_good_3.mp3' },
+    { text: 'Eso estuvo tan intenso que hasta mi playlist de los 2000 se puso celosa.', file: 'emo/emo_vote_good_4.mp3' }
+  ],
+  voteBad: [
     { text: 'Eso no dolió por el sentimiento, dolió por la desafinación.', file: 'emo/emo_vote_bad_0.mp3' },
     { text: 'Mis oídos lloran sangre. Y no de manera artística.', file: 'emo/emo_vote_bad_1.mp3' },
     { text: 'Eso dolió más que cuando se separó My Chemical Romance.', file: 'emo/emo_vote_bad_2.mp3' },
@@ -972,13 +1014,17 @@ const EMO_MODE_PHRASES = {
   ],
   blackout: [
     { text: 'Se fue la letra, como se fue esa persona. Sigue cantando. 🌑', file: 'emo/emo_blackout_0.mp3' },
-    { text: 'Sin pantalla, sin ayuda y sin estabilidad emocional. 🖤', file: 'emo/emo_blackout_1.mp3' }
+    { text: 'Sin pantalla, sin ayuda y sin estabilidad emocional. 🖤', file: 'emo/emo_blackout_1.mp3' },
+    { text: 'Se apagó la pantalla, pero no el drama. Canta de memoria, corazón.', file: 'emo/emo_blackout_2.mp3' },
+    { text: 'Sin letra y sin señal, como tu ex. Demuestra que te sabes la canción.', file: 'emo/emo_blackout_3.mp3' },
+    { text: 'Apagón emocional: la única luz que queda es tu voz desafinada.', file: 'emo/emo_blackout_4.mp3' }
   ],
   idle: [
     { text: '¿Se van a apurar o sigo escribiendo en mi fotolog? 🖤', file: 'emo/emo_idle_0.mp3' },
     { text: 'Tanto drama y ni siquiera han empezado. Qué decepción.', file: 'emo/emo_idle_1.mp3' },
     { text: 'El silencio es ensordecedor... igual que sus promesas vacías.', file: 'emo/emo_lobby_idle_0.mp3' },
-    { text: '¿A qué hora empezamos? La depresión no se va a curar sola.', file: 'emo/emo_lobby_idle_1.mp3' }
+    { text: '¿A qué hora empezamos? La depresión no se va a curar sola.', file: 'emo/emo_lobby_idle_1.mp3' },
+    { text: '¿Van a empezar o sigo aquí, viendo cómo se acumulan los sentimientos?', file: 'emo/emo_idle_4.mp3' }
   ],
   welcome: [
     { text: 'Bienvenidos a este rincón de miseria... digo, al lobby de Rítmika. Vamos a llorar juntos.', file: 'emo/emo_lobby_0.mp3' },
@@ -989,6 +1035,20 @@ const EMO_MODE_PHRASES = {
   podium: [
     { text: 'Y así termina nuestra sesión de terapia grupal. Veamos quién sufrió más.', file: 'emo/emo_podium_intro.mp3' },
     { text: 'El rey de la desgracia. Ganaste, supongo. Felicidades por tu victoria vacía.', file: 'emo/emo_podium_winner.mp3' }
+  ],
+  podiumIntro: [
+    { text: 'Y así termina nuestra sesión de terapia grupal. Veamos quién sufrió más.', file: 'emo/emo_podium_intro.mp3' },
+    { text: 'La noche se apaga, pero el drama sigue. Es hora de la premiación emo.', file: 'emo/emo_podium_intro_1.mp3' },
+    { text: 'Bienvenidos a la entrega de premios más triste del año. Saquen los pañuelos.', file: 'emo/emo_podium_intro_2.mp3' },
+    { text: 'Se acabó el karaoke, pero no el sufrimiento. Vamos a premiar el dolor.', file: 'emo/emo_podium_intro_3.mp3' },
+    { text: 'Última parada: la premiación emo. Aquí hasta los trofeos lloran.', file: 'emo/emo_podium_intro_4.mp3' }
+  ],
+  podiumWinner: [
+    { text: 'El rey de la desgracia. Ganaste, supongo. Felicidades por tu victoria vacía.', file: 'emo/emo_podium_winner.mp3' },
+    { text: 'El ganador es el que más sufrió... o el que mejor lo disimuló. Felicidades.', file: 'emo/emo_podium_winner_1.mp3' },
+    { text: 'Coronamos al rey de la desgracia. Que viva el drama.', file: 'emo/emo_podium_winner_2.mp3' },
+    { text: 'Ganaste. No sé si es un premio o una advertencia. Felicidades.', file: 'emo/emo_podium_winner_3.mp3' },
+    { text: 'El trono emo es tuyo. Nadie más quería cargar con tanto drama.', file: 'emo/emo_podium_winner_4.mp3' }
   ],
   sabotage: [
     { text: 'Alguien acaba de sabotearte. Qué traición tan clásica.', file: 'emo/emo_sabotage_0.mp3' },

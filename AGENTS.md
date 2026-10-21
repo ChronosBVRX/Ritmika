@@ -17,7 +17,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 | Build | `build.bat` — genera icono, descarga WebView2, compila C#, copia DLLs |
 | Audio | winmm.dll (MCI) via P/Invoke — MP3 con alias `ritmika_bgm` |
 | Video storage | Cloudflare R2 (presigned URLs via AWS SDK) |
-| Assets | WebP (avatares, vignettes Axolo), MP3 (392 archivos de audio) |
+| Assets | WebP (avatares, vignettes Axolo), MP3 (745 archivos de audio) |
 
 ---
 
@@ -54,7 +54,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/animations.js` — 290 líneas. UISounds (Web Audio API synthesizer) + RitmikaStyleFX (confetti, screen-shake, pop-in, stagger, glowPulse, etc.).
 - `public/js/styles.js` — 68 líneas. CSS helper functions.
 - `public/mobile.html` — ~2015 líneas. Control táctil. 8 pantallas: join, avatar, géneros, artistas, sala de espera, panel de control, asignación R2, podio. Service Worker PWA. Haptic feedback. Fullscreen automático. Deep-linking con `?code=`. Catálogo de artistas vía `/api/artist-map`.
-- `public/assets/audio/` — 392 archivos MP3. Voces Axolo por género (20×9 géneros = 180 barks), reacciones de voto (15×4 tiers = 60), intros (20), premios (16), eventos (lobby, round, blackout, roulette, sabotage, idle, podium, modes, SFX).
+- `public/assets/audio/` — 745 archivos MP3. Voces Axolo por género (20×9 géneros = 180 barks), reacciones de voto (20×4 tiers), 130 audios emo, y el resto intros, premios, variantes de premiación, lobby, rondas y SFX.
 - `public/assets/roulette_bg_stage_wide.webp` — Fondo 16:9 del escenario de ruleta (ComfyUI/SDXL).
 - `public/assets/tomato_projectile_hd.webp` / `tomato_splat_hd.webp` — Tomate y estallido HD con alfa real.
 - `public/assets/avatars/` — 8 WebP de avatares con transparencia alfa real (generados con IA + floodfill, convertidos de PNG a WebP).
@@ -88,6 +88,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `scripts/download_deps.ps1` — Descarga WebView2 SDK de NuGet, extrae DLLs.
 - `scripts/generate_all_audio.js` — Genera voces con ElevenLabs API. Lee API key de `.env`. 172+ frases definidas. Soporta skip si el MP3 ya existe.
 - `scripts/generate_podium_audio.js` — Genera audio de ceremonia de podio con ElevenLabs.
+- `scripts/generate_audio_variety.js` — Genera variantes de voz para premiación, retos, catálogo y modo emo (mín. 5 por fase).
 - `scripts/generate_podium_assets.py` — Genera escenario 16:9 y trofeos 3D de premiación con ComfyUI/SDXL + rembg.
 - `scripts/generate_premium_avatars.py` — Genera los 8 avatares con ComfyUI/SDXL, recorte `rembg` y alfa real.
 - `scripts/generate_podium_extra.js` — Audio extra de podio.
@@ -309,6 +310,12 @@ Celulares desde cualquier lugar
 - **Audio de inicio desactivado**: `new_game.mp3` está comentado en el código.
 - **`menu_music.mp3` SÍ existe** en `public/assets/audio/`.
 
+### Variedad de audio (mín. 5 por fase)
+- `PODIUM_VOICE` en `game.js` elige al azar entre 5 variantes para intro, Gallo, Tomate, Vengador, 3.º, 2.º, buildup y revelación del ganador.
+- `emo/` tiene 5 variantes para rondas, podio, premios y carrilla; los archivos que faltaban de reto/diario/dedicatoria ya existen.
+- `challenge_intro`, `catalog_ready`, `award_rey` y los prompts/reacciones emo también llegan a 5.
+- `AXOLO_PRESET_MAP` se resolvió con `axoloMoodForFile()` para que las variantes nuevas conserven la emoción del cut-in.
+
 ### Sistema de voces Axolo (`public/js/tv/ui.js` + `tv.html`)
 - `axoloSay(text, moodOrDuration)` → función principal. Reproduce audio MP3 y muestra cut-in.
 - `hacerHablarAlAxolo(texto, audioFile)` → normaliza `.wav` a `.mp3` en runtime. Todos los archivos reales son MP3.
@@ -493,7 +500,7 @@ node scripts/migrate_to_sqlite.js   # Genera server/songs.db desde r2_db.json
 | Launcher C# | **COMPLETO** | 281 líneas, bug de RButton corregido, audio desactivado |
 | GameWindow | **COMPLETO** | 132 líneas, WebView2, sin animación de carga |
 | Build System | **COMPLETO** | EXE compilado y funcional, DLLs presentes |
-| Audio Assets | **COMPLETO** | 392 MP3s (180 genre barks + 60 vote reactions + 152 outros) |
+| Audio Assets | **COMPLETO** | 745 MP3s (180 genre barks + 80 vote reactions + 130 emo + variantes/SFX) |
 | Avatar Assets | **COMPLETO** | 8 WebP presentes |
 | Axolo Assets | **COMPLETO** | 6 vignettes WebP + body + variantes por modo |
 | Karaoke DB | **COMPLETO** | 4,515 canciones en SQLite (songs.db), endpoints filtrados |

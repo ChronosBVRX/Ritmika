@@ -1799,15 +1799,17 @@ function nextTurn() {
     let rStartText = '';
     let barkFile = `round_${state.round}_start_${rStartIdx}.mp3`;
     if (state.gameMode === 'emo') {
-      let phrases = EMO_MODE_PHRASES.intro;
-      let choice = phrases[Math.floor(Math.random() * 3)]; // 0, 1, 2 are general intros
-      
-      if (state.round === 1 && phrases.length >= 4) choice = phrases[3];
-      if (state.round === 2 && phrases.length >= 5) choice = phrases[4];
-      if (state.round === 3 && phrases.length >= 6) choice = phrases[5];
-      
-      rStartText = choice.text;
-      barkFile = choice.file;
+      const lines = EMO_MODE_PHRASES.roundIntros && EMO_MODE_PHRASES.roundIntros[state.round];
+      if (lines && lines.length) {
+        const choice = lines[Math.floor(Math.random() * lines.length)];
+        rStartText = choice.text;
+        barkFile = choice.file;
+      } else {
+        const phrases = EMO_MODE_PHRASES.intro;
+        const choice = phrases[Math.floor(Math.random() * 3)];
+        rStartText = choice.text;
+        barkFile = choice.file;
+      }
     } else {
       if (state.round === 1) {
         rStartText = rStartIdx === 0 ? "&#161;Ronda 1 iniciando! Prep&#225;rense para cantar." : "&#161;Arranca la Ronda 1! Escojan sus mejores rolas y demuestren talento.";
@@ -1828,10 +1830,122 @@ function nextTurn() {
 //  PODIO FINAL - PREMIUM
 // ==============================================
 const AWARD_CARRILLA = {
-  rey:      [{text:'&#161;La banda reconoci&#243; al verdadero &#237;dolo de la noche!', file:'award_rey_0.mp3'}, {text:'&#161;Nadie le llega ni a los talones!', file:'award_rey_1.mp3'}, {text:'&#161;El micr&#243;fono ya tiene nuevo due&#241;o permanente!', file:'award_rey_2.mp3'}],
+  rey:      [{text:'&#161;La banda reconoci&#243; al verdadero &#237;dolo de la noche!', file:'award_rey_0.mp3'}, {text:'&#161;Nadie le llega ni a los talones!', file:'award_rey_1.mp3'}, {text:'&#161;El micr&#243;fono ya tiene nuevo due&#241;o permanente!', file:'award_rey_2.mp3'}, {text:'&#161;El Rey del Palenque no se discute: se respeta!', file:'award_rey_3.mp3'}, {text:'&#161;Ah&#237; est&#225; el campe&#243;n, se&#241;ores!', file:'award_rey_4.mp3'}],
   gallo:    [{text:'&#161;Los perros del barrio aullaron de solidaridad!', file:'award_gallo_0.mp3'}, {text:'&#161;Urgen 3 meses de solfeo, urgente!', file:'award_gallo_1.mp3'}, {text:'&#161;El honor de la familia exige pr&#225;ctica diaria!', file:'award_gallo_2.mp3'}],
   tomate:   [{text:'&#161;La banda habl&#243; con los proyectiles!', file:'award_tomate_0.mp3'}, {text:'&#161;Concentr&#243; todo el amor en forma de tomate!', file:'award_tomate_1.mp3'}, {text:'&#161;Tan bueno que mereci&#243; atenci&#243;n especial de todos!', file:'award_tomate_2.mp3'}],
   vengador: [{text:'&#161;Rob&#243; m&#225;s puntos que el gobierno!', file:'award_vengador_0.mp3'}, {text:'&#161;La t&#225;ctica del ataque silencioso funcion&#243; perfecto!', file:'award_vengador_1.mp3'}, {text:'&#161;Estratega karaoke de alto nivel!', file:'award_vengador_2.mp3'}],
+};
+
+const PODIUM_VOICE = {
+  intro: [
+    { text: '¡Bienvenidos a la Gran Premiación de Rítmika, banda! Saquen las micheladas, que hoy se corona al Rey del Palenque y se abuchea al Gallo Supremo. ¡Que empiece la carrilla!', file: 'podium_intro_ceremony_0.mp3' },
+    { text: '¡Llegó el momento de la verdad, compas! Aquí se reparten trofeos, aplausos y unas buenas dosis de vergüenza ajena. ¡Arranca la premiación!', file: 'podium_intro_ceremony_1.mp3' },
+    { text: '¡Se acabó el karaoke, pero no la carrilla! Bienvenidos a la premiación, donde el talento se premia y el desafine también. ¡Vamos con todo!', file: 'podium_intro_ceremony_2.mp3' },
+    { text: '¡Banda, llegó la hora de coronar al Rey del Palenque! Y no se preocupen, al Gallo Supremo también le tenemos su trofeo y su salsa. ¡Comienza la fiesta!', file: 'podium_intro_ceremony_3.mp3' },
+    { text: '¡Atención, palenque! La noche se cierra con premios, chistes y algún que otro tomate volador. ¡Que viva la premiación, carnales!', file: 'podium_intro_ceremony_4.mp3' },
+  ],
+  gallo: [
+    { text: '¡Primer premio, banda! Gallo Supremo para el que cantó como gato en licuadora, pero con el corazón en la mano. ¡Que viva el valor!', file: 'podium_award_gallo_0.mp3' },
+    { text: '¡Y el Gallo Supremo se lo lleva el que desafinó más fuerte que la bocina del tianguis! Aplausos, que también se sufre.', file: 'podium_award_gallo_1.mp3' },
+    { text: '¡Gallo Supremo! Para el compa que se aventó al escenario sin miedo y sin afinación. ¡Eso también es arte, carnal!', file: 'podium_award_gallo_2.mp3' },
+    { text: '¡El premio Gallo Supremo es para el que hizo llorar a los perros del barrio! Tranquilo, aquí te queremos igual.', file: 'podium_award_gallo_3.mp3' },
+    { text: '¡Gallo Supremo, señores! El trofeo al valor desafinado. Porque cantar mal frente a la banda tiene su mérito y su carrilla.', file: 'podium_award_gallo_4.mp3' },
+  ],
+  tomate: [
+    { text: '¡Salsa de Tomate! Para el que recibió más tomates que la selección en el Azteca. Pero ojo, aquí el tomate es cariño... creo.', file: 'podium_award_tomate_0.mp3' },
+    { text: '¡Y el premio Salsa de Tomate es para el más atacado de la noche! Con tanto jitomate ya puedes abrir tu puesto en el tianguis, carnal.', file: 'podium_award_tomate_1.mp3' },
+    { text: '¡Salsa de Tomate! El público te mandó tomates hasta por debajo de la puerta. No te preocupes, de aquí salió una salsa bien picante.', file: 'podium_award_tomate_2.mp3' },
+    { text: '¡Salsa de Tomate para el superviviente del tomatazo! La banda te quiso tanto que te hizo ensalada. ¡Felicidades, compa!', file: 'podium_award_tomate_3.mp3' },
+    { text: '¡Salsa de Tomate! Porque recibir tomates también es protagonismo. Ya tienes material para tu propio puesto de salsas, mi rey.', file: 'podium_award_tomate_4.mp3' },
+  ],
+  vengador: [
+    { text: '¡Vengador Anónimo! Para el que sabotajeó más calladito que ex en WhatsApp. Todos te odiamos un poquito, pero te respetamos.', file: 'podium_award_vengador_0.mp3' },
+    { text: '¡Vengador Anónimo! El que apagó el audio más veces que la luz en el barrio. Estratega, carnal, estratega.', file: 'podium_award_vengador_1.mp3' },
+    { text: '¡Vengador Anónimo! Saboteador profesional con cara de no romper un plato. La banda ya te tiene en la mira.', file: 'podium_award_vengador_2.mp3' },
+    { text: '¡Vengador Anónimo! Robó más atención que el compa que llega tarde a la fiesta. Pero qué bien lo hizo, ¿eh?', file: 'podium_award_vengador_3.mp3' },
+    { text: '¡Vengador Anónimo! El premio al que saboteó con estilo. Nadie sabe quién fuiste... bueno, todos lo sabemos, compadre.', file: 'podium_award_vengador_4.mp3' },
+  ],
+  third: [
+    { text: '¡Antes del gran campeón, hay que reconocer al tercer lugar! Con una actuación que ni fu ni fa...', file: 'podium_reveal_third_0.mp3' },
+    { text: '¡En tercer lugar, el que sobrevivió al karaoke con más pena que gloria!', file: 'podium_reveal_third_1.mp3' },
+    { text: '¡Tercer lugar! No fue el mejor, pero tampoco el peor. Un logro muy mexicano, la neta.', file: 'podium_reveal_third_2.mp3' },
+    { text: '¡Y el tercer lugar se lo lleva el que aguantó tres rondas sin que se le acabara la vergüenza!', file: 'podium_reveal_third_3.mp3' },
+    { text: '¡Tercer lugar! El bronce sabe a victoria... o a que faltó ensayo, pero igual se celebra.', file: 'podium_reveal_third_4.mp3' },
+  ],
+  second: [
+    { text: '¡Y en segundo lugar, alguien que se la rifó y casi arrebata la corona!', file: 'podium_reveal_second_0.mp3' },
+    { text: '¡Segundo lugar! Te quedaste a un tomatazo de la gloria, carnal. ¡Bien jugado!', file: 'podium_reveal_second_1.mp3' },
+    { text: '¡En segundo lugar, la banda te quiere, pero el rey ya tiene dueño... por poquito!', file: 'podium_reveal_second_2.mp3' },
+    { text: '¡Segundo lugar! Casi, casi. Como cuando dices que llegas en cinco minutos y llegas en una hora.', file: 'podium_reveal_second_3.mp3' },
+    { text: '¡Segundo lugar! Te faltó un estribillo para coronarte. Pero esta noche te llevas aplausos y carrilla.', file: 'podium_reveal_second_4.mp3' },
+  ],
+  buildup: [
+    { text: '¡Llegó el momento que todos esperaban! Después de tres rondas, canciones, tomatazos y mucha carrilla... ha llegado la hora de coronar al Rey del Palenque. El ganador de Rítmika es...', file: 'podium_winner_buildup_0.mp3' },
+    { text: '¡Banda, llegó la hora de la verdad! Saquen las palomitas, apaguen el WhatsApp y pónganse cómodos, porque vamos a coronar al Rey del Palenque. El ganador es...', file: 'podium_winner_buildup_1.mp3' },
+    { text: '¡Ya se armó el momento épico! Tres rondas, mil desafines y un montón de tomates después... el nuevo Rey del Palenque es...', file: 'podium_winner_buildup_2.mp3' },
+    { text: '¡No se vayan, que esto se pone bueno! La banda ya votó, los tomates ya volaron y el trono está caliente. El Rey del Palenque es...', file: 'podium_winner_buildup_3.mp3' },
+    { text: '¡Atención, palenque! El momento más esperado de la noche: coronar al Rey del Palenque. Y el ganador de Rítmika es...', file: 'podium_winner_buildup_4.mp3' },
+  ],
+  reveal: [
+    { text: '¡El nuevo Rey del Palenque! El que demostró que tiene flow y que no le tiembla la voz. ¡Felicidades, campeón, de parte del Tío Axolo y de toda la banda!', file: 'podium_winner_reveal_0.mp3' },
+    { text: '¡Tenemos nuevo Rey del Palenque! La noche queda oficialmente coronada. ¡Que viva el palenque!', file: 'podium_winner_reveal_1.mp3' },
+    { text: '¡El Rey del Palenque ha sido coronado! La banda te aclama, los tomates te respetan y el micrófono ya tiene dueño. ¡Felicidades!', file: 'podium_winner_reveal_2.mp3' },
+    { text: '¡Se acabó la duda! El Rey del Palenque es el que se llevó la noche con flow, carisma y algún que otro berrinche. ¡Que viva el campeón!', file: 'podium_winner_reveal_3.mp3' },
+    { text: '¡El nuevo Rey del Palenque! Porque cantar bien es opcional, pero tener flow... eso no se negocia. ¡Felicidades, mi rey!', file: 'podium_winner_reveal_4.mp3' },
+  ],
+};
+
+function pickPodiumLine(key) {
+  const lines = PODIUM_VOICE[key] || [];
+  return lines[Math.floor(Math.random() * lines.length)] || { text: '', file: null };
+}
+
+const EMO_AWARD_CARRILLA = {
+  heart: [
+    { text: 'Ni tu ex te dejó tan mal como esta puntuación.', file: 'emo/emo_award_0.mp3' },
+    { text: 'Tu corazón tiene más grietas que la pantalla de mi celular.', file: 'emo/emo_award_0_1.mp3' },
+    { text: 'Lloraste tanto que hasta el micrófono pidió terapia.', file: 'emo/emo_award_0_2.mp3' },
+    { text: 'El premio al corazón más roto: ni el Titanic se hundió tanto.', file: 'emo/emo_award_0_3.mp3' },
+    { text: 'Tu ex te mandó un mensaje... mentira, pero dolió igual.', file: 'emo/emo_award_0_4.mp3' },
+  ],
+  indirect: [
+    { text: 'Esa indirecta dolió hasta en la otra cuadra.', file: 'emo/emo_award_1.mp3' },
+    { text: 'Tus indirectas tienen más veneno que el WhatsApp de la familia.', file: 'emo/emo_award_1_1.mp3' },
+    { text: 'El premio a la indirecta más filosa: hasta el Tío Axolo se dio por aludido.', file: 'emo/emo_award_1_2.mp3' },
+    { text: 'Publicaste un estado y todos supimos de quién hablabas. Arte.', file: 'emo/emo_award_1_3.mp3' },
+    { text: 'Esa indirecta llegó más lejos que el wifi del vecino.', file: 'emo/emo_award_1_4.mp3' },
+  ],
+  blackout: [
+    { text: 'Cantaste en la oscuridad mejor que en la luz.', file: 'emo/emo_award_2.mp3' },
+    { text: 'Sobreviviste al apagón como sobreviviste a tu ex: con dignidad y desafinando.', file: 'emo/emo_award_2_1.mp3' },
+    { text: 'El premio a cantar a oscuras: ni la luz se atrevió a verte.', file: 'emo/emo_award_2_2.mp3' },
+    { text: 'Sobreviviente del apagón. La oscuridad te queda bien.', file: 'emo/emo_award_2_3.mp3' },
+    { text: 'Cantaste sin letra, sin luz y sin vergüenza. Un ejemplo para la banda.', file: 'emo/emo_award_2_4.mp3' },
+  ],
+};
+
+const EMO_PODIUM_AWARDS = {
+  heart: [
+    { text: 'Primer premio: Corazón Más Roto. Para quien nos hizo sufrir más que su ex. Y el ganador es...', file: 'emo/emo_podium_award_0.mp3' },
+    { text: 'El premio Corazón Más Roto va para el que lloró hasta en el coro. El ganador es...', file: 'emo/emo_podium_award_0_1.mp3' },
+    { text: 'Corazón Más Roto: un trofeo para el que convirtió el karaoke en terapia. El ganador es...', file: 'emo/emo_podium_award_0_2.mp3' },
+    { text: 'Primer premio: el corazón más roto de la noche. Y no, no es un cumplido. El ganador es...', file: 'emo/emo_podium_award_0_3.mp3' },
+    { text: 'Corazón Más Roto. Porque hay heridas que ni el autotune cura. El ganador es...', file: 'emo/emo_podium_award_0_4.mp3' },
+  ],
+  indirect: [
+    { text: 'Siguiente premio: Mejor Indirecta. Para esa persona que lanza dagas como si publicara estados de Messenger...', file: 'emo/emo_podium_award_1.mp3' },
+    { text: 'Mejor Indirecta: el premio a decir todo sin decir nada. El ganador es...', file: 'emo/emo_podium_award_1_1.mp3' },
+    { text: 'Siguiente premio: Mejor Indirecta. Sus estados de WhatsApp deberían venir con advertencia. El ganador es...', file: 'emo/emo_podium_award_1_2.mp3' },
+    { text: 'Mejor Indirecta: para el que publica una canción y todos sabemos de quién habla. El ganador es...', file: 'emo/emo_podium_award_1_3.mp3' },
+    { text: 'Mejor Indirecta. El arte de herir con emojis. El ganador es...', file: 'emo/emo_podium_award_1_4.mp3' },
+  ],
+  blackout: [
+    { text: 'Último premio: Sobreviviente del Apagón. Brillaste más en la oscuridad. El premio es para...', file: 'emo/emo_podium_award_2.mp3' },
+    { text: 'Sobreviviente del Apagón: para el que cantó sin luz y sin vergüenza. El premio es para...', file: 'emo/emo_podium_award_2_1.mp3' },
+    { text: 'Último premio: Sobreviviente del Apagón. La oscuridad no pudo contigo. El premio es para...', file: 'emo/emo_podium_award_2_2.mp3' },
+    { text: 'Sobreviviente del Apagón. Cantaste a ciegas y aun así nos hiciste llorar. El premio es para...', file: 'emo/emo_podium_award_2_3.mp3' },
+    { text: 'Último premio: el que sobrevivió al apagón emocional. El premio es para...', file: 'emo/emo_podium_award_2_4.mp3' },
+  ],
 };
 
 let podiumBgm = null;
@@ -1856,9 +1970,9 @@ function showPodium() {
   let awardsData = [];
   if (state.gameMode === 'emo') {
     awardsData = [
-      { icon:'💔', img: './assets/modes/emo/award_broken_heart.webp?v=3', title:'Corazón Más Roto', subtitle:'Mayor Sufrimiento', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: {text:'Ni tu ex te dejó tan mal como esta puntuación.', file: 'emo/emo_award_0.mp3'} },
-      { icon:'📱', img: './assets/modes/emo/award_indirecta.webp?v=3', title:'Mejor Indirecta', subtitle:'Fuego Cruzado Emo', player: vengador, color:'#a855f7', border:'#9333ea', obj: {text:'Esa indirecta dolió hasta en la otra cuadra.', file: 'emo/emo_award_1.mp3'} },
-      { icon:'🌑', img: './assets/modes/emo/award_blackout.webp?v=3', title:'Sobreviviente', subtitle:'Superó el Apagón', player: sorted[0], color:'#facc15', border:'#eab308', obj: {text:'Cantaste en la oscuridad mejor que en la luz.', file: 'emo/emo_award_2.mp3'} },
+      { icon:'💔', img: './assets/modes/emo/award_broken_heart.webp?v=3', title:'Corazón Más Roto', subtitle:'Mayor Sufrimiento', player: sorted[sorted.length-1], color:'#6b7280', border:'#4b5563', obj: rand(EMO_AWARD_CARRILLA.heart) },
+      { icon:'📱', img: './assets/modes/emo/award_indirecta.webp?v=3', title:'Mejor Indirecta', subtitle:'Fuego Cruzado Emo', player: vengador, color:'#a855f7', border:'#9333ea', obj: rand(EMO_AWARD_CARRILLA.indirect) },
+      { icon:'🌑', img: './assets/modes/emo/award_blackout.webp?v=3', title:'Sobreviviente', subtitle:'Superó el Apagón', player: sorted[0], color:'#facc15', border:'#eab308', obj: rand(EMO_AWARD_CARRILLA.blackout) },
     ];
   } else {
     awardsData = [
@@ -1992,10 +2106,11 @@ function showPodium() {
     anime({targets:trophyEl,scale:[1,1.08,1],duration:1800,loop:true,easing:'easeInOutSine'});
     _stopCurrentAxolo();
     if (typeof state !== 'undefined' && state.gameMode === 'emo') {
-      const p = EMO_MODE_PHRASES.podium[0];
+      const p = rand(EMO_MODE_PHRASES.podiumIntro);
       axoloSay(p.text, p.file, 4000, true);
     } else {
-      axoloSay('&#161;Bienvenidos, banda, a la Gran Premiaci&#243;n de R&#237;tmika! Lleg&#243; el momento de la verdad. Vamos a coronar al Rey del Palenque, pero tambi&#233;n vamos a dar carrilla. Premios especiales, podio de ganadores, y muchas sorpresas m&#225;s. &#161;Que empiece la ceremonia!','podium_intro_ceremony.mp3', 4000, true);
+      const introLine = pickPodiumLine('intro');
+      axoloSay(introLine.text, introLine.file, 4000, true);
     }
     await waitForAxoloAudio(1500);
     anime({targets:[titleBlock,subtitleEl,trophyEl],opacity:[1,0],translateY:[0,-40],duration:500,easing:'easeInCubic'});
@@ -2057,22 +2172,19 @@ function showPodium() {
       anime({targets:aCard,opacity:[0,1],translateX:[sideDir*130+'%','0%'],duration:850,easing:'easeOutBack'});
       if(axoloOverlay) axoloOverlay.style.zIndex='10002';
       _stopCurrentAxolo();
-      let awardCeremonyFile = award.icon==='&#128019;' ? 'podium_award_gallo.mp3' : (award.icon==='&#127813;' ? 'podium_award_tomate.mp3' : 'podium_award_vengador.mp3');
-      let awardCeremonyText = award.icon==='&#128019;' ? '&#161;El primero de los premios especiales... Gallo Supremo! Para el m&#225;s valiente, el que se atrevi&#243; a cantar pareciendo gato en licuadora. Banda, el Gallo Supremo de la noche es...' : (award.icon==='&#127813;' ? '&#161;Y ahora el premio Salsa de Tomate! Para el que recibi&#243; m&#225;s tomatazos que la selecci&#243;n en el Azteca. El rey de los tomatazos de la noche es...' : '&#161;El premio al Vengador An&#243;nimo! Saboteador profesional con cara de inocente. Rob&#243; m&#225;s puntos que el SAT. El Vengador An&#243;nimo es...');
-
+      let awardLine = award.icon === '&#128019;' ? pickPodiumLine('gallo')
+        : award.icon === '&#127813;' ? pickPodiumLine('tomate')
+        : pickPodiumLine('vengador');
       if (state.gameMode === 'emo') {
         if (award.icon === '💔') {
-          awardCeremonyFile = 'emo/emo_podium_award_0.mp3';
-          awardCeremonyText = 'Primer premio: Corazón Más Roto. Para quien nos hizo sufrir más que su ex. Y el ganador es...';
+          awardLine = rand(EMO_PODIUM_AWARDS.heart);
         } else if (award.icon === '📱') {
-          awardCeremonyFile = 'emo/emo_podium_award_1.mp3';
-          awardCeremonyText = 'Siguiente premio: Mejor Indirecta. Para esa persona que lanza dagas como si publicara estados de Messenger...';
+          awardLine = rand(EMO_PODIUM_AWARDS.indirect);
         } else if (award.icon === '🌑') {
-          awardCeremonyFile = 'emo/emo_podium_award_2.mp3';
-          awardCeremonyText = 'Último premio: Sobreviviente del Apagón. Brillaste más en la oscuridad. El premio es para...';
+          awardLine = rand(EMO_PODIUM_AWARDS.blackout);
         }
       }
-      axoloSay(awardCeremonyText, awardCeremonyFile, 4000, true);
+      axoloSay(awardLine.text, awardLine.file, 4000, true);
       // El narrador presenta el premio; el nombre y la carrilla se revelan
       // cuando termina de anunciarlo (antes se veían desde el segundo cero).
       await waitForAxoloAudio(400);
@@ -2142,11 +2254,8 @@ function showPodium() {
       if(sd.place===2) p3steps.replaceChild(revealSlot,leftSlot);
       else p3steps.replaceChild(revealSlot,rightSlot);
       _stopCurrentAxolo();
-      if (sd.place===3) {
-        axoloSay('&#161;Antes del gran campe&#243;n, hay que reconocer a los que llegaron al podio! En tercer lugar, con una actuaci&#243;n que ni fu ni fa... &#161;' + escapeHtml(sd.player.name) + '!', 'podium_reveal_third.mp3', 4000, true);
-      } else {
-        axoloSay('&#161;Y en segundo lugar, alguien que se la rif&#243; y casi arrebata la corona! &#161;' + escapeHtml(sd.player.name) + '!', 'podium_reveal_second.mp3', 4000, true);
-      }
+      const placementLine = pickPodiumLine(sd.place === 3 ? 'third' : 'second');
+      axoloSay(placementLine.text + ' ¡' + escapeHtml(sd.player.name) + '!', placementLine.file, 4000, true);
       await waitForAxoloAudio(400);
       if(revealSlot.parentNode) revealSlot.replaceWith(stepDiv);
       UISounds.reveal();
@@ -2166,7 +2275,8 @@ function showPodium() {
       anime({targets:blackout,opacity:[0,0.95],duration:600,easing:'easeInQuad'});
       await wait(400);
       _stopCurrentAxolo();
-      axoloSay('&#161;Lleg&#243; el momento que todos esperaban! Despu&#233;s de tres rondas, canciones, tomatazos, y mucha carrilla... ha llegado la hora de coronar al Rey del Palenque. El ganador de R&#237;tmika es...', 'podium_winner_buildup.mp3', 4000, true);
+      const buildupLine = pickPodiumLine('buildup');
+      axoloSay(buildupLine.text, buildupLine.file, 4000, true);
       await waitForAxoloAudio(500);
       blackout.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;"><p id="susp-text" style="font-family:\'Paytone One\',sans-serif;font-size:28px;color:#94a3b8;letter-spacing:10px;text-transform:uppercase;opacity:0;">Y el ganador es...</p><div id="countdown-wrap" style="display:flex;gap:30px;margin-top:10px;"></div></div>';
       anime({targets:'#susp-text',opacity:[0,1],translateY:[20,0],duration:600,easing:'easeOutQuad'});
@@ -2226,10 +2336,11 @@ function showPodium() {
       if(wScoreEl) setTimeout(()=>animatePodiumCounter(wScoreEl,sorted[0].score||0,1400),700);
       _stopCurrentAxolo();
       if (typeof state !== 'undefined' && state.gameMode === 'emo') {
-        const p = EMO_MODE_PHRASES.podium[1];
+        const p = rand(EMO_MODE_PHRASES.podiumWinner);
         axoloSay(p.text, p.file, 4000, true);
       } else {
-        axoloSay('&#161;El nuevo Rey del Palenque! &#161;' + escapeHtml(sorted[0].name) + '! El que demostr&#243; que tiene flow y que no le tiembla la voz. &#161;Felicidades, campe&#243;n, de parte del T&#237;o Axolo y de toda la banda!', 'podium_winner_reveal.mp3', 4000, true);
+        const revealLine = pickPodiumLine('reveal');
+        axoloSay(revealLine.text, revealLine.file, 4000, true);
       }
       [800,1200,1600,2000].forEach(delay=>{
         setTimeout(()=>fireworkBurst(window.innerWidth*(0.2+Math.random()*0.6),window.innerHeight*(0.1+Math.random()*0.4)),delay);
