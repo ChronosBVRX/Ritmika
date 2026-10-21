@@ -14,6 +14,10 @@ Todas las notables cambios a Rítmika. Formato basado en [Keep a Changelog](http
 - Apagón mental: banner reposicionado, scanlines y viñeta pulsante.
 
 ### Audio
+- **Lobby con presentación y explicación:** 5 variantes de presentación, 5 de cómo jugar, 5 de rondas y 5 de carrilla, además de las 10 de join y la rotación de idle.
+- La voz del lobby suena **sin cut-in**, baja la música y respeta la cola; no tapa QR/código/lista.
+- La presentación entra al abrir el lobby; después rota con los idle cada 45 s. Al iniciar la partida se corta la voz del lobby.
+- Nuevas líneas de join/nueva partida usan `axoloLobbySay()`.
 - **Premiación con 5 variantes por fase:** intro, Gallo Supremo, Salsa de Tomate, Vengador Anónimo, 3.er lugar, 2.º lugar, buildup y revelación del ganador.
 - **Modo emo con 5 variantes:** arranques de ronda, podio, premios y carrilla; además se recuperaron los audios faltantes de reto, diario y dedicatoria.
 - **Refuerzos:** `challenge_intro_3/4`, `catalog_ready_3/4`, `award_rey_4` y prompts/reacciones emo.

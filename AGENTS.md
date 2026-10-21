@@ -17,7 +17,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 | Build | `build.bat` — genera icono, descarga WebView2, compila C#, copia DLLs |
 | Audio | winmm.dll (MCI) via P/Invoke — MP3 con alias `ritmika_bgm` |
 | Video storage | Cloudflare R2 (presigned URLs via AWS SDK) |
-| Assets | WebP (avatares, vignettes Axolo), MP3 (745 archivos de audio) |
+| Assets | WebP (avatares, vignettes Axolo), MP3 (765 archivos de audio) |
 
 ---
 
@@ -54,7 +54,7 @@ Karaoke party game estilo Jackbox. Servidor en la nube en un VPS de Oracle Cloud
 - `public/js/animations.js` — 290 líneas. UISounds (Web Audio API synthesizer) + RitmikaStyleFX (confetti, screen-shake, pop-in, stagger, glowPulse, etc.).
 - `public/js/styles.js` — 68 líneas. CSS helper functions.
 - `public/mobile.html` — ~2015 líneas. Control táctil. 8 pantallas: join, avatar, géneros, artistas, sala de espera, panel de control, asignación R2, podio. Service Worker PWA. Haptic feedback. Fullscreen automático. Deep-linking con `?code=`. Catálogo de artistas vía `/api/artist-map`.
-- `public/assets/audio/` — 745 archivos MP3. Voces Axolo por género (20×9 géneros = 180 barks), reacciones de voto (20×4 tiers), 130 audios emo, y el resto intros, premios, variantes de premiación, lobby, rondas y SFX.
+- `public/assets/audio/` — 765 archivos MP3. Voces Axolo por género (20×9 géneros = 180 barks), reacciones de voto (20×4 tiers), 130 audios emo, y el resto intros, premios, variantes de premiación, lobby, rondas y SFX.
 - `public/assets/roulette_bg_stage_wide.webp` — Fondo 16:9 del escenario de ruleta (ComfyUI/SDXL).
 - `public/assets/tomato_projectile_hd.webp` / `tomato_splat_hd.webp` — Tomate y estallido HD con alfa real.
 - `public/assets/avatars/` — 8 WebP de avatares con transparencia alfa real (generados con IA + floodfill, convertidos de PNG a WebP).
@@ -240,11 +240,12 @@ Celulares desde cualquier lugar
 - “Abrir ajustes de Bluetooth” queda como último recurso explícito.
 - La app Android sigue cargando `tv.html` remoto; el panel nativo se actualiza con el APK/OTA.
 
-### Lobby sin diálogos de Axolo
-- Mientras `#lobby-screen` está activa, `axoloSay()` se ignora por completo: no hay cut-in ni voz.
-- Al entrar al lobby se hace un fade-out de 320ms por si venía hablando desde la selección de modo.
-- Los diálogos de Axolo vuelven en cuanto empieza la partida (`state.round > 0` / pantalla de ruleta).
-- El lobby debe priorizar código de sala, QR y lista de jugadores.
+### Lobby con voz, sin cut-in
+- `axoloSay()` sigue bloqueado en lobby para no tapar QR/código/lista con el cut-in.
+- Los audios propios del lobby usan `axoloLobbySay()`: suenan sin cut-in, bajan la música y respetan la cola de voz.
+- `LOBBY_PRESENTATION_PHRASES` (5) presenta el juego al entrar; `LOBBY_HOW_TO_PHRASES`, `LOBBY_ROUNDS_PHRASES` y `LOBBY_CARRILLA_PHRASES` (5 cada uno) rotan con los idle cada 45 s.
+- Las líneas de jugador que se une y de nueva partida también usan `axoloLobbySay()`.
+- Al iniciar la partida se detiene la voz del lobby; los diálogos con cut-in vuelven en la ruleta.
 
 ### Sin launcher panel — directo a GameWindow
 - `Ritmika.exe` abre directo GameWindow (WebView2), sin formulario previo.
@@ -311,6 +312,7 @@ Celulares desde cualquier lugar
 - **`menu_music.mp3` SÍ existe** en `public/assets/audio/`.
 
 ### Variedad de audio (mín. 5 por fase)
+- Lobby: 5 presentaciones, 5 explicaciones de cómo jugar, 5 de rondas y 5 de carrilla; rotan sin cut-in.
 - `PODIUM_VOICE` en `game.js` elige al azar entre 5 variantes para intro, Gallo, Tomate, Vengador, 3.º, 2.º, buildup y revelación del ganador.
 - `emo/` tiene 5 variantes para rondas, podio, premios y carrilla; los archivos que faltaban de reto/diario/dedicatoria ya existen.
 - `challenge_intro`, `catalog_ready`, `award_rey` y los prompts/reacciones emo también llegan a 5.
@@ -500,7 +502,7 @@ node scripts/migrate_to_sqlite.js   # Genera server/songs.db desde r2_db.json
 | Launcher C# | **COMPLETO** | 281 líneas, bug de RButton corregido, audio desactivado |
 | GameWindow | **COMPLETO** | 132 líneas, WebView2, sin animación de carga |
 | Build System | **COMPLETO** | EXE compilado y funcional, DLLs presentes |
-| Audio Assets | **COMPLETO** | 745 MP3s (180 genre barks + 80 vote reactions + 130 emo + variantes/SFX) |
+| Audio Assets | **COMPLETO** | 765 MP3s (180 genre barks + 80 vote reactions + 130 emo + variantes/SFX) |
 | Avatar Assets | **COMPLETO** | 8 WebP presentes |
 | Axolo Assets | **COMPLETO** | 6 vignettes WebP + body + variantes por modo |
 | Karaoke DB | **COMPLETO** | 4,515 canciones en SQLite (songs.db), endpoints filtrados |

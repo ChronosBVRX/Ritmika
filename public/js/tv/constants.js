@@ -720,6 +720,38 @@ const LOBBY_WELCOME_PHRASES = [
   { text: "¡Arrancamos Rítmika! Prepárense para cantar, reír y lanzar tomates. Escaneen el QR ya mismo. 🍅", file: "lobby_welcome_4.mp3" }
 ];
 
+const LOBBY_PRESENTATION_PHRASES = [
+  { text: "¡Bienvenidos a Rítmika, el karaoke party game más picante del palenque! Soy el Tío Axolo y hoy vengo a repartir micrófono, retos y carrilla. Escaneen el QR, elijan su avatar y prepárense para cantar.", file: "lobby_presentation_0.mp3" },
+  { text: "¡Banda, llegaron al lugar donde el talento es opcional y la carrilla es obligatoria! Rítmika es un karaoke estilo Jackbox: su TV es el escenario y sus celulares son los controles. Únanse con el código.", file: "lobby_presentation_1.mp3" },
+  { text: "¡Qué onda, compas! Soy el Tío Axolo, su anfitrión. En Rítmika van a cantar, votar, lanzar tomates y sabotearse con cariño. Todo desde el celular. ¡Escaneen el QR y empiecen!", file: "lobby_presentation_2.mp3" },
+  { text: "¡Bienvenidos al palenque digital! Aquí la ruleta decide quién canta, el público califica y los tomates vuelan. Rítmika es fiesta, karaoke y carrilla mexicana. ¡Conéctense!", file: "lobby_presentation_3.mp3" },
+  { text: "¡Llegó la fiesta, banda! Rítmika es un karaoke party game para 2 a 8 jugadores. La TV pone el show, sus celulares los controles, y el Tío Axolo la voz. ¡Escaneen el código y empiecen!", file: "lobby_presentation_4.mp3" }
+];
+
+const LOBBY_HOW_TO_PHRASES = [
+  { text: "Para entrar, escaneen el QR o tecleen el código en el celular. Elijan su avatar, sus géneros y sus artistas favoritos. Cuando todos estén listos, el host le da a empezar.", file: "lobby_howto_0.mp3" },
+  { text: "Es fácil: cada quien elige avatar, géneros y artistas. La ruleta decide quién canta, el público vota del 10 al 100 y los tomatazos vuelan. Al final, el Rey del Palenque se lleva la corona.", file: "lobby_howto_1.mp3" },
+  { text: "El juego tiene tres rondas: Tu Elección, Tu Condena; Fuego Cruzado, donde asignan canciones; y Apagón Mental, donde cantan de memoria. El público vota y la carrilla se sirve.", file: "lobby_howto_2.mp3" },
+  { text: "En Rítmika nadie se salva: cantan todos, votan todos y se tomatean todos. El cantante puede recibir retos, apagones y saboteos. La banda decide quién gana.", file: "lobby_howto_3.mp3" },
+  { text: "El host inicia desde su celular. La TV muestra la ruleta, las canciones y el podio. Ustedes solo necesitan su celular, sus ganas de cantar y cero vergüenza.", file: "lobby_howto_4.mp3" }
+];
+
+const LOBBY_ROUNDS_PHRASES = [
+  { text: "Tres rondas, banda: en la primera cada quien canta lo que quiere; en la segunda le asignan canción a un rival; y en la tercera cantan a oscuras. El que sobreviva, gana.", file: "lobby_rounds_0.mp3" },
+  { text: "Ronda uno: Tu Elección, Tu Condena, con ruleta y reto. Ronda dos: Fuego Cruzado, donde te vengan con una canción. Ronda tres: Apagón Mental, a cantar de memoria.", file: "lobby_rounds_1.mp3" },
+  { text: "La ruleta decide el orden, pero la banda decide el destino. Ronda uno, elección; ronda dos, venganza; ronda tres, apagón. Y al final, podio y carrilla.", file: "lobby_rounds_2.mp3" },
+  { text: "Cada ronda tiene su veneno: ruleta y reto en la uno, canciones asignadas en la dos, y apagón en la tres. El público vota y los tomates hacen su trabajo.", file: "lobby_rounds_3.mp3" },
+  { text: "No es solo cantar: es sobrevivir a la ruleta, a los retos y a los tomatazos. Tres rondas, un podio y una corona. ¿Quién se anima?", file: "lobby_rounds_4.mp3" }
+];
+
+const LOBBY_CARRILLA_PHRASES = [
+  { text: "Aquí no solo se canta: se lanzan tomates, se sabotea el audio y se reparten indirectas. Todo con cariño, ¿eh? El público decide si te salvas o te hunden.", file: "lobby_carrilla_0.mp3" },
+  { text: "El tomatazo cuesta puntos, el sabotaje corta el audio y el reto pone a prueba tu dignidad. La banda tiene el poder. Úsalo con responsabilidad... o no.", file: "lobby_carrilla_1.mp3" },
+  { text: "Si te toca el Gallo Supremo, no llores: el premio también es carrilla. Y si te toca la Salsa de Tomate, ya tienes puesto en el tianguis.", file: "lobby_carrilla_2.mp3" },
+  { text: "En Rítmika el público vota, comenta y se venga. Los tomates vuelan, los retos aprietan y el podio se corona con drama. ¡Así es la fiesta!", file: "lobby_carrilla_3.mp3" },
+  { text: "No hay premio para el más educado, pero sí para el más valiente, el más tomateado y el más vengador. La carrilla es parte del show.", file: "lobby_carrilla_4.mp3" }
+];
+
 const ROOM_READY_PHRASES = [
   { text: "¡La sala está lista! Escanéen el código y únanse al juego! 📱", file: "room_ready_0.mp3" },
   { text: "¡Sala abierta y lista! Ya pueden unirse. ¿Quién se atreve a ser el primero? 🚀", file: "room_ready_1.mp3" },

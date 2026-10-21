@@ -333,7 +333,8 @@ socket.on('tv:player_joined', ({ player, players }) => {
   const now = Date.now();
   if (!window.lastLobbyVoice || now - window.lastLobbyVoice > 3500) {
     window.lastLobbyVoice = now;
-    axoloSay(choice.text, choice.file);
+    if (typeof axoloLobbySay === 'function') axoloLobbySay(choice.text, choice.file);
+    else if (typeof axoloSay === 'function') axoloSay(choice.text, choice.file);
   }
   if (activeCount >= 1) {
     document.getElementById('start-btn').classList.remove('hidden');
@@ -703,6 +704,7 @@ onReady(async () => {
 document.getElementById('start-btn').addEventListener('click', () => {
   if (!state.roomCode) return;
   if (state.round > 0) return;
+  if (typeof _stopCurrentAxolo === 'function') _stopCurrentAxolo();
   UISounds.stinger();
   clearSavedGame();
   FlowDirector.enter('starting', { label: 'Iniciando partida' });

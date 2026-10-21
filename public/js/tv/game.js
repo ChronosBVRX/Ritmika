@@ -2475,13 +2475,15 @@ function showPodium() {
       state.singerQueue=[];state.audioSabotageCount=0;state.tomatazoCounts={};state.sabotageCounts={};state.currentChallenge=null;state.currentAssignment=null;state.songLimitSeconds=null;state.songStartOffset=0;state.challengeVotes=[];state.challengeVotedBy=new Set();challengeDeck=[];hideChallengeHud();
       socket.emit('tv:create_room');
       showScreen('lobby-screen');
+      if (typeof startLobbyIdleLoop === 'function') startLobbyIdleLoop();
       FlowDirector.enter('lobby', { label: 'Sala de espera' });
       if (typeof bootMusic !== 'undefined' && bootMusic && window.__RITMIKA_MENU_MUSIC !== false) {
         bootMusic.volume = 0.22;
         bootMusic.play().catch(()=>{});
       }
       const newGameChoice=NEW_GAMES[Math.floor(Math.random()*NEW_GAMES.length)];
-      axoloSay(newGameChoice.text,newGameChoice.file,4000,true);
+      if (typeof axoloLobbySay === 'function') axoloLobbySay(newGameChoice.text, newGameChoice.file, true);
+      else axoloSay(newGameChoice.text,newGameChoice.file,4000,true);
     };
     restartBtn.addEventListener('click',()=>{
       if (!FlowDirector.request('new_game')) {

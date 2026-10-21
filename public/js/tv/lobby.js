@@ -592,7 +592,7 @@ function axoloMoodForFile(file) {
   return 'talking';
 }
 
-function _playAxoloAudio(texto, audioFileOrMood) {
+function _playAxoloAudio(texto, audioFileOrMood, options = {}) {
   const cleanName = audioFileOrMood.replace(/\.(wav|mp3)$/i, '') + '.mp3';
   const audioUrl = `./assets/audio/${cleanName}`;
   const audio = new Audio(audioUrl);
@@ -605,8 +605,12 @@ function _playAxoloAudio(texto, audioFileOrMood) {
     active: true,
   };
 
-  const emotion = axoloMoodForFile(audioFileOrMood);
-  triggerTioAxolCutin(texto, 'manual', emotion);
+  if (options.cutin === false) {
+    hideTioAxolCutin();
+  } else {
+    const emotion = axoloMoodForFile(audioFileOrMood);
+    triggerTioAxolCutin(texto, 'manual', emotion);
+  }
   duckSfx();
 
   audio.addEventListener('loadedmetadata', function () {
@@ -640,7 +644,7 @@ function _playAxoloAudio(texto, audioFileOrMood) {
       const next = axoloQueue.shift();
       _queueDrainTimeout = setTimeout(() => {
         _queueDrainTimeout = null;
-        _playAxoloAudio(next.text, next.audioFile);
+        _playAxoloAudio(next.text, next.audioFile, next.options || {});
       }, 400);
     } else {
       hideTioAxolCutin();
@@ -674,7 +678,7 @@ function _playAxoloAudio(texto, audioFileOrMood) {
         const next = axoloQueue.shift();
         _queueDrainTimeout = setTimeout(() => {
           _queueDrainTimeout = null;
-          _playAxoloAudio(next.text, next.audioFile);
+          _playAxoloAudio(next.text, next.audioFile, next.options || {});
         }, 400);
       } else {
         hideTioAxolCutin();
@@ -701,7 +705,7 @@ function _playAxoloAudio(texto, audioFileOrMood) {
         const next = axoloQueue.shift();
         _queueDrainTimeout = setTimeout(() => {
           _queueDrainTimeout = null;
-          _playAxoloAudio(next.text, next.audioFile);
+          _playAxoloAudio(next.text, next.audioFile, next.options || {});
         }, 400);
       } else {
         hideTioAxolCutin();
@@ -827,7 +831,7 @@ function _isLobbyDialogueBlocked() {
   );
 }
 
-async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt = false) {
+async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt = false, options = {}) {
   const isAudioFile = typeof audioFileOrMood === 'string' &&
                       (audioFileOrMood.endsWith('.wav') || audioFileOrMood.endsWith('.mp3'));
 
@@ -840,18 +844,18 @@ async function hacerHablarAlAxolo(texto, audioFileOrMood = 'neutral', interrupt 
     if (interrupt) {
       // Narración crítica (ceremonia, arranque, retos): tiene que sonar YA.
       _stopCurrentAxolo();
-      _playAxoloAudio(texto, audioFileOrMood);
+      _playAxoloAudio(texto, audioFileOrMood, options);
       return true;
     }
 
     // Si ya hay una voz sonando, la nueva frase se encola. Antes se borraba
     // la cola y se perdían anuncios completos (premiación desfasada).
     if (_axoloIsBusy()) {
-      axoloQueue.push({ text: texto, audioFile: audioFileOrMood });
+      axoloQueue.push({ text: texto, audioFile: audioFileOrMood, options });
       return true;
     }
 
-    _playAxoloAudio(texto, audioFileOrMood);
+    _playAxoloAudio(texto, audioFileOrMood, options);
     return true;
   } catch (err) {
     console.error('[Voice] Error playing ElevenLabs audio asset:', err);
@@ -899,6 +903,26 @@ async function axoloSay(text, moodOrDuration = 'neutral', duration = 4000, inter
   }
 }
 
+// Voz de lobby: se escucha sin cut-in para no tapar QR/código/lista.
+async function axoloLobbySay(text, file, interrupt = false) {
+  if (!file) return;
+  const music = typeof bootMusic !== 'undefined' ? bootMusic : null;
+  const prevVol = music ? music.volume : null;
+  if (music && !music.paused) {
+    try { music.volume = 0.06; } catch (e) {}
+  }
+  const played = await hacerHablarAlAxolo(text, file, interrupt, { cutin: false });
+  if (music && prevVol != null) {
+    const restore = () => { try { music.volume = prevVol; } catch (e) {} };
+    if (window.AxoloNarrator && typeof AxoloNarrator.whenIdle === 'function') {
+      AxoloNarrator.whenIdle({ maxMs: 30000 }).then(restore);
+    } else {
+      setTimeout(restore, 5000);
+    }
+  }
+  return played;
+}
+
 
 // Idle phrases
 const idlePhrases = [
@@ -911,19 +935,37 @@ const idlePhrases = [
   { text: 'Tengo el micrófono listo y el autotune apagado, apúrense. 🎚️', file: 'idle_6.mp3' },
   { text: '¡El público se impacienta y yo también! ¡Vamos a darle! 📣', file: 'idle_7.mp3' },
 ];
-let phraseIdx = 0;
-let idleInterval = setInterval(() => {
-  if (state.round === 0) {
-    const lobbyScreen = document.getElementById('lobby-screen');
-    if (!lobbyScreen || !lobbyScreen.classList.contains('active')) return;
-    let currentPhrases = idlePhrases;
-    if (typeof state !== 'undefined' && state && state.gameMode === 'emo' && typeof EMO_MODE_PHRASES !== 'undefined' && EMO_MODE_PHRASES.idle) {
-      currentPhrases = EMO_MODE_PHRASES.idle;
-    }
-    const choice = currentPhrases[phraseIdx++ % currentPhrases.length];
-    axoloSay(choice.text, choice.file);
+let lobbyTalkDeck = [];
+function drawLobbyTalk() {
+  if (!lobbyTalkDeck.length) {
+    const pool = [
+      ...idlePhrases,
+      ...(typeof LOBBY_HOW_TO_PHRASES !== 'undefined' ? LOBBY_HOW_TO_PHRASES : []),
+      ...(typeof LOBBY_ROUNDS_PHRASES !== 'undefined' ? LOBBY_ROUNDS_PHRASES : []),
+      ...(typeof LOBBY_CARRILLA_PHRASES !== 'undefined' ? LOBBY_CARRILLA_PHRASES : []),
+    ];
+    lobbyTalkDeck = pool.sort(() => Math.random() - 0.5);
   }
-}, 45000); // cada 45 s: antes eran 8 s y resultaba cansado
+  return lobbyTalkDeck.pop();
+}
+let idleInterval = null;
+function startLobbyIdleLoop() {
+  if (idleInterval) clearInterval(idleInterval);
+  idleInterval = setInterval(() => {
+    if (state.round === 0) {
+      const lobbyScreen = document.getElementById('lobby-screen');
+      if (!lobbyScreen || !lobbyScreen.classList.contains('active')) return;
+      if (typeof state !== 'undefined' && state && state.gameMode === 'emo' && typeof EMO_MODE_PHRASES !== 'undefined' && EMO_MODE_PHRASES.idle) {
+        const choice = EMO_MODE_PHRASES.idle[Math.floor(Math.random() * EMO_MODE_PHRASES.idle.length)];
+        axoloLobbySay(choice.text, choice.file);
+        return;
+      }
+      const choice = drawLobbyTalk();
+      if (choice) axoloLobbySay(choice.text, choice.file);
+    }
+  }, 45000); // cada 45 s: antes eran 8 s y resultaba cansado
+}
+startLobbyIdleLoop();
 // ════════════════════════════════════════════
 //  CONEXIÓN QR DINÁMICA
 // ════════════════════════════════════════════

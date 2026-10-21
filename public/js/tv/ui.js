@@ -106,13 +106,13 @@ function animateLobbyWelcome() {
   }, 600);
 
   setTimeout(() => {
-    if (window.pendingLobbyAudio) {
-      axoloSay(window.pendingLobbyAudio.text, window.pendingLobbyAudio.file);
-      window.pendingLobbyAudio = null;
-    } else {
-      const wChoice = LOBBY_WELCOME_PHRASES[Math.floor(Math.random() * LOBBY_WELCOME_PHRASES.length)];
-      axoloSay(wChoice.text, wChoice.file);
-    }
+    window.pendingLobbyAudio = null;
+    const pool = (typeof LOBBY_PRESENTATION_PHRASES !== 'undefined' && LOBBY_PRESENTATION_PHRASES.length)
+      ? LOBBY_PRESENTATION_PHRASES
+      : LOBBY_WELCOME_PHRASES;
+    const choice = pool[Math.floor(Math.random() * pool.length)];
+    if (typeof axoloLobbySay === 'function') axoloLobbySay(choice.text, choice.file);
+    else axoloSay(choice.text, choice.file);
   }, 1200);
 }
 

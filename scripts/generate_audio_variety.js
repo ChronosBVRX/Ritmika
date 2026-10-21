@@ -169,6 +169,28 @@ const LINES = {
   'mode_intro_ranchera': '¡Noche de despecho! Puro dolor, mariachi y tequila. ¡Agárrense!',
   'mode_intro_nostalgia': '¡Modo Nostalgia 2000s! Saca tu discman y tu lado emo, que esto se va a poner intenso.',
   'mode_intro_anime': '¡Otaku Fest! A cantar los mejores openings antes de que caiga el meteorito.',
+
+  // ═══ LOBBY · presentación y explicación del juego ═══
+  'lobby_presentation_0': '¡Bienvenidos a Rítmika, el karaoke party game más picante del palenque! Soy el Tío Axolo y hoy vengo a repartir micrófono, retos y carrilla. Escaneen el QR, elijan su avatar y prepárense para cantar.',
+  'lobby_presentation_1': '¡Banda, llegaron al lugar donde el talento es opcional y la carrilla es obligatoria! Rítmika es un karaoke estilo Jackbox: su TV es el escenario y sus celulares son los controles. Únanse con el código.',
+  'lobby_presentation_2': '¡Qué onda, compas! Soy el Tío Axolo, su anfitrión. En Rítmika van a cantar, votar, lanzar tomates y sabotearse con cariño. Todo desde el celular. ¡Escanéen el QR y empiecen!',
+  'lobby_presentation_3': '¡Bienvenidos al palenque digital! Aquí la ruleta decide quién canta, el público califica y los tomates vuelan. Rítmika es fiesta, karaoke y carrilla mexicana. ¡Conéctense!',
+  'lobby_presentation_4': '¡Llegó la fiesta, banda! Rítmika es un karaoke party game para 2 a 8 jugadores. La TV pone el show, sus celulares los controles, y el Tío Axolo la voz. ¡Escanéen el código y empiecen!',
+  'lobby_howto_0': 'Para entrar, escaneen el QR o tecleen el código en el celular. Elijan su avatar, sus géneros y sus artistas favoritos. Cuando todos estén listos, el host le da a empezar.',
+  'lobby_howto_1': 'Es fácil: cada quien elige avatar, géneros y artistas. La ruleta decide quién canta, el público vota del 10 al 100 y los tomatazos vuelan. Al final, el Rey del Palenque se lleva la corona.',
+  'lobby_howto_2': 'El juego tiene tres rondas: Tu Elección, Tu Condena; Fuego Cruzado, donde asignan canciones; y Apagón Mental, donde cantan de memoria. El público vota y la carrilla se sirve.',
+  'lobby_howto_3': 'En Rítmika nadie se salva: cantan todos, votan todos y se tomatean todos. El cantante puede recibir retos, apagones y saboteos. La banda decide quién gana.',
+  'lobby_howto_4': 'El host inicia desde su celular. La TV muestra la ruleta, las canciones y el podio. Ustedes solo necesitan su celular, sus ganas de cantar y cero vergüenza.',
+  'lobby_rounds_0': 'Tres rondas, banda: en la primera cada quien canta lo que quiere; en la segunda le asignan canción a un rival; y en la tercera cantan a oscuras. El que sobreviva, gana.',
+  'lobby_rounds_1': 'Ronda uno: Tu Elección, Tu Condena, con ruleta y reto. Ronda dos: Fuego Cruzado, donde te vengan con una canción. Ronda tres: Apagón Mental, a cantar de memoria.',
+  'lobby_rounds_2': 'La ruleta decide el orden, pero la banda decide el destino. Ronda uno, elección; ronda dos, venganza; ronda tres, apagón. Y al final, podio y carrilla.',
+  'lobby_rounds_3': 'Cada ronda tiene su veneno: ruleta y reto en la uno, canciones asignadas en la dos, y apagón en la tres. El público vota y los tomates hacen su trabajo.',
+  'lobby_rounds_4': 'No es solo cantar: es sobrevivir a la ruleta, a los retos y a los tomatazos. Tres rondas, un podio y una corona. ¿Quién se anima?',
+  'lobby_carrilla_0': 'Aquí no solo se canta: se lanzan tomates, se sabotea el audio y se reparten indirectas. Todo con cariño, ¿eh? El público decide si te salvas o te hunden.',
+  'lobby_carrilla_1': 'El tomatazo cuesta puntos, el sabotaje corta el audio y el reto pone a prueba tu dignidad. La banda tiene el poder. Úsalo con responsabilidad... o no.',
+  'lobby_carrilla_2': 'Si te toca el Gallo Supremo, no llores: el premio también es carrilla. Y si te toca la Salsa de Tomate, ya tienes puesto en el tianguis.',
+  'lobby_carrilla_3': 'En Rítmika el público vota, comenta y se venga. Los tomates vuelan, los retos aprietan y el podio se corona con drama. ¡Así es la fiesta!',
+  'lobby_carrilla_4': 'No hay premio para el más educado, pero sí para el más valiente, el más tomateado y el más vengador. La carrilla es parte del show.',
 };
 
 async function generateAudio(filename, text) {
